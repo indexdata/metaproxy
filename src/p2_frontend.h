@@ -1,4 +1,4 @@
-/* $Id: p2_frontend.h,v 1.1 2005-10-06 09:37:25 marc Exp $
+/* $Id: p2_frontend.h,v 1.1.1.1 2005-10-06 09:37:25 marc Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.

@@ -1,4 +1,4 @@
-## $Id: usemarcon.m4,v 1.1 2005-10-06 09:37:25 marc Exp $
+## $Id: usemarcon.m4,v 1.1.1.1 2005-10-06 09:37:25 marc Exp $
 AC_DEFUN([USEMARCON_INIT],
 [
         AC_SUBST(USEMARCONLALIB)
