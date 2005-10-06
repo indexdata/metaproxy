@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
         filter.name() = "filter1 rename";
         std::cout << "filter: " << filter.name() << "\n";
 
-        throw yp2::Filter_Exception("finished");
+        throw yp2::FilterException("finished");
     }
     catch (std::exception &e) {
         std::cout << e.what() << "\n";
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
         pack_in.move();
         std::cout << "pack_in.move()" << "\n";
 
-        throw  yp2::Router_Exception("finished");
+        throw  yp2::RouterException("finished");
 
     }
     catch (std::exception &e) {

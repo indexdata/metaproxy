@@ -5,6 +5,7 @@
 class FilterConstant: public yp2::Filter {
 public:
     yp2::Package & process(yp2::Package & package) const {
+        std::cout << name() + ".process()" << std::endl;
 	package.data() = 1234;
 	return package.move();
     };
@@ -14,6 +15,7 @@ public:
 class FilterDouble: public yp2::Filter {
 public:
     yp2::Package & process(yp2::Package & package) const {
+        std::cout <<  name() + ".process()" << std::endl;
 	package.data() = package.data() * 2;
 	return package.move();
     };
@@ -24,10 +26,12 @@ int main(int argc, char **argv)
 {
     try {
 	FilterConstant fc;
+        fc.name() = "FilterConstant";
 	FilterDouble fd;
+        fd.name() = "FilterDouble";
 
 	{
-	    yp2::Router router1;
+	    yp2::RouterChain router1;
 	    
 	    // test filter set/get/exception
 	    router1.rule(fc);
@@ -46,7 +50,7 @@ int main(int argc, char **argv)
 	    }
 	}
 	{
-	    yp2::Router router1;
+	    yp2::RouterChain router1;
 	    
 	    router1.rule(fd);
 	    router1.rule(fc);
