@@ -1,4 +1,4 @@
-/* $Id: msg-thread.cpp,v 1.1 2005-10-06 09:37:25 marc Exp $
+/* $Id: thread_pool_observer.cpp,v 1.1 2005-10-06 19:33:58 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -26,59 +26,24 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz++/socket-observer.h>
 #include <yaz/log.h>
 
-#include "msg-thread.h"
+#include "thread_pool_observer.h"
 
 using namespace yazpp_1;
 
-IMsg_Thread::~IMsg_Thread()
+IThreadPoolMsg::~IThreadPoolMsg()
 {
 
-}
-
-Msg_Thread_Queue::Msg_Thread_Queue()
-{
-    m_list = 0;
-}
-
-int Msg_Thread_Queue::size()
-{
-    int no = 0;
-    Msg_Thread_Queue_List *l;
-    for (l = m_list; l; l = l->m_next)
-        no++;
-    return no;
-}
-
-void Msg_Thread_Queue::enqueue(IMsg_Thread *m)
-{
-    Msg_Thread_Queue_List *l = new Msg_Thread_Queue_List;
-    l->m_next = m_list;
-    l->m_item = m;
-    m_list = l;
-}
-
-IMsg_Thread *Msg_Thread_Queue::dequeue()
-{
-    Msg_Thread_Queue_List **l = &m_list;
-    if (!*l)
-        return 0;
-    while ((*l)->m_next)
-        l = &(*l)->m_next;
-    IMsg_Thread *m = (*l)->m_item;
-    delete *l;
-    *l = 0;
-    return m;
 }
 
 static void *tfunc(void *p)
 {
-    Msg_Thread *pt = (Msg_Thread *) p;
+    ThreadPoolSocketObserver *pt = (ThreadPoolSocketObserver *) p;
     pt->run(0);
     return 0;
 }
 
 
-Msg_Thread::Msg_Thread(ISocketObservable *obs, int no_threads)
+ThreadPoolSocketObserver::ThreadPoolSocketObserver(ISocketObservable *obs, int no_threads)
     : m_SocketObservable(obs)
 {
     pipe(m_fd);
@@ -97,7 +62,7 @@ Msg_Thread::Msg_Thread(ISocketObservable *obs, int no_threads)
         pthread_create(&m_thread_id[i], 0, tfunc, this);
 }
 
-Msg_Thread::~Msg_Thread()
+ThreadPoolSocketObserver::~ThreadPoolSocketObserver()
 {
     pthread_mutex_lock(&m_mutex_input_data);
     m_stop_flag = true;
@@ -118,21 +83,22 @@ Msg_Thread::~Msg_Thread()
     close(m_fd[1]);
 }
 
-void Msg_Thread::socketNotify(int event)
+void ThreadPoolSocketObserver::socketNotify(int event)
 {
     if (event & SOCKET_OBSERVE_READ)
     {
         char buf[2];
         read(m_fd[0], buf, 1);
         pthread_mutex_lock(&m_mutex_output_data);
-        IMsg_Thread *out = m_output.dequeue();
+        IThreadPoolMsg *out = m_output.front();
+        m_output.pop_front();
         pthread_mutex_unlock(&m_mutex_output_data);
         if (out)
             out->result();
     }
 }
 
-void Msg_Thread::run(void *p)
+void ThreadPoolSocketObserver::run(void *p)
 {
     while(1)
     {
@@ -144,22 +110,24 @@ void Msg_Thread::run(void *p)
             pthread_mutex_unlock(&m_mutex_input_data);
             break;
         }
-        IMsg_Thread *in = m_input.dequeue();
+        IThreadPoolMsg *in = m_input.front();
+        m_input.pop_front();
         pthread_mutex_unlock(&m_mutex_input_data);
 
-        IMsg_Thread *out = in->handle();
+        IThreadPoolMsg *out = in->handle();
         pthread_mutex_lock(&m_mutex_output_data);
-        m_output.enqueue(out);
+
+        m_output.push_back(out);
         
         write(m_fd[1], "", 1);
         pthread_mutex_unlock(&m_mutex_output_data);
     }
 }
 
-void Msg_Thread::put(IMsg_Thread *m)
+void ThreadPoolSocketObserver::put(IThreadPoolMsg *m)
 {
     pthread_mutex_lock(&m_mutex_input_data);
-    m_input.enqueue(m);
+    m_input.push_back(m);
     pthread_cond_signal(&m_cond_input_data);
     pthread_mutex_unlock(&m_mutex_input_data);
 }

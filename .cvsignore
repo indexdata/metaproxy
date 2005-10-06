@@ -7,3 +7,4 @@ config.status
 configure
 libtool
 autom4te.cache
+Doxyfile

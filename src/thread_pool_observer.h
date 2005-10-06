@@ -1,4 +1,4 @@
-/* $Id: msg-thread.h,v 1.1 2005-10-06 09:37:25 marc Exp $
+/* $Id: thread_pool_observer.h,v 1.1 2005-10-06 19:33:58 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -27,48 +27,33 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <dlfcn.h>
 #endif
 
+#include <deque>
 #include <yaz++/socket-observer.h>
 #include <yaz/yconfig.h>
 
-class IMsg_Thread {
+class IThreadPoolMsg {
 public:
-    virtual IMsg_Thread *handle() = 0;
+    virtual IThreadPoolMsg *handle() = 0;
     virtual void result() = 0;
-    virtual ~IMsg_Thread();
+    virtual ~IThreadPoolMsg();
 };
 
-class Msg_Thread_Queue_List {
-    friend class Msg_Thread_Queue;
- private:
-    IMsg_Thread *m_item;
-    Msg_Thread_Queue_List *m_next;
-};
-
-class Msg_Thread_Queue {
+class ThreadPoolSocketObserver : public yazpp_1::ISocketObserver {
  public:
-    Msg_Thread_Queue();
-    void enqueue(IMsg_Thread *in);
-    IMsg_Thread *dequeue();
-    int size();
- private:
-    Msg_Thread_Queue_List *m_list;
-};
-
-class Msg_Thread : public yazpp_1::ISocketObserver {
- public:
-    Msg_Thread(yazpp_1::ISocketObservable *obs, int no_threads);
-    virtual ~Msg_Thread();
+    ThreadPoolSocketObserver(yazpp_1::ISocketObservable *obs, int no_threads);
+    virtual ~ThreadPoolSocketObserver();
     void socketNotify(int event);
-    void put(IMsg_Thread *m);
-    IMsg_Thread *get();
+    void put(IThreadPoolMsg *m);
+    IThreadPoolMsg *get();
     void run(void *p);
     int m_fd[2];
 private:
     yazpp_1::ISocketObservable *m_SocketObservable;
     int m_no_threads;
     pthread_t *m_thread_id;
-    Msg_Thread_Queue m_input;
-    Msg_Thread_Queue m_output;
+
+    std::deque<IThreadPoolMsg *> m_input;
+    std::deque<IThreadPoolMsg *> m_output;
     pthread_mutex_t m_mutex_input_data;
     pthread_cond_t m_cond_input_data;
     pthread_mutex_t m_mutex_output_data;

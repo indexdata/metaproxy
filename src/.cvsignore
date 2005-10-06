@@ -1,0 +1,11 @@
+.libs
+.deps
+*.lo
+*.la
+Makefile
+Makefile.in
+test_filter1
+test_filter2
+design
+p2
+test_thread_pool_observer

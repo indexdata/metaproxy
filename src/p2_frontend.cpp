@@ -1,4 +1,4 @@
-/* $Id: p2_frontend.cpp,v 1.1 2005-10-06 09:37:25 marc Exp $
+/* $Id: p2_frontend.cpp,v 1.2 2005-10-06 19:33:58 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -27,7 +27,8 @@ using namespace yazpp_1;
 using namespace std;
 
 P2_Frontend::P2_Frontend(IPDU_Observable *the_PDU_Observable,
-                         Msg_Thread *my_thread, P2_Server *server)
+                         ThreadPoolSocketObserver 
+                         *my_thread, P2_Server *server)
     :  Z_Assoc(the_PDU_Observable)
 {
     m_my_thread = my_thread;

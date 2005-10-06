@@ -1,4 +1,4 @@
-/* $Id: p2.cpp,v 1.1 2005-10-06 09:37:25 marc Exp $
+/* $Id: p2.cpp,v 1.2 2005-10-06 19:33:58 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -57,7 +57,7 @@ void P2_Server::unlockConfig()
 }
 
 P2_Server::P2_Server(IPDU_Observable *the_PDU_Observable,
-                     Msg_Thread *my_thread,
+                     ThreadPoolSocketObserver *my_thread,
                      P2_Config *config,
                      P2_ModuleFactory *modules)
     :  Z_Assoc(the_PDU_Observable)
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 
     PDU_Assoc *my_PDU_Assoc = 0;
     
-    Msg_Thread my_thread(&mySocketManager, config.m_no_threads);
+    ThreadPoolSocketObserver my_thread(&mySocketManager, config.m_no_threads);
 
     my_PDU_Assoc = new PDU_Assoc(&mySocketManager);
 
