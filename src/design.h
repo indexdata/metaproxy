@@ -1,15 +1,13 @@
 
-#ifndef P3_FILTER_H
-#define P3_FILTER_H
+#ifndef DESIGN_H
+#define DESIGN_H
 
 #include <stdexcept>
 
 
-namespace p3 {
+namespace yp2 {
 
   class Package;
-  
-
   
   class Filter {
   public:
@@ -23,24 +21,24 @@ namespace p3 {
 
     // get function - returns copy and keeps object const, 
     // thus is right val in assignment
-    unsigned int max_front_workers() const {
-      return m_max_front;
+    std::string name() const {
+      return m_name;
     }
     // set function - returns reference and changes object,
     // thus is left val in assignment
-    unsigned int & max_front_workers() {
-      return m_max_front;
+    std::string & name() {
+      return m_name;
     }
     // more traditional set function, taking const reference 
     // or copy (here const ref for demo), returning ref to object
     // can be chained with other similar functions!
-    Filter & max_front_workers(const unsigned int & max_front){
-      m_max_front = max_front;
+    Filter & name(const std::string & name){
+      m_name = name;
       return *this;
     }
     
   private:
-    unsigned int m_max_front;
+    std::string m_name;
   };
 
 
@@ -54,20 +52,23 @@ namespace p3 {
 
   class Router {
   public:
+    Router(){};
     virtual ~Router(){};
-    virtual const Filter & 
-      route(const Filter & filter, Package & package) const {
+    virtual const Filter * 
+      route(const Filter *filter, const Package *package) const {
       //if (!m_sillyrule)
       //throw Router_Exception("no routing rules known");
-          return m_sillyrule;
+          return m_filter;
     };
     virtual void configure(){};
-    Router & rule(Filter filter){
-      m_sillyrule = filter;
+    Router & rule(const Filter &filter){
+      m_filter = &filter;
       return *this;
     }
   private:
-    Filter m_sillyrule;
+    Router(const Router &);
+    Router& operator=(const Router &);
+    const Filter *m_filter;
   };
   
   
@@ -82,11 +83,12 @@ namespace p3 {
   public:
 
     // send package to it's next filter defined in chain
-    void move() {
-      Filter oldfilter;
-      Filter nextfilter = m_router.route(oldfilter, *this);
-      nextfilter.process(*this);
-    }
+    void move() 
+      {
+        m_filter = m_router->route(m_filter, this);
+        if (m_filter)
+          m_filter->process(*this);
+      }
     
 
     // get function - returns copy and keeps object const, 
@@ -110,25 +112,26 @@ namespace p3 {
 
     // get function - returns copy and keeps object const, 
     // thus is right val in assignment
-    Router router() const {
-      return m_router;
-    }
+    //Router router() const {
+    //  return m_router;
+    //}
     // set function - returns reference and changes object,
     // thus is left val in assignment
-    Router & router() {
-      return m_router;
-    }
+    //Router & router() {
+    //  return m_router;
+    //}
     // more traditional set function, taking const reference 
     // or copy (here const ref for demo), returning ref to object
     // can be chained with other similar functions!
-    Package & router(const Router & router){
-      m_router = router;
+    Package & router(const Router &router){
+      m_router = &router;
       return *this;
     }
     
   private:
     unsigned int m_data;
-    Router m_router;
+    const Filter *m_filter;
+    const Router *m_router;
   };
 
 

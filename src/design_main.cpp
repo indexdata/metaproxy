@@ -9,18 +9,15 @@ int main(int argc, char **argv) {
    // test filter set/get/exception
   try {
     std::cout << "\nTRY" << "\n";
-    p3::Filter filter;
-    unsigned int tmp;
+    yp2::Filter filter;
     
-    filter.max_front_workers(1).max_front_workers(2);
-    tmp = filter.max_front_workers();
-    std::cout << "workers: " << tmp << "\n";
+    filter.name("filter1");
+    std::cout << "filter: " << filter.name() << "\n";
 
-    filter.max_front_workers() = 3;
-    tmp = filter.max_front_workers();
-    std::cout << "workers: " << tmp << "\n";
+    filter.name() = "filter1 rename";
+    std::cout << "filter: " << filter.name() << "\n";
 
-    throw p3::Filter_Exception("finished");
+    throw yp2::Filter_Exception("finished");
   }
   catch (std::exception &e) {
     std::cout << e.what() << "\n";
@@ -30,20 +27,23 @@ int main(int argc, char **argv) {
   try {
     std::cout << "\nTRY" << "\n";
 
-    p3::Filter filter1;
-    p3::Filter filter2;
+    yp2::Filter filter1;
+    filter1.name("filter1");
+    
+    yp2::Filter filter2;
+    filter2.name() = "filter2";
 
     std::cout << "filter1 filter2" << "\n";
     
-    p3::Router router1;
+    yp2::Router router1;
     router1.rule(filter1);
     std::cout << "router1.rule(filter1)" << "\n";
 
-    p3::Router router2;
+    yp2::Router router2;
     router2.rule(filter2);
     std::cout << "router2.rule(filter2)" << "\n";
 
-    p3::Package pack_in;
+    yp2::Package pack_in;
     pack_in.data(7).router(router1);
     std::cout << "pack_in.data(7).router(router1)" << "\n";
 
@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
     pack_in.move();
     std::cout << "pack_in.move()" << "\n";
 
-    throw  p3::Router_Exception("finished");
+    throw  yp2::Router_Exception("finished");
 
   }
   catch (std::exception &e) {
