@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.7 2005-10-07 10:03:07 marc Exp $
+## $Id: Makefile.am,v 1.8 2005-10-07 11:42:04 adam Exp $
 
 AM_CXXFLAGS = $(YAZPPINC) $(XSLT_CFLAGS)
 
@@ -26,7 +26,7 @@ p2_SOURCES=p2_frontend.cpp p2_msg.cpp p2.cpp p2_frontend.h \
  thread_pool_observer.cpp thread_pool_observer.h
 
 
-LDADD= $(YAZPPLALIB) $(XSLT_LIBS) -lboost_thread
+LDADD= $(YAZPPLALIB) $(XSLT_LIBS)
 
+test_filter1_LDADD = $(LDADD) -lboost_unit_test_framework
 
-# Modules

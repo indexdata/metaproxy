@@ -1,9 +1,17 @@
 
 #include <iostream>
-
+#include <stdexcept>
 #include "filter.hpp"
 //#include "router.hpp"
 //#include "package.hpp"
+
+ #define BOOST_AUTO_TEST_MAIN
+ #include <boost/test/auto_unit_test.hpp>
+
+//#include <boost/test/unit_test.hpp>
+//#include <boost/test/unit_test_monitor.hpp>
+
+using namespace boost::unit_test;
 
 class TFilter: public yp2::Filter {
 public:
@@ -12,34 +20,30 @@ public:
     };
 };
     
-int main(int argc, char **argv)
+
+BOOST_AUTO_TEST_CASE( test1 )
 {
-    // test filter set/get/exception
-    try {
-        TFilter filter;
-	
-        filter.name("filter1");
-        std::cout <<  filter.name() << std::endl;
 
-	if (filter.name() != "filter1")
-	{
-	    std::cout << "filter name does not match 1\n";
-	    exit(1);
-	}
+    try{
+    TFilter filter;
+    
+    filter.name("filter1");
+    
+    BOOST_CHECK (filter.name() == "filter1");
 
-        filter.name() = "filter1 rename";
-        std::cout <<  filter.name() << std::endl;
-	if (filter.name() != "filter1 rename")
-	{
-	    std::cout << "filter name does not match 2\n";
-	    exit(1);
-	}
+    filter.name() = "filter1 rename";
+
+    BOOST_CHECK(filter.name() == "filter1 rename");
     }
-    catch (std::exception &e) {
-        std::cout << e.what() << "\n";
-	exit(1);
+
+    catch(std::runtime_error &e ){
+        BOOST_CHECK (true);
     }
-    exit(0);
+    catch ( ...) {
+        BOOST_CHECK (false);
+    }
+
+
 }
 
 /*
