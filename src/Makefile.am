@@ -1,4 +1,7 @@
-## $Id: Makefile.am,v 1.9 2005-10-07 13:56:02 adam Exp $
+## $Id: Makefile.am,v 1.10 2005-10-07 21:38:24 marc Exp $
+
+MAINTAINERCLEANFILES    = Makefile.in config.in config.hpp
+
 
 AM_CXXFLAGS = $(YAZPPINC) $(XSLT_CFLAGS)
 
@@ -31,3 +34,9 @@ LDADD= $(YAZPPLALIB) $(XSLT_LIBS)
 test_filter1_LDADD = $(LDADD) -lboost_unit_test_framework
 test_boost_threads_LDADD = $(LDADD) -lboost_unit_test_framework
 
+
+
+
+# doxygen target
+dox:
+	(cd $(top_srcdir) ; make dox) 
