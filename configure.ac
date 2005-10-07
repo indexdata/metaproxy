@@ -80,7 +80,7 @@ fi
 ##AC_HEADER_SYS_WAIT
 ##AC_HEADER_TIME 
 AC_CHECK_HEADERS(iostream list vector stdexcept)
-AC_CHECK_HEADERS(boost/thread/mutex.hpp)
+AC_CHECK_HEADERS(boost/thread/mutex.hpp boost/test/auto_unit_test.hpp)
 
 
 
