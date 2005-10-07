@@ -17,6 +17,7 @@ AM_INIT_AUTOMAKE
 
 # Checks for programs.
 AC_PROG_CXX
+AC_PROG_CXXCPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
@@ -76,9 +77,9 @@ fi
 
 # Checks for header files.
 ##AC_HEADER_STDC
-##AC_HEADER_STDCXX
 ##AC_HEADER_SYS_WAIT
 ##AC_HEADER_TIME 
+AC_CHECK_HEADERS(iostream list vector stdexcept)
 AC_CHECK_HEADERS(boost/thread/mutex.hpp)
 
 
