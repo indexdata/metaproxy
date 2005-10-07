@@ -2,4 +2,4 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = src 
 
-EXTRA_DIST= yazpp.m4 yaz.m4 usemarcon.m4 buildconf.sh
+##EXTRA_DIST= m4/yazpp.m4 m4/yaz.m4  buildconf.sh

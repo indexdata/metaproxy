@@ -9,7 +9,7 @@ AM_CONFIG_HEADER(src/config.hpp)
 AC_CONFIG_SRCDIR(configure.ac) 
 AC_CONFIG_AUX_DIR(config)
 AC_CANONICAL_SYSTEM
-AC_PREFIX_DEFAULT(`pwd`) 
+##AC_PREFIX_DEFAULT(`pwd`/install) 
 
 AM_INIT_AUTOMAKE
 
