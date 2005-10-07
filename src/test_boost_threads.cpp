@@ -1,91 +1,91 @@
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
+
+#define BOOST_AUTO_TEST_MAIN
+#include <boost/test/auto_unit_test.hpp>
+
 #include <list>
 #include <iostream>
-
-boost::mutex io_mutex; // The iostreams are not guaranteed to be thread-safe!
 
 class counter
 {
    public:
       counter() : count(0) { }
       
-      int increment() {
-         boost::mutex::scoped_lock scoped_lock(mutex);
-         return ++count;
-      }
-      
-   private:
-      boost::mutex mutex;
-      int count;
+    int increment() {
+        boost::mutex::scoped_lock scoped_lock(mutex);
+        return ++count;
+    }
+    
+private:
+    boost::mutex mutex;
+    int count;
 };
 
 
 counter c;
 
-void change_count()
-{
-   int i = c.increment();
-   boost::mutex::scoped_lock scoped_lock(io_mutex);
-   std::cout << "count == " << i << std::endl;
-}
-
-
 class worker {
 public:
     void operator() (void) {
-        int i = c.increment();
-        
-        i = c.increment();
-        
-        i = c.increment();
-        boost::mutex::scoped_lock scoped_lock(io_mutex);
-        std::cout << "count == " << i << std::endl;
+        c.increment();
     }
-    virtual ~worker() { std::cout << "destroyed\n"; }
 };
 
+#define USE_GROUP 1
 
 
-int main(int, char*[])
+BOOST_AUTO_TEST_CASE( thread_group )
 {
-   try 
-   {
-      const int num_threads = 4;
-      boost::thread_group thrds;
-      
-      std::list<boost::thread *> thread_list;
-      
-      for (int i=0; i < num_threads; ++i)
-      {
-          // thrds.create_thread(&change_count);
-          worker *w = new worker;
-
-          boost::thread *thr = new boost::thread(*w);
-
-          thrds.add_thread(thr);
-
-          thread_list.push_back(thr);
-      }
-      
-      thrds.join_all();
-#if 0
-      std::list<boost::thread *>::iterator it;
-      for (it = thread_list.begin(); it != thread_list.end(); it++)
-      {
-          delete *it;
-          *it = 0;
-      }
-#endif
-   }
-   catch (std::exception &e) 
-   {
-      std::cout << e.what() << "\n";
-      exit(1);
-   }
-   exit(0);
+    try 
+    {
+        const int num_threads = 4;
+        boost::thread_group thrds;
+        
+        for (int i=0; i < num_threads; ++i)
+        {
+            worker w;
+            thrds.add_thread(new boost::thread(w));
+        }
+        thrds.join_all();
+    }
+    catch (...) 
+    {
+        BOOST_CHECK(false);
+    }
+    BOOST_CHECK(c.increment() == 5);
 }
+
+
+BOOST_AUTO_TEST_CASE( thread_list )
+{
+    try 
+    {
+        const int num_threads = 4;
+        std::list<boost::thread *> thread_list;
+        
+        for (int i=0; i < num_threads; ++i)
+        {
+            worker w;
+            thread_list.push_back(new boost::thread(w));
+        }
+        std::list<boost::thread *>::iterator it;
+        for (it = thread_list.begin(); it != thread_list.end(); it++)
+        {
+            (*it)->join();
+            delete *it;
+        }
+
+    }
+    catch (...) 
+    {
+        BOOST_CHECK(false);
+    }
+    BOOST_CHECK(c.increment() == 10);
+}
+
+
 
 /*
  * Local variables:
