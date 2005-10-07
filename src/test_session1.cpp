@@ -1,37 +1,40 @@
+#include "session.hpp"
 
 #include <iostream>
 
-//#include "filter.hpp"
-//#include "router.hpp"
-//#include "package.hpp"
-#include "session.hpp"
+#define BOOST_AUTO_TEST_MAIN
+#include <boost/test/auto_unit_test.hpp>
 
-  
-int main(int argc, char **argv)
+using namespace boost::unit_test;
+
+BOOST_AUTO_TEST_CASE( testsession1 ) 
 {
+
     // test session 
     try {
         yp2::Session session;
         unsigned long int id;
         id = session.id();
-        std::cout <<  "Session.id() == " << id << std::endl;
         id = session.id();
-        std::cout <<  "Session.id() == " << id << std::endl;
         id = session.id();
-        std::cout <<  "Session.id() == " << id << std::endl;
+        id = session.id();
+        id = session.id();
+        id = session.id();
+        id = session.id();
+        id = session.id();
+        id = session.id();
+        id = session.id();
 
-	if (id != 3)
-	{
-	    std::cout << "Fail: Session.id() != 3\n";
-	    exit(1);
-	}
+        BOOST_CHECK (id == 10);
+        
     }
-
     catch (std::exception &e) {
         std::cout << e.what() << "\n";
-	exit(1);
+        BOOST_CHECK (false);
     }
-    exit(0);
+    catch (...) {
+        BOOST_CHECK (false);
+    }
 }
 
 /*

@@ -1,14 +1,21 @@
 
-#include <iostream>
-//#include "design.h"
+
+
 #include "filter.hpp"
 #include "router.hpp"
 #include "package.hpp"
 
+#include <iostream>
+
+#define BOOST_AUTO_TEST_MAIN
+#include <boost/test/auto_unit_test.hpp>
+
+using namespace boost::unit_test;
+
+
 class FilterConstant: public yp2::Filter {
 public:
     yp2::Package & process(yp2::Package & package) const {
-        std::cout << name() + ".process()" << std::endl;
 	package.data() = 1234;
 	return package.move();
     };
@@ -18,14 +25,13 @@ public:
 class FilterDouble: public yp2::Filter {
 public:
     yp2::Package & process(yp2::Package & package) const {
-        std::cout <<  name() + ".process()" << std::endl;
 	package.data() = package.data() * 2;
 	return package.move();
     };
 };
     
     
-int main(int argc, char **argv)
+BOOST_AUTO_TEST_CASE( testfilter2 ) 
 {
     try {
 	FilterConstant fc;
@@ -47,35 +53,36 @@ int main(int argc, char **argv)
 	    
 	    pack_out = pack_in.router(router1).move(); 
 	    
-	    if (pack_out.data() != 2468)
-	    {
-		exit(1);
-	    }
-	}
-	{
-	    yp2::RouterChain router1;
+            BOOST_CHECK (pack_out.data() == 2468);
+            
+        }
+        
+        {
+            
+	    yp2::RouterChain router2;
 	    
-	    router1.rule(fd);
-	    router1.rule(fc);
+	    router2.rule(fd);
+	    router2.rule(fc);
 	    
 	    yp2::Package pack_in;
 	    
 	    yp2::Package pack_out;
 	    
-	    pack_out = pack_in.router(router1).move(); 
-	    
-	    if (pack_out.data() != 1234)
-	    {
-		exit(1);
-	    }
+	    pack_out = pack_in.router(router2).move();
+     
+            BOOST_CHECK (pack_out.data() == 1234);
+            
 	}
 
     }
     catch (std::exception &e) {
         std::cout << e.what() << "\n";
-	exit(1);
+        BOOST_CHECK (false);
     }
-    exit(0);
+    catch ( ...) {
+        BOOST_CHECK (false);
+    }
+
 }
 
 /*

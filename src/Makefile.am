@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.10 2005-10-07 21:38:24 marc Exp $
+## $Id: Makefile.am,v 1.11 2005-10-07 22:46:16 marc Exp $
 
 MAINTAINERCLEANFILES    = Makefile.in config.in config.hpp
 
@@ -32,6 +32,8 @@ p2_SOURCES=p2_frontend.cpp p2_msg.cpp p2.cpp p2_frontend.h \
 LDADD= $(YAZPPLALIB) $(XSLT_LIBS)
 
 test_filter1_LDADD = $(LDADD) -lboost_unit_test_framework
+test_filter2_LDADD = $(LDADD) -lboost_unit_test_framework
+test_session1_LDADD = $(LDADD) -lboost_unit_test_framework
 test_boost_threads_LDADD = $(LDADD) -lboost_unit_test_framework
 
 
