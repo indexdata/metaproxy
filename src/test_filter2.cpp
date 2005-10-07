@@ -1,6 +1,9 @@
 
 #include <iostream>
-#include "design.h"
+//#include "design.h"
+#include "filter.hpp"
+#include "router.hpp"
+#include "package.hpp"
 
 class FilterConstant: public yp2::Filter {
 public:
