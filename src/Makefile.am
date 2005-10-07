@@ -1,6 +1,6 @@
-## $Id: Makefile.am,v 1.5 2005-10-06 21:41:12 marc Exp $
+## $Id: Makefile.am,v 1.6 2005-10-07 09:21:41 marc Exp $
 
-AM_CXXFLAGS = $(YAZPPINC) $(XSLT_CFLAGS) $(USEMARCONINC)
+AM_CXXFLAGS = $(YAZPPINC) $(XSLT_CFLAGS)
 
 bin_PROGRAMS =
 check_PROGRAMS = test_filter1 test_filter2 test_session1 \
@@ -26,7 +26,7 @@ p2_SOURCES=p2_frontend.cpp p2_msg.cpp p2.cpp p2_frontend.h \
  thread_pool_observer.cpp thread_pool_observer.h
 
 
-LDADD= $(YAZPPLALIB) $(XSLT_LIBS) $(USEMARCONLALIB) -lboost_thread
+LDADD= $(YAZPPLALIB) $(XSLT_LIBS) -lboost_thread
 
 
 # Modules

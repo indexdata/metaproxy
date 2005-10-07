@@ -1,7 +1,8 @@
 #!/bin/sh
-# $Id: buildconf.sh,v 1.1 2005-10-06 09:37:25 marc Exp $
+# $Id: buildconf.sh,v 1.2 2005-10-07 09:21:41 marc Exp $
 set -x
-aclocal -I .
+aclocal -I m4
+autoheader
 libtoolize --automake --force 
 automake --add-missing 
 autoconf

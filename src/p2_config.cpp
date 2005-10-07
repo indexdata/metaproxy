@@ -1,4 +1,4 @@
-/* $Id: p2_config.cpp,v 1.1 2005-10-06 09:37:25 marc Exp $
+/* $Id: p2_config.cpp,v 1.2 2005-10-07 09:21:41 marc Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -25,6 +25,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/options.h>
 #include <yaz/diagbib1.h>
 #include "p2_config.h"
+#include "config.hpp"
 
 #if HAVE_XSLT
 #include <libxml/parser.h>
