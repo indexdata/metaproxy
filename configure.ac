@@ -27,7 +27,13 @@ AC_LANG(C++)
 
 # Checks for libraries.
 ##AC_CHECK_LIB(ibrary, main)
-AC_CHECK_LIB(boost_thread, main)
+AC_CHECK_LIB(boost_thread, main, [],[
+	AC_MSG_ERROR([boost thread library not found. Install libboost-thread-dev (or similar)])
+])
+
+## AC_CHECK_LIB(boost_unit_test_framework, [], [],[
+## 	AC_MSG_ERROR([boost unit test library not found. Install libboost-test-dev (or similar)])
+## ])
 
 ## YAZPP checks
 YAZPP_INIT(threads,1.0)
