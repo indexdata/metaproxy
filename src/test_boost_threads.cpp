@@ -1,6 +1,7 @@
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
+#include <list>
 #include <iostream>
 
 boost::mutex io_mutex; // The iostreams are not guaranteed to be thread-safe!
@@ -20,6 +21,7 @@ class counter
       int count;
 };
 
+
 counter c;
 
 void change_count()
@@ -30,6 +32,21 @@ void change_count()
 }
 
 
+class worker {
+public:
+    void operator() (void) {
+        int i = c.increment();
+        
+        i = c.increment();
+        
+        i = c.increment();
+        boost::mutex::scoped_lock scoped_lock(io_mutex);
+        std::cout << "count == " << i << std::endl;
+    }
+    virtual ~worker() { std::cout << "destroyed\n"; }
+};
+
+
 
 int main(int, char*[])
 {
@@ -37,11 +54,30 @@ int main(int, char*[])
    {
       const int num_threads = 4;
       boost::thread_group thrds;
+      
+      std::list<boost::thread *> thread_list;
+      
       for (int i=0; i < num_threads; ++i)
-         thrds.create_thread(&change_count);
+      {
+          // thrds.create_thread(&change_count);
+          worker *w = new worker;
+
+          boost::thread *thr = new boost::thread(*w);
+
+          thrds.add_thread(thr);
+
+          thread_list.push_back(thr);
+      }
       
       thrds.join_all();
-      
+#if 0
+      std::list<boost::thread *>::iterator it;
+      for (it = thread_list.begin(); it != thread_list.end(); it++)
+      {
+          delete *it;
+          *it = 0;
+      }
+#endif
    }
    catch (std::exception &e) 
    {

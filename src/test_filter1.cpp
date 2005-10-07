@@ -5,8 +5,8 @@
 //#include "router.hpp"
 //#include "package.hpp"
 
- #define BOOST_AUTO_TEST_MAIN
- #include <boost/test/auto_unit_test.hpp>
+#define BOOST_AUTO_TEST_MAIN
+#include <boost/test/auto_unit_test.hpp>
 
 //#include <boost/test/unit_test.hpp>
 //#include <boost/test/unit_test_monitor.hpp>
@@ -23,27 +23,23 @@ public:
 
 BOOST_AUTO_TEST_CASE( test1 )
 {
-
     try{
-    TFilter filter;
-    
-    filter.name("filter1");
-    
-    BOOST_CHECK (filter.name() == "filter1");
-
-    filter.name() = "filter1 rename";
-
-    BOOST_CHECK(filter.name() == "filter1 rename");
+        TFilter filter;
+        
+        filter.name("filter1");
+        
+        BOOST_CHECK (filter.name() == "filter1");
+        
+        filter.name() = "filter1 rename";
+        
+        BOOST_CHECK(filter.name() == "filter1 rename");
     }
-
     catch(std::runtime_error &e ){
         BOOST_CHECK (true);
     }
     catch ( ...) {
         BOOST_CHECK (false);
     }
-
-
 }
 
 /*
