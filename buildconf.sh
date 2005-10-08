@@ -1,8 +1,8 @@
 #!/bin/sh
-# $Id: buildconf.sh,v 1.3 2005-10-08 09:48:32 adam Exp $
+# $Id: buildconf.sh,v 1.4 2005-10-08 23:40:53 adam Exp $
 
-if automake --version|head -1 |grep '1\.[4-8]'; then
-    echo "automake 1.4-1.8 is active. You should use automake 1.9 or later"
+if automake --version|head -1 |grep '1\.[4-7]'; then
+    echo "automake 1.4-1.7 is active. You should use automake 1.8 or later"
     if test -f /etc/debian_version; then
 	echo " sudo apt-get install automake1.9"
 	echo " sudo update-alternatives --config automake"
