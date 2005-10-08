@@ -28,9 +28,12 @@ AM_PROG_LIBTOOL
 AC_LANG(C++)
 
 # Checks for libraries.
-##AC_CHECK_LIB(ibrary, main)
 AC_CHECK_LIB(boost_thread, main, [],[
 	AC_MSG_ERROR([boost thread library not found. Install libboost-thread-dev (or similar)])
+])
+
+AC_CHECK_LIB(boost_date_time, main, [],[
+	AC_MSG_ERROR([boost date_time library not found. Install libboost-date-time-dev (or similar)])
 ])
 
 AC_MSG_CHECKING([for boost_unit_test_framework presence])
@@ -96,7 +99,9 @@ fi
 ##AC_HEADER_SYS_WAIT
 ##AC_HEADER_TIME 
 AC_CHECK_HEADERS(iostream list vector stdexcept)
-AC_CHECK_HEADERS(boost/thread/mutex.hpp boost/test/auto_unit_test.hpp)
+AC_CHECK_HEADERS(boost/thread/mutex.hpp \ 
+                 boost/date_time/posix_time/posix_time.hpp \
+                 boost/test/auto_unit_test.hpp)
 
 # Checks for typedefs, structures, and compiler characteristics.
 ##AC_TYPE_SIZE_T 
