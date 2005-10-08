@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.11 2005-10-07 22:46:16 marc Exp $
+## $Id: Makefile.am,v 1.12 2005-10-08 16:32:01 marc Exp $
 
 MAINTAINERCLEANFILES    = Makefile.in config.in config.hpp
 
@@ -8,8 +8,9 @@ AM_CXXFLAGS = $(YAZPPINC) $(XSLT_CFLAGS)
 YP2_INCHPP = session.hpp package.hpp filter.hpp router.hpp
 
 bin_PROGRAMS =
-check_PROGRAMS = test_filter1 test_filter2 test_session1 \
-                test_thread_pool_observer test_boost_threads
+check_PROGRAMS = test_filter1 test_filter2 \
+                 test_session1 test_session2 \
+                 test_thread_pool_observer test_boost_threads
 noinst_PROGRAMS =  p2 
 
 TESTS=$(check_PROGRAMS)
@@ -17,6 +18,7 @@ TESTS=$(check_PROGRAMS)
 test_filter1_SOURCES=test_filter1.cpp $(YP2_INCHPP)
 test_filter2_SOURCES=test_filter2.cpp $(YP2_INCHPP)
 test_session1_SOURCES=test_session1.cpp $(YP2_INCHPP)
+test_session2_SOURCES=test_session2.cpp $(YP2_INCHPP)
 test_boost_threads_SOURCES=test_boost_threads.cpp
 test_thread_pool_observer_SOURCES = test_thread_pool_observer.cpp \
           thread_pool_observer.cpp thread_pool_observer.h
@@ -34,6 +36,7 @@ LDADD= $(YAZPPLALIB) $(XSLT_LIBS)
 test_filter1_LDADD = $(LDADD) -lboost_unit_test_framework
 test_filter2_LDADD = $(LDADD) -lboost_unit_test_framework
 test_session1_LDADD = $(LDADD) -lboost_unit_test_framework
+test_session2_LDADD = $(LDADD) -lboost_unit_test_framework
 test_boost_threads_LDADD = $(LDADD) -lboost_unit_test_framework
 
 
