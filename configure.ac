@@ -33,9 +33,25 @@ AC_CHECK_LIB(boost_thread, main, [],[
 	AC_MSG_ERROR([boost thread library not found. Install libboost-thread-dev (or similar)])
 ])
 
-## AC_CHECK_LIB(boost_unit_test_framework, [], [],[
-## 	AC_MSG_ERROR([boost unit test library not found. Install libboost-test-dev (or similar)])
-## ])
+AC_MSG_CHECKING([for boost_unit_test_framework presence])
+OLIBS=$LIBS
+LIBS="$LIBS -lboost_unit_test_framework"
+AC_TRY_LINK([
+#define BOOST_AUTO_TEST_MAIN
+#include <boost/test/auto_unit_test.hpp> 
+BOOST_AUTO_TEST_CASE( test )
+{
+ BOOST_CHECK(true);
+}
+],[],
+[
+	AC_MSG_RESULT([yes])
+	LIBS=$OLIBS
+],
+[
+	AC_MSG_RESULT([no])
+	AC_MSG_ERROR([Install libboost-test-dev (or similar)])
+])
 
 ## YAZPP checks
 YAZPP_INIT(threads,1.0)
@@ -82,8 +98,6 @@ fi
 AC_CHECK_HEADERS(iostream list vector stdexcept)
 AC_CHECK_HEADERS(boost/thread/mutex.hpp boost/test/auto_unit_test.hpp)
 
-
-
 # Checks for typedefs, structures, and compiler characteristics.
 ##AC_TYPE_SIZE_T 
 ##AC_CHECK_SIZEOF(int)
@@ -118,7 +132,6 @@ Configuration:
   Automake:                   ${AUTOMAKE}
 
 ------------------------------------------------------------------------"
-
 automake --version| grep 1.4  > /dev/null ||  \
 automake --version| grep 1.5  > /dev/null ||  \
 automake --version| grep 1.6  > /dev/null ||  \
@@ -133,3 +146,4 @@ automake --version| grep 1.8  > /dev/null     \
   sudo update-alternatives --config automake
 
 "
+
