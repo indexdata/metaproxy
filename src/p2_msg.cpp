@@ -1,4 +1,4 @@
-/* $Id: p2_msg.cpp,v 1.2 2005-10-06 19:33:58 adam Exp $
+/* $Id: p2_msg.cpp,v 1.3 2005-10-08 23:29:32 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -19,6 +19,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
+#include "config.hpp"
 #include <yaz/log.h>
 #include <yaz/diagbib1.h>
 #include "p2_backend.h"

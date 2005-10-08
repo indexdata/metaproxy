@@ -1,3 +1,4 @@
+#include "config.hpp"
 #include "session.hpp"
 
 #include <iostream>

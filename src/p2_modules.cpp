@@ -1,4 +1,5 @@
 
+#include "config.hpp"
 #include <dlfcn.h>
 
 #include "p2_modules.h"

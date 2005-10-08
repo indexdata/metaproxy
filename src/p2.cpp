@@ -1,4 +1,4 @@
-/* $Id: p2.cpp,v 1.2 2005-10-06 19:33:58 adam Exp $
+/* $Id: p2.cpp,v 1.3 2005-10-08 23:29:32 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -25,6 +25,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/diagbib1.h>
 #include <yaz/options.h>
 
+#include "config.hpp"
 #include <yaz++/socket-manager.h>
 #include "p2_config.h"
 #include "p2_frontend.h"

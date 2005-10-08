@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "config.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
 #define BOOST_AUTO_TEST_MAIN

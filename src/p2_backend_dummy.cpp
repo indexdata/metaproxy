@@ -1,4 +1,4 @@
-
+#include "config.hpp"
 #include <yaz/log.h>
 #include "p2_backend.h"
 
