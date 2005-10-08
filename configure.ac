@@ -132,18 +132,3 @@ Configuration:
   Automake:                   ${AUTOMAKE}
 
 ------------------------------------------------------------------------"
-automake --version| grep 1.4  > /dev/null ||  \
-automake --version| grep 1.5  > /dev/null ||  \
-automake --version| grep 1.6  > /dev/null ||  \
-automake --version| grep 1.7  > /dev/null ||  \ 
-automake --version| grep 1.8  > /dev/null     \ 
-&& echo \
-"  YOUR AUTOMAKE IS TOO OLD - USE VERSION 1.9 OR NEWER
-
-  On a Debian system run
-
-  sudo apt-get install automake1.9
-  sudo update-alternatives --config automake
-
-"
-
