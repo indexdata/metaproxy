@@ -33,6 +33,7 @@ BOOST_AUTO_TEST_CASE( testboosttime1 )
         //std::cout << duration << std::endl;
         
         BOOST_CHECK (duration.total_seconds() == 1);
+        BOOST_CHECK (duration.fractional_seconds() > 0);
         
     }
     catch (std::exception &e) {
