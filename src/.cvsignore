@@ -2,11 +2,17 @@
 .deps
 *.lo
 *.la
+stamp-h*
 config.hpp
 Makefile
 Makefile.in
+config.hpp.in
 test_filter1
 test_filter2
+test_session1
+test_session2
+test_boost_threads
+test_boost_time
 design
 p2
 test_thread_pool_observer
