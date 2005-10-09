@@ -17,13 +17,13 @@ boost::mutex io_mutex;
 class Worker 
 {
     public:
-        Worker(yp2::Session *session, int nr = 0) 
-            : m_session(session), m_nr(nr){};
+        Worker(int nr = 0) 
+            :  m_nr(nr){};
         
         void operator() (void) {
             for (int i=0; i < 100; ++i)
             {
-                m_id = m_session->id();   
+                m_id = m_session.id();   
                 //print();
             }
         }
@@ -36,7 +36,7 @@ class Worker
         }
         
     private: 
-        yp2::Session *m_session;
+        yp2::Session m_session;
         int m_nr;
         int m_id;
 };
@@ -48,19 +48,21 @@ BOOST_AUTO_TEST_CASE( testsession2 )
 
     // test session 
     try {
-        yp2::Session session;
 
-        const int num_threads = 10;
+        const int num_threads = 100;
         boost::thread_group thrds;
         
+        yp2::Session session;
+
         for (int i=0; i < num_threads; ++i)
         {
-            Worker w(&session, i);
+            // Notice that each Worker has it's own session object!
+            Worker w(i);
             thrds.add_thread(new boost::thread(w));
         }
         thrds.join_all();
 
-        BOOST_CHECK (session.id() == 1001);
+        BOOST_CHECK (session.id() == 10001);
         
     }
     catch (std::exception &e) {
