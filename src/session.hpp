@@ -36,7 +36,7 @@ namespace yp2 {
   
 }
 
-// initializing static members
+// defining and initializing static members
 boost::mutex yp2::Session::m_mutex;
 unsigned long int yp2::Session::m_id = 0;
 
