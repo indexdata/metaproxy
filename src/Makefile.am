@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.14 2005-10-12 20:45:56 marc Exp $
+## $Id: Makefile.am,v 1.15 2005-10-12 23:30:43 adam Exp $
 
 MAINTAINERCLEANFILES    = Makefile.in config.in config.hpp
 
@@ -40,9 +40,7 @@ test_session1_LDADD = $(LDADD) -lboost_unit_test_framework
 test_session2_LDADD = $(LDADD) -lboost_unit_test_framework
 test_boost_threads_LDADD = $(LDADD) -lboost_unit_test_framework
 test_boost_time_LDADD = $(LDADD) -lboost_unit_test_framework
-
-
-
+test_thread_pool_observer_LDADD = $(LDADD) -lboost_unit_test_framework
 
 # doxygen target
 dox:

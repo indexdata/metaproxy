@@ -1,4 +1,4 @@
-/* $Id: test_thread_pool_observer.cpp,v 1.2 2005-10-08 23:29:32 adam Exp $
+/* $Id: test_thread_pool_observer.cpp,v 1.3 2005-10-12 23:30:43 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -28,30 +28,21 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/log.h>
 #include "thread_pool_observer.h"
 
+#define BOOST_AUTO_TEST_MAIN
+#include <boost/test/auto_unit_test.hpp>
+
+using namespace boost::unit_test;
 using namespace yazpp_1;
+
+class My_Timer_Thread;
 
 class My_Msg : public IThreadPoolMsg {
 public:
     IThreadPoolMsg *handle();
     void result();
     int m_val;
+    My_Timer_Thread *m_timer;
 };
-
-IThreadPoolMsg *My_Msg::handle()
-{
-    My_Msg *res = new My_Msg;
-    int sl = rand() % 5;
-
-    res->m_val = m_val;
-    printf("My_Msg::handle val=%d sleep=%d\n", m_val, sl);
-    sleep(sl);
-    return res;
-}
-
-void My_Msg::result()
-{
-    printf("My_Msg::result val=%d\n", m_val);
-}
 
 class My_Timer_Thread : public ISocketObserver {
 private:
@@ -59,40 +50,65 @@ private:
     int m_fd[2];
     ThreadPoolSocketObserver *m_t;
 public:
+    int m_sum;
+    int m_requests;
+    int m_responses;
     My_Timer_Thread(ISocketObservable *obs, ThreadPoolSocketObserver *t);
     void socketNotify(int event);
 };
+
+
+IThreadPoolMsg *My_Msg::handle()
+{
+    My_Msg *res = new My_Msg;
+
+    if (m_val == 7)
+        sleep(1);
+
+    res->m_val = m_val;
+    res->m_timer = m_timer;
+    return res;
+}
+
+void My_Msg::result()
+{
+    m_timer->m_sum += m_val;
+    m_timer->m_responses++;
+}
 
 My_Timer_Thread::My_Timer_Thread(ISocketObservable *obs,
                                  ThreadPoolSocketObserver *t) : m_obs(obs) 
 {
     pipe(m_fd);
     m_t = t;
+    m_sum = 0;
+    m_requests = 0;
+    m_responses = 0;
     obs->addObserver(m_fd[0], this);
     obs->maskObserver(this, SOCKET_OBSERVE_READ);
-    obs->timeoutObserver(this, 1);
+    obs->timeoutObserver(this, 0);
 }
 
 void My_Timer_Thread::socketNotify(int event)
 {
-    static int seq = 1;
-    printf("Add %d\n", seq);
     My_Msg *m = new My_Msg;
-    m->m_val = seq++;
+    m->m_val = m_requests++;
+    m->m_timer = this;
     m_t->put(m);
 }
 
-int main(int argc, char **argv)
+BOOST_AUTO_TEST_CASE( thread_pool_observer1 ) 
 {
     SocketManager mySocketManager;
 
     ThreadPoolSocketObserver m(&mySocketManager, 3);
     My_Timer_Thread t(&mySocketManager, &m) ;
-    int i = 0;
-    while (++i < 5 && mySocketManager.processEvent() > 0)
+    while (t.m_responses < 30 && mySocketManager.processEvent() > 0)
         ;
-    return 0;
+    BOOST_CHECK_EQUAL(t.m_responses, 30);
+    BOOST_CHECK(t.m_sum >= 435);
 }
+
 /*
  * Local variables:
  * c-basic-offset: 4

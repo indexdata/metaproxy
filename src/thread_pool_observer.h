@@ -1,4 +1,4 @@
-/* $Id: thread_pool_observer.h,v 1.1 2005-10-06 19:33:58 adam Exp $
+/* $Id: thread_pool_observer.h,v 1.2 2005-10-12 23:30:43 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -19,7 +19,10 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
-#include <pthread.h>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition.hpp>
+
 #include <unistd.h>
 #include <ctype.h>
 
@@ -50,13 +53,14 @@ class ThreadPoolSocketObserver : public yazpp_1::ISocketObserver {
 private:
     yazpp_1::ISocketObservable *m_SocketObservable;
     int m_no_threads;
-    pthread_t *m_thread_id;
+    boost::thread_group m_thrds;
 
     std::deque<IThreadPoolMsg *> m_input;
     std::deque<IThreadPoolMsg *> m_output;
-    pthread_mutex_t m_mutex_input_data;
-    pthread_cond_t m_cond_input_data;
-    pthread_mutex_t m_mutex_output_data;
+
+    boost::mutex m_mutex_input_data;
+    boost::condition m_cond_input_data;
+    boost::mutex m_mutex_output_data;
     bool m_stop_flag;
 };
 
