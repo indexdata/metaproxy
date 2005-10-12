@@ -12,3 +12,7 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure
 .PHONY:dox
 dox:
 	doxygen
+
+.PHONY:showdox
+showdox:
+	firefox file://`pwd`/dox/html/index.html &

@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.13 2005-10-08 17:28:28 marc Exp $
+## $Id: Makefile.am,v 1.14 2005-10-12 20:45:56 marc Exp $
 
 MAINTAINERCLEANFILES    = Makefile.in config.in config.hpp
 
@@ -47,3 +47,6 @@ test_boost_time_LDADD = $(LDADD) -lboost_unit_test_framework
 # doxygen target
 dox:
 	(cd $(top_srcdir) ; make dox) 
+
+showdox:
+	(cd $(top_srcdir) ; make showdox) 
