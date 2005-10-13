@@ -3,10 +3,11 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "filter_frontend_net.hpp"
+
 #include "router.hpp"
 #include "session.hpp"
 #include "package.hpp"
-#include "filter_frontend_net.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/auto_unit_test.hpp>
@@ -16,14 +17,25 @@ using namespace boost::unit_test;
 class FilterInit: public yp2::Filter {
 public:
     yp2::Package & process(yp2::Package & package) const {
-        ODR odr = odr_createmem(ODR_ENCODE);
-        Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
 
-        apdu->u.initResponse->implementationName = "YP2/YAZ";
-
-        package.response() = apdu;
-        odr_destroy(odr);
-	return package.move();
+        Z_GDU *gdu = package.request().get();
+        if (package.session().is_closed())
+        {
+            // std::cout << "Got Close. Sending nothing\n";
+        }
+       
+        if (gdu)
+        {
+            // std::cout << "Got PDU. Sending init response\n";
+            ODR odr = odr_createmem(ODR_ENCODE);
+            Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
+            
+            apdu->u.initResponse->implementationName = "YP2/YAZ";
+            
+            package.response() = apdu;
+            odr_destroy(odr);
+        }
+        return package.move();
     };
 };
 
@@ -53,16 +65,30 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_2 )
 
 	    router.rule(tf);
 
+            // Create package with Z39.50 init request in it
             yp2::Session session;
             yp2::Origin origin;
 	    yp2::Package pack_in(session, origin);
-	    
+
+            ODR odr = odr_createmem(ODR_ENCODE);
+            Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
+            
+            pack_in.request() = apdu;
+            odr_destroy(odr);
+	    // Done creating query. 
+
+            // Put it in router
 	    pack_in.router(router).move(); 
 
+            // Inspect that we got Z39.50 init response
             yazpp_1::GDU *gdu = &pack_in.response();
 
-            BOOST_CHECK_EQUAL(gdu->get()->which, Z_GDU_Z3950);
-            BOOST_CHECK_EQUAL(gdu->get()->u.z3950->which, Z_APDU_initResponse);
+            Z_GDU *z_gdu = gdu->get();
+            BOOST_CHECK(z_gdu);
+            if (z_gdu) {
+                BOOST_CHECK_EQUAL(z_gdu->which, Z_GDU_Z3950);
+                BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_initResponse);
+            }
         }
         BOOST_CHECK(true);
     }
@@ -77,7 +103,6 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_3 )
     {
         {
 	    yp2::RouterChain router;
-
             yp2::FilterFrontendNet filter_front;
             filter_front.listen_address() = "unix:socket";
             filter_front.listen_duration() = 2;  // listen a short time only

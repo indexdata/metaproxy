@@ -98,6 +98,11 @@ namespace yp2 {
             return m_response_gdu;
         }
                 
+        /// get function - right val in assignment
+        Session session() const {
+            return m_session;
+        }
+        
     private:
         Session m_session;
         Origin m_origin;

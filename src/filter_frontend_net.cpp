@@ -70,6 +70,9 @@ void ThreadPoolPackage::result()
 	int len;
 	m_session->send_GDU(gdu->get(), &len);
     }
+    if (m_session->m_no_requests == 0 && m_package->session().is_closed())
+	delete m_session;
+    delete this;
 }
 
 IThreadPoolMsg *ThreadPoolPackage::handle() 
@@ -116,18 +119,22 @@ void P2_Session::recv_GDU(Z_GDU *z_pdu, int len)
 void P2_Session::failNotify()
 {
     // TODO: send Package to signal "close"
-    m_delete_flag = true;
-    if (m_no_requests == 0)
-        delete this;
-    
+    if (m_session.is_closed())
+	return;
+    m_no_requests++;
+
+    m_session.close();
+
+    Package *p = new Package(m_session, m_origin);
+
+    ThreadPoolPackage *m = new ThreadPoolPackage(p, this);
+    p->copy_filter(*m_package);
+    m_my_thread->put(m);  
 }
 
 void P2_Session::timeoutNotify()
 {
-    // TODO: send Package to signal "close"
-    m_delete_flag = true;
-    if (m_no_requests == 0)
-        delete this;
+    failNotify();
 }
 
 void P2_Session::connectNotify()
