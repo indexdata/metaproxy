@@ -1,4 +1,4 @@
-/* $Id: p2_frontend.h,v 1.3 2005-10-13 10:00:02 adam Exp $
+/* $Id: p2_frontend.h,v 1.4 2005-10-13 20:06:45 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -26,7 +26,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <vector>
 #include <string>
 
-#include "thread_pool_observer.h"
+#include "thread_pool_observer.hpp"
 #include <yaz++/z-assoc.h>
 #include <yaz++/pdu-assoc.h>
 #include <yaz++/gdu.h>

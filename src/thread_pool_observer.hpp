@@ -1,4 +1,4 @@
-/* $Id: thread_pool_observer.h,v 1.2 2005-10-12 23:30:43 adam Exp $
+/* $Id: thread_pool_observer.hpp,v 1.1 2005-10-13 20:06:45 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -19,16 +19,15 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
+#ifndef YP2_THREAD_POOL_OBSERVER_HPP
+#define YP2_THREAD_POOL_OBSERVER_HPP
+
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 
 #include <unistd.h>
 #include <ctype.h>
-
-#if HAVE_DLFCN_H
-#include <dlfcn.h>
-#endif
 
 #include <deque>
 #include <yaz++/socket-observer.h>
@@ -64,6 +63,7 @@ private:
     bool m_stop_flag;
 };
 
+#endif
 /*
  * Local variables:
  * c-basic-offset: 4

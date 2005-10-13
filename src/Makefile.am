@@ -1,51 +1,64 @@
-## $Id: Makefile.am,v 1.16 2005-10-13 12:28:55 adam Exp $
+## $Id: Makefile.am,v 1.17 2005-10-13 20:06:45 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
 AM_CXXFLAGS = $(YAZPPINC) $(XSLT_CFLAGS)
 
-YP2_INCHPP = session.hpp package.hpp filter.hpp router.hpp
+# Rules for the library..
+
+lib_LTLIBRARIES = libyp2.la
+libyp2_la_LDFLAGS = -version-info 0:0:0
+
+libyp2_la_SOURCES = filter_frontend_net.cpp filter_frontend_net.hpp \
+	session.cpp session.hpp package.hpp filter.hpp router.hpp \
+	thread_pool_observer.cpp thread_pool_observer.hpp
+
+# Rules for programs..
+
+LDADD= libyp2.la $(YAZPPLALIB) $(XSLT_LIBS)
 
 bin_PROGRAMS =
-check_PROGRAMS = \
-	test_package1 \
-	test_filter1 test_filter2 \
-	test_session1 test_session2 \
-	test_thread_pool_observer \
-	test_boost_threads test_boost_time
-noinst_PROGRAMS =  p2 
-
-TESTS=$(check_PROGRAMS)
-
-test_package1_SOURCES=test_package1.cpp $(YP2_INCHPP)
-test_filter1_SOURCES=test_filter1.cpp $(YP2_INCHPP)
-test_filter2_SOURCES=test_filter2.cpp $(YP2_INCHPP)
-test_session1_SOURCES=test_session1.cpp $(YP2_INCHPP)
-test_session2_SOURCES=test_session2.cpp $(YP2_INCHPP)
-test_boost_threads_SOURCES=test_boost_threads.cpp
-test_boost_time_SOURCES=test_boost_time.cpp
-test_thread_pool_observer_SOURCES = test_thread_pool_observer.cpp \
-          thread_pool_observer.cpp thread_pool_observer.h
+noinst_PROGRAMS = p2 
 
 p2_SOURCES=p2_frontend.cpp p2_msg.cpp p2.cpp p2_frontend.h \
  p2_config.cpp p2_config.h \
  p2_backend.h p2_backend_dummy.cpp \
  p2_modules.cpp p2_modules.h \
- p2_xmlerror.cpp p2_xmlerror.h \
- thread_pool_observer.cpp thread_pool_observer.h
+ p2_xmlerror.cpp p2_xmlerror.h
 
+# Rules for test programs..
 
-LDADD= $(YAZPPLALIB) $(XSLT_LIBS)
-TLDADD = $(LDADD) -lboost_unit_test_framework
+check_PROGRAMS = \
+	test_package1 \
+	test_filter1 test_filter2 \
+	test_session1 test_session2 \
+	test_thread_pool_observer \
+	test_boost_threads test_boost_time \
+	test_filter_frontend_net
 
-test_filter1_LDADD = $(TLDADD)
-test_filter2_LDADD = $(TLDADD)
-test_session1_LDADD = $(TLDADD)
-test_session2_LDADD = $(TLDADD)
-test_boost_threads_LDADD = $(TLDADD)
-test_boost_time_LDADD = $(TLDADD)
-test_thread_pool_observer_LDADD = $(TLDADD)
-test_package1_LDADD = $(TLDADD)
+TESTS=$(check_PROGRAMS)
+
+test_package1_SOURCES=test_package1.cpp
+test_filter1_SOURCES=test_filter1.cpp
+test_filter2_SOURCES=test_filter2.cpp
+test_session1_SOURCES=test_session1.cpp
+test_session2_SOURCES=test_session2.cpp
+test_boost_threads_SOURCES=test_boost_threads.cpp
+test_boost_time_SOURCES=test_boost_time.cpp
+test_thread_pool_observer_SOURCES = test_thread_pool_observer.cpp
+test_filter_frontend_net_SOURCES = test_filter_frontend_net.cpp
+
+TESTLDADD = $(LDADD) -lboost_unit_test_framework
+
+test_filter1_LDADD = $(TESTLDADD)
+test_filter2_LDADD = $(TESTLDADD)
+test_session1_LDADD = $(TESTLDADD)
+test_session2_LDADD = $(TESTLDADD)
+test_boost_threads_LDADD = $(TESTLDADD)
+test_boost_time_LDADD = $(TESTLDADD)
+test_thread_pool_observer_LDADD = $(TESTLDADD)
+test_package1_LDADD = $(TESTLDADD)
+test_filter_frontend_net_LDADD = $(TESTLDADD)
 
 # doxygen target
 dox:

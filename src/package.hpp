@@ -2,6 +2,7 @@
 #ifndef PACKAGE_HPP
 #define PACKAGE_HPP
 
+#include <iostream>
 #include <stdexcept>
 #include <yaz++/gdu.h>
 
@@ -29,7 +30,13 @@ namespace yp2 {
         Package(yp2::Session &session, yp2::Origin &origin) 
             : m_session(session), m_origin(origin),
               m_filter(0), m_router(0), m_data(0)  {}
-        
+
+        Package & copy_filter(const Package &p) {
+            m_router = p.m_router;
+            m_filter = p.m_filter;
+            return *this;
+        }
+
         /// send Package to it's next Filter defined in Router
         Package & move() {
             m_filter = m_router->move(m_filter, this);
@@ -81,6 +88,14 @@ namespace yp2 {
             m_filter = 0;
             m_router = &router;
             return *this;
+        }
+
+        yazpp_1::GDU &request() {
+            return m_request_gdu;
+        }
+
+        yazpp_1::GDU &response() {
+            return m_response_gdu;
         }
                 
     private:

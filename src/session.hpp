@@ -61,11 +61,6 @@ namespace yp2 {
     
 }
 
-// defining and initializing static members
-boost::mutex yp2::Session::m_mutex;
-unsigned long int yp2::Session::m_global_id = 0;
-
-
 #endif
 /*
  * Local variables:

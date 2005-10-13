@@ -1,4 +1,4 @@
-/* $Id: thread_pool_observer.cpp,v 1.3 2005-10-12 23:30:43 adam Exp $
+/* $Id: thread_pool_observer.cpp,v 1.4 2005-10-13 20:06:45 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -26,7 +26,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/log.h>
 
 #include "config.hpp"
-#include "thread_pool_observer.h"
+#include "thread_pool_observer.hpp"
 
 using namespace yazpp_1;
 
