@@ -1,4 +1,4 @@
-/* $Id: p2_frontend.h,v 1.2 2005-10-06 19:33:58 adam Exp $
+/* $Id: p2_frontend.h,v 1.3 2005-10-13 10:00:02 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -30,6 +30,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz++/z-assoc.h>
 #include <yaz++/pdu-assoc.h>
 #include <yaz++/gdu.h>
+#include <yaz++/gduqueue.h>
 #include <yaz++/z-query.h>
 
 class P2_Frontend;
