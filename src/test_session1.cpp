@@ -18,11 +18,12 @@ BOOST_AUTO_TEST_CASE( testsession1 )
         yp2::Session session3;
         yp2::Session session4;
         yp2::Session session5;
-        unsigned long int id;
-        id = session5.id();
 
-        BOOST_CHECK (id == 5);
-        
+        BOOST_CHECK_EQUAL (session5.id(), 5);
+
+        yp2::Session session = session3;
+
+        BOOST_CHECK_EQUAL (session.id(), 3);
     }
     catch (std::exception &e) {
         std::cout << e.what() << "\n";
