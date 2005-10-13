@@ -46,29 +46,30 @@ BOOST_AUTO_TEST_CASE( testfilter2 )
 	    router1.rule(fc);
 	    
 	    router1.rule(fd);
+
+            yp2::Session session;
+            yp2::Origin origin;
+	    yp2::Package pack_in(session, origin);
 	    
-	    yp2::Package pack_in;
-	    
-	    yp2::Package pack_out;
-	    
-	    pack_out = pack_in.router(router1).move(); 
+	    yp2::Package pack_out = pack_in.router(router1).move(); 
 	    
             BOOST_CHECK (pack_out.data() == 2468);
             
         }
         
         {
-            
 	    yp2::RouterChain router2;
 	    
 	    router2.rule(fd);
 	    router2.rule(fc);
 	    
-	    yp2::Package pack_in;
-	    
-	    yp2::Package pack_out;
-	    
-	    pack_out = pack_in.router(router2).move();
+            yp2::Session session;
+            yp2::Origin origin;
+	    yp2::Package pack_in(session, origin);
+	 
+	    yp2::Package pack_out(session, origin);
+
+            pack_out = pack_in.router(router2).move();
      
             BOOST_CHECK (pack_out.data() == 1234);
             

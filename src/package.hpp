@@ -3,15 +3,28 @@
 #define PACKAGE_HPP
 
 #include <stdexcept>
+#include <yaz++/gdu.h>
 
+#include "session.hpp"
 
 namespace yp2 {
-  
-  class Package {
-  public:
+    
+    class Origin {
+        enum origin_t {
+            API,
+            UNIX,
+            TCPIP
+        } type;
+        std::string address; // UNIX+TCPIP
+        int port;            // TCPIP only
+    };
+    
+    class Package {
+    public:
       
-      Package(unsigned long int id = 0, bool close = 0) 
-          : m_session_id(id),  m_session_close(close),
+
+      Package(yp2::Session &session, yp2::Origin &origin) 
+          : m_session(session), m_origin(origin),
           m_filter(0), m_router(0), m_data(0)  {}
 
       /// send Package to it's next Filter defined in Router
@@ -24,16 +37,10 @@ namespace yp2 {
           }
       
 
-      /// get function - right val in assignment
-      unsigned int session_id() const {
-          return m_session_id;
+      /// access session - left val in assignment
+      yp2::Session & session() {
+          return m_session;
       }
-      
-      /// get function - right val in assignment
-      unsigned int session_close() const {
-          return m_session_close;
-      }
-   
 
       /// get function - right val in assignment
       unsigned int data() const {
@@ -48,6 +55,23 @@ namespace yp2 {
       /// set function - can be chained
       Package & data(const unsigned int & data){
           m_data = data;
+          return *this;
+      }
+      
+
+      /// get function - right val in assignment
+      Origin origin() const {
+          return m_origin;
+      }
+
+      /// set function - left val in assignment
+      Origin & origin() {
+          return m_origin;
+      }
+
+      /// set function - can be chained
+      Package & origin(const Origin & origin){
+          m_origin = origin;
           return *this;
       }
       
@@ -69,11 +93,17 @@ namespace yp2 {
 
       
   private:
-      unsigned long int m_session_id;
-      bool m_session_close;
+      Session m_session;
+//      unsigned long int m_session_id;
+//      bool m_session_close;
+      Origin m_origin;
+      
       const Filter *m_filter;
       const Router *m_router;
       unsigned int m_data;
+      
+      yazpp_1::GDU m_request_gdu;
+      yazpp_1::GDU m_response_gdu;
   };
   
 
