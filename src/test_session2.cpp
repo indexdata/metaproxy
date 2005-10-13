@@ -23,7 +23,8 @@ class Worker
         void operator() (void) {
             for (int i=0; i < 100; ++i)
             {
-                m_id = m_session.id();   
+                yp2::Session session;
+                m_id = session.id();   
                 //print();
             }
         }
@@ -36,7 +37,6 @@ class Worker
         }
         
     private: 
-        yp2::Session m_session;
         int m_nr;
         int m_id;
 };
@@ -52,7 +52,6 @@ BOOST_AUTO_TEST_CASE( testsession2 )
         const int num_threads = 100;
         boost::thread_group thrds;
         
-        yp2::Session session;
 
         for (int i=0; i < num_threads; ++i)
         {
@@ -62,6 +61,7 @@ BOOST_AUTO_TEST_CASE( testsession2 )
         }
         thrds.join_all();
 
+        yp2::Session session;
         BOOST_CHECK (session.id() == 10001);
         
     }

@@ -13,20 +13,15 @@ BOOST_AUTO_TEST_CASE( testsession1 )
 
     // test session 
     try {
-        yp2::Session session;
+        yp2::Session session1;
+        yp2::Session session2;
+        yp2::Session session3;
+        yp2::Session session4;
+        yp2::Session session5;
         unsigned long int id;
-        id = session.id();
-        id = session.id();
-        id = session.id();
-        id = session.id();
-        id = session.id();
-        id = session.id();
-        id = session.id();
-        id = session.id();
-        id = session.id();
-        id = session.id();
+        id = session5.id();
 
-        BOOST_CHECK (id == 10);
+        BOOST_CHECK (id == 5);
         
     }
     catch (std::exception &e) {
