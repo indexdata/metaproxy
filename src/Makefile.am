@@ -1,20 +1,23 @@
-## $Id: Makefile.am,v 1.15 2005-10-12 23:30:43 adam Exp $
+## $Id: Makefile.am,v 1.16 2005-10-13 12:28:55 adam Exp $
 
-MAINTAINERCLEANFILES    = Makefile.in config.in config.hpp
-
+MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
 AM_CXXFLAGS = $(YAZPPINC) $(XSLT_CFLAGS)
 
 YP2_INCHPP = session.hpp package.hpp filter.hpp router.hpp
 
 bin_PROGRAMS =
-check_PROGRAMS = test_filter1 test_filter2 \
-                 test_session1 test_session2 \
-                 test_thread_pool_observer test_boost_threads test_boost_time
+check_PROGRAMS = \
+	test_package1 \
+	test_filter1 test_filter2 \
+	test_session1 test_session2 \
+	test_thread_pool_observer \
+	test_boost_threads test_boost_time
 noinst_PROGRAMS =  p2 
 
 TESTS=$(check_PROGRAMS)
 
+test_package1_SOURCES=test_package1.cpp $(YP2_INCHPP)
 test_filter1_SOURCES=test_filter1.cpp $(YP2_INCHPP)
 test_filter2_SOURCES=test_filter2.cpp $(YP2_INCHPP)
 test_session1_SOURCES=test_session1.cpp $(YP2_INCHPP)
@@ -33,14 +36,16 @@ p2_SOURCES=p2_frontend.cpp p2_msg.cpp p2.cpp p2_frontend.h \
 
 
 LDADD= $(YAZPPLALIB) $(XSLT_LIBS)
+TLDADD = $(LDADD) -lboost_unit_test_framework
 
-test_filter1_LDADD = $(LDADD) -lboost_unit_test_framework
-test_filter2_LDADD = $(LDADD) -lboost_unit_test_framework
-test_session1_LDADD = $(LDADD) -lboost_unit_test_framework
-test_session2_LDADD = $(LDADD) -lboost_unit_test_framework
-test_boost_threads_LDADD = $(LDADD) -lboost_unit_test_framework
-test_boost_time_LDADD = $(LDADD) -lboost_unit_test_framework
-test_thread_pool_observer_LDADD = $(LDADD) -lboost_unit_test_framework
+test_filter1_LDADD = $(TLDADD)
+test_filter2_LDADD = $(TLDADD)
+test_session1_LDADD = $(TLDADD)
+test_session2_LDADD = $(TLDADD)
+test_boost_threads_LDADD = $(TLDADD)
+test_boost_time_LDADD = $(TLDADD)
+test_thread_pool_observer_LDADD = $(TLDADD)
+test_package1_LDADD = $(TLDADD)
 
 # doxygen target
 dox:
