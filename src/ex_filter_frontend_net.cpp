@@ -3,6 +3,9 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <boost/program_options.hpp>
+namespace po = boost::program_options;
+
 #include "config.hpp"
 
 #include "filter_frontend_net.hpp"
@@ -51,7 +54,7 @@ public:
                 break;
             } 
             odr_destroy(odr);
-       }
+        }
         return package.move();
     };
 };
@@ -60,6 +63,22 @@ int main(int argc, char **argv)
 {
     try 
     {
+        po::options_description desc("Allowed options");
+        desc.add_options()
+            ("help", "produce help message")
+            ("duration", po::value<int>(),
+             "number of seconds for server to exist")
+            ;
+
+        po::variables_map vm;        
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm);    
+
+        if (vm.count("help")) {
+            std::cout << desc << "\n";
+            return 1;
+        }
+
         {
 	    yp2::RouterChain router;
 
@@ -68,7 +87,10 @@ int main(int argc, char **argv)
             filter_front.listen_address() = "tcp:@:9999";
 
             // 0=no time, >0 timeout in seconds
-            filter_front.listen_duration() = 0;
+            if (vm.count("duration")) {
+                filter_front.listen_duration() = 
+                    vm["duration"].as<int>();
+            }
 	    router.rule(filter_front);
 
             // put in a backend
@@ -86,6 +108,7 @@ int main(int argc, char **argv)
         std::cerr << "unknown exception\n";
         std::exit(1);
     }
+    std::exit(0);
 }
 
 /*
