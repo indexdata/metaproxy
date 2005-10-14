@@ -16,10 +16,10 @@
 
 using namespace yp2;
 
-class P2_Session : public yazpp_1::Z_Assoc {
+class ZAssocServerChild : public yazpp_1::Z_Assoc {
 public:
-    ~P2_Session();
-    P2_Session(yazpp_1::IPDU_Observable *the_PDU_Observable,
+    ~ZAssocServerChild();
+    ZAssocServerChild(yazpp_1::IPDU_Observable *the_PDU_Observable,
 	       ThreadPoolSocketObserver *m_thread_pool_observer,
 	       const Package *package);
     int m_no_requests;
@@ -43,14 +43,14 @@ private:
 
 class ThreadPoolPackage : public IThreadPoolMsg {
 public:
-    ThreadPoolPackage(Package *package, P2_Session *ses) :
+    ThreadPoolPackage(Package *package, ZAssocServerChild *ses) :
 	m_session(ses), m_package(package) { };
     ~ThreadPoolPackage();
     IThreadPoolMsg *handle();
     void result();
     
 private:
-    P2_Session *m_session;
+    ZAssocServerChild *m_session;
     Package *m_package;
     
 };
@@ -82,7 +82,7 @@ IThreadPoolMsg *ThreadPoolPackage::handle()
 }
 
 
-P2_Session::P2_Session(yazpp_1::IPDU_Observable *the_PDU_Observable,
+ZAssocServerChild::ZAssocServerChild(yazpp_1::IPDU_Observable *the_PDU_Observable,
 		       ThreadPoolSocketObserver *my_thread_pool,
 		       const Package *package)
     :  Z_Assoc(the_PDU_Observable)
@@ -94,17 +94,17 @@ P2_Session::P2_Session(yazpp_1::IPDU_Observable *the_PDU_Observable,
 }
 
 
-yazpp_1::IPDU_Observer *P2_Session::sessionNotify(yazpp_1::IPDU_Observable
+yazpp_1::IPDU_Observer *ZAssocServerChild::sessionNotify(yazpp_1::IPDU_Observable
 						  *the_PDU_Observable, int fd)
 {
     return 0;
 }
 
-P2_Session::~P2_Session()
+ZAssocServerChild::~ZAssocServerChild()
 {
 }
 
-void P2_Session::recv_GDU(Z_GDU *z_pdu, int len)
+void ZAssocServerChild::recv_GDU(Z_GDU *z_pdu, int len)
 {
     m_no_requests++;
 
@@ -116,7 +116,7 @@ void P2_Session::recv_GDU(Z_GDU *z_pdu, int len)
     m_thread_pool_observer->put(tp);  
 }
 
-void P2_Session::failNotify()
+void ZAssocServerChild::failNotify()
 {
     // TODO: send Package to signal "close"
     if (m_session.is_closed())
@@ -132,20 +132,20 @@ void P2_Session::failNotify()
     m_thread_pool_observer->put(tp);  
 }
 
-void P2_Session::timeoutNotify()
+void ZAssocServerChild::timeoutNotify()
 {
     failNotify();
 }
 
-void P2_Session::connectNotify()
+void ZAssocServerChild::connectNotify()
 {
 
 }
 
-class P2_Server : public yazpp_1::Z_Assoc {
+class ZAssocServer : public yazpp_1::Z_Assoc {
 public:
-    ~P2_Server();
-    P2_Server(yazpp_1::IPDU_Observable *the_PDU_Observable,
+    ~ZAssocServer();
+    ZAssocServer(yazpp_1::IPDU_Observable *the_PDU_Observable,
               ThreadPoolSocketObserver *m_thread_pool_observer,
 	      const Package *package);
 private:
@@ -163,7 +163,7 @@ private:
 };
 
 
-P2_Server::P2_Server(yazpp_1::IPDU_Observable *the_PDU_Observable,
+ZAssocServer::ZAssocServer(yazpp_1::IPDU_Observable *the_PDU_Observable,
                      ThreadPoolSocketObserver *thread_pool_observer,
 		     const Package *package)
     :  Z_Assoc(the_PDU_Observable)
@@ -173,31 +173,31 @@ P2_Server::P2_Server(yazpp_1::IPDU_Observable *the_PDU_Observable,
 
 }
 
-yazpp_1::IPDU_Observer *P2_Server::sessionNotify(yazpp_1::IPDU_Observable
+yazpp_1::IPDU_Observer *ZAssocServer::sessionNotify(yazpp_1::IPDU_Observable
 						 *the_PDU_Observable, int fd)
 {
-    P2_Session *my = new P2_Session(the_PDU_Observable, m_thread_pool_observer,
+    ZAssocServerChild *my = new ZAssocServerChild(the_PDU_Observable, m_thread_pool_observer,
 				    m_package);
     return my;
 }
 
-P2_Server::~P2_Server()
+ZAssocServer::~ZAssocServer()
 {
 }
 
-void P2_Server::recv_GDU(Z_GDU *apdu, int len)
+void ZAssocServer::recv_GDU(Z_GDU *apdu, int len)
 {
 }
 
-void P2_Server::failNotify()
+void ZAssocServer::failNotify()
 {
 }
 
-void P2_Server::timeoutNotify()
+void ZAssocServer::timeoutNotify()
 {
 }
 
-void P2_Server::connectNotify()
+void ZAssocServer::connectNotify()
 {
 }
 
@@ -254,7 +254,7 @@ void FilterFrontendNet::process(Package &package) const {
     
     ThreadPoolSocketObserver threadPool(&mySocketManager, m_no_threads);
 
-    P2_Server z(my_PDU_Assoc, &threadPool, &package);
+    ZAssocServer z(my_PDU_Assoc, &threadPool, &package);
     z.server(m_listen_address.c_str());
 
     while (mySocketManager.processEvent() > 0)

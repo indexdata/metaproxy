@@ -1,4 +1,4 @@
-/* $Id: p2_msg.cpp,v 1.3 2005-10-08 23:29:32 adam Exp $
+/* $Id: p2_msg.cpp,v 1.4 2005-10-14 10:27:18 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -318,7 +318,7 @@ Z_APDU *P2_Msg::frontend_present_apdu(Z_APDU *request_apdu, ODR odr)
     return zget_APDU(odr, Z_APDU_presentResponse);
 }
     
-IThreadPoolMsg *P2_Msg::handle()
+yp2::IThreadPoolMsg *P2_Msg::handle()
 {
     ODR odr = odr_createmem(ODR_ENCODE);
     yaz_log(YLOG_LOG, "P2_Msg:handle begin");

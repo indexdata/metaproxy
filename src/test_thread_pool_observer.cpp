@@ -1,4 +1,4 @@
-/* $Id: test_thread_pool_observer.cpp,v 1.4 2005-10-13 20:06:45 adam Exp $
+/* $Id: test_thread_pool_observer.cpp,v 1.5 2005-10-14 10:27:18 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -36,9 +36,9 @@ using namespace yazpp_1;
 
 class My_Timer_Thread;
 
-class My_Msg : public IThreadPoolMsg {
+class My_Msg : public yp2::IThreadPoolMsg {
 public:
-    IThreadPoolMsg *handle();
+    yp2::IThreadPoolMsg *handle();
     void result();
     int m_val;
     My_Timer_Thread *m_timer;
@@ -48,17 +48,17 @@ class My_Timer_Thread : public ISocketObserver {
 private:
     ISocketObservable *m_obs;
     int m_fd[2];
-    ThreadPoolSocketObserver *m_t;
+    yp2::ThreadPoolSocketObserver *m_t;
 public:
     int m_sum;
     int m_requests;
     int m_responses;
-    My_Timer_Thread(ISocketObservable *obs, ThreadPoolSocketObserver *t);
+    My_Timer_Thread(ISocketObservable *obs, yp2::ThreadPoolSocketObserver *t);
     void socketNotify(int event);
 };
 
 
-IThreadPoolMsg *My_Msg::handle()
+yp2::IThreadPoolMsg *My_Msg::handle()
 {
     My_Msg *res = new My_Msg;
 
@@ -77,7 +77,7 @@ void My_Msg::result()
 }
 
 My_Timer_Thread::My_Timer_Thread(ISocketObservable *obs,
-                                 ThreadPoolSocketObserver *t) : m_obs(obs) 
+                                 yp2::ThreadPoolSocketObserver *t) : m_obs(obs) 
 {
     pipe(m_fd);
     m_t = t;
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE( thread_pool_observer1 )
 {
     SocketManager mySocketManager;
 
-    ThreadPoolSocketObserver m(&mySocketManager, 3);
+    yp2::ThreadPoolSocketObserver m(&mySocketManager, 3);
     My_Timer_Thread t(&mySocketManager, &m) ;
     while (t.m_responses < 30 && mySocketManager.processEvent() > 0)
         ;

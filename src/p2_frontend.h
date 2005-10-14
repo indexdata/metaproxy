@@ -1,4 +1,4 @@
-/* $Id: p2_frontend.h,v 1.4 2005-10-13 20:06:45 adam Exp $
+/* $Id: p2_frontend.h,v 1.5 2005-10-14 10:27:18 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -69,7 +69,7 @@ class P2_Server : public yazpp_1::Z_Assoc {
 public:
     ~P2_Server();
     P2_Server(yazpp_1::IPDU_Observable *the_PDU_Observable,
-              ThreadPoolSocketObserver *m_my_thread,
+              yp2::ThreadPoolSocketObserver *m_my_thread,
               P2_Config *config,
               P2_ModuleFactory *modules);
     P2_Config *lockConfig();
@@ -87,7 +87,7 @@ private:
     void connectNotify();
 private:
     P2_Config *m_config;
-    ThreadPoolSocketObserver *m_my_thread;
+    yp2::ThreadPoolSocketObserver *m_my_thread;
     pthread_mutex_t m_mutex_config;
 };
 
@@ -102,14 +102,14 @@ public:
     yazpp_1::Yaz_Z_Query m_query;
 };
 
-class P2_Msg : public IThreadPoolMsg {
+class P2_Msg : public yp2::IThreadPoolMsg {
 public:
     int m_close_flag;
     yazpp_1::GDU *m_gdu;
     yazpp_1::GDU *m_output;
     P2_Frontend *m_front;
     P2_Server *m_server;
-    IThreadPoolMsg *handle();
+    yp2::IThreadPoolMsg *handle();
     void result();
     P2_Msg(yazpp_1::GDU *gdu, P2_Frontend *front, P2_Server *server);
     virtual ~P2_Msg();
@@ -131,7 +131,7 @@ class P2_Frontend : public yazpp_1::Z_Assoc {
  public:
     ~P2_Frontend();
     P2_Frontend(yazpp_1::IPDU_Observable *the_PDU_Observable,
-                ThreadPoolSocketObserver *m_my_thread, P2_Server *server);
+                yp2::ThreadPoolSocketObserver *m_my_thread, P2_Server *server);
     IPDU_Observer* sessionNotify(yazpp_1::IPDU_Observable *the_PDU_Observable,
                                  int fd);
     
@@ -147,7 +147,7 @@ class P2_Frontend : public yazpp_1::Z_Assoc {
     
  private:
     yazpp_1::GDUQueue m_in_queue;
-    ThreadPoolSocketObserver *m_my_thread;
+    yp2::ThreadPoolSocketObserver *m_my_thread;
     P2_Server *m_server;
  private:
     bool P2_Frontend::search(Z_GDU *z_gdu);
