@@ -29,9 +29,6 @@ BOOST_AUTO_TEST_CASE( test_filter1 )
         
         BOOST_CHECK(filter.name() == "filter1 rename");
     }
-    //catch(std::runtime_error &e ){
-    //    BOOST_CHECK (true);
-    //}
     catch ( ... ) {
         BOOST_CHECK (false);
     }
