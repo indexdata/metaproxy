@@ -1,4 +1,4 @@
-/* $Id: thread_pool_observer.cpp,v 1.4 2005-10-13 20:06:45 adam Exp $
+/* $Id: thread_pool_observer.cpp,v 1.5 2005-10-14 10:08:40 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -35,15 +35,6 @@ IThreadPoolMsg::~IThreadPoolMsg()
 
 }
 
-class worker {
-public:
-    worker(ThreadPoolSocketObserver *s) : m_s(s) {};
-    ThreadPoolSocketObserver *m_s;
-    void operator() (void) {
-        m_s->run(0);
-    }
-};
-
 ThreadPoolSocketObserver::ThreadPoolSocketObserver(ISocketObservable *obs, int no_threads)
     : m_SocketObservable(obs)
 {
@@ -56,7 +47,7 @@ ThreadPoolSocketObserver::ThreadPoolSocketObserver(ISocketObservable *obs, int n
     int i;
     for (i = 0; i<no_threads; i++)
     {
-        worker w(this);
+        Worker w(this);
         m_thrds.add_thread(new boost::thread(w));
     }
 }

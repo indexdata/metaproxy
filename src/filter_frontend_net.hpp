@@ -10,7 +10,7 @@ namespace yp2 {
     class FilterFrontendNet : public yp2::Filter {
     public:
 	FilterFrontendNet::FilterFrontendNet();
-	yp2::Package & process(yp2::Package & package) const;
+	void process(yp2::Package & package) const;
     private:
         int m_no_threads;
         std::string m_listen_address;

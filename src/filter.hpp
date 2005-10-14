@@ -13,8 +13,7 @@ namespace yp2 {
         virtual ~Filter(){};
 
         ///sends Package off to next Filter, returns altered Package
-        virtual  Package & process(Package & package) const {
-            return package;
+        virtual  void process(Package & package) const {
         };
         virtual  void configure(){};
 

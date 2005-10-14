@@ -16,14 +16,14 @@ using namespace boost::unit_test;
 
 class FilterInit: public yp2::Filter {
 public:
-    yp2::Package & process(yp2::Package & package) const {
+    void process(yp2::Package & package) const {
 
-        Z_GDU *gdu = package.request().get();
         if (package.session().is_closed())
         {
-            // std::cout << "Got Close. Sending nothing\n";
+            // std::cout << "Got Close.\n";
         }
        
+        Z_GDU *gdu = package.request().get();
         if (gdu)
         {
             // std::cout << "Got PDU. Sending init response\n";
@@ -47,7 +47,6 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_1 )
         {
             yp2::FilterFrontendNet nf;
         }
-        BOOST_CHECK(true);
     }
     catch ( ... ) {
         BOOST_CHECK (false);
@@ -68,20 +67,20 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_2 )
             // Create package with Z39.50 init request in it
             yp2::Session session;
             yp2::Origin origin;
-	    yp2::Package pack_in(session, origin);
+	    yp2::Package pack(session, origin);
 
             ODR odr = odr_createmem(ODR_ENCODE);
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
             
-            pack_in.request() = apdu;
+            pack.request() = apdu;
             odr_destroy(odr);
 	    // Done creating query. 
 
             // Put it in router
-	    pack_in.router(router).move(); 
+	    pack.router(router).move(); 
 
             // Inspect that we got Z39.50 init response
-            yazpp_1::GDU *gdu = &pack_in.response();
+            yazpp_1::GDU *gdu = &pack.response();
 
             Z_GDU *z_gdu = gdu->get();
             BOOST_CHECK(z_gdu);
@@ -90,7 +89,6 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_2 )
                 BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_initResponse);
             }
         }
-        BOOST_CHECK(true);
     }
     catch ( ... ) {
         BOOST_CHECK (false);
@@ -103,19 +101,22 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_3 )
     {
         {
 	    yp2::RouterChain router;
+
+            // put in frontend first
             yp2::FilterFrontendNet filter_front;
             filter_front.listen_address() = "unix:socket";
             filter_front.listen_duration() = 2;  // listen a short time only
 	    router.rule(filter_front);
 
+            // put in a backend
             FilterInit filter_init;
 	    router.rule(filter_init);
 
             yp2::Session session;
             yp2::Origin origin;
-	    yp2::Package pack_in(session, origin);
+	    yp2::Package pack(session, origin);
 	    
-	    pack_in.router(router).move(); 
+	    pack.router(router).move(); 
         }
         BOOST_CHECK(true);
     }

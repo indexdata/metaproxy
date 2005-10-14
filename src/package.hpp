@@ -38,12 +38,10 @@ namespace yp2 {
         }
 
         /// send Package to it's next Filter defined in Router
-        Package & move() {
+        void move() {
             m_filter = m_router->move(m_filter, this);
             if (m_filter)
-                return m_filter->process(*this);
-            else
-                return *this;
+                m_filter->process(*this);
         }
         
         /// access session - left val in assignment

@@ -1,4 +1,4 @@
-/* $Id: thread_pool_observer.hpp,v 1.1 2005-10-13 20:06:45 adam Exp $
+/* $Id: thread_pool_observer.hpp,v 1.2 2005-10-14 10:08:40 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -41,7 +41,16 @@ public:
 };
 
 class ThreadPoolSocketObserver : public yazpp_1::ISocketObserver {
- public:
+private:
+    class Worker {
+    public:
+        Worker(ThreadPoolSocketObserver *s) : m_s(s) {};
+        ThreadPoolSocketObserver *m_s;
+        void operator() (void) {
+            m_s->run(0);
+        }
+    };
+public:
     ThreadPoolSocketObserver(yazpp_1::ISocketObservable *obs, int no_threads);
     virtual ~ThreadPoolSocketObserver();
     void socketNotify(int event);
@@ -61,6 +70,8 @@ private:
     boost::condition m_cond_input_data;
     boost::mutex m_mutex_output_data;
     bool m_stop_flag;
+
+    
 };
 
 #endif

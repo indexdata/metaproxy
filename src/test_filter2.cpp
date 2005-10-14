@@ -15,18 +15,18 @@ using namespace boost::unit_test;
 
 class FilterConstant: public yp2::Filter {
 public:
-    yp2::Package & process(yp2::Package & package) const {
+    void process(yp2::Package & package) const {
 	package.data() = 1234;
-	return package.move();
+	package.move();
     };
 };
 
 
 class FilterDouble: public yp2::Filter {
 public:
-    yp2::Package & process(yp2::Package & package) const {
+    void process(yp2::Package & package) const {
 	package.data() = package.data() * 2;
-	return package.move();
+	package.move();
     };
 };
     
@@ -49,11 +49,11 @@ BOOST_AUTO_TEST_CASE( testfilter2 )
 
             yp2::Session session;
             yp2::Origin origin;
-	    yp2::Package pack_in(session, origin);
+	    yp2::Package pack(session, origin);
 	    
-	    yp2::Package pack_out = pack_in.router(router1).move(); 
+	    pack.router(router1).move(); 
 	    
-            BOOST_CHECK (pack_out.data() == 2468);
+            BOOST_CHECK (pack.data() == 2468);
             
         }
         
@@ -65,13 +65,11 @@ BOOST_AUTO_TEST_CASE( testfilter2 )
 	    
             yp2::Session session;
             yp2::Origin origin;
-	    yp2::Package pack_in(session, origin);
+	    yp2::Package pack(session, origin);
 	 
-	    yp2::Package pack_out(session, origin);
-
-            pack_out = pack_in.router(router2).move();
+            pack.router(router2).move();
      
-            BOOST_CHECK (pack_out.data() == 1234);
+            BOOST_CHECK (pack.data() == 1234);
             
 	}
 
