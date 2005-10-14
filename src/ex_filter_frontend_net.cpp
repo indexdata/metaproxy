@@ -23,15 +23,35 @@ public:
         Z_GDU *gdu = package.request().get();
         if (gdu)
         {
-            // std::cout << "Got PDU. Sending init response\n";
             ODR odr = odr_createmem(ODR_ENCODE);
-            Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
-            
-            apdu->u.initResponse->implementationName = "YP2/YAZ";
-            
-            package.response() = apdu;
+            switch(gdu->which)
+            {
+            case Z_GDU_Z3950:
+                // std::cout << "Got PDU. Sending init response\n";
+                Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
+                
+                apdu->u.initResponse->implementationName = "YP2/YAZ";
+                
+                package.response() = apdu;
+                break;
+            case Z_GDU_HTTP_Request:
+                Z_GDU *gdu = z_get_HTTP_Response(odr, 200);
+                Z_HTTP_Response *http_res = gdu->u.HTTP_Response;
+        
+                z_HTTP_header_add(odr, &http_res->headers,
+                                  "Content-Type", "text/plain");
+           
+                http_res->content_buf = 
+                    odr_strdup(odr, "Welcome to YP2");
+                http_res->content_len = strlen(http_res->content_buf);
+
+                package.response() = gdu;
+                break;
+            default:
+                break;
+            } 
             odr_destroy(odr);
-        }
+       }
         return package.move();
     };
 };
@@ -46,7 +66,9 @@ int main(int argc, char **argv)
             // put in frontend first
             yp2::FilterFrontendNet filter_front;
             filter_front.listen_address() = "tcp:@:9999";
-            //filter_front.listen_duration() = 1;  // listen a short time only
+
+            // 0=no time, >0 timeout in seconds
+            filter_front.listen_duration() = 0;
 	    router.rule(filter_front);
 
             // put in a backend
