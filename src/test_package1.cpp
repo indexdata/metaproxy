@@ -13,10 +13,10 @@ using namespace boost::unit_test;
 BOOST_AUTO_TEST_CASE( test_package1_1 )
 {
     try {
+        yp2::Package package1;
+
         yp2::Origin origin;
         yp2::Session session;
-        yp2::Package package1(session, origin);
-
         yp2::Package package2(package1.session(), origin);
 
         BOOST_CHECK_EQUAL(package1.session().id(), package2.session().id());

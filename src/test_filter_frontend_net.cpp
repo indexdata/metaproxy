@@ -65,9 +65,7 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_2 )
 	    router.rule(tf);
 
             // Create package with Z39.50 init request in it
-            yp2::Session session;
-            yp2::Origin origin;
-	    yp2::Package pack(session, origin);
+	    yp2::Package pack;
 
             ODR odr = odr_createmem(ODR_ENCODE);
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
@@ -105,16 +103,14 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_3 )
             // put in frontend first
             yp2::FilterFrontendNet filter_front;
             filter_front.listen_address() = "unix:socket";
-            filter_front.listen_duration() = 2;  // listen a short time only
+            filter_front.listen_duration() = 1;  // listen a short time only
 	    router.rule(filter_front);
 
             // put in a backend
             FilterInit filter_init;
 	    router.rule(filter_init);
 
-            yp2::Session session;
-            yp2::Origin origin;
-	    yp2::Package pack(session, origin);
+	    yp2::Package pack;
 	    
 	    pack.router(router).move(); 
         }

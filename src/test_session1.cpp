@@ -19,11 +19,11 @@ BOOST_AUTO_TEST_CASE( testsession1 )
         yp2::Session session4;
         yp2::Session session5;
 
-        BOOST_CHECK_EQUAL (session5.id(), 5);
+        BOOST_CHECK_EQUAL (session5.id(), (unsigned long) 5);
 
         yp2::Session session = session3;
 
-        BOOST_CHECK_EQUAL (session.id(), 3);
+        BOOST_CHECK_EQUAL (session.id(), (unsigned long) 3);
     }
     catch (std::exception &e) {
         std::cout << e.what() << "\n";

@@ -26,6 +26,8 @@ namespace yp2 {
     
     class Package {
     public:
+        Package() 
+           :  m_filter(0), m_router(0), m_data(0)  {}
         
         Package(yp2::Session &session, yp2::Origin &origin) 
             : m_session(session), m_origin(origin),
