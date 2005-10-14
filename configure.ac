@@ -28,11 +28,18 @@ AC_LANG(C++)
 
 # Checks for libraries.
 AC_CHECK_LIB(boost_thread, main, [],[
-	AC_MSG_ERROR([boost thread library not found. Install libboost-thread-dev (or similar)])
+	AC_MSG_NOTICE([boost thread library not found.])
+	AC_MSG_ERROR([Install libboost-thread-dev (or similar)])
 ])
 
 AC_CHECK_LIB(boost_date_time, main, [],[
-	AC_MSG_ERROR([boost date_time library not found. Install libboost-date-time-dev (or similar)])
+	AC_MSG_NOTICE([boost date_time library not found.])
+	AC_MSG_ERROR([Install libboost-date-time-dev (or similar)])
+])
+
+AC_CHECK_LIB(boost_program_options, main, [],[
+	AC_MSG_NOTICE([boost program options library not found.])
+	AC_MSG_ERROR([Install libboost-program-options-dev (or similar)])
 ])
 
 AC_MSG_CHECKING([for boost_unit_test_framework presence])
