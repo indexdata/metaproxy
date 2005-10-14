@@ -102,7 +102,10 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_3 )
 
             // put in frontend first
             yp2::FilterFrontendNet filter_front;
-            filter_front.listen_address() = "unix:socket";
+
+            std::vector <std::string> ports;
+            ports.insert(ports.begin(), "unix:socket");
+            filter_front.ports() = ports;
             filter_front.listen_duration() = 1;  // listen a short time only
 	    router.rule(filter_front);
 

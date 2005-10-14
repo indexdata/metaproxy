@@ -68,10 +68,15 @@ int main(int argc, char **argv)
             ("help", "produce help message")
             ("duration", po::value<int>(),
              "number of seconds for server to exist")
+            ("port", po::value< std::vector<std::string> >(), "listener port")
             ;
 
+        po::positional_options_description p;
+        p.add("port", -1);
+
         po::variables_map vm;        
-        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::store(po::command_line_parser(argc, argv).
+                  options(desc).positional(p).run(), vm);
         po::notify(vm);    
 
         if (vm.count("help")) {
@@ -79,17 +84,23 @@ int main(int argc, char **argv)
             return 1;
         }
 
+        if (vm.count("port"))
         {
+            std::vector<std::string> ports = 
+                vm["port"].as< std::vector<std::string> >();
+
+            for (size_t i = 0; i<ports.size(); i++)
+                std::cout << "port " << i << " " << ports[i] << "\n";
+
 	    yp2::RouterChain router;
 
             // put in frontend first
             yp2::FilterFrontendNet filter_front;
-            filter_front.listen_address() = "tcp:@:9999";
+            filter_front.ports() = ports;
 
             // 0=no time, >0 timeout in seconds
             if (vm.count("duration")) {
-                filter_front.listen_duration() = 
-                    vm["duration"].as<int>();
+                filter_front.listen_duration() = vm["duration"].as<int>();
             }
 	    router.rule(filter_front);
 

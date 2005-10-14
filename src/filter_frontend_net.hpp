@@ -3,6 +3,7 @@
 #define FILTER_FRONEND_NET_HPP
 
 #include <stdexcept>
+#include <vector>
 
 #include "filter.hpp"
 
@@ -13,11 +14,11 @@ namespace yp2 {
 	void process(yp2::Package & package) const;
     private:
         int m_no_threads;
-        std::string m_listen_address;
+        std::vector<std::string> m_ports;
         int m_listen_duration;
     public:
         /// set function - left val in assignment
-        std::string & listen_address();
+        std::vector<std::string> &ports();
         int &listen_duration();
     };
 }

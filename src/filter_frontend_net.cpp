@@ -176,8 +176,9 @@ ZAssocServer::ZAssocServer(yazpp_1::IPDU_Observable *the_PDU_Observable,
 yazpp_1::IPDU_Observer *ZAssocServer::sessionNotify(yazpp_1::IPDU_Observable
 						 *the_PDU_Observable, int fd)
 {
-    ZAssocServerChild *my = new ZAssocServerChild(the_PDU_Observable, m_thread_pool_observer,
-				    m_package);
+    ZAssocServerChild *my =
+	new ZAssocServerChild(the_PDU_Observable, m_thread_pool_observer,
+			      m_package);
     return my;
 }
 
@@ -204,7 +205,6 @@ void ZAssocServer::connectNotify()
 FilterFrontendNet::FilterFrontendNet()
 {
     m_no_threads = 5;
-    m_listen_address = "@:9001";
     m_listen_duration = 0;
 }
 
@@ -249,25 +249,36 @@ void FilterFrontendNet::process(Package &package) const {
     if (m_listen_duration)
 	tt = new My_Timer_Thread(&mySocketManager, m_listen_duration);
 
-    yazpp_1::PDU_Assoc *my_PDU_Assoc =
-	new yazpp_1::PDU_Assoc(&mySocketManager);
-    
     ThreadPoolSocketObserver threadPool(&mySocketManager, m_no_threads);
 
-    ZAssocServer z(my_PDU_Assoc, &threadPool, &package);
-    z.server(m_listen_address.c_str());
+    ZAssocServer **az = new ZAssocServer *[m_ports.size()];
 
+    // Create ZAssocServer for each port
+    size_t i;
+    for (i = 0; i<m_ports.size(); i++)
+    {
+	// create a PDU assoc object (one per ZAssocServer)
+	yazpp_1::PDU_Assoc *as = new yazpp_1::PDU_Assoc(&mySocketManager);
+
+	// create ZAssoc with PDU Assoc
+	az[i] = new ZAssocServer(as, &threadPool, &package);
+	az[i]->server(m_ports[i].c_str());
+    }
     while (mySocketManager.processEvent() > 0)
     {
 	if (tt && tt->timeout())
 	    break;
     }
+    for (i = 0; i<m_ports.size(); i++)
+	delete az[i];
+
+    delete [] az;
     delete tt;
 }
 
-std::string &FilterFrontendNet::listen_address()
+std::vector<std::string> &FilterFrontendNet::ports()
 {
-    return m_listen_address;
+    return m_ports;
 }
 
 int &FilterFrontendNet::listen_duration()
