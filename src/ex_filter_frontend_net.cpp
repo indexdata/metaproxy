@@ -15,7 +15,7 @@ namespace po = boost::program_options;
 #include "session.hpp"
 #include "package.hpp"
 
-class FilterInit: public yp2::Filter {
+class FilterInit: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {
 
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 	    yp2::RouterChain router;
 
             // put frontend filter in router
-            yp2::FilterFrontendNet filter_front;
+            yp2::filter::FrontendNet filter_front;
             filter_front.ports() = ports;
 
             // 0=no time, >0 timeout in seconds
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 	    router.rule(filter_front);
 
             // put log filter in router
-            yp2::FilterLog filter_log;
+            yp2::filter::Log filter_log;
             router.rule(filter_log);
 
             // put backend init filter in router

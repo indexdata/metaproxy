@@ -10,7 +10,7 @@
 
 using namespace boost::unit_test;
 
-class TFilter: public yp2::Filter {
+class TFilter: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {};
 };

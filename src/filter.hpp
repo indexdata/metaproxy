@@ -7,36 +7,37 @@
 namespace yp2 {
 
     class Package;
-    
-    class Filter {
-    public:
-        virtual ~Filter(){};
 
-        ///sends Package off to next Filter, returns altered Package
-        virtual  void process(Package & package) const {
+    namespace filter {
+        class Base {
+        public:
+            virtual ~Base(){};
+            
+            ///sends Package off to next Filter, returns altered Package
+            virtual  void process(Package & package) const {
+            };
+            virtual  void configure(){};
+            
+            /// get function - right val in assignment
+            std::string name() const {
+                return m_name;
+            }
+            
+            /// set function - left val in assignment
+            std::string & name() {
+                return m_name;
+            }
+            
+            /// set function - can be chained
+            Base & name(const std::string & name){
+                m_name = name;
+                return *this;
+            }
+            
+        private:
+            std::string m_name;
         };
-        virtual  void configure(){};
-
-        /// get function - right val in assignment
-        std::string name() const {
-            return m_name;
-        }
-
-        /// set function - left val in assignment
-        std::string & name() {
-            return m_name;
-        }
-
-        /// set function - can be chained
-        Filter & name(const std::string & name){
-            m_name = name;
-            return *this;
-        }
-        
-    private:
-        std::string m_name;
-    };
-    
+    }
     
     class FilterException : public std::runtime_error {
     public:

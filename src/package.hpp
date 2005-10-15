@@ -107,7 +107,7 @@ namespace yp2 {
         Session m_session;
         Origin m_origin;
         
-        const Filter *m_filter;
+        const filter::Base *m_filter;
         const Router *m_router;
         unsigned int m_data;
         

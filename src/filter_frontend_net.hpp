@@ -8,19 +8,21 @@
 #include "filter.hpp"
 
 namespace yp2 {
-    class FilterFrontendNet : public yp2::Filter {
-    public:
-	FilterFrontendNet::FilterFrontendNet();
-	void process(yp2::Package & package) const;
-    private:
-        int m_no_threads;
-        std::vector<std::string> m_ports;
-        int m_listen_duration;
-    public:
-        /// set function - left val in assignment
-        std::vector<std::string> &ports();
-        int &listen_duration();
-    };
+    namespace filter {
+        class FrontendNet : public Base {
+        public:
+            FrontendNet::FrontendNet();
+            void process(yp2::Package & package) const;
+        private:
+            int m_no_threads;
+            std::vector<std::string> m_ports;
+            int m_listen_duration;
+        public:
+            /// set function - left val in assignment
+            std::vector<std::string> &ports();
+            int &listen_duration();
+        };
+    }
 }
 
 

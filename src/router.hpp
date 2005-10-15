@@ -6,10 +6,11 @@
 #include <list>
 
 namespace yp2 {
-
+    namespace filter {
+        class Base;
+    }
     class Package;
     
-    class Filter; 
     class RouterException : public std::runtime_error {
     public:
         RouterException(const std::string message)
@@ -23,7 +24,7 @@ namespace yp2 {
         virtual ~Router(){};
 
         /// determines next Filter to use from current Filter and Package
-        virtual const Filter *move(const Filter *filter,
+        virtual const filter::Base *move(const filter::Base *filter,
                                    const Package *package) const {
             return 0;
         };
@@ -32,7 +33,7 @@ namespace yp2 {
         virtual void configure(){};
 
         /// add routing rule expressed as Filter to Router
-        virtual Router & rule(const Filter &filter){
+        virtual Router & rule(const filter::Base &filter){
             return *this;
         }
     private:
@@ -48,9 +49,9 @@ namespace yp2 {
     public:
         RouterChain(){};
         virtual ~RouterChain(){};
-        virtual const Filter *move(const Filter *filter,
+        virtual const filter::Base *move(const filter::Base *filter,
                                    const Package *package) const {
-            std::list<const Filter *>::const_iterator it;
+            std::list<const filter::Base *>::const_iterator it;
             it = m_filter_list.begin();
             if (filter)
                 {
@@ -69,12 +70,12 @@ namespace yp2 {
             return *it;
         };
         virtual void configure(){};
-        RouterChain & rule(const Filter &filter){
+        RouterChain & rule(const filter::Base &filter){
             m_filter_list.push_back(&filter);
             return *this;
         }
     protected:
-        std::list<const Filter *> m_filter_list;
+        std::list<const filter::Base *> m_filter_list;
     private:
         /// disabled because class is singleton
         RouterChain(const RouterChain &);

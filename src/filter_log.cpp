@@ -13,9 +13,9 @@
 
 #include <iostream>
 
-yp2::FilterLog::FilterLog() {}
+yp2::filter::Log::Log() {}
 
-void yp2::FilterLog::process(Package &package) const {
+void yp2::filter::Log::process(Package &package) const {
 
     Z_GDU *gdu;
 

@@ -8,11 +8,13 @@
 #include "filter.hpp"
 
 namespace yp2 {
-    class FilterLog : public yp2::Filter {
-    public:
-	FilterLog::FilterLog();
-	void process(yp2::Package & package) const;
-    };
+    namespace filter {
+        class Log : public Base {
+        public:
+            Log::Log();
+            void process(yp2::Package & package) const;
+        };
+    }
 }
 
 #endif

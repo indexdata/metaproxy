@@ -14,7 +14,7 @@
 
 using namespace boost::unit_test;
 
-class FilterInit: public yp2::Filter {
+class FilterInit: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {
 
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_1 )
     try 
     {
         {
-            yp2::FilterFrontendNet nf;
+            yp2::filter::FrontendNet nf;
         }
     }
     catch ( ... ) {
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_3 )
 	    yp2::RouterChain router;
 
             // put in frontend first
-            yp2::FilterFrontendNet filter_front;
+            yp2::filter::FrontendNet filter_front;
 
             std::vector <std::string> ports;
             ports.insert(ports.begin(), "unix:socket");

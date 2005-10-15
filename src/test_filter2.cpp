@@ -13,7 +13,7 @@
 using namespace boost::unit_test;
 
 
-class FilterConstant: public yp2::Filter {
+class FilterConstant: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {
 	package.data() = 1234;
@@ -22,7 +22,7 @@ public:
 };
 
 
-class FilterDouble: public yp2::Filter {
+class FilterDouble: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {
 	package.data() = package.data() * 2;
