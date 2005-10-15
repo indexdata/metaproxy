@@ -1,4 +1,9 @@
-/* $Id: p2.cpp,v 1.4 2005-10-14 10:27:18 adam Exp $
+/* $Id: p2.cpp,v 1.5 2005-10-15 14:09:09 adam Exp $
+   Copyright (c) 2005, Index Data.
+
+%LICENSE%
+ */
+/* $Id: p2.cpp,v 1.5 2005-10-15 14:09:09 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -142,6 +147,7 @@ int main(int argc, char **argv)
  * Local variables:
  * c-basic-offset: 4
  * indent-tabs-mode: nil
+ * c-file-style: "stroustrup"
  * End:
  * vim: shiftwidth=4 tabstop=8 expandtab
  */

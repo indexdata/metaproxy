@@ -1,3 +1,8 @@
+/* $Id: filter_frontend_net.hpp,v 1.5 2005-10-15 14:09:09 adam Exp $
+   Copyright (c) 2005, Index Data.
+
+%LICENSE%
+ */
 
 #ifndef FILTER_FRONTEND_NET_HPP
 #define FILTER_FRONEND_NET_HPP
@@ -31,6 +36,7 @@ namespace yp2 {
  * Local variables:
  * c-basic-offset: 4
  * indent-tabs-mode: nil
+ * c-file-style: "stroustrup"
  * End:
  * vim: shiftwidth=4 tabstop=8 expandtab
  */

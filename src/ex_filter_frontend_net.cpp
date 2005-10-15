@@ -1,3 +1,8 @@
+/* $Id: ex_filter_frontend_net.cpp,v 1.7 2005-10-15 14:09:09 adam Exp $
+   Copyright (c) 2005, Index Data.
+
+%LICENSE%
+ */
 
 #include <cstdlib>
 #include <iostream>
@@ -18,12 +23,12 @@ namespace po = boost::program_options;
 class FilterInit: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {
-
+        
         if (package.session().is_closed())
         {
             // std::cout << "Got Close.\n";
         }
-       
+        
         Z_GDU *gdu = package.request().get();
         if (gdu)
         {
@@ -131,6 +136,7 @@ int main(int argc, char **argv)
  * Local variables:
  * c-basic-offset: 4
  * indent-tabs-mode: nil
+ * c-file-style: "stroustrup"
  * End:
  * vim: shiftwidth=4 tabstop=8 expandtab
  */
