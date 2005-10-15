@@ -8,6 +8,7 @@ socket
 Makefile
 Makefile.in
 config.hpp.in
+ex_filter_frontend_net
 test_boost_threads
 test_boost_time
 test_filter1
