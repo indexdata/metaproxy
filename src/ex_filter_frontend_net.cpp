@@ -9,6 +9,7 @@ namespace po = boost::program_options;
 #include "config.hpp"
 
 #include "filter_frontend_net.hpp"
+#include "filter_log.hpp"
 
 #include "router.hpp"
 #include "session.hpp"
@@ -94,7 +95,7 @@ int main(int argc, char **argv)
 
 	    yp2::RouterChain router;
 
-            // put in frontend first
+            // put frontend filter in router
             yp2::FilterFrontendNet filter_front;
             filter_front.ports() = ports;
 
@@ -104,7 +105,11 @@ int main(int argc, char **argv)
             }
 	    router.rule(filter_front);
 
-            // put in a backend
+            // put log filter in router
+            yp2::FilterLog filter_log;
+            router.rule(filter_log);
+
+            // put backend init filter in router
             FilterInit filter_init;
 	    router.rule(filter_init);
 

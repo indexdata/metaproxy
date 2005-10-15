@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.18 2005-10-14 11:18:59 adam Exp $
+## $Id: Makefile.am,v 1.19 2005-10-15 11:02:08 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -9,9 +9,11 @@ AM_CXXFLAGS = $(YAZPPINC) $(XSLT_CFLAGS)
 lib_LTLIBRARIES = libyp2.la
 libyp2_la_LDFLAGS = -version-info 0:0:0
 
-libyp2_la_SOURCES = filter_frontend_net.cpp filter_frontend_net.hpp \
+libyp2_la_SOURCES = \
 	session.cpp session.hpp package.hpp filter.hpp router.hpp \
-	thread_pool_observer.cpp thread_pool_observer.hpp
+	thread_pool_observer.cpp thread_pool_observer.hpp \
+	filter_frontend_net.cpp filter_frontend_net.hpp \
+	filter_log.cpp filter_log.hpp
 
 # Rules for programs..
 
