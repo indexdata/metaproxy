@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.1 2005-10-16 16:05:44 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.2 2005-10-16 21:55:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -60,6 +60,8 @@ namespace yp2 {
             Z3950Client::Assoc *get_assoc(Package &package);
             void send_and_receive(Package &package,
                                   yf::Z3950Client::Assoc *c);
+            void release_assoc(Package &package,
+                               yf::Z3950Client::Assoc *c);
         };
     }
 }
@@ -74,11 +76,12 @@ yf::Z3950Client::Assoc::Assoc(yp2::Session id,
        m_package(0), m_waiting(false), m_connected(false),
        m_host(host)
 {
+    std::cout << "create assoc " << this << "\n";
 }
 
 yf::Z3950Client::Assoc::~Assoc()
 {
-    delete m_socket_manager;
+    std::cout << "destroy assoc " << this << "\n";
 }
 
 void yf::Z3950Client::Assoc::connectNotify()
@@ -151,19 +154,8 @@ yf::Z3950Client::~Z3950Client() {
 
 yf::Z3950Client::Assoc *yf::Z3950Client::Pimpl::get_assoc(Package &package) 
 {
-    Z_GDU *gdu = package.request().get();
-
-    // only deal with Z39.50
-    if (!gdu || gdu->which != Z_GDU_Z3950)
-    {
-        package.move();
-        return 0;
-    }
-
     // only one thread messes with the clients list at a time
     boost::mutex::scoped_lock lock(m_mutex);
-
-    Z_APDU *apdu = gdu->u.z3950;
 
     std::list<yf::Z3950Client::Assoc *>::iterator it;
 
@@ -175,7 +167,17 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Pimpl::get_assoc(Package &package)
     if (it != m_clients.end())
         return *it;
 
-    // new session ..
+    // only deal with Z39.50
+    Z_GDU *gdu = package.request().get();
+
+    if (!gdu || gdu->which != Z_GDU_Z3950)
+    {
+        package.move();
+        return 0;
+    }
+    Z_APDU *apdu = gdu->u.z3950;
+
+    // new Z39.50 session ..
 
     // check that it is init. If not, close
     if (apdu->which != Z_APDU_initRequest)
@@ -222,6 +224,11 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Pimpl::get_assoc(Package &package)
 void yf::Z3950Client::Pimpl::send_and_receive(Package &package,
                                               yf::Z3950Client::Assoc *c)
 {
+    Z_GDU *gdu = package.request().get();
+
+    if (!gdu || gdu->which != Z_GDU_Z3950)
+        return;
+
     // we should lock c!
 
     c->m_package = &package;
@@ -243,18 +250,45 @@ void yf::Z3950Client::Pimpl::send_and_receive(Package &package,
     
     // relay the package  ..
     int len;
-    c->send_GDU(package.request().get(), &len);
+    c->send_GDU(gdu, &len);
     
     while (c->m_waiting && c->m_socket_manager->processEvent() > 0)
         ;
 }
 
+void yf::Z3950Client::Pimpl::release_assoc(Package &package,
+                                           yf::Z3950Client::Assoc *c)
+{
+    if (package.session().is_closed())
+    {
+        boost::mutex::scoped_lock lock(m_mutex);
+        std::list<yf::Z3950Client::Assoc *>::iterator it;
+
+        for (it = m_clients.begin(); it != m_clients.end(); it++)
+        {
+            if ((*it)->m_session_id == package.session())
+                break;
+        }
+        if (it != m_clients.end())
+        {
+            // the Z_Assoc and PDU_Assoc must be destroyed before
+            // the socket manager.. so pull that out.. first..
+            yazpp_1::SocketManager *s = (*it)->m_socket_manager;
+            delete *it;  // destroy Z_Assoc
+            delete s;    // then manager
+            m_clients.erase(it);
+        }
+    }
+}
+
 void yf::Z3950Client::process(Package &package) const
 {
     yf::Z3950Client::Assoc *c = m_p->get_assoc(package);
-    if (!c)
-        return;
-    m_p->send_and_receive(package, c);
+    if (c)
+    {
+        m_p->send_and_receive(package, c);
+        m_p->release_assoc(package, c);
+    }
 }
 
 
