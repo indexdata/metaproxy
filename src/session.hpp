@@ -1,4 +1,4 @@
-/* $Id: session.hpp,v 1.7 2005-10-15 14:09:09 adam Exp $
+/* $Id: session.hpp,v 1.8 2005-10-16 16:05:18 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -50,7 +50,10 @@ namespace yp2 {
         void close() {
             m_close = true;
         };
-        
+
+        bool operator == (Session &ses) {
+            return ses.m_id == m_id;
+        }
     private:
         
         unsigned long int m_id;
