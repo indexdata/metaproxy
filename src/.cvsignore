@@ -18,3 +18,4 @@ test_package1
 test_thread_pool_observer
 test_session1
 test_session2
+test_filter_z3950_client

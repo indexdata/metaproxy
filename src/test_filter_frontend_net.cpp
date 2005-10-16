@@ -1,4 +1,4 @@
-/* $Id: test_filter_frontend_net.cpp,v 1.7 2005-10-15 14:09:09 adam Exp $
+/* $Id: test_filter_frontend_net.cpp,v 1.8 2005-10-16 16:05:44 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -22,7 +22,7 @@ using namespace boost::unit_test;
 class FilterInit: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {
-
+        
         if (package.session().is_closed())
         {
             // std::cout << "Got Close.\n";

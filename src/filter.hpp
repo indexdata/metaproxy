@@ -1,4 +1,4 @@
-/* $Id: filter.hpp,v 1.4 2005-10-15 14:09:09 adam Exp $
+/* $Id: filter.hpp,v 1.5 2005-10-16 16:05:44 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -19,9 +19,9 @@ namespace yp2 {
             virtual ~Base(){};
             
             ///sends Package off to next Filter, returns altered Package
-            virtual  void process(Package & package) const {
-            };
-            virtual  void configure(){};
+            virtual void process(Package & package) const = 0;
+
+            virtual void configure(){};
             
             /// get function - right val in assignment
             std::string name() const {

@@ -1,4 +1,4 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.7 2005-10-15 14:09:09 adam Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.8 2005-10-16 16:05:44 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -14,51 +14,36 @@ namespace po = boost::program_options;
 #include "config.hpp"
 
 #include "filter_frontend_net.hpp"
+#include "filter_z3950_client.hpp"
 #include "filter_log.hpp"
 
 #include "router.hpp"
 #include "session.hpp"
 #include "package.hpp"
 
-class FilterInit: public yp2::filter::Base {
+class HTTPFilter: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {
-        
         if (package.session().is_closed())
         {
             // std::cout << "Got Close.\n";
         }
         
         Z_GDU *gdu = package.request().get();
-        if (gdu)
+        if (gdu && gdu->which == Z_GDU_HTTP_Request)
         {
             ODR odr = odr_createmem(ODR_ENCODE);
-            switch(gdu->which)
-            {
-            case Z_GDU_Z3950:
-                // std::cout << "Got PDU. Sending init response\n";
-                Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
-                
-                apdu->u.initResponse->implementationName = "YP2/YAZ";
-                
-                package.response() = apdu;
-                break;
-            case Z_GDU_HTTP_Request:
-                Z_GDU *gdu = z_get_HTTP_Response(odr, 200);
-                Z_HTTP_Response *http_res = gdu->u.HTTP_Response;
-        
-                z_HTTP_header_add(odr, &http_res->headers,
-                                  "Content-Type", "text/plain");
-           
-                http_res->content_buf = 
-                    odr_strdup(odr, "Welcome to YP2");
-                http_res->content_len = strlen(http_res->content_buf);
-
-                package.response() = gdu;
-                break;
-            default:
-                break;
-            } 
+            Z_GDU *gdu = z_get_HTTP_Response(odr, 200);
+            Z_HTTP_Response *http_res = gdu->u.HTTP_Response;
+            
+            z_HTTP_header_add(odr, &http_res->headers,
+                              "Content-Type", "text/plain");
+            
+            http_res->content_buf = 
+                odr_strdup(odr, "Welcome to YP2");
+            http_res->content_len = strlen(http_res->content_buf);
+            
+            package.response() = gdu;
             odr_destroy(odr);
         }
         return package.move();
@@ -114,9 +99,13 @@ int main(int argc, char **argv)
             yp2::filter::Log filter_log;
             router.rule(filter_log);
 
-            // put backend init filter in router
-            FilterInit filter_init;
+            // put HTTP backend filter in router
+            HTTPFilter filter_init;
 	    router.rule(filter_init);
+
+            // put Z39.50 backend filter in router
+            yp2::filter::Z3950Client z3950_client;
+	    router.rule(z3950_client);
 
             yp2::Session session;
             yp2::Origin origin;

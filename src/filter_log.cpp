@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.3 2005-10-15 14:09:09 adam Exp $
+/* $Id: filter_log.cpp,v 1.4 2005-10-16 16:05:44 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -24,6 +24,10 @@ void yp2::filter::Log::process(Package &package) const {
 
     Z_GDU *gdu;
 
+    std::cout << "---- req id=" << package.session().id();
+
+    std::cout << " close=" << (package.session().is_closed() ? "yes" : "no")
+              << "\n";
     gdu = package.request().get();
     if (gdu)
     {
@@ -33,6 +37,11 @@ void yp2::filter::Log::process(Package &package) const {
     }
     package.move();
 
+
+    std::cout << "---- res id=" << package.session().id();
+
+    std::cout << " close=" << (package.session().is_closed() ? "yes" : "no")
+              << "\n";
     gdu = package.response().get();
     if (gdu)
     {
