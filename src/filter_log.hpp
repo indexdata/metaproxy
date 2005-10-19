@@ -1,4 +1,4 @@
-/* $Id: filter_log.hpp,v 1.3 2005-10-15 14:09:09 adam Exp $
+/* $Id: filter_log.hpp,v 1.4 2005-10-19 21:44:01 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -16,7 +16,7 @@ namespace yp2 {
     namespace filter {
         class Log : public Base {
         public:
-            Log::Log();
+            Log();
             void process(yp2::Package & package) const;
         };
     }
