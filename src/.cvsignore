@@ -14,6 +14,7 @@ test_boost_time
 test_filter1
 test_filter2
 test_filter_frontend_net
+test_filter_log
 test_package1
 test_thread_pool_observer
 test_session1

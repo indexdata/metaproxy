@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.20 2005-10-16 16:05:44 adam Exp $
+## $Id: Makefile.am,v 1.21 2005-10-19 22:45:59 marc Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -34,6 +34,7 @@ check_PROGRAMS = \
 	test_thread_pool_observer \
 	test_boost_threads test_boost_time \
 	test_filter_frontend_net \
+	test_filter_log \
 	test_filter_z3950_client
 
 TESTS=$(check_PROGRAMS)
@@ -47,6 +48,7 @@ test_boost_threads_SOURCES=test_boost_threads.cpp
 test_boost_time_SOURCES=test_boost_time.cpp
 test_thread_pool_observer_SOURCES = test_thread_pool_observer.cpp
 test_filter_frontend_net_SOURCES = test_filter_frontend_net.cpp
+test_filter_log_SOURCES = test_filter_log.cpp
 test_filter_z3950_client_SOURCES = test_filter_z3950_client.cpp
 
 TESTLDADD = $(LDADD) -lboost_unit_test_framework
@@ -60,6 +62,7 @@ test_boost_time_LDADD = $(TESTLDADD)
 test_thread_pool_observer_LDADD = $(TESTLDADD)
 test_package1_LDADD = $(TESTLDADD)
 test_filter_frontend_net_LDADD = $(TESTLDADD)
+test_filter_log_LDADD = $(TESTLDADD)
 test_filter_z3950_client_LDADD = $(TESTLDADD)
 
 # doxygen target
