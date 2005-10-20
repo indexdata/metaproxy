@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.2 2005-10-16 21:55:36 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.3 2005-10-20 08:05:52 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -76,12 +76,12 @@ yf::Z3950Client::Assoc::Assoc(yp2::Session id,
        m_package(0), m_waiting(false), m_connected(false),
        m_host(host)
 {
-    std::cout << "create assoc " << this << "\n";
+    // std::cout << "create assoc " << this << "\n";
 }
 
 yf::Z3950Client::Assoc::~Assoc()
 {
-    std::cout << "destroy assoc " << this << "\n";
+    // std::cout << "destroy assoc " << this << "\n";
 }
 
 void yf::Z3950Client::Assoc::connectNotify()
