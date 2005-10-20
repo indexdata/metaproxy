@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!-- imagined config for yp2..
+  The router system understands yp2, sequence and filter elements.
+  Everything else interpreted by filters.
+  Each filter is invoked in a sequence (unless a filter invokes another
+  sequence.. A start sequence must be determined somehow.
+  -->
+<yp2>
+  <sequence name="start">
+    <filter type="frontend-net"> <!-- the Z39.50/HTTP frontend -->
+      <port>210</port>
+    </filter>
+    <filter type="log">          <!-- apply logging always -->
+      <logfile>mylog.log</logfile>
+    </filter>
+    <filter type="cond">           <!-- conditional -->
+      <invoke sequence="public">   <!-- invoke public sequence for some db -->
+            port=210 and db="public" 
+      </invoke>
+    </filter>
+    <filter name="reject">        <!-- reject .. -->
+    </filter>
+  </sequence>
+  <sequence name="public">
+    <filter type="z3950-client">
+      <target>localhost:9999/A</target>
+    </filter>
+  </sequence>
+</yp2>
+
+<!-- observation: the logic could be controlled by a XSLT! -->
