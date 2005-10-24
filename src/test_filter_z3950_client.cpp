@@ -1,4 +1,4 @@
-/* $Id: test_filter_z3950_client.cpp,v 1.2 2005-10-16 16:09:58 adam Exp $
+/* $Id: test_filter_z3950_client.cpp,v 1.3 2005-10-24 14:33:30 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -26,9 +26,7 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_1 )
 {
     try 
     {
-        {
-            yp2::filter::Z3950Client zc;
-        }
+        yp2::filter::Z3950Client zc; // can we construct OK?
     }
     catch ( ... ) {
         BOOST_CHECK (false);
@@ -59,7 +57,7 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_2 )
         // Put it in router
         pack.router(router).move(); 
         
-        // Inspect that we got Z39.50 init Response - a Z39.50 session
+        // Inspect that we got Z39.50 init Response - a Z39.50 session MUST
         // specify a virtual host
         yazpp_1::GDU *gdu = &pack.response();
         
