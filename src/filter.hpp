@@ -1,4 +1,4 @@
-/* $Id: filter.hpp,v 1.5 2005-10-16 16:05:44 adam Exp $
+/* $Id: filter.hpp,v 1.6 2005-10-24 09:53:06 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -8,6 +8,7 @@
 #define FILTER_HPP
 
 #include <stdexcept>
+#include <libxml/tree.h>
 
 namespace yp2 {
 
@@ -21,7 +22,7 @@ namespace yp2 {
             ///sends Package off to next Filter, returns altered Package
             virtual void process(Package & package) const = 0;
 
-            virtual void configure(){};
+            virtual void configure(const xmlNode * ptr = 0) { } ;
             
             /// get function - right val in assignment
             std::string name() const {
