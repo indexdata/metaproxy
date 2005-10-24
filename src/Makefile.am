@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.21 2005-10-19 22:45:59 marc Exp $
+## $Id: Makefile.am,v 1.22 2005-10-24 13:31:36 marc Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -21,9 +21,10 @@ libyp2_la_SOURCES = \
 LDADD= libyp2.la $(YAZPPLALIB) $(XSLT_LIBS)
 
 bin_PROGRAMS =
-noinst_PROGRAMS = ex_filter_frontend_net
+noinst_PROGRAMS = ex_filter_frontend_net ex_libxml2_conf
 
 ex_filter_frontend_net_SOURCES = ex_filter_frontend_net.cpp
+ex_libxml2_conf_SOURCES = ex_libxml2_conf.cpp
 
 # Rules for test programs..
 
