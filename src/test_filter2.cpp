@@ -1,4 +1,4 @@
-/* $Id: test_filter2.cpp,v 1.10 2005-10-24 09:53:06 adam Exp $
+/* $Id: test_filter2.cpp,v 1.11 2005-10-24 10:16:33 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -22,50 +22,58 @@ using namespace boost::unit_test;
 
 class FilterConstant: public yp2::filter::Base {
 public:
+    FilterConstant() : m_constant(1234) { };
     void process(yp2::Package & package) const {
-	package.data() = 1234;
+	package.data() = m_constant;
 	package.move();
     };
-    void configure(const xmlNode* ptr = 0) {
-        m_ptr = ptr;
-
-        BOOST_CHECK_EQUAL (ptr->type, XML_ELEMENT_NODE);
-        BOOST_CHECK_EQUAL(std::string((const char *) ptr->name), "filter");
-
-        const struct _xmlAttr *attr;
-
-        for (attr = ptr->properties; attr; attr = attr->next)
-        {
-            BOOST_CHECK_EQUAL( std::string((const char *)attr->name), "type");
-            const xmlNode *val = attr->children;
-            BOOST_CHECK_EQUAL(val->type, XML_TEXT_NODE);
-            BOOST_CHECK_EQUAL(std::string((const char *)val->content), "constant");
-        }
-        const xmlNode *p = ptr->children;
-        for (; p; p = p->next)
-        {
-            if (p->type != XML_ELEMENT_NODE)
-                continue;
-
-            BOOST_CHECK_EQUAL (p->type, XML_ELEMENT_NODE);
-            BOOST_CHECK_EQUAL(std::string((const char *) p->name), "value");
-
-            const xmlNode *val = p->children;
-            BOOST_CHECK(val);
-            if (!val)
-                continue;
-
-            BOOST_CHECK_EQUAL(val->type, XML_TEXT_NODE);
-            BOOST_CHECK_EQUAL(std::string((const char *)val->content), "2");
-        }
-    }
+    void configure(const xmlNode* ptr = 0);
+    int get_constant() const { return m_constant; };
 private:
     bool parse_xml_text(const xmlNode *xml_ptr, bool &val);
     bool parse_xml_text(const xmlNode *xml_ptr, std::string &val);
 private:
     const xmlNode *m_ptr;
+    int m_constant;
 };
 
+
+void FilterConstant::configure(const xmlNode* ptr)
+{
+    m_ptr = ptr;
+    
+    BOOST_CHECK_EQUAL (ptr->type, XML_ELEMENT_NODE);
+    BOOST_CHECK_EQUAL(std::string((const char *) ptr->name), "filter");
+    
+    const struct _xmlAttr *attr;
+    
+    for (attr = ptr->properties; attr; attr = attr->next)
+    {
+        BOOST_CHECK_EQUAL( std::string((const char *)attr->name), "type");
+        const xmlNode *val = attr->children;
+        BOOST_CHECK_EQUAL(val->type, XML_TEXT_NODE);
+        BOOST_CHECK_EQUAL(std::string((const char *)val->content), "constant");
+    }
+    const xmlNode *p = ptr->children;
+    for (; p; p = p->next)
+    {
+        if (p->type != XML_ELEMENT_NODE)
+            continue;
+        
+        BOOST_CHECK_EQUAL (p->type, XML_ELEMENT_NODE);
+        BOOST_CHECK_EQUAL(std::string((const char *) p->name), "value");
+        
+        const xmlNode *val = p->children;
+        BOOST_CHECK(val);
+        if (!val)
+            continue;
+        
+        BOOST_CHECK_EQUAL(val->type, XML_TEXT_NODE);
+        BOOST_CHECK_EQUAL(std::string((const char *)val->content), "2");
+
+        m_constant = atoi((const char *) val->content);
+    }
+}
 
 bool FilterConstant::parse_xml_text(const xmlNode  *xml_ptr, bool &val)
 {
@@ -163,18 +171,20 @@ BOOST_AUTO_TEST_CASE( testfilter2_1 )
 
 }
 
-
 BOOST_AUTO_TEST_CASE( testfilter2_2 ) 
 {
     try {
 	FilterConstant fc;
+        BOOST_CHECK_EQUAL(fc.get_constant(), 1234);
+
+        yp2::filter::Base *base = &fc;
 
         std::string some_xml = "<?xml version=\"1.0\"?>\n"
             "<filter type=\"constant\">\n"
             " <value>2</value>\n"
             "</filter>";
         
-        std::cout << some_xml  << std::endl;
+        // std::cout << some_xml  << std::endl;
 
         xmlDocPtr doc = xmlParseMemory(some_xml.c_str(), some_xml.size());
 
@@ -184,10 +194,12 @@ BOOST_AUTO_TEST_CASE( testfilter2_2 )
         {
             xmlNodePtr root_element = xmlDocGetRootElement(doc);
             
-            fc.configure(root_element);
+            base->configure(root_element);
             
-            FilterDouble fd;
+            xmlFreeDoc(doc);
         }
+
+        BOOST_CHECK_EQUAL(fc.get_constant(), 2);
     }
     catch (std::exception &e) {
         std::cout << e.what() << "\n";
