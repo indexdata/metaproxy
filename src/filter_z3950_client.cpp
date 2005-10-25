@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.3 2005-10-20 08:05:52 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.4 2005-10-25 16:01:14 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -186,6 +186,9 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Pimpl::get_assoc(Package &package)
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
         
         *apdu->u.close->closeReason = Z_Close_protocolError;
+        apdu->u.close->diagnosticInformation =
+            odr_strdup(odr, "no init request for session");
+
         package.response() = apdu;
         
         package.session().close();
