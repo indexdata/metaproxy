@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.2 2005-10-25 15:19:39 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.3 2005-10-25 16:01:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -117,6 +117,9 @@ void yf::Backend_test::process(Package &package) const
         {
             apdu_res = zget_APDU(odr, Z_APDU_close);            
             *apdu_res->u.close->closeReason = Z_Close_protocolError;
+            apdu_res->u.close->diagnosticInformation =
+                odr_strdup(odr, "bad APDU in filter_backend_test");
+            
             package.session().close();
         }
         if (apdu_res)

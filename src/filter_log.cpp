@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.6 2005-10-25 11:48:30 adam Exp $
+/* $Id: filter_log.cpp,v 1.7 2005-10-25 16:01:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -21,6 +21,7 @@
 
 
 yp2::filter::Log::Log() {}
+yp2::filter::Log::Log(const std::string &msg) : m_msg(msg) {}
 
 void yp2::filter::Log::process(Package &package) const {
 
@@ -77,11 +78,6 @@ void yp2::filter::Log::process(Package &package) const {
 	z_GDU(odr, &gdu, 0, 0);
 	odr_destroy(odr);
     }
-}
-
-void yp2::filter::Log::set_prefix(const std::string &msg)
-{
-    m_msg = msg;
 }
 
 // defining and initializing static members

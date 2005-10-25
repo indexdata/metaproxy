@@ -1,4 +1,4 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.9 2005-10-25 15:19:58 adam Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.10 2005-10-25 16:01:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -97,14 +97,17 @@ int main(int argc, char **argv)
 	    router.rule(filter_front);
 
             // put log filter in router
-            yp2::filter::Log filter_log;
-            router.rule(filter_log);
+            yp2::filter::Log filter_log_front("FRONT");
+            router.rule(filter_log_front);
 
             // put Virt db filter in router
             yp2::filter::Virt_db filter_virt_db;
             filter_virt_db.add_map_db2vhost("Default", "indexdata.dk/gils");
 
 	    router.rule(filter_virt_db);
+
+            yp2::filter::Log filter_log_back("BACK");
+            router.rule(filter_log_back);
 
             // put HTTP backend filter in router
             HTTPFilter filter_init;

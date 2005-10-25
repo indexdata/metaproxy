@@ -1,4 +1,4 @@
-/* $Id: test_filter_virt_db.cpp,v 1.2 2005-10-25 11:48:30 adam Exp $
+/* $Id: test_filter_virt_db.cpp,v 1.3 2005-10-25 16:01:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -210,18 +210,16 @@ BOOST_AUTO_TEST_CASE( test_filter_virt_db_3 )
     {
         yp2::RouterChain router;
 
+        yp2::filter::Log filter_log1("FRONT");
 #if 0
-        yp2::filter::Log filter_log1;
-        filter_log1.set_prefix("FRONT");
         router.rule(filter_log1);
 #endif
    
         yp2::filter::Virt_db vdb;        
         router.rule(vdb);
         vdb.add_map_db2vhost("Default", "localhost:210");
+        yp2::filter::Log filter_log2("BACK");
 #if 0
-        yp2::filter::Log filter_log2;
-        filter_log2.set_prefix("BACK");
         router.rule(filter_log2);
 #endif
         yp2::filter::Backend_test btest;
