@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.6 2005-10-25 21:32:01 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.7 2005-10-25 22:44:39 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -33,7 +33,7 @@ namespace yp2 {
             Virt_db_set();
             ~Virt_db_set();
 
-            yp2::Session m_session;
+            yp2::Session m_backend_session;
             std::string m_setname;
             std::string m_vhost;
         };
@@ -69,7 +69,7 @@ namespace yp2 {
 
 yf::Virt_db_set::Virt_db_set(yp2::Session &id, std::string setname,
                              std::string vhost)
-    :   m_session(id), m_setname(setname), m_vhost(vhost)
+    :   m_backend_session(id), m_setname(setname), m_vhost(vhost)
 {
 }
 
@@ -122,8 +122,10 @@ void yf::Virt_db::Rep::release_session(Package &package)
 
 void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later){
     Session *id = 0;
+    std::string resultSetId;
     Z_PresentRequest *req = apdu->u.presentRequest;
     {
+        resultSetId = req->resultSetId;
         boost::mutex::scoped_lock lock(m_sessions_mutex);
         
         Ses_it it = m_sessions.find(package.session());
@@ -148,7 +150,7 @@ void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later)
             move_later = true;
             return;
         }
-        Sets_it sets_it = it->second.m_sets.find(req->resultSetId);
+        Sets_it sets_it = it->second.m_sets.find(resultSetId);
         if (sets_it == it->second.m_sets.end())
         {
             ODR odr = odr_createmem(ODR_ENCODE);
@@ -161,12 +163,12 @@ void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later)
                 zget_DefaultDiagFormat(
                     odr,
                     YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST,
-                    req->resultSetId);
+                    resultSetId.c_str());
             package.response() = apdu;
             odr_destroy(odr);
             return;
         }
-        id = new yp2::Session(sets_it->second.m_session);
+        id = new yp2::Session(sets_it->second.m_backend_session);
     }
     ODR odr = odr_createmem(ODR_ENCODE);
     
@@ -176,13 +178,37 @@ void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later)
     
     req->resultSetId = odr_strdup(odr, "default");
     present_package.request() = yazpp_1::GDU(apdu);
-    
+
     odr_destroy(odr);
-    
+
     present_package.move();
 
-    package.response() = present_package.response();
-    // must check for a closed present session..
+    if (present_package.session().is_closed())
+    {
+        ODR odr = odr_createmem(ODR_ENCODE);
+        Z_APDU *apdu = zget_APDU(odr, Z_APDU_presentResponse);
+        
+        Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
+        apdu->u.presentResponse->records = rec;
+        rec->which = Z_Records_NSD;
+        rec->u.nonSurrogateDiagnostic =
+            zget_DefaultDiagFormat(
+                odr,
+                YAZ_BIB1_RESULT_SET_NO_LONGER_EXISTS_UNILATERALLY_DELETED_BY_,
+                resultSetId.c_str());
+        package.response() = apdu;
+        
+        odr_destroy(odr);
+
+        boost::mutex::scoped_lock lock(m_sessions_mutex);
+        Ses_it it = m_sessions.find(package.session());
+        if (it != m_sessions.end())
+            it->second.m_sets.erase(resultSetId);
+    }
+    else
+    {
+        package.response() = present_package.response();
+    }
     delete id;
 }
 
@@ -191,7 +217,6 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
     Z_SearchRequest *req = apdu->u.searchRequest;
     std::string vhost;
     std::string database;
-    Session *id = 0;
     {
         boost::mutex::scoped_lock lock(m_sessions_mutex);
 
@@ -273,16 +298,15 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
                 return;
             }
         }
+        it->second.m_sets.erase(req->resultSetName);
         vhost = map_it->second.m_vhost;
-        id = new Session;
-
-        it->second.m_sets[req->resultSetName] =
-            Virt_db_set(*id, req->resultSetName, vhost);
     }
+    // we might look for an existing session with same vhost
+    Session id;
     const char *vhost_cstr = vhost.c_str();
     if (true)
     {  // sending init to backend
-        Package init_package(*id, package.origin());
+        Package init_package(id, package.origin());
         init_package.copy_filter(package);
         
         ODR odr = odr_createmem(ODR_ENCODE);
@@ -310,11 +334,10 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
             package.response() = apdu;
             
             odr_destroy(odr);
-            return;
         }
     }
     // sending search to backend
-    Package search_package(*id, package.origin());
+    Package search_package(id, package.origin());
 
     search_package.copy_filter(package);
     const char *sep = strchr(vhost_cstr, '/');
@@ -330,9 +353,29 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
     
     search_package.move();
 
+    if (search_package.session().is_closed())
+    {
+        ODR odr = odr_createmem(ODR_ENCODE);
+        Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchResponse);
+        
+        Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
+        apdu->u.searchResponse->records = rec;
+        rec->which = Z_Records_NSD;
+        rec->u.nonSurrogateDiagnostic =
+            zget_DefaultDiagFormat(
+                odr, YAZ_BIB1_DATABASE_UNAVAILABLE, database.c_str());
+        package.response() = apdu;
+        
+        odr_destroy(odr);
+        return;
+    }
     package.response() = search_package.response();
-    // must check for a closed search session..
-    delete id;
+    
+    boost::mutex::scoped_lock lock(m_sessions_mutex);
+    Ses_it it = m_sessions.find(package.session());
+    if (it != m_sessions.end())
+        it->second.m_sets[req->resultSetName] =
+            Virt_db_set(id, req->resultSetName, vhost);
 }
 
 void yf::Virt_db::Rep::init(Package &package, Z_APDU *apdu, bool &move_later)
