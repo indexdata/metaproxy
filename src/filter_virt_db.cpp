@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.3 2005-10-25 11:48:30 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.4 2005-10-25 15:19:39 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -137,10 +137,13 @@ void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later)
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
             
             *apdu->u.close->closeReason = Z_Close_protocolError;
+            apdu->u.close->diagnosticInformation =
+                odr_strdup(odr, "no session for present request");
             
             package.response() = apdu;
             package.session().close();
             odr_destroy(odr);
+            assert(false);
             return;
         }
         if (it->second.m_use_vhost)
@@ -351,12 +354,24 @@ void yf::Virt_db::Rep::init(Package &package, Z_APDU *apdu, bool &move_later)
         
         int i;
         static const int masks[] = {
-            Z_Options_search, Z_Options_present, Z_Options_namedResultSets, 0 
+            Z_Options_search, Z_Options_present, Z_Options_namedResultSets, -1 
         };
-        for (i = 0; masks[i]; i++)
+        for (i = 0; masks[i] != -1; i++)
             if (ODR_MASK_GET(req->options, masks[i]))
                 ODR_MASK_SET(resp->options, masks[i]);
         
+        static const int versions[] = {
+            Z_ProtocolVersion_1,
+            Z_ProtocolVersion_2,
+            Z_ProtocolVersion_3,
+            -1
+        };
+        for (i = 0; versions[i] != -1; i++)
+            if (ODR_MASK_GET(req->protocolVersion, versions[i]))
+                ODR_MASK_SET(resp->protocolVersion, versions[i]);
+            else
+                break;
+
         package.response() = apdu;
         
         odr_destroy(odr);
@@ -404,6 +419,9 @@ void yf::Virt_db::process(Package &package) const
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
             
             *apdu->u.close->closeReason = Z_Close_protocolError;
+
+            apdu->u.close->diagnosticInformation =
+                odr_strdup(odr, "unsupported APDU in filter_virt_db");
             
             package.response() = apdu;
             package.session().close();

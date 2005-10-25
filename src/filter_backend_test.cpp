@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.1 2005-10-25 11:48:30 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.2 2005-10-25 15:19:39 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -64,9 +64,9 @@ void yf::Backend_test::process(Package &package) const
             
             int i;
             static const int masks[] = {
-                Z_Options_search, Z_Options_present, 0 
+                Z_Options_search, Z_Options_present, -1 
             };
-            for (i = 0; masks[i]; i++)
+            for (i = 0; masks[i] != -1; i++)
                 if (ODR_MASK_GET(req->options, masks[i]))
                     ODR_MASK_SET(resp->options, masks[i]);
             if (m_p->m_support_named_result_sets)
@@ -76,6 +76,18 @@ void yf::Backend_test::process(Package &package) const
                 else
                     m_p->m_support_named_result_sets = false;
             }
+            static const int versions[] = {
+                Z_ProtocolVersion_1,
+                Z_ProtocolVersion_2,
+                Z_ProtocolVersion_3,
+                -1
+            };
+            for (i = 0; versions[i] != -1; i++)
+                if (ODR_MASK_GET(req->protocolVersion, versions[i]))
+                    ODR_MASK_SET(resp->protocolVersion, versions[i]);
+                else
+                    break;
+
         }
         else if (apdu_req->which == Z_APDU_searchRequest)
         { 
