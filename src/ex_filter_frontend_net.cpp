@@ -1,4 +1,4 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.8 2005-10-16 16:05:44 adam Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.9 2005-10-25 15:19:58 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -15,6 +15,7 @@ namespace po = boost::program_options;
 
 #include "filter_frontend_net.hpp"
 #include "filter_z3950_client.hpp"
+#include "filter_virt_db.hpp"
 #include "filter_log.hpp"
 
 #include "router.hpp"
@@ -98,6 +99,12 @@ int main(int argc, char **argv)
             // put log filter in router
             yp2::filter::Log filter_log;
             router.rule(filter_log);
+
+            // put Virt db filter in router
+            yp2::filter::Virt_db filter_virt_db;
+            filter_virt_db.add_map_db2vhost("Default", "indexdata.dk/gils");
+
+	    router.rule(filter_virt_db);
 
             // put HTTP backend filter in router
             HTTPFilter filter_init;
