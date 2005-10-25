@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.7 2005-10-25 22:44:39 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.8 2005-10-25 23:04:06 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -34,7 +34,7 @@ namespace yp2 {
             ~Virt_db_set();
 
             yp2::Session m_backend_session;
-            std::string m_setname;
+            std::string m_backend_setname;
             std::string m_vhost;
         };
         struct Virt_db_session {
@@ -69,7 +69,7 @@ namespace yp2 {
 
 yf::Virt_db_set::Virt_db_set(yp2::Session &id, std::string setname,
                              std::string vhost)
-    :   m_backend_session(id), m_setname(setname), m_vhost(vhost)
+    :   m_backend_session(id), m_backend_setname(setname), m_vhost(vhost)
 {
 }
 
@@ -122,10 +122,9 @@ void yf::Virt_db::Rep::release_session(Package &package)
 
 void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later){
     Session *id = 0;
-    std::string resultSetId;
     Z_PresentRequest *req = apdu->u.presentRequest;
+    std::string resultSetId = req->resultSetId;
     {
-        resultSetId = req->resultSetId;
         boost::mutex::scoped_lock lock(m_sessions_mutex);
         
         Ses_it it = m_sessions.find(package.session());
@@ -217,6 +216,7 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
     Z_SearchRequest *req = apdu->u.searchRequest;
     std::string vhost;
     std::string database;
+    std::string resultSetId = req->resultSetName;
     {
         boost::mutex::scoped_lock lock(m_sessions_mutex);
 
@@ -270,7 +270,7 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
             rec->which = Z_Records_NSD;
             rec->u.nonSurrogateDiagnostic =
                 zget_DefaultDiagFormat(
-                    odr, YAZ_BIB1_DATABASE_UNAVAILABLE, database.c_str());
+                    odr, YAZ_BIB1_DATABASE_DOES_NOT_EXIST, database.c_str());
             package.response() = apdu;
             
             odr_destroy(odr);
@@ -346,7 +346,9 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
         req->databaseNames[0] = odr_strdup(odr, sep+1);
 
     *req->replaceIndicator = 1;
-    req->resultSetName = odr_strdup(odr, "default");
+
+    std::string backend_resultSetId = "default";
+    req->resultSetName = odr_strdup(odr, backend_resultSetId.c_str());
     search_package.request() = yazpp_1::GDU(apdu);
     
     odr_destroy(odr);
@@ -374,8 +376,8 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
     boost::mutex::scoped_lock lock(m_sessions_mutex);
     Ses_it it = m_sessions.find(package.session());
     if (it != m_sessions.end())
-        it->second.m_sets[req->resultSetName] =
-            Virt_db_set(id, req->resultSetName, vhost);
+        it->second.m_sets[resultSetId] =
+            Virt_db_set(id, backend_resultSetId, vhost);
 }
 
 void yf::Virt_db::Rep::init(Package &package, Z_APDU *apdu, bool &move_later)
