@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.23 2005-10-24 14:33:30 adam Exp $
+## $Id: Makefile.am,v 1.24 2005-10-25 11:48:30 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -15,7 +15,8 @@ libyp2_la_SOURCES = \
 	filter_frontend_net.cpp filter_frontend_net.hpp \
 	filter_log.cpp filter_log.hpp \
 	filter_virt_db.cpp filter_virt_db.hpp \
-	filter_z3950_client.cpp filter_z3950_client.hpp
+	filter_z3950_client.cpp filter_z3950_client.hpp \
+	filter_backend_test.cpp filter_backend_test.hpp
 
 # Rules for programs..
 

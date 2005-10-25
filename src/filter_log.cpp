@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.5 2005-10-19 22:45:59 marc Exp $
+/* $Id: filter_log.cpp,v 1.6 2005-10-25 11:48:30 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -33,19 +33,18 @@ void yp2::filter::Log::process(Package &package) const {
     // scope for locking Ostream 
     { 
         boost::mutex::scoped_lock scoped_lock(m_log_mutex);
-        std::cout << receive_time << " ";
-        std::cout << "request id=" << package.session().id();
+        std::cout << receive_time << " " << m_msg;
+        std::cout << " request id=" << package.session().id();
         std::cout << " close=" 
                   << (package.session().is_closed() ? "yes" : "no")
                   << "\n";
-    }
-    
-    gdu = package.request().get();
-    if (gdu)
-    {
-	ODR odr = odr_createmem(ODR_PRINT);
-	z_GDU(odr, &gdu, 0, 0);
-	odr_destroy(odr);
+        gdu = package.request().get();
+        if (gdu)
+        {
+            ODR odr = odr_createmem(ODR_PRINT);
+            z_GDU(odr, &gdu, 0, 0);
+            odr_destroy(odr);
+        }
     }
 
     // unlocked during move
@@ -60,8 +59,8 @@ void yp2::filter::Log::process(Package &package) const {
     // scope for locking Ostream 
     { 
         boost::mutex::scoped_lock scoped_lock(m_log_mutex);
-        std::cout << send_time << " ";
-        std::cout << "response id=" << package.session().id();
+        std::cout << send_time << " " << m_msg;
+        std::cout << " response id=" << package.session().id();
         std::cout << " close=" 
                   << (package.session().is_closed() ? "yes " : "no ")
                   << "duration=" << duration      
@@ -78,6 +77,11 @@ void yp2::filter::Log::process(Package &package) const {
 	z_GDU(odr, &gdu, 0, 0);
 	odr_destroy(odr);
     }
+}
+
+void yp2::filter::Log::set_prefix(const std::string &msg)
+{
+    m_msg = msg;
 }
 
 // defining and initializing static members

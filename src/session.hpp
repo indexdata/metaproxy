@@ -1,4 +1,4 @@
-/* $Id: session.hpp,v 1.8 2005-10-16 16:05:18 adam Exp $
+/* $Id: session.hpp,v 1.9 2005-10-25 11:48:30 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -29,13 +29,17 @@ namespace yp2 {
         /// copy session including old id
         Session(const Session &s) : m_id(s.m_id), m_close(s.m_close) {};
         
-        Session& operator=(const Session &s) {
+        Session& operator=(const Session &s) { 
             if (this != &s)
             {
                 m_id = s.m_id;
                 m_close = s.m_close;
             }
             return *this;
+        }
+
+        bool operator<(const Session &s) const {
+            return m_id < s.m_id ? true : false;
         }
         
         unsigned long id() const {
@@ -51,7 +55,7 @@ namespace yp2 {
             m_close = true;
         };
 
-        bool operator == (Session &ses) {
+        bool operator == (Session &ses) const {
             return ses.m_id == m_id;
         }
     private:
