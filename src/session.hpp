@@ -1,4 +1,4 @@
-/* $Id: session.hpp,v 1.9 2005-10-25 11:48:30 adam Exp $
+/* $Id: session.hpp,v 1.10 2005-10-25 21:32:01 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -8,7 +8,7 @@
 #define SESSION_HPP
 
 //#include <stdexcept>
-
+#include <map>
 #include <boost/thread/mutex.hpp>
 
 namespace yp2 {
@@ -69,6 +69,27 @@ namespace yp2 {
         /// static m_id to make sure that there is only one id counter
         static unsigned long int m_global_id;
         
+    };
+
+    template <class T> class session_map {
+    public:
+        void create(T &t, const yp2::Session &s) { 
+            boost::mutex::scoped_lock lock(m_mutex);
+            m_map[s] = t;
+        };
+        void release(const yp2::Session &s) {
+            boost::mutex::scoped_lock lock(m_mutex);
+
+            m_map.erase(s);
+        };
+        bool active(const yp2::Session &s) {
+            typename std::map<yp2::Session,T>::const_iterator it;
+            it = m_map.find(s);
+            return it == m_map.end() ? false : true;
+        }
+    private:
+        boost::mutex m_mutex;
+        std::map<yp2::Session,T>m_map;
     };
     
 }

@@ -21,4 +21,5 @@ test_thread_pool_observer
 test_session1
 test_session2
 test_filter_z3950_client
+test_filter_backend_test
 test_filter_virt_db

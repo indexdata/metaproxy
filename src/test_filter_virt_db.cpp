@@ -1,4 +1,4 @@
-/* $Id: test_filter_virt_db.cpp,v 1.3 2005-10-25 16:01:36 adam Exp $
+/* $Id: test_filter_virt_db.cpp,v 1.4 2005-10-25 21:32:01 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -8,6 +8,7 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "test_util.hpp"
 #include "filter_virt_db.hpp"
 #include "filter_backend_test.hpp"
 #include "filter_log.hpp"
@@ -110,27 +111,17 @@ static void init(yp2::Package &pack, yp2::Router &router)
 }
                  
 static void search(yp2::Package &pack, yp2::Router &router,
-                   const char *pqf_query, const char *db,
+                   const std::string &query, const char *db,
                    const char *setname)
 {
     // Create package with Z39.50 search request in it
             
     ODR odr = odr_createmem(ODR_ENCODE);
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchRequest);
-    
-    YAZ_PQF_Parser pqf_parser = yaz_pqf_create();
-    
-    Z_RPNQuery *rpn = yaz_pqf_parse(pqf_parser, odr, pqf_query);
-    BOOST_CHECK(rpn);
-    if (!rpn)
-        return;
-    Z_Query query;
-    query.which = Z_Query_type_1;
-    query.u.type_1 = rpn;
-    
-    apdu->u.searchRequest->resultSetName = odr_strdup(odr, setname);
 
-    apdu->u.searchRequest->query = &query;
+    yp2::util::pqf(odr, apdu, query);
+
+    apdu->u.searchRequest->resultSetName = odr_strdup(odr, setname);
     
     apdu->u.searchRequest->num_databaseNames = 1;
     apdu->u.searchRequest->databaseNames = (char**)

@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.3 2005-10-25 16:01:36 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.4 2005-10-25 21:32:01 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -27,11 +27,16 @@ namespace yf = yp2::filter;
 
 namespace yp2 {
     namespace filter {
+        class Session_info {
+            int dummy;
+        };
         class Backend_test::Rep {
             friend class Backend_test;
             
         private:
             bool m_support_named_result_sets;
+
+            session_map<Session_info> m_sessions;
         };
     }
 }
@@ -56,7 +61,18 @@ void yf::Backend_test::process(Package &package) const
         Z_APDU *apdu_req = gdu->u.z3950;
         Z_APDU *apdu_res = 0;
         ODR odr = odr_createmem(ODR_ENCODE);
-        if (apdu_req->which == Z_APDU_initRequest)
+        
+        if (apdu_req->which != Z_APDU_initRequest && 
+            !m_p->m_sessions.active(package.session()))
+        {
+            apdu_res = zget_APDU(odr, Z_APDU_close);            
+            *apdu_res->u.close->closeReason = Z_Close_protocolError;
+            apdu_res->u.close->diagnosticInformation =
+                odr_strdup(odr, "no init for filter_backend_test");
+            
+            package.session().close();
+        }
+        else if (apdu_req->which == Z_APDU_initRequest)
         {
             apdu_res = zget_APDU(odr, Z_APDU_initResponse);
             Z_InitRequest *req = apdu_req->u.initRequest;
@@ -88,13 +104,15 @@ void yf::Backend_test::process(Package &package) const
                 else
                     break;
 
+            Session_info info;
+            m_p->m_sessions.create(info, package.session());
         }
         else if (apdu_req->which == Z_APDU_searchRequest)
-        { 
+        {
             apdu_res = zget_APDU(odr, Z_APDU_searchResponse);
             Z_SearchRequest *req = apdu_req->u.searchRequest;
             Z_SearchResponse *resp = apdu_res->u.searchResponse;
-
+                
             if (!m_p->m_support_named_result_sets && 
                 strcmp(req->resultSetName, "default"))
             {
@@ -126,6 +144,8 @@ void yf::Backend_test::process(Package &package) const
             package.response() = apdu_res;
         odr_destroy(odr);
     }
+    if (package.session().is_closed())
+        m_p->m_sessions.release(package.session());
 }
 
 

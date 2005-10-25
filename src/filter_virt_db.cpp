@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.5 2005-10-25 16:00:58 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.6 2005-10-25 21:32:01 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -117,10 +117,7 @@ void yf::Virt_db::Rep::release_session(Package &package)
 {
     boost::mutex::scoped_lock lock(m_sessions_mutex);
     
-    Ses_it it = m_sessions.find(package.session());
-    
-    if (it != m_sessions.end())
-        m_sessions.erase(it);
+    m_sessions.erase(package.session());
 }
 
 void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later){

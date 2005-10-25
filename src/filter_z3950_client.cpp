@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.4 2005-10-25 16:01:14 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.5 2005-10-25 21:32:01 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -6,6 +6,7 @@
 
 #include "config.hpp"
 
+#include <map>
 #include "filter.hpp"
 #include "router.hpp"
 #include "package.hpp"
@@ -32,7 +33,7 @@ namespace yp2 {
         class Z3950Client::Assoc : public yazpp_1::Z_Assoc{
             friend class Pimpl;
         public:
-            Assoc(yp2::Session id, yazpp_1::SocketManager *socket_manager,
+            Assoc(yazpp_1::SocketManager *socket_manager,
                   yazpp_1::IPDU_Observable *PDU_Observable,
                   std::string host);
             ~Assoc();
@@ -44,7 +45,7 @@ namespace yp2 {
                 yazpp_1::IPDU_Observable *the_PDU_Observable,
                 int fd);
         private:
-            yp2::Session m_session_id;
+            // yp2::Session m_session_id;
             yazpp_1::SocketManager *m_socket_manager;
             yazpp_1::IPDU_Observable *m_PDU_Observable;
             Package *m_package;
@@ -56,7 +57,7 @@ namespace yp2 {
         class Z3950Client::Pimpl {
         public:
             boost::mutex m_mutex;
-            std::list<Z3950Client::Assoc *> m_clients;
+            std::map<yp2::Session,Z3950Client::Assoc *> m_clients;
             Z3950Client::Assoc *get_assoc(Package &package);
             void send_and_receive(Package &package,
                                   yf::Z3950Client::Assoc *c);
@@ -67,11 +68,10 @@ namespace yp2 {
 }
 
 
-yf::Z3950Client::Assoc::Assoc(yp2::Session id,
-                              yazpp_1::SocketManager *socket_manager,
+yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
                               yazpp_1::IPDU_Observable *PDU_Observable,
                               std::string host)
-    :  Z_Assoc(PDU_Observable), m_session_id(id),
+    :  Z_Assoc(PDU_Observable),
        m_socket_manager(socket_manager), m_PDU_Observable(PDU_Observable),
        m_package(0), m_waiting(false), m_connected(false),
        m_host(host)
@@ -157,15 +157,11 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Pimpl::get_assoc(Package &package)
     // only one thread messes with the clients list at a time
     boost::mutex::scoped_lock lock(m_mutex);
 
-    std::list<yf::Z3950Client::Assoc *>::iterator it;
-
-    for (it = m_clients.begin(); it != m_clients.end(); it++)
-    {
-        if ((*it)->m_session_id == package.session())
-            break;
-    }
+    std::map<yp2::Session,yf::Z3950Client::Assoc *>::iterator it;
+    
+    it = m_clients.find(package.session());
     if (it != m_clients.end())
-        return *it;
+        return it->second;
 
     // only deal with Z39.50
     Z_GDU *gdu = package.request().get();
@@ -217,10 +213,8 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Pimpl::get_assoc(Package &package)
     
     yazpp_1::SocketManager *sm = new yazpp_1::SocketManager;
     yazpp_1::PDU_Assoc *pdu_as = new yazpp_1::PDU_Assoc(sm);
-    yf::Z3950Client::Assoc *as = new yf::Z3950Client::Assoc(package.session(),
-                                                            sm, pdu_as,
-                                                            vhost);
-    m_clients.push_back(as);
+    yf::Z3950Client::Assoc *as = new yf::Z3950Client::Assoc(sm, pdu_as, vhost);
+    m_clients[package.session()] = as;
     return as;
 }
 
@@ -265,19 +259,15 @@ void yf::Z3950Client::Pimpl::release_assoc(Package &package,
     if (package.session().is_closed())
     {
         boost::mutex::scoped_lock lock(m_mutex);
-        std::list<yf::Z3950Client::Assoc *>::iterator it;
+        std::map<yp2::Session,yf::Z3950Client::Assoc *>::iterator it;
 
-        for (it = m_clients.begin(); it != m_clients.end(); it++)
-        {
-            if ((*it)->m_session_id == package.session())
-                break;
-        }
+        it = m_clients.find(package.session());
         if (it != m_clients.end())
         {
             // the Z_Assoc and PDU_Assoc must be destroyed before
             // the socket manager.. so pull that out.. first..
-            yazpp_1::SocketManager *s = (*it)->m_socket_manager;
-            delete *it;  // destroy Z_Assoc
+            yazpp_1::SocketManager *s = it->second->m_socket_manager;
+            delete it->second;  // destroy Z_Assoc
             delete s;    // then manager
             m_clients.erase(it);
         }

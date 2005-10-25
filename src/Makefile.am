@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.24 2005-10-25 11:48:30 adam Exp $
+## $Id: Makefile.am,v 1.25 2005-10-25 21:32:01 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -16,7 +16,8 @@ libyp2_la_SOURCES = \
 	filter_log.cpp filter_log.hpp \
 	filter_virt_db.cpp filter_virt_db.hpp \
 	filter_z3950_client.cpp filter_z3950_client.hpp \
-	filter_backend_test.cpp filter_backend_test.hpp
+	filter_backend_test.cpp filter_backend_test.hpp \
+	test_util.cpp test_util.hpp
 
 # Rules for programs..
 
@@ -39,6 +40,7 @@ check_PROGRAMS = \
 	test_filter_frontend_net \
 	test_filter_log \
 	test_filter_z3950_client \
+	test_filter_backend_test \
 	test_filter_virt_db
 
 TESTS=$(check_PROGRAMS)
@@ -54,6 +56,7 @@ test_thread_pool_observer_SOURCES = test_thread_pool_observer.cpp
 test_filter_frontend_net_SOURCES = test_filter_frontend_net.cpp
 test_filter_log_SOURCES = test_filter_log.cpp
 test_filter_z3950_client_SOURCES = test_filter_z3950_client.cpp
+test_filter_backend_test_SOURCES = test_filter_backend_test.cpp
 test_filter_virt_db_SOURCES = test_filter_virt_db.cpp
 
 TESTLDADD = $(LDADD) -lboost_unit_test_framework
@@ -69,6 +72,7 @@ test_package1_LDADD = $(TESTLDADD)
 test_filter_frontend_net_LDADD = $(TESTLDADD)
 test_filter_log_LDADD = $(TESTLDADD)
 test_filter_z3950_client_LDADD = $(TESTLDADD)
+test_filter_backend_test_LDADD = $(TESTLDADD)
 test_filter_virt_db_LDADD = $(TESTLDADD)
 
 # doxygen target
