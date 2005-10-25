@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.4 2005-10-25 15:19:39 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.5 2005-10-25 16:00:58 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -169,7 +169,7 @@ void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later)
             odr_destroy(odr);
             return;
         }
-        id = new yp2::Session(it->second.m_session);
+        id = new yp2::Session(sets_it->second.m_session);
     }
     ODR odr = odr_createmem(ODR_ENCODE);
     
@@ -206,6 +206,8 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
             
             *apdu->u.close->closeReason = Z_Close_protocolError;
+            apdu->u.close->diagnosticInformation =
+                odr_strdup(odr, "no session for search request");
             
             package.response() = apdu;
             package.session().close();
