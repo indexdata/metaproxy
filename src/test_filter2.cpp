@@ -1,4 +1,4 @@
-/* $Id: test_filter2.cpp,v 1.11 2005-10-24 10:16:33 adam Exp $
+/* $Id: test_filter2.cpp,v 1.12 2005-10-26 10:21:03 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -9,7 +9,7 @@
 
 #include "config.hpp"
 #include "filter.hpp"
-#include "router.hpp"
+#include "router_chain.hpp"
 #include "package.hpp"
 
 #include <iostream>

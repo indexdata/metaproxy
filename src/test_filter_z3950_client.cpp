@@ -1,4 +1,4 @@
-/* $Id: test_filter_z3950_client.cpp,v 1.3 2005-10-24 14:33:30 adam Exp $
+/* $Id: test_filter_z3950_client.cpp,v 1.4 2005-10-26 10:21:03 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -10,7 +10,7 @@
 
 #include "filter_z3950_client.hpp"
 
-#include "router.hpp"
+#include "router_chain.hpp"
 #include "session.hpp"
 #include "package.hpp"
 

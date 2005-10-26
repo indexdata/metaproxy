@@ -1,4 +1,4 @@
-/* $Id: test_filter_frontend_net.cpp,v 1.8 2005-10-16 16:05:44 adam Exp $
+/* $Id: test_filter_frontend_net.cpp,v 1.9 2005-10-26 10:21:03 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -10,7 +10,7 @@
 
 #include "filter_frontend_net.hpp"
 
-#include "router.hpp"
+#include "router_chain.hpp"
 #include "session.hpp"
 #include "package.hpp"
 

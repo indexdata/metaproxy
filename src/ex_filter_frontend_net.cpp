@@ -1,4 +1,4 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.11 2005-10-25 22:44:39 adam Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.12 2005-10-26 10:21:03 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -18,7 +18,7 @@ namespace po = boost::program_options;
 #include "filter_virt_db.hpp"
 #include "filter_log.hpp"
 
-#include "router.hpp"
+#include "router_chain.hpp"
 #include "session.hpp"
 #include "package.hpp"
 

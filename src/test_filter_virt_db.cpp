@@ -1,4 +1,4 @@
-/* $Id: test_filter_virt_db.cpp,v 1.4 2005-10-25 21:32:01 adam Exp $
+/* $Id: test_filter_virt_db.cpp,v 1.5 2005-10-26 10:21:03 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -13,7 +13,7 @@
 #include "filter_backend_test.hpp"
 #include "filter_log.hpp"
 
-#include "router.hpp"
+#include "router_chain.hpp"
 #include "session.hpp"
 #include "package.hpp"
 
