@@ -10,6 +10,7 @@ Makefile.in
 config.hpp.in
 ex_filter_frontend_net
 ex_libxml2_conf
+ex_router_flexml
 test_boost_threads
 test_boost_time
 test_filter1
@@ -23,3 +24,5 @@ test_session2
 test_filter_z3950_client
 test_filter_backend_test
 test_filter_virt_db
+test_router_flexml
+test_ses_map
