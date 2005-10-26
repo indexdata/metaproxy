@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.27 2005-10-26 10:55:26 marc Exp $
+## $Id: Makefile.am,v 1.28 2005-10-26 14:12:00 marc Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -12,6 +12,7 @@ libyp2_la_LDFLAGS = -version-info 0:0:0
 libyp2_la_SOURCES = \
 	session.cpp session.hpp package.hpp filter.hpp\
 	router.hpp router_chain.hpp router_chain.cpp \
+        router_flexml.hpp router_flexml.cpp \
 	thread_pool_observer.cpp thread_pool_observer.hpp \
 	filter_frontend_net.cpp filter_frontend_net.hpp \
 	filter_log.cpp filter_log.hpp \
@@ -25,11 +26,11 @@ libyp2_la_SOURCES = \
 LDADD= libyp2.la $(YAZPPLALIB) $(XSLT_LIBS)
 
 bin_PROGRAMS =
-noinst_PROGRAMS = ex_filter_frontend_net ex_libxml2_conf
+noinst_PROGRAMS = ex_filter_frontend_net ex_libxml2_conf ex_router_flexml
 
 ex_filter_frontend_net_SOURCES = ex_filter_frontend_net.cpp
 ex_libxml2_conf_SOURCES = ex_libxml2_conf.cpp
-
+ex_router_flexml_SOURCES =  ex_router_flexml.cpp
 # Rules for test programs..
 
 check_PROGRAMS = \
@@ -42,7 +43,8 @@ check_PROGRAMS = \
 	test_filter_log \
 	test_filter_z3950_client \
 	test_filter_backend_test \
-	test_filter_virt_db
+	test_filter_virt_db \
+	test_router_flexml
 
 TESTS=$(check_PROGRAMS)
 
@@ -59,6 +61,8 @@ test_filter_log_SOURCES = test_filter_log.cpp
 test_filter_z3950_client_SOURCES = test_filter_z3950_client.cpp
 test_filter_backend_test_SOURCES = test_filter_backend_test.cpp
 test_filter_virt_db_SOURCES = test_filter_virt_db.cpp
+test_router_flexml_SOURCES = test_router_flexml.cpp
+
 
 TESTLDADD = $(LDADD) -lboost_unit_test_framework
 
@@ -75,6 +79,7 @@ test_filter_log_LDADD = $(TESTLDADD)
 test_filter_z3950_client_LDADD = $(TESTLDADD)
 test_filter_backend_test_LDADD = $(TESTLDADD)
 test_filter_virt_db_LDADD = $(TESTLDADD)
+test_router_flexml_LDADD = $(TESTLDADD)
 
 # doxygen target
 dox:
