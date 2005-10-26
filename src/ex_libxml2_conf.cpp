@@ -1,4 +1,4 @@
-/* $Id: ex_libxml2_conf.cpp,v 1.3 2005-10-25 13:42:44 marc Exp $
+/* $Id: ex_libxml2_conf.cpp,v 1.4 2005-10-26 10:20:15 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -249,40 +249,18 @@ private:
 
             std::cout << "<route id=\"" << route_id << "\">" << std::endl;
             std::cout << "</route>" << std::endl;
-
-            std::cout << "progress_flat " << xml_progress_flat_to_element(reader) << std::endl;
-
+            xml_progress_flat_to_element(reader);
         }
-
-
-        std::cout << "NOW: "<< xmlTextReaderGetParserLineNumber(reader) << ":" 
-                  << xmlTextReaderGetParserColumnNumber(reader) << " " 
-                  << xmlTextReaderDepth(reader) << " " 
-                  << xmlTextReaderNodeType(reader) << " "
-                  << "ConstName " << xmlTextReaderConstName(reader) << " "
-                  << std::endl;
-        
 
         std::cout << "</routes>" << std::endl;
 
-        
-        
-        // processing all other elements
-        //while ((ret = xmlTextReaderMoveToElement(reader))) // reads next element ??
-        //while ((ret = xmlTextReaderNext(reader))) //does not descend, keeps level 
-        while ((ret = xmlTextReaderRead(reader))) // descends into all subtree nodes
-            std::cout << xmlTextReaderGetParserLineNumber(reader) << ":" 
-                      << xmlTextReaderGetParserColumnNumber(reader) << " " 
-                      << xmlTextReaderDepth(reader) << " " 
-                      << xmlTextReaderNodeType(reader) << " "
-                      << "ConstName " << xmlTextReaderConstName(reader) << " "  
-                //<< "Prefix " << xmlTextReaderPrefix(reader) << "\n"  
-                //<< "XmlLang " << xmlTextReaderXmlLang(reader) << "\n"  
-                //<< "NamespaceUri " << xmlTextReaderNamespaceUri(reader) << "\n"  
-                //<< "BaseUri"  << xmlTextReaderBaseUri(reader) << "\n"  
-                      << std::endl;
+        std::cout << "</yp2>" << std::endl;
 
 
+        xml_debug_print(reader);
+        
+
+        // freeing C xml reader libs
         xmlFreeTextReader(reader);
         if (ret != 0) {
             std::cerr << "Parsing failed of XML config file " 
@@ -301,11 +279,31 @@ private:
                       << xmlTextReaderNodeType(reader) << std::endl;
         }
     
+    void xml_debug_print ( xmlTextReader* reader)
+        {
+        // processing all other elements
+        //while (xmlTextReaderMoveToElement(reader)) // reads next element ??
+        //while (xmlTextReaderNext(reader)) //does not descend, keeps level 
+        while (xmlTextReaderRead(reader)) // descends into all subtree nodes
+            std::cout << xmlTextReaderGetParserLineNumber(reader) << ":" 
+                      << xmlTextReaderGetParserColumnNumber(reader) << " " 
+                      << xmlTextReaderDepth(reader) << " " 
+                      << xmlTextReaderNodeType(reader) << " "
+                      << "ConstName " << xmlTextReaderConstName(reader) << " "  
+                //<< "Prefix " << xmlTextReaderPrefix(reader) << "\n"  
+                //<< "XmlLang " << xmlTextReaderXmlLang(reader) << "\n"  
+                //<< "NamespaceUri " << xmlTextReaderNamespaceUri(reader) << "\n"  
+                //<< "BaseUri"  << xmlTextReaderBaseUri(reader) << "\n"  
+                      << std::endl;
+        }
+    
     bool xml_progress_deep_to_element(xmlTextReader* reader)
         {
             bool ret = false;
             while(xmlTextReaderRead(reader) 
                   && xmlTextReaderNodeType(reader) !=  XML_ELEMENT_NODE
+                  && !( xmlTextReaderNodeType(reader) == XML_READER_TYPE_END_ELEMENT
+                        && 0 == xmlTextReaderDepth(reader))
                 ) 
                 ret = true;
             return ret;
@@ -314,17 +312,13 @@ private:
     bool xml_progress_flat_to_element(xmlTextReader* reader)
         {
             bool ret = false;
-            //int depth = xmlTextReaderDepth(reader);
             
             while(xmlTextReaderNext(reader) 
-                  //&& depth == xmlTextReaderDepth(reader)
                   && xmlTextReaderNodeType(reader) != XML_ELEMENT_NODE
-                  //&& xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT
+                  && !( xmlTextReaderNodeType(reader) == XML_READER_TYPE_END_ELEMENT
+                        && 0 == xmlTextReaderDepth(reader))
                 ) {    
                 ret = true;
-                std::cout << xmlTextReaderDepth(reader) << " " 
-                          << xmlTextReaderNodeType(reader) << std::endl;
-                
             }
             return ret;
         }
@@ -339,6 +333,7 @@ int main(int argc, char **argv)
    //try 
    //{
 
+   
    Configuration conf(argc, argv);
 
    std::cout << "config " << conf.config() << std::endl;
