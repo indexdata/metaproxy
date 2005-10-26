@@ -1,4 +1,4 @@
-/* $Id: test_filter_frontend_net.cpp,v 1.9 2005-10-26 10:21:03 marc Exp $
+/* $Id: test_filter_frontend_net.cpp,v 1.10 2005-10-26 10:55:26 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_2 )
 
             FilterInit tf;
 
-	    router.rule(tf);
+	    router.append(tf);
 
             // Create package with Z39.50 init request in it
 	    yp2::Package pack;
@@ -112,11 +112,11 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_3 )
             ports.insert(ports.begin(), "unix:socket");
             filter_front.ports() = ports;
             filter_front.listen_duration() = 1;  // listen a short time only
-	    router.rule(filter_front);
+	    router.append(filter_front);
 
             // put in a backend
             FilterInit filter_init;
-	    router.rule(filter_init);
+	    router.append(filter_init);
 
 	    yp2::Package pack;
 	    

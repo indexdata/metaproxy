@@ -1,4 +1,4 @@
-/* $Id: test_filter_backend_test.cpp,v 1.2 2005-10-26 10:21:03 marc Exp $
+/* $Id: test_filter_backend_test.cpp,v 1.3 2005-10-26 10:55:26 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_2 )
         yp2::RouterChain router;
         
         yp2::filter::Backend_test btest;
-        router.rule(btest);
+        router.append(btest);
         
         yp2::Package pack;
         
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_3 )
         yp2::RouterChain router;
         
         yp2::filter::Backend_test btest;
-        router.rule(btest);
+        router.append(btest);
         
         yp2::Package pack;
         
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_4 )
         yp2::RouterChain router;
         
         yp2::filter::Backend_test btest;
-        router.rule(btest);
+        router.append(btest);
         
         yp2::Package pack;
         

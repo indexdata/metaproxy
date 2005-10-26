@@ -1,4 +1,4 @@
-/* $Id: test_filter_virt_db.cpp,v 1.5 2005-10-26 10:21:03 marc Exp $
+/* $Id: test_filter_virt_db.cpp,v 1.6 2005-10-26 10:55:26 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE( test_filter_virt_db_2 )
         
         yp2::filter::Virt_db vdb;
         
-        router.rule(vdb);
+        router.append(vdb);
         
         // Create package with Z39.50 init request in it
         // Since there is not vhost given, the virt will make its
@@ -203,18 +203,18 @@ BOOST_AUTO_TEST_CASE( test_filter_virt_db_3 )
 
         yp2::filter::Log filter_log1("FRONT");
 #if 0
-        router.rule(filter_log1);
+        router.append(filter_log1);
 #endif
    
         yp2::filter::Virt_db vdb;        
-        router.rule(vdb);
+        router.append(vdb);
         vdb.add_map_db2vhost("Default", "localhost:210");
         yp2::filter::Log filter_log2("BACK");
 #if 0
-        router.rule(filter_log2);
+        router.append(filter_log2);
 #endif
         yp2::filter::Backend_test btest;
-        router.rule(btest);
+        router.append(btest);
 
         yp2::Session session1;
         yp2::Origin origin1;

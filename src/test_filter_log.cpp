@@ -1,4 +1,4 @@
-/* $Id: test_filter_log.cpp,v 1.3 2005-10-26 10:21:03 marc Exp $
+/* $Id: test_filter_log.cpp,v 1.4 2005-10-26 10:55:26 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -65,8 +65,8 @@ BOOST_AUTO_TEST_CASE( test_filter_log_2 )
         yp2::filter::Log lf;
         FilterBounceInit bf;
         
-        router.rule(lf);
-        router.rule(bf);
+        router.append(lf);
+        router.append(bf);
         
         // Create package with Z39.50 init request in it
         yp2::Package pack;

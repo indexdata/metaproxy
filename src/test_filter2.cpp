@@ -1,4 +1,4 @@
-/* $Id: test_filter2.cpp,v 1.12 2005-10-26 10:21:03 marc Exp $
+/* $Id: test_filter2.cpp,v 1.13 2005-10-26 10:55:26 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -130,9 +130,9 @@ BOOST_AUTO_TEST_CASE( testfilter2_1 )
 	    yp2::RouterChain router1;
 	    
 	    // test filter set/get/exception
-	    router1.rule(fc);
+	    router1.append(fc);
 	    
-	    router1.rule(fd);
+	    router1.append(fd);
 
             yp2::Session session;
             yp2::Origin origin;
@@ -147,8 +147,8 @@ BOOST_AUTO_TEST_CASE( testfilter2_1 )
         {
 	    yp2::RouterChain router2;
 	    
-	    router2.rule(fd);
-	    router2.rule(fc);
+	    router2.append(fd);
+	    router2.append(fc);
 	    
             yp2::Session session;
             yp2::Origin origin;

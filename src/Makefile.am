@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.26 2005-10-26 10:21:03 marc Exp $
+## $Id: Makefile.am,v 1.27 2005-10-26 10:55:26 marc Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -11,7 +11,7 @@ libyp2_la_LDFLAGS = -version-info 0:0:0
 
 libyp2_la_SOURCES = \
 	session.cpp session.hpp package.hpp filter.hpp\
-	router.hpp router_chain.hpp \
+	router.hpp router_chain.hpp router_chain.cpp \
 	thread_pool_observer.cpp thread_pool_observer.hpp \
 	filter_frontend_net.cpp filter_frontend_net.hpp \
 	filter_log.cpp filter_log.hpp \

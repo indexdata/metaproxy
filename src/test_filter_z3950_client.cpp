@@ -1,4 +1,4 @@
-/* $Id: test_filter_z3950_client.cpp,v 1.4 2005-10-26 10:21:03 marc Exp $
+/* $Id: test_filter_z3950_client.cpp,v 1.5 2005-10-26 10:55:26 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_2 )
         
         yp2::filter::Z3950Client zc;
         
-        router.rule(zc);
+        router.append(zc);
         
         // Create package with Z39.50 init request in it
         yp2::Package pack;
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_3 )
         
         yp2::filter::Z3950Client zc;
 
-        router.rule(zc);
+        router.append(zc);
         
         // Create package with Z39.50 present request in it
         yp2::Package pack;
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_4 )
         
         yp2::filter::Z3950Client zc;
         
-        router.rule(zc);
+        router.append(zc);
         
         // Create package with Z39.50 init request in it
         yp2::Package pack;

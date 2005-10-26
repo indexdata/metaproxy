@@ -1,4 +1,4 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.12 2005-10-26 10:21:03 marc Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.13 2005-10-26 10:55:26 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -94,29 +94,29 @@ int main(int argc, char **argv)
             if (vm.count("duration")) {
                 filter_front.listen_duration() = vm["duration"].as<int>();
             }
-	    router.rule(filter_front);
+	    router.append(filter_front);
 
             // put log filter in router
             yp2::filter::Log filter_log_front("FRONT");
-            router.rule(filter_log_front);
+            router.append(filter_log_front);
 
             // put Virt db filter in router
             yp2::filter::Virt_db filter_virt_db;
             filter_virt_db.add_map_db2vhost("Default", "indexdata.dk/gils");
             filter_virt_db.add_map_db2vhost("Local", "localhost:9999/Default");
 
-	    router.rule(filter_virt_db);
+	    router.append(filter_virt_db);
 
             yp2::filter::Log filter_log_back("BACK");
-            router.rule(filter_log_back);
+            router.append(filter_log_back);
 
             // put HTTP backend filter in router
             HTTPFilter filter_init;
-	    router.rule(filter_init);
+	    router.append(filter_init);
 
             // put Z39.50 backend filter in router
             yp2::filter::Z3950Client z3950_client;
-	    router.rule(z3950_client);
+	    router.append(z3950_client);
 
             yp2::Session session;
             yp2::Origin origin;
