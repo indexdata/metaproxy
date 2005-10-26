@@ -1,4 +1,4 @@
-/* $Id: test_util.cpp,v 1.1 2005-10-25 21:32:01 adam Exp $
+/* $Id: util.cpp,v 1.1 2005-10-26 18:53:49 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -7,7 +7,7 @@
 #include "config.hpp"
 
 #include <yaz/pquery.h>
-#include "test_util.hpp"
+#include "util.hpp"
 
 bool yp2::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
     YAZ_PQF_Parser pqf_parser = yaz_pqf_create();

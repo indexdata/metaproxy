@@ -1,4 +1,4 @@
-/* $Id: session.hpp,v 1.10 2005-10-25 21:32:01 adam Exp $
+/* $Id: session.hpp,v 1.11 2005-10-26 18:53:49 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -74,22 +74,51 @@ namespace yp2 {
     template <class T> class session_map {
     public:
         void create(T &t, const yp2::Session &s) { 
-            boost::mutex::scoped_lock lock(m_mutex);
-            m_map[s] = t;
+            boost::mutex::scoped_lock lock(m_map_mutex);
+            m_map[s] = SessionItem(t);
         };
         void release(const yp2::Session &s) {
-            boost::mutex::scoped_lock lock(m_mutex);
+            boost::mutex::scoped_lock lock(m_map_mutex);
 
             m_map.erase(s);
         };
-        bool active(const yp2::Session &s) {
-            typename std::map<yp2::Session,T>::const_iterator it;
+#if 0
+        T &get_session_data(const yp2::Session &s) {
+            boost::mutex::scoped_lock lock(m_map_mutex);
+
+            typename std::map<yp2::Session,SessionItem>::const_iterator it;
+            it = m_map.find(s);
+            if (it == m_map.end())
+                return 0;
+            boost::mutx::scoped_lock *scoped_ptr =
+                new boost::mutex::scoped_lock(it->second->m_item_mutex);
+        };
+#endif
+        bool exist(const yp2::Session &s) {
+            typename std::map<yp2::Session,SessionItem>::const_iterator it;
             it = m_map.find(s);
             return it == m_map.end() ? false : true;
         }
     private:
-        boost::mutex m_mutex;
-        std::map<yp2::Session,T>m_map;
+        class SessionItem {
+        public:
+            SessionItem() {};
+            SessionItem(T &t) : m_t(t) {};
+            SessionItem &operator =(const SessionItem &s) {
+                if (this != &s) {
+                    m_t = s.m_t;
+                }
+                return *this;
+            };
+            SessionItem(const SessionItem &s) {
+                m_t = s.m_t;
+            };
+            T m_t;
+            boost::mutex m_item_mutex;
+        };
+    private:
+        boost::mutex m_map_mutex;
+        std::map<yp2::Session,SessionItem>m_map;
     };
     
 }

@@ -12,14 +12,17 @@
       <!-- the Z39.50/HTTP frontend -->
       <port>210</port>
     </filter>
-    <filter id="log_cout" type="log">          <!-- apply logging always -->
-      <logfile>mylog.log</logfile>
+    <filter id="log_out" type="log">          <!-- apply logging always -->
+      <logfile>out.log</logfile>
+    </filter>
+    <filter id="log_cerr" type="log">          <!-- apply logging always -->
+      <logfile>std::cerr</logfile>
     </filter>
   </filters>
 
   <routes>  
     <route id="start">
-      <filter refid="gftr"/>
+      <filter refid="log_cout"/>
       <filter type="cond">           <!-- conditional -->
 	<if test="port=210 and db=public" route="A"/> 
 	<if test="port=210 and db=other" route="B"/> 
@@ -29,6 +32,8 @@
           <default route="C3"/>
 	</switch>
       </filter>
+      <filter refid="log_out"/>
+      <filter refid="log_cerr"/>
       <filter type="log">          <!-- apply logging always -->
 	<logfile>mylog.log</logfile>
       </filter>   
@@ -66,6 +71,42 @@
     request-type Init,Search,HTTP,...
     origin       IP of origin
     port         Port
+
+
+mother object filter-dom-hash
+  deletes pointers to contexts and filters  on program exit
+hash filter-type -> hash-filter-id -> Context
+                 -> filter-binary-pointer
+
+moher object router pointer hash
+
+created in mother thread, read only structures.
+
+Context* filter.configure(dom );
+
+
+
+process(Context con)
+
+where each filter can have is own context class
+
+yp2::filter::Log::Context : public Context
+
+
+Filters are constructed with a FilterFactory class which exposes a
+method 
+
+Filter* createFilter(std::string type)
+
+ .. which returns a filter
+instance. (The interface pointer that is). The FilterFactory may later
+offer function
+  loadModule(std::string filename);
+or even
+  loadModules(std::string filenamemask);
+
+
+
 -->
 
 <!-- observation: the logic could be controlled by a XSLT! -->

@@ -1,11 +1,11 @@
-/* $Id: test_util.hpp,v 1.1 2005-10-25 21:32:01 adam Exp $
+/* $Id: util.hpp,v 1.1 2005-10-26 18:53:49 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
  */
 
-#ifndef TEST_UTIL_HPP
-#define TEST_UTIL_HPP
+#ifndef YP2_UTIL_HPP
+#define YP2_UTIL_HPP
 
 #include <yaz/z-core.h>
 #include <string>

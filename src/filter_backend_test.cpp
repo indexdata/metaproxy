@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.4 2005-10-25 21:32:01 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.5 2005-10-26 18:53:49 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -63,7 +63,7 @@ void yf::Backend_test::process(Package &package) const
         ODR odr = odr_createmem(ODR_ENCODE);
         
         if (apdu_req->which != Z_APDU_initRequest && 
-            !m_p->m_sessions.active(package.session()))
+            !m_p->m_sessions.exist(package.session()))
         {
             apdu_res = zget_APDU(odr, Z_APDU_close);            
             *apdu_res->u.close->closeReason = Z_Close_protocolError;

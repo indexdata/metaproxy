@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.28 2005-10-26 14:12:00 marc Exp $
+## $Id: Makefile.am,v 1.29 2005-10-26 18:53:49 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -19,7 +19,7 @@ libyp2_la_SOURCES = \
 	filter_virt_db.cpp filter_virt_db.hpp \
 	filter_z3950_client.cpp filter_z3950_client.hpp \
 	filter_backend_test.cpp filter_backend_test.hpp \
-	test_util.cpp test_util.hpp
+	util.cpp util.hpp
 
 # Rules for programs..
 
@@ -44,6 +44,7 @@ check_PROGRAMS = \
 	test_filter_z3950_client \
 	test_filter_backend_test \
 	test_filter_virt_db \
+	test_ses_map \
 	test_router_flexml
 
 TESTS=$(check_PROGRAMS)
@@ -61,8 +62,8 @@ test_filter_log_SOURCES = test_filter_log.cpp
 test_filter_z3950_client_SOURCES = test_filter_z3950_client.cpp
 test_filter_backend_test_SOURCES = test_filter_backend_test.cpp
 test_filter_virt_db_SOURCES = test_filter_virt_db.cpp
+test_ses_map_SOURCES = test_ses_map.cpp
 test_router_flexml_SOURCES = test_router_flexml.cpp
-
 
 TESTLDADD = $(LDADD) -lboost_unit_test_framework
 
@@ -79,6 +80,7 @@ test_filter_log_LDADD = $(TESTLDADD)
 test_filter_z3950_client_LDADD = $(TESTLDADD)
 test_filter_backend_test_LDADD = $(TESTLDADD)
 test_filter_virt_db_LDADD = $(TESTLDADD)
+test_ses_map_LDADD = $(TESTLDADD)
 test_router_flexml_LDADD = $(TESTLDADD)
 
 # doxygen target

@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.8 2005-10-25 23:04:06 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.9 2005-10-26 18:53:49 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -29,13 +29,14 @@ namespace yp2 {
     namespace filter {
         struct Virt_db_set {
             Virt_db_set(yp2::Session &id, std::string setname,
-                        std::string vhost);
+                        std::string vhost, bool named_result_sets);
             Virt_db_set();
             ~Virt_db_set();
 
             yp2::Session m_backend_session;
             std::string m_backend_setname;
             std::string m_vhost;
+            bool m_named_result_sets;
         };
         struct Virt_db_session {
             Virt_db_session(yp2::Session &id, bool use_vhost);
@@ -68,8 +69,9 @@ namespace yp2 {
 }
 
 yf::Virt_db_set::Virt_db_set(yp2::Session &id, std::string setname,
-                             std::string vhost)
-    :   m_backend_session(id), m_backend_setname(setname), m_vhost(vhost)
+                             std::string vhost, bool named_result_sets)
+    :   m_backend_session(id), m_backend_setname(setname), m_vhost(vhost),
+        m_named_result_sets(named_result_sets)
 {
 }
 
@@ -217,6 +219,7 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
     std::string vhost;
     std::string database;
     std::string resultSetId = req->resultSetName;
+    bool support_named_result_sets = false;  // whether backend supports it
     {
         boost::mutex::scoped_lock lock(m_sessions_mutex);
 
@@ -335,6 +338,31 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
             
             odr_destroy(odr);
         }
+        Z_GDU *gdu = init_package.response().get();
+        // we hope to get an init response
+        if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
+            Z_APDU_initResponse)
+        {
+            if (ODR_MASK_GET(gdu->u.z3950->u.initResponse->options,
+                             Z_Options_namedResultSets))
+                support_named_result_sets = true;
+        }
+        else
+        {
+            ODR odr = odr_createmem(ODR_ENCODE);
+            Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchResponse);
+            
+            Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
+            apdu->u.searchResponse->records = rec;
+            rec->which = Z_Records_NSD;
+            rec->u.nonSurrogateDiagnostic =
+                zget_DefaultDiagFormat(
+                    odr, YAZ_BIB1_DATABASE_UNAVAILABLE, database.c_str());
+            package.response() = apdu;
+            
+            odr_destroy(odr);
+            return;
+        }
     }
     // sending search to backend
     Package search_package(id, package.origin());
@@ -377,7 +405,8 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
     Ses_it it = m_sessions.find(package.session());
     if (it != m_sessions.end())
         it->second.m_sets[resultSetId] =
-            Virt_db_set(id, backend_resultSetId, vhost);
+            Virt_db_set(id, backend_resultSetId, vhost,
+                        support_named_result_sets);
 }
 
 void yf::Virt_db::Rep::init(Package &package, Z_APDU *apdu, bool &move_later)
