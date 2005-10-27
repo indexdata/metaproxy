@@ -1,4 +1,4 @@
-/* $Id: router_flexml.hpp,v 1.2 2005-10-26 21:30:54 marc Exp $
+/* $Id: router_flexml.hpp,v 1.3 2005-10-27 11:36:21 marc Exp $
    Copyright (c) 2005, Index Data.
 
    %LICENSE%
@@ -83,13 +83,22 @@ namespace yp2
             }
         
 
-        void parse_xml_config_dom() {   
+        void parse_xml_config_dom() {
+            //xmlNs *yp2_ns =  xmlNewNs(pptr, BAD_CAST
+            //         "http://indexdata.dk/yp2/config/1", 0);
+
+            
+   
             if (m_xmlconf_doc)
             {
                 const xmlNode* root = xmlDocGetRootElement(m_xmlconf_doc);
             
-                if (std::string((const char *) root->name) != "yp2")
-                    xml_dom_error(root, "expected <yp2>, got ");
+                if ((std::string((const char *) root->name) != "yp2")
+                    || (std::string((const char *)(root->ns->href)) 
+                        != "http://indexdata.dk/yp2/config/1")
+                   )
+                    xml_dom_error(root, 
+                                  "expected <yp2 xmlns=\"http://indexdata.dk/yp2/config/1\">, got ");
 
             
                 for (const struct _xmlAttr *attr = root->properties; attr; attr = attr->next)
@@ -134,13 +143,13 @@ namespace yp2
                     !=  "filter")
                     xml_dom_error(root, "expected  <filter>, got ");
 
-                //while(node2 && std::string((const char *)node2->name) ==  "filter"){
+                while(node2 && std::string((const char *)node2->name) ==  "filter"){
                     std::cout << "processing /yp2/filters/filter" << std::endl;
-                    //for (; node2 && node2->type != XML_ELEMENT_NODE; node2 = node2->next)
-                    //    ;
-                    //if(node2->type != XML_ELEMENT_NODE)
-                    //    break;
-                    //}
+                    for (; node2 && node2->type != XML_ELEMENT_NODE; node2 = node2->next)
+                        std::cout << (const char *) root->name << std::endl;
+                    if(node2->type != XML_ELEMENT_NODE)
+                        break;
+                    }
 
                 // process <routes> node which is expected third element node
                 node = node->next;
