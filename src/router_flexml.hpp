@@ -1,4 +1,4 @@
-/* $Id: router_flexml.hpp,v 1.3 2005-10-27 11:36:21 marc Exp $
+/* $Id: router_flexml.hpp,v 1.4 2005-10-28 10:35:30 marc Exp $
    Copyright (c) 2005, Index Data.
 
    %LICENSE%
@@ -142,7 +142,7 @@ namespace yp2
                 if (std::string((const char *)node2->name) 
                     !=  "filter")
                     xml_dom_error(root, "expected  <filter>, got ");
-
+#if 0
                 while(node2 && std::string((const char *)node2->name) ==  "filter"){
                     std::cout << "processing /yp2/filters/filter" << std::endl;
                     for (; node2 && node2->type != XML_ELEMENT_NODE; node2 = node2->next)
@@ -150,7 +150,7 @@ namespace yp2
                     if(node2->type != XML_ELEMENT_NODE)
                         break;
                     }
-
+#endif
                 // process <routes> node which is expected third element node
                 node = node->next;
                 for (; node && node->type != XML_ELEMENT_NODE; node = node->next)
