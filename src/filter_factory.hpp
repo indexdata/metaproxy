@@ -1,4 +1,4 @@
-/* $Id: filter_factory.hpp,v 1.1 2005-10-28 10:35:30 marc Exp $
+/* $Id: filter_factory.hpp,v 1.2 2005-10-29 17:58:14 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -19,25 +19,9 @@
 namespace yp2 {
 
     namespace filter {
-        class FilterFactory {
 
-#if 0
-        public:
-            typedef yp2::filter::Base* (*CreateFilterCallback)();
-            /// true if registration ok
-            bool register_filter(std::string fi, CreateFilterCallback cfc);
-            /// true if unregistration ok
-            bool unregister_filter(std::string fi);
-            /// factory create method
-            yp2::filter::Base* create(std::string fi);
-            
-        private:
-            typedef std::map<std::string, CreateFilterCallback> CallbackMap;
+        
 
-#endif      
-
-        };
-    }
     
     class FilterFactoryException : public std::runtime_error {
     public:
@@ -45,6 +29,54 @@ namespace yp2 {
             : std::runtime_error("FilterException: " + message){
         };
     };
+
+        class FilterFactory {
+
+        public:
+            typedef yp2::filter::Base* (*CreateFilterCallback)();
+            /// true if registration ok
+
+            bool add_creator(std::string fi, CreateFilterCallback cfc);
+            /// true if unregistration ok
+
+            bool drop_creator(std::string fi);
+            
+            /// factory create method
+
+            yp2::filter::Base* create(std::string fi);
+            
+        private:
+            typedef std::map<std::string, CreateFilterCallback> CallbackMap;
+            CallbackMap m_fcm;
+
+        };
+        
+    }
+    
+    bool yp2::filter::FilterFactory::add_creator(std::string fi,
+                                    CreateFilterCallback cfc)
+    {
+        return m_fcm.insert(CallbackMap::value_type(fi, cfc)).second;
+    }
+    
+    
+    bool yp2::filter::FilterFactory::drop_creator(std::string fi)
+    {
+        return m_fcm.erase(fi) == 1;
+    }
+    
+    yp2::filter::Base* yp2::filter::FilterFactory::create(std::string fi)
+    {
+        CallbackMap::const_iterator i = m_fcm.find(fi);
+        
+        if (i == m_fcm.end()){
+            std::string msg = "filter type '" + fi + "' not found";
+            throw yp2::filter::FilterFactoryException(msg);
+        }
+        // call create function
+        return (i->second());
+    }
+    
 
   
 }

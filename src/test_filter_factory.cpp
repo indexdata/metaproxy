@@ -1,4 +1,4 @@
-/* $Id: test_filter_factory.cpp,v 1.1 2005-10-28 10:35:30 marc Exp $
+/* $Id: test_filter_factory.cpp,v 1.2 2005-10-29 17:58:14 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -21,30 +21,61 @@ using namespace boost::unit_test;
 class XFilter: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {};
+    std::string name(){
+        return std::string("xfilter");
+        }   
 };
+
+
+yp2::filter::Base* xfilter_creator(){
+    return new XFilter;
+}
+
 
 class YFilter: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {};
+    std::string name(){
+        return std::string("yfilter");
+        }   
 };
-    
 
-BOOST_AUTO_TEST_CASE( test_router_flexml_1 )
+yp2::filter::Base* yfilter_creator(){
+    return new YFilter;
+}
+
+
+
+//int main(int argc, char **argv)
+BOOST_AUTO_TEST_CASE( test_filter_factory_1 )
 {
-    try{
+    try {
         
         yp2::filter::FilterFactory  ffactory;
         
-
-        BOOST_CHECK (true);
-
-        //BOOST_CHECK_EQUAL(filter.name(), std::string("filter1"));
+        BOOST_CHECK_EQUAL(ffactory.add_creator("xfilter", xfilter_creator),
+                          true);
+        BOOST_CHECK_EQUAL(ffactory.drop_creator("xfilter"),
+                          true);
+        BOOST_CHECK_EQUAL(ffactory.add_creator("xfilter", xfilter_creator),
+                          true);
+        BOOST_CHECK_EQUAL(ffactory.add_creator("yfilter", yfilter_creator),
+                          true);
         
-    }
+        yp2::filter::Base* xfilter = ffactory.create("xfilter");
+        yp2::filter::Base* yfilter = ffactory.create("yfilter");
+        
+        //BOOST_CHECK_EQUAL(xfilter->name(), std::string("xfilter"));
+        //BOOST_CHECK_EQUAL(yfilter->name(), std::string("yfilter"));
+        
+        }
     catch ( ... ) {
         BOOST_CHECK (false);
     }
+        
+    std::exit(0);
 }
+
 
 /*
  * Local variables:
