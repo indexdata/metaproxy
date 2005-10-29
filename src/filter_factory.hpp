@@ -1,4 +1,4 @@
-/* $Id: filter_factory.hpp,v 1.2 2005-10-29 17:58:14 marc Exp $
+/* $Id: filter_factory.hpp,v 1.3 2005-10-29 22:51:11 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -36,6 +36,8 @@ namespace yp2 {
             typedef yp2::filter::Base* (*CreateFilterCallback)();
             /// true if registration ok
 
+            FilterFactory(){};
+
             bool add_creator(std::string fi, CreateFilterCallback cfc);
             /// true if unregistration ok
 
@@ -49,6 +51,12 @@ namespace yp2 {
             typedef std::map<std::string, CreateFilterCallback> CallbackMap;
             CallbackMap m_fcm;
 
+        private:
+            /// disabled because class is singleton
+            FilterFactory(const FilterFactory &);
+            
+            /// disabled because class is singleton
+            FilterFactory& operator=(const FilterFactory &);
         };
         
     }
