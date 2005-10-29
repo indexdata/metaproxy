@@ -1,4 +1,4 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.14 2005-10-26 18:53:49 adam Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.15 2005-10-29 22:23:36 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -48,6 +48,9 @@ public:
             odr_destroy(odr);
         }
         return package.move();
+    };
+    const std::string type() const {
+        return "HTTPFilter";
     };
 };
 

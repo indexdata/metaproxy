@@ -1,4 +1,4 @@
-/* $Id: test_filter_frontend_net.cpp,v 1.10 2005-10-26 10:55:26 marc Exp $
+/* $Id: test_filter_frontend_net.cpp,v 1.11 2005-10-29 22:23:36 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -41,6 +41,9 @@ public:
             odr_destroy(odr);
         }
         return package.move();
+    };
+    const std::string type() const {
+        return "FilterInit";
     };
 };
 

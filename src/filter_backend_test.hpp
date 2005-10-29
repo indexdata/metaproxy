@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.hpp,v 1.2 2005-10-29 15:54:29 adam Exp $
+/* $Id: filter_backend_test.hpp,v 1.3 2005-10-29 22:23:36 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -21,6 +21,9 @@ namespace yp2 {
             ~Backend_test();
             Backend_test();
             void process(yp2::Package & package) const;
+            const std::string type() const {
+                return "Backend_test";
+            };
         private:
             boost::scoped_ptr<Rep> m_p;
         };

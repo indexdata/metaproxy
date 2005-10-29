@@ -1,4 +1,4 @@
-/* $Id: filter_frontend_net.hpp,v 1.5 2005-10-15 14:09:09 adam Exp $
+/* $Id: filter_frontend_net.hpp,v 1.6 2005-10-29 22:23:36 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -18,6 +18,9 @@ namespace yp2 {
         public:
             FrontendNet::FrontendNet();
             void process(yp2::Package & package) const;
+            const std::string type() const {
+                return "FrontendNet";
+            };
         private:
             int m_no_threads;
             std::vector<std::string> m_ports;

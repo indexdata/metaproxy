@@ -1,4 +1,4 @@
-/* $Id: test_filter_log.cpp,v 1.4 2005-10-26 10:55:26 marc Exp $
+/* $Id: test_filter_log.cpp,v 1.5 2005-10-29 22:23:36 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -41,6 +41,9 @@ public:
             odr_destroy(odr);
         }
         return package.move();
+    };
+    const std::string type() const {
+        return "FilterBounceInit";
     };
 };
 

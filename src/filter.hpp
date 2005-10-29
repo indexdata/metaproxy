@@ -1,4 +1,4 @@
-/* $Id: filter.hpp,v 1.6 2005-10-24 09:53:06 adam Exp $
+/* $Id: filter.hpp,v 1.7 2005-10-29 22:23:36 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -22,26 +22,10 @@ namespace yp2 {
             ///sends Package off to next Filter, returns altered Package
             virtual void process(Package & package) const = 0;
 
-            virtual void configure(const xmlNode * ptr = 0) { } ;
+            virtual void configure(const xmlNode * ptr = 0) { };
             
-            /// get function - right val in assignment
-            std::string name() const {
-                return m_name;
-            }
             
-            /// set function - left val in assignment
-            std::string & name() {
-                return m_name;
-            }
-            
-            /// set function - can be chained
-            Base & name(const std::string & name){
-                m_name = name;
-                return *this;
-            }
-            
-        private:
-            std::string m_name;
+            virtual const std::string type() const = 0;
         };
     }
     

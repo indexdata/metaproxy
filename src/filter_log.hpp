@@ -1,4 +1,4 @@
-/* $Id: filter_log.hpp,v 1.7 2005-10-25 16:01:36 adam Exp $
+/* $Id: filter_log.hpp,v 1.8 2005-10-29 22:23:36 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -22,6 +22,9 @@ namespace yp2 {
             Log(const std::string &msg);
             Log();
             void process(yp2::Package & package) const;
+            const std::string type() const {
+                return "Log";
+            };
         private:
             /// static mutex to lock Ostream during logging operation
             static boost::mutex m_log_mutex;
