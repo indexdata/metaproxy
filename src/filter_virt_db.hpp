@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.hpp,v 1.1 2005-10-24 14:33:30 adam Exp $
+/* $Id: filter_virt_db.hpp,v 1.2 2005-10-29 15:54:29 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -9,6 +9,7 @@
 
 #include <stdexcept>
 #include <list>
+#include <boost/scoped_ptr.hpp>
 
 #include "filter.hpp"
 
@@ -22,7 +23,7 @@ namespace yp2 {
             void process(yp2::Package & package) const;
             void add_map_db2vhost(std::string db, std::string vhost);
         private:
-            Rep *m_p;
+            boost::scoped_ptr<Rep> m_p;
         };
     }
 }

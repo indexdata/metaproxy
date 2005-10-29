@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.9 2005-10-26 18:53:49 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.10 2005-10-29 15:54:29 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -107,12 +107,11 @@ yf::Virt_db_session::Virt_db_session(yp2::Session &id,
 
 }
 
-yf::Virt_db::Virt_db() {
-    m_p = new Virt_db::Rep;
+yf::Virt_db::Virt_db() : m_p(new Virt_db::Rep)
+{
 }
 
 yf::Virt_db::~Virt_db() {
-    delete m_p;
 }
 
 void yf::Virt_db::Rep::release_session(Package &package)

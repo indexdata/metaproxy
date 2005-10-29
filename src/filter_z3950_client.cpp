@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.5 2005-10-25 21:32:01 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.6 2005-10-29 15:54:29 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -31,7 +31,7 @@ namespace yf = yp2::filter;
 namespace yp2 {
     namespace filter {
         class Z3950Client::Assoc : public yazpp_1::Z_Assoc{
-            friend class Pimpl;
+            friend class Rep;
         public:
             Assoc(yazpp_1::SocketManager *socket_manager,
                   yazpp_1::IPDU_Observable *PDU_Observable,
@@ -54,7 +54,7 @@ namespace yp2 {
             std::string m_host;
         };
 
-        class Z3950Client::Pimpl {
+        class Z3950Client::Rep {
         public:
             boost::mutex m_mutex;
             std::map<yp2::Session,Z3950Client::Assoc *> m_clients;
@@ -144,15 +144,14 @@ yazpp_1::IPDU_Observer *yf::Z3950Client::Assoc::sessionNotify(
 }
 
 
-yf::Z3950Client::Z3950Client() {
-    m_p = new yf::Z3950Client::Pimpl;
+yf::Z3950Client::Z3950Client() :  m_p(new yf::Z3950Client::Rep)
+{
 }
 
 yf::Z3950Client::~Z3950Client() {
-    delete m_p;
 }
 
-yf::Z3950Client::Assoc *yf::Z3950Client::Pimpl::get_assoc(Package &package) 
+yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package) 
 {
     // only one thread messes with the clients list at a time
     boost::mutex::scoped_lock lock(m_mutex);
@@ -218,7 +217,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Pimpl::get_assoc(Package &package)
     return as;
 }
 
-void yf::Z3950Client::Pimpl::send_and_receive(Package &package,
+void yf::Z3950Client::Rep::send_and_receive(Package &package,
                                               yf::Z3950Client::Assoc *c)
 {
     Z_GDU *gdu = package.request().get();
@@ -253,7 +252,7 @@ void yf::Z3950Client::Pimpl::send_and_receive(Package &package,
         ;
 }
 
-void yf::Z3950Client::Pimpl::release_assoc(Package &package,
+void yf::Z3950Client::Rep::release_assoc(Package &package,
                                            yf::Z3950Client::Assoc *c)
 {
     if (package.session().is_closed())

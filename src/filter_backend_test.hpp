@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.hpp,v 1.1 2005-10-25 11:48:30 adam Exp $
+/* $Id: filter_backend_test.hpp,v 1.2 2005-10-29 15:54:29 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -9,6 +9,7 @@
 
 #include <stdexcept>
 #include <list>
+#include <boost/scoped_ptr.hpp>
 
 #include "filter.hpp"
 
@@ -21,7 +22,7 @@ namespace yp2 {
             Backend_test();
             void process(yp2::Package & package) const;
         private:
-            Rep *m_p;
+            boost::scoped_ptr<Rep> m_p;
         };
     }
 }

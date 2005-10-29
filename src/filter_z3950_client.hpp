@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.hpp,v 1.1 2005-10-16 16:05:44 adam Exp $
+/* $Id: filter_z3950_client.hpp,v 1.2 2005-10-29 15:54:29 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -9,20 +9,21 @@
 
 #include <stdexcept>
 #include <list>
+#include <boost/scoped_ptr.hpp>
 
 #include "filter.hpp"
 
 namespace yp2 {
     namespace filter {
         class Z3950Client : public Base {
-            class Pimpl;
+            class Rep;
             class Assoc;
         public:
             ~Z3950Client();
             Z3950Client();
             void process(yp2::Package & package) const;
         private:
-            Pimpl *m_p;
+            boost::scoped_ptr<Rep> m_p;
         };
     }
 }
