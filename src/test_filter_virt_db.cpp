@@ -1,4 +1,4 @@
-/* $Id: test_filter_virt_db.cpp,v 1.7 2005-10-26 18:53:49 adam Exp $
+/* $Id: test_filter_virt_db.cpp,v 1.8 2005-10-30 17:13:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -52,13 +52,12 @@ BOOST_AUTO_TEST_CASE( test_filter_virt_db_2 )
         // own init response (regardless of backend)
         yp2::Package pack;
         
-        ODR odr = odr_createmem(ODR_ENCODE);
+        yp2::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
         
         BOOST_CHECK(apdu);
         
         pack.request() = apdu;
-        odr_destroy(odr);
         
         // Put it in router
         pack.router(router).move(); 
@@ -84,7 +83,7 @@ BOOST_AUTO_TEST_CASE( test_filter_virt_db_2 )
 static void init(yp2::Package &pack, yp2::Router &router)
 {
     // Create package with Z39.50 init request in it
-    ODR odr = odr_createmem(ODR_ENCODE);
+    yp2::odr odr;
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
     
     BOOST_CHECK(apdu);
@@ -92,7 +91,6 @@ static void init(yp2::Package &pack, yp2::Router &router)
         return;
     
     pack.request() = apdu;
-    odr_destroy(odr);
     
     // Put it in router
     pack.router(router).move(); 
@@ -116,7 +114,7 @@ static void search(yp2::Package &pack, yp2::Router &router,
 {
     // Create package with Z39.50 search request in it
             
-    ODR odr = odr_createmem(ODR_ENCODE);
+    yp2::odr odr;
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchRequest);
 
     yp2::util::pqf(odr, apdu, query);
@@ -133,8 +131,6 @@ static void search(yp2::Package &pack, yp2::Router &router,
         return;
     
     pack.request() = apdu;
-    
-    odr_destroy(odr);
     
     Z_GDU *gdu_test = pack.request().get();
     BOOST_CHECK(gdu_test);
@@ -161,7 +157,7 @@ static void present(yp2::Package &pack, yp2::Router &router,
 {
     // Create package with Z39.50 present request in it
             
-    ODR odr = odr_createmem(ODR_ENCODE);
+    yp2::odr odr;
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_presentRequest);
     
     apdu->u.presentRequest->resultSetId  = odr_strdup(odr, setname);
@@ -173,8 +169,6 @@ static void present(yp2::Package &pack, yp2::Router &router,
         return;
     
     pack.request() = apdu;
-    
-    odr_destroy(odr);
     
     Z_GDU *gdu_test = pack.request().get();
     BOOST_CHECK(gdu_test);

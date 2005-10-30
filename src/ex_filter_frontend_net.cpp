@@ -1,4 +1,4 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.15 2005-10-29 22:23:36 marc Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.16 2005-10-30 17:13:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -13,6 +13,7 @@ namespace po = boost::program_options;
 
 #include "config.hpp"
 
+#include "util.hpp"
 #include "filter_frontend_net.hpp"
 #include "filter_z3950_client.hpp"
 #include "filter_virt_db.hpp"
@@ -33,7 +34,7 @@ public:
         Z_GDU *gdu = package.request().get();
         if (gdu && gdu->which == Z_GDU_HTTP_Request)
         {
-            ODR odr = odr_createmem(ODR_ENCODE);
+            yp2::odr odr;
             Z_GDU *gdu = z_get_HTTP_Response(odr, 200);
             Z_HTTP_Response *http_res = gdu->u.HTTP_Response;
             
@@ -45,7 +46,6 @@ public:
             http_res->content_len = strlen(http_res->content_buf);
             
             package.response() = gdu;
-            odr_destroy(odr);
         }
         return package.move();
     };

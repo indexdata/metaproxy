@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.6 2005-10-29 15:54:29 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.7 2005-10-30 17:13:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -12,6 +12,7 @@
 
 #include <boost/thread/mutex.hpp>
 
+#include "util.hpp"
 #include "filter_backend_test.hpp"
 
 #include <yaz/zgdu.h>
@@ -58,7 +59,7 @@ void yf::Backend_test::process(Package &package) const
     {
         Z_APDU *apdu_req = gdu->u.z3950;
         Z_APDU *apdu_res = 0;
-        ODR odr = odr_createmem(ODR_ENCODE);
+        yp2::odr odr;
         
         if (apdu_req->which != Z_APDU_initRequest && 
             !m_p->m_sessions.exist(package.session()))
@@ -140,7 +141,6 @@ void yf::Backend_test::process(Package &package) const
         }
         if (apdu_res)
             package.response() = apdu_res;
-        odr_destroy(odr);
     }
     if (package.session().is_closed())
         m_p->m_sessions.release(package.session());

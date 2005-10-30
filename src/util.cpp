@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.1 2005-10-26 18:53:49 adam Exp $
+/* $Id: util.cpp,v 1.2 2005-10-30 17:13:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -6,6 +6,7 @@
 
 #include "config.hpp"
 
+#include <yaz/odr.h>
 #include <yaz/pquery.h>
 #include "util.hpp"
 
@@ -26,6 +27,27 @@ bool yp2::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
     apdu->u.searchRequest->query = query;
     return true;
 }
+
+yp2::odr::odr(int type)
+{
+    m_odr = odr_createmem(type);
+}
+
+yp2::odr::odr()
+{
+    m_odr = odr_createmem(ODR_ENCODE);
+}
+
+yp2::odr::~odr()
+{
+    odr_destroy(m_odr);
+}
+
+yp2::odr::operator ODR() const
+{
+    return m_odr;
+}
+
 /*
  * Local variables:
  * c-basic-offset: 4

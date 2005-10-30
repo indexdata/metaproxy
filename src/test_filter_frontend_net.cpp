@@ -1,4 +1,4 @@
-/* $Id: test_filter_frontend_net.cpp,v 1.11 2005-10-29 22:23:36 marc Exp $
+/* $Id: test_filter_frontend_net.cpp,v 1.12 2005-10-30 17:13:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -8,6 +8,7 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "util.hpp"
 #include "filter_frontend_net.hpp"
 
 #include "router_chain.hpp"
@@ -32,13 +33,12 @@ public:
         if (gdu)
         {
             // std::cout << "Got PDU. Sending init response\n";
-            ODR odr = odr_createmem(ODR_ENCODE);
+            yp2::odr odr;
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
             
             apdu->u.initResponse->implementationName = "YP2/YAZ";
             
             package.response() = apdu;
-            odr_destroy(odr);
         }
         return package.move();
     };
@@ -75,11 +75,10 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_2 )
             // Create package with Z39.50 init request in it
 	    yp2::Package pack;
 
-            ODR odr = odr_createmem(ODR_ENCODE);
+            yp2::odr odr;
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
             
             pack.request() = apdu;
-            odr_destroy(odr);
 	    // Done creating query. 
 
             // Put it in router

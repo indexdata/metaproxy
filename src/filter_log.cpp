@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.7 2005-10-25 16:01:36 adam Exp $
+/* $Id: filter_log.cpp,v 1.8 2005-10-30 17:13:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -11,6 +11,7 @@
 #include "router.hpp"
 #include "package.hpp"
 
+#include "util.hpp"
 #include "filter_log.hpp"
 
 #include <yaz/zgdu.h>
@@ -42,9 +43,8 @@ void yp2::filter::Log::process(Package &package) const {
         gdu = package.request().get();
         if (gdu)
         {
-            ODR odr = odr_createmem(ODR_PRINT);
+            yp2::odr odr(ODR_PRINT);
             z_GDU(odr, &gdu, 0, 0);
-            odr_destroy(odr);
         }
     }
 
@@ -69,14 +69,12 @@ void yp2::filter::Log::process(Package &package) const {
             //<< "duration=" << duration.total_seconds() 
             //    << "." << duration.fractional_seconds()
             //      << "\n";
-    }
-    
-    gdu = package.response().get();
-    if (gdu)
-    {
-	ODR odr = odr_createmem(ODR_PRINT);
-	z_GDU(odr, &gdu, 0, 0);
-	odr_destroy(odr);
+        gdu = package.response().get();
+        if (gdu)
+        {
+            yp2::odr odr(ODR_PRINT);
+            z_GDU(odr, &gdu, 0, 0);
+        }
     }
 }
 

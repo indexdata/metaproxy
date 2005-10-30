@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.10 2005-10-29 15:54:29 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.11 2005-10-30 17:13:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -12,6 +12,7 @@
 
 #include <boost/thread/mutex.hpp>
 
+#include "util.hpp"
 #include "filter_virt_db.hpp"
 
 #include <yaz/zgdu.h>
@@ -125,14 +126,13 @@ void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later)
     Session *id = 0;
     Z_PresentRequest *req = apdu->u.presentRequest;
     std::string resultSetId = req->resultSetId;
+    yp2::odr odr;
     {
         boost::mutex::scoped_lock lock(m_sessions_mutex);
         
         Ses_it it = m_sessions.find(package.session());
         if (it == m_sessions.end())
         {
-            ODR odr = odr_createmem(ODR_ENCODE);
-            
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
             
             *apdu->u.close->closeReason = Z_Close_protocolError;
@@ -141,8 +141,7 @@ void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later)
             
             package.response() = apdu;
             package.session().close();
-            odr_destroy(odr);
-            assert(false);
+
             return;
         }
         if (it->second.m_use_vhost)
@@ -153,7 +152,6 @@ void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later)
         Sets_it sets_it = it->second.m_sets.find(resultSetId);
         if (sets_it == it->second.m_sets.end())
         {
-            ODR odr = odr_createmem(ODR_ENCODE);
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_presentResponse);
             
             Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
@@ -165,12 +163,11 @@ void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later)
                     YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST,
                     resultSetId.c_str());
             package.response() = apdu;
-            odr_destroy(odr);
+
             return;
         }
         id = new yp2::Session(sets_it->second.m_backend_session);
     }
-    ODR odr = odr_createmem(ODR_ENCODE);
     
     // sending present to backend
     Package present_package(*id, package.origin());
@@ -179,13 +176,10 @@ void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later)
     req->resultSetId = odr_strdup(odr, "default");
     present_package.request() = yazpp_1::GDU(apdu);
 
-    odr_destroy(odr);
-
     present_package.move();
 
     if (present_package.session().is_closed())
     {
-        ODR odr = odr_createmem(ODR_ENCODE);
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_presentResponse);
         
         Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
@@ -198,8 +192,6 @@ void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later)
                 resultSetId.c_str());
         package.response() = apdu;
         
-        odr_destroy(odr);
-
         boost::mutex::scoped_lock lock(m_sessions_mutex);
         Ses_it it = m_sessions.find(package.session());
         if (it != m_sessions.end())
@@ -219,14 +211,13 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
     std::string database;
     std::string resultSetId = req->resultSetName;
     bool support_named_result_sets = false;  // whether backend supports it
+    yp2::odr odr;
     {
         boost::mutex::scoped_lock lock(m_sessions_mutex);
 
         Ses_it it = m_sessions.find(package.session());
         if (it == m_sessions.end())
         {
-            ODR odr = odr_createmem(ODR_ENCODE);
-            
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
             
             *apdu->u.close->closeReason = Z_Close_protocolError;
@@ -235,7 +226,7 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
             
             package.response() = apdu;
             package.session().close();
-            odr_destroy(odr);
+
             return;
         }
         if (it->second.m_use_vhost)
@@ -245,7 +236,6 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
         }
         if (req->num_databaseNames != 1)
         {   // exactly one database must be specified
-            ODR odr = odr_createmem(ODR_ENCODE);
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchResponse);
             
             Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
@@ -256,7 +246,6 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
                     odr, YAZ_BIB1_TOO_MANY_DATABASES_SPECIFIED, 0);
             package.response() = apdu;
             
-            odr_destroy(odr);
             return;
         }
         database = req->databaseNames[0];
@@ -264,7 +253,6 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
         map_it = m_maps.find(database);
         if (map_it == m_maps.end()) 
         {   // no map for database: return diagnostic
-            ODR odr = odr_createmem(ODR_ENCODE);
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchResponse);
             
             Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
@@ -275,7 +263,6 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
                     odr, YAZ_BIB1_DATABASE_DOES_NOT_EXIST, database.c_str());
             package.response() = apdu;
             
-            odr_destroy(odr);
             return;
         }
         if (*req->replaceIndicator == 0)
@@ -283,7 +270,6 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
             Sets_it sets_it = it->second.m_sets.find(req->resultSetName);
             if (sets_it != it->second.m_sets.end())
             {
-                ODR odr = odr_createmem(ODR_ENCODE);
                 Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchResponse);
                 
                 Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
@@ -296,7 +282,6 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
                         0);
                 package.response() = apdu;
                 
-                odr_destroy(odr);
                 return;
             }
         }
@@ -311,20 +296,17 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
         Package init_package(id, package.origin());
         init_package.copy_filter(package);
         
-        ODR odr = odr_createmem(ODR_ENCODE);
         Z_APDU *init_apdu = zget_APDU(odr, Z_APDU_initRequest);
         
         yaz_oi_set_string_oidval(&init_apdu->u.initRequest->otherInfo, odr,
                                  VAL_PROXY, 1, vhost_cstr);
         
         init_package.request() = init_apdu;
-        odr_destroy(odr);
 
         init_package.move();  // sending init 
 
         if (init_package.session().is_closed())
         {
-            ODR odr = odr_createmem(ODR_ENCODE);
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchResponse);
             
             Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
@@ -334,8 +316,6 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
                 zget_DefaultDiagFormat(
                     odr, YAZ_BIB1_DATABASE_UNAVAILABLE, database.c_str());
             package.response() = apdu;
-            
-            odr_destroy(odr);
         }
         Z_GDU *gdu = init_package.response().get();
         // we hope to get an init response
@@ -348,7 +328,6 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
         }
         else
         {
-            ODR odr = odr_createmem(ODR_ENCODE);
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchResponse);
             
             Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
@@ -359,7 +338,6 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
                     odr, YAZ_BIB1_DATABASE_UNAVAILABLE, database.c_str());
             package.response() = apdu;
             
-            odr_destroy(odr);
             return;
         }
     }
@@ -368,7 +346,6 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
 
     search_package.copy_filter(package);
     const char *sep = strchr(vhost_cstr, '/');
-    ODR odr = odr_createmem(ODR_ENCODE);
     if (sep)
         req->databaseNames[0] = odr_strdup(odr, sep+1);
 
@@ -378,13 +355,10 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
     req->resultSetName = odr_strdup(odr, backend_resultSetId.c_str());
     search_package.request() = yazpp_1::GDU(apdu);
     
-    odr_destroy(odr);
-    
     search_package.move();
 
     if (search_package.session().is_closed())
     {
-        ODR odr = odr_createmem(ODR_ENCODE);
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchResponse);
         
         Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
@@ -395,7 +369,6 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
                 odr, YAZ_BIB1_DATABASE_UNAVAILABLE, database.c_str());
         package.response() = apdu;
         
-        odr_destroy(odr);
         return;
     }
     package.response() = search_package.response();
@@ -419,8 +392,7 @@ void yf::Virt_db::Rep::init(Package &package, Z_APDU *apdu, bool &move_later)
         yaz_oi_get_string_oidval(&req->otherInfo, VAL_PROXY, 1, 0);
     if (!vhost)
     {
-        ODR odr = odr_createmem(ODR_ENCODE);
-        
+        yp2::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
         Z_InitResponse *resp = apdu->u.initResponse;
         
@@ -446,8 +418,6 @@ void yf::Virt_db::Rep::init(Package &package, Z_APDU *apdu, bool &move_later)
 
         package.response() = apdu;
         
-        odr_destroy(odr);
-
         m_sessions[package.session()] = Virt_db_session(package.session(), false);
     }
     else
@@ -486,7 +456,7 @@ void yf::Virt_db::process(Package &package) const
         }
         else
         {
-            ODR odr = odr_createmem(ODR_ENCODE);
+            yp2::odr odr;
             
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
             
@@ -497,7 +467,6 @@ void yf::Virt_db::process(Package &package) const
             
             package.response() = apdu;
             package.session().close();
-            odr_destroy(odr);
         }
         if (move_later)
             package.move();

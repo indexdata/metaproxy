@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.7 2005-10-30 16:39:18 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.8 2005-10-30 17:13:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -14,6 +14,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 
+#include "util.hpp"
 #include "filter_z3950_client.hpp"
 
 #include <yaz/zgdu.h>
@@ -97,7 +98,7 @@ void yf::Z3950Client::Assoc::failNotify()
 {
     m_waiting = false;
 
-    ODR odr = odr_createmem(ODR_ENCODE);
+    yp2::odr odr;
 
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
 
@@ -108,15 +109,13 @@ void yf::Z3950Client::Assoc::failNotify()
         m_package->response() = apdu;
         m_package->session().close();
     }
-
-    odr_destroy(odr);
 }
 
 void yf::Z3950Client::Assoc::timeoutNotify()
 {
     m_waiting = false;
 
-    ODR odr = odr_createmem(ODR_ENCODE);
+    yp2::odr odr;
 
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
 
@@ -127,7 +126,6 @@ void yf::Z3950Client::Assoc::timeoutNotify()
         m_package->response() = apdu;
         m_package->session().close();
     }
-    odr_destroy(odr);
 }
 
 void yf::Z3950Client::Assoc::recv_GDU(Z_GDU *gdu, int len)
@@ -189,7 +187,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     // check that it is init. If not, close
     if (apdu->which != Z_APDU_initRequest)
     {
-        ODR odr = odr_createmem(ODR_ENCODE);
+        yp2::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
         
         *apdu->u.close->closeReason = Z_Close_protocolError;
@@ -199,7 +197,6 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         package.response() = apdu;
         
         package.session().close();
-        odr_destroy(odr);
         return 0;
     }
     // check virtual host
@@ -208,7 +205,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
                                  VAL_PROXY, 1, 0);
     if (!vhost)
     {
-        ODR odr = odr_createmem(ODR_ENCODE);
+        yp2::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
         
         apdu->u.initResponse->userInformationField =
@@ -218,7 +215,6 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         package.response() = apdu;
             
         package.session().close();
-        odr_destroy(odr);
         return 0;
     }
     

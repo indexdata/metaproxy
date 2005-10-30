@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.1 2005-10-26 18:53:49 adam Exp $
+/* $Id: util.hpp,v 1.2 2005-10-30 17:13:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -9,10 +9,24 @@
 
 #include <yaz/z-core.h>
 #include <string>
+
+#include <boost/utility.hpp>
+
 namespace yp2 {
     struct util  {
 	static bool pqf(ODR odr, Z_APDU *apdu, const std::string &q);
     };
+
+    class odr : public boost::noncopyable {
+    public:
+        odr(int type);
+        odr();
+        ~odr();
+        operator ODR() const;
+    private:
+        ODR m_odr;
+    };
+        
 }
 #endif
 /*

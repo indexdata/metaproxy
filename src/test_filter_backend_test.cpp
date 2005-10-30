@@ -1,4 +1,4 @@
-/* $Id: test_filter_backend_test.cpp,v 1.4 2005-10-26 18:53:49 adam Exp $
+/* $Id: test_filter_backend_test.cpp,v 1.5 2005-10-30 17:13:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -46,13 +46,12 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_2 )
         
         yp2::Package pack;
         
-        ODR odr = odr_createmem(ODR_ENCODE);
+        yp2::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
         
         BOOST_CHECK(apdu);
         
         pack.request() = apdu;
-        odr_destroy(odr);
         
         // Put it in router
         pack.router(router).move(); 
@@ -87,7 +86,7 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_3 )
         
         // send search request as first request.. That should fail with
         // a close from the backend
-        ODR odr = odr_createmem(ODR_ENCODE);
+        yp2::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchRequest);
 
         yp2::util::pqf(odr, apdu, "computer");
@@ -100,7 +99,6 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_3 )
         BOOST_CHECK(apdu);
         
         pack.request() = apdu;
-        odr_destroy(odr);
         
         // Put it in router
         pack.router(router).move(); 
@@ -135,13 +133,12 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_4 )
         
         // send present request as first request.. That should fail with
         // a close from the backend
-        ODR odr = odr_createmem(ODR_ENCODE);
+        yp2::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_presentRequest);
 
         BOOST_CHECK(apdu);
         
         pack.request() = apdu;
-        odr_destroy(odr);
         
         // Put it in router
         pack.router(router).move(); 

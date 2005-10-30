@@ -1,4 +1,4 @@
-/* $Id: test_filter_z3950_client.cpp,v 1.5 2005-10-26 10:55:26 marc Exp $
+/* $Id: test_filter_z3950_client.cpp,v 1.6 2005-10-30 17:13:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -9,6 +9,7 @@
 #include <stdexcept>
 
 #include "filter_z3950_client.hpp"
+#include "util.hpp"
 
 #include "router_chain.hpp"
 #include "session.hpp"
@@ -46,13 +47,12 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_2 )
         // Create package with Z39.50 init request in it
         yp2::Package pack;
         
-        ODR odr = odr_createmem(ODR_ENCODE);
+        yp2::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
         
         BOOST_CHECK(apdu);
         
         pack.request() = apdu;
-        odr_destroy(odr);
         
         // Put it in router
         pack.router(router).move(); 
@@ -88,13 +88,12 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_3 )
         // Create package with Z39.50 present request in it
         yp2::Package pack;
         
-        ODR odr = odr_createmem(ODR_ENCODE);
+        yp2::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_presentRequest);
         
         BOOST_CHECK(apdu);
         
         pack.request() = apdu;
-        odr_destroy(odr);
         
         // Put it in router
         pack.router(router).move(); 
@@ -130,7 +129,7 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_4 )
         // Create package with Z39.50 init request in it
         yp2::Package pack;
         
-        ODR odr = odr_createmem(ODR_ENCODE);
+        yp2::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
         
         const char *vhost = "localhost:9999";
@@ -140,7 +139,6 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_4 )
         BOOST_CHECK(apdu);
         
         pack.request() = apdu;
-        odr_destroy(odr);
         
         // Put it in router
         pack.router(router).move(); 
