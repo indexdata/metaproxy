@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.6 2005-10-29 15:54:29 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.7 2005-10-30 16:39:18 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -12,6 +12,7 @@
 #include "package.hpp"
 
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/condition.hpp>
 
 #include "filter_z3950_client.hpp"
 
@@ -49,6 +50,7 @@ namespace yp2 {
             yazpp_1::SocketManager *m_socket_manager;
             yazpp_1::IPDU_Observable *m_PDU_Observable;
             Package *m_package;
+            bool m_in_use;
             bool m_waiting;
             bool m_connected;
             std::string m_host;
@@ -57,12 +59,12 @@ namespace yp2 {
         class Z3950Client::Rep {
         public:
             boost::mutex m_mutex;
+            boost::condition m_cond_session_ready;
             std::map<yp2::Session,Z3950Client::Assoc *> m_clients;
             Z3950Client::Assoc *get_assoc(Package &package);
             void send_and_receive(Package &package,
                                   yf::Z3950Client::Assoc *c);
-            void release_assoc(Package &package,
-                               yf::Z3950Client::Assoc *c);
+            void release_assoc(Package &package);
         };
     }
 }
@@ -73,7 +75,7 @@ yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
                               std::string host)
     :  Z_Assoc(PDU_Observable),
        m_socket_manager(socket_manager), m_PDU_Observable(PDU_Observable),
-       m_package(0), m_waiting(false), m_connected(false),
+       m_package(0), m_in_use(true), m_waiting(false), m_connected(false),
        m_host(host)
 {
     // std::cout << "create assoc " << this << "\n";
@@ -158,9 +160,19 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
 
     std::map<yp2::Session,yf::Z3950Client::Assoc *>::iterator it;
     
-    it = m_clients.find(package.session());
-    if (it != m_clients.end())
-        return it->second;
+    while(true)
+    {
+        it = m_clients.find(package.session());
+        if (it == m_clients.end())
+            break;
+        
+        if (!it->second->m_in_use)
+        {
+            it->second->m_in_use = true;
+            return it->second;
+        }
+        m_cond_session_ready.wait(lock);
+    }
 
     // only deal with Z39.50
     Z_GDU *gdu = package.request().get();
@@ -218,14 +230,12 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
 }
 
 void yf::Z3950Client::Rep::send_and_receive(Package &package,
-                                              yf::Z3950Client::Assoc *c)
+                                            yf::Z3950Client::Assoc *c)
 {
     Z_GDU *gdu = package.request().get();
 
     if (!gdu || gdu->which != Z_GDU_Z3950)
         return;
-
-    // we should lock c!
 
     c->m_package = &package;
     c->m_waiting = true;
@@ -252,16 +262,15 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
         ;
 }
 
-void yf::Z3950Client::Rep::release_assoc(Package &package,
-                                           yf::Z3950Client::Assoc *c)
+void yf::Z3950Client::Rep::release_assoc(Package &package)
 {
-    if (package.session().is_closed())
+    boost::mutex::scoped_lock lock(m_mutex);
+    std::map<yp2::Session,yf::Z3950Client::Assoc *>::iterator it;
+    
+    it = m_clients.find(package.session());
+    if (it != m_clients.end())
     {
-        boost::mutex::scoped_lock lock(m_mutex);
-        std::map<yp2::Session,yf::Z3950Client::Assoc *>::iterator it;
-
-        it = m_clients.find(package.session());
-        if (it != m_clients.end())
+        if (package.session().is_closed())
         {
             // the Z_Assoc and PDU_Assoc must be destroyed before
             // the socket manager.. so pull that out.. first..
@@ -270,6 +279,11 @@ void yf::Z3950Client::Rep::release_assoc(Package &package,
             delete s;    // then manager
             m_clients.erase(it);
         }
+        else
+        {
+            it->second->m_in_use = false;
+        }
+        m_cond_session_ready.notify_all();
     }
 }
 
@@ -279,8 +293,8 @@ void yf::Z3950Client::process(Package &package) const
     if (c)
     {
         m_p->send_and_receive(package, c);
-        m_p->release_assoc(package, c);
     }
+    m_p->release_assoc(package);
 }
 
 
