@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.7 2005-10-30 17:13:36 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.8 2005-10-30 18:51:20 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -64,11 +64,8 @@ void yf::Backend_test::process(Package &package) const
         if (apdu_req->which != Z_APDU_initRequest && 
             !m_p->m_sessions.exist(package.session()))
         {
-            apdu_res = zget_APDU(odr, Z_APDU_close);            
-            *apdu_res->u.close->closeReason = Z_Close_protocolError;
-            apdu_res->u.close->diagnosticInformation =
-                odr_strdup(odr, "no init for filter_backend_test");
-            
+            apdu_res = odr.create_close(Z_Close_protocolError,
+                                        "no init for filter_backend_test");
             package.session().close();
         }
         else if (apdu_req->which == Z_APDU_initRequest)
@@ -132,11 +129,8 @@ void yf::Backend_test::process(Package &package) const
         }
         else
         {
-            apdu_res = zget_APDU(odr, Z_APDU_close);            
-            *apdu_res->u.close->closeReason = Z_Close_protocolError;
-            apdu_res->u.close->diagnosticInformation =
-                odr_strdup(odr, "bad APDU in filter_backend_test");
-            
+            apdu_res = odr.create_close(Z_Close_protocolError,
+                                        "bad APDU in filter_backend_test");
             package.session().close();
         }
         if (apdu_res)

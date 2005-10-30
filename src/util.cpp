@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.2 2005-10-30 17:13:36 adam Exp $
+/* $Id: util.cpp,v 1.3 2005-10-30 18:51:21 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -46,6 +46,28 @@ yp2::odr::~odr()
 yp2::odr::operator ODR() const
 {
     return m_odr;
+}
+
+Z_APDU *yp2::odr::create_close(int reason, const char *addinfo)
+{
+    Z_APDU *apdu = zget_APDU(m_odr, Z_APDU_close);
+    
+    *apdu->u.close->closeReason = reason;
+    if (addinfo)
+        apdu->u.close->diagnosticInformation = odr_strdup(m_odr, addinfo);
+    return apdu;
+}
+
+Z_APDU *yp2::odr::create_initResponse(int error, const char *addinfo)
+{
+    Z_APDU *apdu = zget_APDU(m_odr, Z_APDU_initResponse);
+    if (error)
+    {
+        apdu->u.initResponse->userInformationField =
+            zget_init_diagnostics(m_odr, error, addinfo);
+        *apdu->u.initResponse->result = 0;
+    }
+    return apdu;
 }
 
 /*

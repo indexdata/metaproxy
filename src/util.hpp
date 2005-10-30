@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.2 2005-10-30 17:13:36 adam Exp $
+/* $Id: util.hpp,v 1.3 2005-10-30 18:51:21 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -23,6 +23,8 @@ namespace yp2 {
         odr();
         ~odr();
         operator ODR() const;
+        Z_APDU *create_close(int reason, const char *addinfo);
+        Z_APDU *create_initResponse(int error, const char *addinfo);
     private:
         ODR m_odr;
     };

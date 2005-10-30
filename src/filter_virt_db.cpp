@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.11 2005-10-30 17:13:36 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.12 2005-10-30 18:51:20 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -133,15 +133,10 @@ void yf::Virt_db::Rep::present(Package &package, Z_APDU *apdu, bool &move_later)
         Ses_it it = m_sessions.find(package.session());
         if (it == m_sessions.end())
         {
-            Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
-            
-            *apdu->u.close->closeReason = Z_Close_protocolError;
-            apdu->u.close->diagnosticInformation =
-                odr_strdup(odr, "no session for present request");
-            
-            package.response() = apdu;
+            package.response() = odr.create_close(
+                Z_Close_protocolError,
+                "no session for present request");
             package.session().close();
-
             return;
         }
         if (it->second.m_use_vhost)
@@ -218,13 +213,9 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
         Ses_it it = m_sessions.find(package.session());
         if (it == m_sessions.end())
         {
-            Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
-            
-            *apdu->u.close->closeReason = Z_Close_protocolError;
-            apdu->u.close->diagnosticInformation =
-                odr_strdup(odr, "no session for search request");
-            
-            package.response() = apdu;
+            package.response() = odr.create_close(
+                Z_Close_protocolError,
+                "no session for search request");
             package.session().close();
 
             return;
@@ -458,14 +449,10 @@ void yf::Virt_db::process(Package &package) const
         {
             yp2::odr odr;
             
-            Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
-            
-            *apdu->u.close->closeReason = Z_Close_protocolError;
-
-            apdu->u.close->diagnosticInformation =
-                odr_strdup(odr, "unsupported APDU in filter_virt_db");
-            
-            package.response() = apdu;
+            package.response() = odr.create_close(
+                Z_Close_protocolError,
+                "unsupported APDU in filter_virt_db");
+                                                 
             package.session().close();
         }
         if (move_later)

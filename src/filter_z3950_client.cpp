@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.8 2005-10-30 17:13:36 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.9 2005-10-30 18:51:21 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -100,13 +100,9 @@ void yf::Z3950Client::Assoc::failNotify()
 
     yp2::odr odr;
 
-    Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
-
-    *apdu->u.close->closeReason = Z_Close_peerAbort;
-
     if (m_package)
     {
-        m_package->response() = apdu;
+        m_package->response() = odr.create_close(Z_Close_peerAbort, 0);
         m_package->session().close();
     }
 }
@@ -117,13 +113,9 @@ void yf::Z3950Client::Assoc::timeoutNotify()
 
     yp2::odr odr;
 
-    Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
-
-    *apdu->u.close->closeReason = Z_Close_lackOfActivity;
-
     if (m_package)
     {
-        m_package->response() = apdu;
+        m_package->response() = odr.create_close(Z_Close_lackOfActivity, 0);
         m_package->session().close();
     }
 }
@@ -188,14 +180,9 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     if (apdu->which != Z_APDU_initRequest)
     {
         yp2::odr odr;
-        Z_APDU *apdu = zget_APDU(odr, Z_APDU_close);
         
-        *apdu->u.close->closeReason = Z_Close_protocolError;
-        apdu->u.close->diagnosticInformation =
-            odr_strdup(odr, "no init request for session");
-
-        package.response() = apdu;
-        
+        package.response() = odr.create_close(Z_Close_protocolError,
+                                              "no init request for session");
         package.session().close();
         return 0;
     }
@@ -206,14 +193,10 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     if (!vhost)
     {
         yp2::odr odr;
-        Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
+        package.response() = odr.create_initResponse(
+            YAZ_BIB1_INIT_NEGOTIATION_OPTION_REQUIRED,
+            "Virtual host not given");
         
-        apdu->u.initResponse->userInformationField =
-            zget_init_diagnostics(odr, 
-                                  YAZ_BIB1_INIT_NEGOTIATION_OPTION_REQUIRED,
-                                  "Virtual host not given");
-        package.response() = apdu;
-            
         package.session().close();
         return 0;
     }
