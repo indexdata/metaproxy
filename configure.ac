@@ -121,6 +121,7 @@ AC_CONFIG_FILES([
         Doxyfile
 	Makefile
 	src/Makefile
+	src/Jamfile
 ])
 
 AC_OUTPUT
