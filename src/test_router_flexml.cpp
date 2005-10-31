@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.3 2005-10-31 09:40:18 marc Exp $
+/* $Id: test_router_flexml.cpp,v 1.4 2005-10-31 11:59:08 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -25,32 +25,31 @@ public:
 BOOST_AUTO_TEST_CASE( test_router_flexml_1 )
 {
     try{
-        TFilter filter;
-
-        std::string xmlconf = "<?xml version=\"1.0\"?>"
-            "<yp2 xmlns=\"http://indexdata.dk/yp2/config/1\">"
-            "<start route=\"start\"/>"
-            "<filters>"
-            "<filter id=\"front_default\" type=\"frontend-net\">"
-            "<port>210</port>"
-            "</filter>"
-            "<filter id=\"log_cout\" type=\"log\">"
-            "<logfile>mylog.log</logfile>"
-            "</filter>"
-            "</filters>"
-            "<routes>"  
-            "<route id=\"start\">"
-            "<filter refid=\"front_default\"/>"
-            "<filter refid=\"log_cout\"/>"
-            "</route>"
-            "</routes>"
-            "</yp2>";
         
+        std::string xmlconf = "<?xml version=\"1.0\"?>\n"
+            "<yp2 xmlns=\"http://indexdata.dk/yp2/config/1\">\n"
+            "<start route=\"start\"/>\n"
+            "<filters>\n"
+            "<filter id=\"front_default\" type=\"frontend-net\">\n"
+            "<port>210</port>\n"
+            "</filter>\n"
+            "<filter id=\"log_cout\" type=\"log\">\n"
+            "<logfile>mylog.log</logfile>\n"
+            "</filter>\n"
+            "</filters>\n"
+            "<routes>\n"  
+            "<route id=\"start\">\n"
+            "<filter refid=\"front_default\"/>\n"
+            "<filter refid=\"log_cout\"/>\n"
+            "</route>\n"
+            "</routes>\n"
+            "</yp2>\n";
+       
         yp2::RouterFleXML rflexml(xmlconf);
         
-
+        
         BOOST_CHECK (true);
-
+        
         //BOOST_CHECK_EQUAL(filter.name(), std::string("filter1"));
         
     }
