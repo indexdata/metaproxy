@@ -1,8 +1,10 @@
-## $Id: Makefile.am,v 1.31 2005-10-29 22:23:36 marc Exp $
+## $Id: Makefile.am,v 1.32 2005-10-31 22:44:55 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
 AM_CXXFLAGS = $(YAZPPINC) $(XSLT_CFLAGS)
+
+EXTRA_DIST=Jamfile.in
 
 # Rules for the library..
 

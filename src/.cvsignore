@@ -5,6 +5,7 @@
 stamp-h*
 config.hpp
 socket
+Jamfile
 Makefile
 Makefile.in
 config.hpp.in
