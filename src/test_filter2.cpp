@@ -1,4 +1,4 @@
-/* $Id: test_filter2.cpp,v 1.14 2005-10-29 22:23:36 marc Exp $
+/* $Id: test_filter2.cpp,v 1.15 2005-10-31 09:40:18 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -26,9 +26,6 @@ public:
     void process(yp2::Package & package) const {
 	package.data() = m_constant;
 	package.move();
-    };
-    const std::string type() const {
-        return "FilterConstant";
     };
     void configure(const xmlNode* ptr = 0);
     int get_constant() const { return m_constant; };
@@ -117,9 +114,6 @@ public:
     void process(yp2::Package & package) const {
 	package.data() = package.data() * 2;
 	package.move();
-    };
-    const std::string type() const {
-        return "FilterConstant";
     };
 };
 

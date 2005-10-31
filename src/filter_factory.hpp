@@ -1,4 +1,4 @@
-/* $Id: filter_factory.hpp,v 1.3 2005-10-29 22:51:11 marc Exp $
+/* $Id: filter_factory.hpp,v 1.4 2005-10-31 09:40:18 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -19,9 +19,6 @@
 namespace yp2 {
 
     namespace filter {
-
-        
-
     
     class FilterFactoryException : public std::runtime_error {
     public:

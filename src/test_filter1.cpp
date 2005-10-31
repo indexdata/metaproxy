@@ -1,4 +1,4 @@
-/* $Id: test_filter1.cpp,v 1.12 2005-10-29 22:23:36 marc Exp $
+/* $Id: test_filter1.cpp,v 1.13 2005-10-31 09:40:18 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -18,9 +18,6 @@ using namespace boost::unit_test;
 class TFilter: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {};
-    const std::string type() const {
-        return "TFilter";
-    };
 };
     
 
@@ -30,7 +27,7 @@ BOOST_AUTO_TEST_CASE( test_filter1 )
         TFilter filter;
 
         
-        BOOST_CHECK (filter.type() == "TFilter");
+        BOOST_CHECK (sizeof(filter) > 0);
     }
     catch ( ... ) {
         BOOST_CHECK (false);

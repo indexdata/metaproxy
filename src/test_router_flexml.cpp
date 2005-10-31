@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.2 2005-10-29 22:23:36 marc Exp $
+/* $Id: test_router_flexml.cpp,v 1.3 2005-10-31 09:40:18 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -19,9 +19,6 @@ using namespace boost::unit_test;
 class TFilter: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {};
-    const std::string type() const {
-        return "TFilter";
-    };
 };
     
 

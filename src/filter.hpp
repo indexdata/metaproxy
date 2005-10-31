@@ -1,4 +1,4 @@
-/* $Id: filter.hpp,v 1.7 2005-10-29 22:23:36 marc Exp $
+/* $Id: filter.hpp,v 1.8 2005-10-31 09:40:18 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -23,19 +23,21 @@ namespace yp2 {
             virtual void process(Package & package) const = 0;
 
             virtual void configure(const xmlNode * ptr = 0) { };
-            
-            
-            virtual const std::string type() const = 0;
         };
-    }
-    
-    class FilterException : public std::runtime_error {
-    public:
-        FilterException(const std::string message)
-            : std::runtime_error("FilterException: " + message){
-        };
-    };
 
+        struct Creator {
+            const char* type;
+            yp2::filter::Base* (*creator)();
+        };
+
+        class FilterException : public std::runtime_error {
+        public:
+            FilterException(const std::string message)
+                : std::runtime_error("FilterException: " + message){
+            };
+        };
+        
+    }
   
 }
 

@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.hpp,v 1.3 2005-10-29 22:23:36 marc Exp $
+/* $Id: filter_virt_db.hpp,v 1.4 2005-10-31 09:40:18 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -21,9 +21,6 @@ namespace yp2 {
             ~Virt_db();
             Virt_db();
             void process(yp2::Package & package) const;
-            const std::string type() const {
-                return "Virt_db";
-            };
             void add_map_db2vhost(std::string db, std::string vhost);
         private:
             boost::scoped_ptr<Rep> m_p;

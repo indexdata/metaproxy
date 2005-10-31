@@ -1,4 +1,4 @@
-/* $Id: test_filter_factory.cpp,v 1.3 2005-10-29 22:23:36 marc Exp $
+/* $Id: test_filter_factory.cpp,v 1.4 2005-10-31 09:40:18 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -22,9 +22,6 @@ using namespace boost::unit_test;
 class XFilter: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {};
-     const std::string type() const{
-        return "XFilter";
-    };
 };
 
 
@@ -35,9 +32,6 @@ yp2::filter::Base* xfilter_creator(){
 class YFilter: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {};
-    const std::string type() const{
-        return "YFilter";
-    };
 };
 
 yp2::filter::Base* yfilter_creator(){
@@ -56,8 +50,8 @@ BOOST_AUTO_TEST_CASE( test_filter_factory_1 )
         XFilter xf;
         YFilter yf;
 
-        const std::string xfid = xf.type();
-        const std::string yfid = yf.type();
+        const std::string xfid = "XFilter";
+        const std::string yfid = "YFilter";
         
         //std::cout << "Xfilter name: " << xfid << std::endl;
         //std::cout << "Yfilter name: " << yfid << std::endl;
@@ -71,15 +65,16 @@ BOOST_AUTO_TEST_CASE( test_filter_factory_1 )
         BOOST_CHECK_EQUAL(ffactory.add_creator(yfid, yfilter_creator),
                           true);
         
-        yp2::filter::Base* xfilter = ffactory.create(xfid);
-        yp2::filter::Base* yfilter = ffactory.create(yfid);
+        yp2::filter::Base* xfilter = 0;
+        xfilter = ffactory.create(xfid);
+        yp2::filter::Base* yfilter = 0;
+        yfilter = ffactory.create(yfid);
 
-        BOOST_CHECK_EQUAL(xf.type(), xfilter->type());
-        BOOST_CHECK_EQUAL(yf.type(), yfilter->type());
+        //BOOST_CHECK_EQUAL(sizeof(xf), sizeof(*xfilter));
+        //BOOST_CHECK_EQUAL(sizeof(yf), sizeof(*yfilter));
 
-        //std::cout << "Xfilter pointer name:  " << xfilter->type() << std::endl;
-        //std::cout << "Yfilter pointer name:  " << yfilter->type() << std::endl;
-        
+        BOOST_CHECK(0 != xfilter);
+        BOOST_CHECK(0 != yfilter);
 
         }
     catch ( ... ) {

@@ -1,4 +1,4 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.16 2005-10-30 17:13:36 adam Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.17 2005-10-31 09:40:18 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -48,9 +48,6 @@ public:
             package.response() = gdu;
         }
         return package.move();
-    };
-    const std::string type() const {
-        return "HTTPFilter";
     };
 };
 

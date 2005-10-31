@@ -1,4 +1,4 @@
-/* $Id: test_filter_frontend_net.cpp,v 1.12 2005-10-30 17:13:36 adam Exp $
+/* $Id: test_filter_frontend_net.cpp,v 1.13 2005-10-31 09:40:18 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -41,9 +41,6 @@ public:
             package.response() = apdu;
         }
         return package.move();
-    };
-    const std::string type() const {
-        return "FilterInit";
     };
 };
 
