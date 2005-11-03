@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.8 2005-10-30 18:51:20 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.9 2005-11-03 14:45:16 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -41,6 +41,8 @@ namespace yp2 {
         };
     }
 }
+
+using namespace yp2;
 
 yf::Backend_test::Backend_test() : m_p(new Backend_test::Rep) {
     m_p->m_support_named_result_sets = false;

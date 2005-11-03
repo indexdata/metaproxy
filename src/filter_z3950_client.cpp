@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.9 2005-10-30 18:51:21 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.10 2005-11-03 14:45:16 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -70,6 +70,7 @@ namespace yp2 {
     }
 }
 
+using namespace yp2;
 
 yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
                               yazpp_1::IPDU_Observable *PDU_Observable,

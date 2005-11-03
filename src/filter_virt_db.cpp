@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.12 2005-10-30 18:51:20 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.13 2005-11-03 14:45:16 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -68,6 +68,8 @@ namespace yp2 {
         };
     }
 }
+
+using namespace yp2;
 
 yf::Virt_db_set::Virt_db_set(yp2::Session &id, std::string setname,
                              std::string vhost, bool named_result_sets)

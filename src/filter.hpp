@@ -1,4 +1,4 @@
-/* $Id: filter.hpp,v 1.8 2005-10-31 09:40:18 marc Exp $
+/* $Id: filter.hpp,v 1.9 2005-11-03 14:45:15 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -7,6 +7,7 @@
 #ifndef FILTER_HPP
 #define FILTER_HPP
 
+#include <string>
 #include <stdexcept>
 #include <libxml/tree.h>
 
