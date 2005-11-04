@@ -1,4 +1,4 @@
-/* $Id: thread_pool_observer.hpp,v 1.5 2005-11-04 10:27:51 adam Exp $
+/* $Id: thread_pool_observer.hpp,v 1.6 2005-11-04 11:06:52 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -7,9 +7,7 @@
 #ifndef YP2_THREAD_POOL_OBSERVER_HPP
 #define YP2_THREAD_POOL_OBSERVER_HPP
 
-#include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
+#include <boost/scoped_ptr.hpp>
 
 #include <ctype.h>
 
@@ -26,38 +24,19 @@ namespace yp2 {
     };
 
     class ThreadPoolSocketObserver : public yazpp_1::ISocketObserver {
-    private:
-        class Worker {
-        public:
-            Worker(ThreadPoolSocketObserver *s) : m_s(s) {};
-            ThreadPoolSocketObserver *m_s;
-            void operator() (void) {
-                m_s->run(0);
-            }
-        };
+        class Rep;
+        class Worker;
     public:
         ThreadPoolSocketObserver(yazpp_1::ISocketObservable *obs,
                                  int no_threads);
         virtual ~ThreadPoolSocketObserver();
-        void socketNotify(int event);
         void put(IThreadPoolMsg *m);
         IThreadPoolMsg *get();
         void run(void *p);
-        int m_fd[2];
     private:
-        yazpp_1::ISocketObservable *m_SocketObservable;
-        int m_no_threads;
-        boost::thread_group m_thrds;
+        void socketNotify(int event);
+        boost::scoped_ptr<Rep> m_p;
 
-        std::deque<IThreadPoolMsg *> m_input;
-        std::deque<IThreadPoolMsg *> m_output;
-
-        boost::mutex m_mutex_input_data;
-        boost::condition m_cond_input_data;
-        boost::mutex m_mutex_output_data;
-        bool m_stop_flag;
-
-    
     };
 }
 #endif
