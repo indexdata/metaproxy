@@ -1,4 +1,4 @@
-/* $Id: thread_pool_observer.hpp,v 1.4 2005-10-15 14:09:09 adam Exp $
+/* $Id: thread_pool_observer.hpp,v 1.5 2005-11-04 10:27:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -11,7 +11,6 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 
-#include <unistd.h>
 #include <ctype.h>
 
 #include <deque>

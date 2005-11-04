@@ -1,16 +1,24 @@
-/* $Id: thread_pool_observer.cpp,v 1.7 2005-10-15 14:09:09 adam Exp $
+
+/* $Id: thread_pool_observer.cpp,v 1.8 2005-11-04 10:27:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
  */
+#include "config.hpp"
+
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef WIN32
+#include <winsock.h>
+#endif
+
 #include <ctype.h>
 #include <stdio.h>
 
 #include <yaz++/socket-observer.h>
 #include <yaz/log.h>
 
-#include "config.hpp"
 #include "thread_pool_observer.hpp"
 
 using namespace yazpp_1;
