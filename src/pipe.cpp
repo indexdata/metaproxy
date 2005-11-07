@@ -1,5 +1,5 @@
 
-/* $Id: pipe.cpp,v 1.1 2005-11-07 12:32:01 adam Exp $
+/* $Id: pipe.cpp,v 1.2 2005-11-07 21:57:10 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -10,6 +10,7 @@
 #include <unistd.h>
 #endif
 
+#include <errno.h>
 #ifdef WIN32
 #include <winsock.h>
 #else
@@ -17,6 +18,8 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+
+#include <fcntl.h>
 #endif
 
 #if HAVE_SYS_SOCKET_H
@@ -45,6 +48,7 @@ namespace yp2 {
         Rep();
         int m_fd[2];
         int m_socket;
+        bool nonblock(int s);
     };
 }
 
@@ -56,42 +60,90 @@ Pipe::Rep::Rep()
     m_socket = -1;
 }
 
+bool Pipe::Rep::nonblock(int s)
+{
+#ifdef WIN32
+    if (ioctlsocket(s, FIONBIO, &tru) < 0)
+        return false;
+#else
+    if (fcntl(s, F_SETFL, O_NONBLOCK) < 0)
+        return false;
+#ifndef MSG_NOSIGNAL
+    signal (SIGPIPE, SIG_IGN);
+#endif
+#endif
+    return true;
+}
+
 Pipe::Pipe(int port_to_use) : m_p(new Rep)
 {
     if (port_to_use)
     {
+        // create server socket
         m_p->m_socket = socket(AF_INET, SOCK_STREAM, 0);
         if (m_p->m_socket < 0)
             throw Pipe::Error("could not create socket");
-
-        m_p->m_fd[1] = socket(AF_INET, SOCK_STREAM, 0);
-        if (m_p->m_fd[1] < 0)
-            throw Pipe::Error("could not create socket");
-        
+#ifndef WIN32
+        unsigned long one = 1;
+        if (setsockopt(m_p->m_socket, SOL_SOCKET, SO_REUSEADDR, (char*) 
+                       &one, sizeof(one)) < 0)
+            throw Pipe::Error("setsockopt error");
+#endif
+        // bind server socket
         struct sockaddr_in add;
         add.sin_family = AF_INET;
         add.sin_port = htons(port_to_use);
         add.sin_addr.s_addr = INADDR_ANY;
         struct sockaddr *addr = ( struct sockaddr *) &add;
-        
+      
         if (bind(m_p->m_socket, addr, sizeof(struct sockaddr_in)))
             throw Pipe::Error("could not bind on socket");
         
         if (listen(m_p->m_socket, 3) < 0)
             throw Pipe::Error("could not listen on socket");
 
+        // client socket
+        in_addr_t tmpadd;
+        tmpadd = (unsigned) inet_addr("127.0.0.1");
+        if (tmpadd)
+            memcpy(&add.sin_addr.s_addr, &tmpadd, sizeof(struct in_addr));
+        else
+            throw Pipe::Error("inet_addr failed");
+            
+        m_p->m_fd[1] = socket(AF_INET, SOCK_STREAM, 0);
+        if (m_p->m_fd[1] < 0)
+            throw Pipe::Error("could not create socket");
+        
+        m_p->nonblock(m_p->m_fd[1]);
+
+        if (connect(m_p->m_fd[1], addr, sizeof(*addr)) < 0 &&
+            errno != EINPROGRESS)
+        {
+            fprintf(stderr, "errno=%d[%s] tmpadd=%x\n", 
+                    errno, strerror(errno), tmpadd);
+            throw Pipe::Error("could not connect to socket");
+        }
+
+        // server accept
         struct sockaddr caddr;
         socklen_t caddr_len = sizeof(caddr);
         m_p->m_fd[0] = accept(m_p->m_socket, &caddr, &caddr_len);
         if (m_p->m_fd[0] < 0)
             throw Pipe::Error("could not accept on socket");
-        
-        if (connect(m_p->m_fd[1], addr, sizeof(addr)) < 0)
-            throw Pipe::Error("could not connect to socket");
+
+        // complete connect
+        fd_set write_set;
+        FD_ZERO(&write_set);
+        FD_SET(m_p->m_fd[1], &write_set);
+        int r = select(m_p->m_fd[1]+1, 0, &write_set, 0, 0);
+        if (r != 1)
+            throw Pipe::Error("could not complete connect");
+
+        close(m_p->m_socket);
+        m_p->m_socket = -1;
     }
     else
     {
-        m_p->m_socket = 0;
         pipe(m_p->m_fd);
     }
 }

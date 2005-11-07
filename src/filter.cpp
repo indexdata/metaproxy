@@ -1,4 +1,4 @@
-/* $Id: filter.cpp,v 1.2 2005-10-31 09:40:18 marc Exp $
+/* $Id: filter.cpp,v 1.3 2005-11-07 21:57:10 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -6,6 +6,7 @@
 
 #include <stdexcept>
 
+#include "config.hpp"
 #include "filter.hpp"
 
 

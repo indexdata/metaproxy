@@ -1,4 +1,4 @@
-/* $Id: filter_factory.hpp,v 1.4 2005-10-31 09:40:18 marc Exp $
+/* $Id: filter_factory.hpp,v 1.5 2005-11-07 21:57:10 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -12,7 +12,6 @@
 #include <string>
 #include <map>
 
-#include "config.hpp"
 #include "filter.hpp"
 
 

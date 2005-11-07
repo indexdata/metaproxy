@@ -1,4 +1,4 @@
-/* $Id: filter_frontend_net.cpp,v 1.8 2005-11-07 12:31:43 adam Exp $
+/* $Id: filter_frontend_net.cpp,v 1.9 2005-11-07 21:57:10 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -7,6 +7,7 @@
 
 #include "config.hpp"
 
+#include "pipe.hpp"
 #include "filter.hpp"
 #include "router.hpp"
 #include "package.hpp"
@@ -23,7 +24,7 @@ namespace yp2 {
     class My_Timer_Thread : public yazpp_1::ISocketObserver {
     private:
         yazpp_1::ISocketObservable *m_obs;
-        int m_fd[2];
+        Pipe m_pipe;
         bool m_timeout;
     public:
         My_Timer_Thread(yazpp_1::ISocketObservable *obs, int duration);
@@ -227,10 +228,9 @@ bool yp2::My_Timer_Thread::timeout()
 
 yp2::My_Timer_Thread::My_Timer_Thread(yazpp_1::ISocketObservable *obs,
 				 int duration) : 
-    m_obs(obs), m_timeout(false)
+    m_obs(obs), m_pipe(9123), m_timeout(false)
 {
-    pipe(m_fd);
-    obs->addObserver(m_fd[0], this);
+    obs->addObserver(m_pipe.read_fd(), this);
     obs->maskObserver(this, yazpp_1::SOCKET_OBSERVE_READ);
     obs->timeoutObserver(this, duration);
 }
@@ -239,8 +239,6 @@ void yp2::My_Timer_Thread::socketNotify(int event)
 {
     m_timeout = true;
     m_obs->deleteObserver(this);
-    close(m_fd[0]);
-    close(m_fd[1]);
 }
 
 void yp2::filter::FrontendNet::process(Package &package) const {

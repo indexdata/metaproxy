@@ -1,4 +1,4 @@
-/* $Id: test_pipe.cpp,v 1.1 2005-11-07 12:32:01 adam Exp $
+/* $Id: test_pipe.cpp,v 1.2 2005-11-07 21:57:10 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -19,19 +19,19 @@
 
 using namespace boost::unit_test;
 
-class My_Timer_Thread : public yazpp_1::ISocketObserver {
+class Timer : public yazpp_1::ISocketObserver {
 private:
     yazpp_1::ISocketObservable *m_obs;
     yp2::Pipe m_pipe;
     bool m_timeout;
 public:
-    My_Timer_Thread(yazpp_1::ISocketObservable *obs, int duration);
+    Timer(yazpp_1::ISocketObservable *obs, int duration);
     void socketNotify(int event);
     bool timeout() { return m_timeout; };
 };
 
 
-My_Timer_Thread::My_Timer_Thread(yazpp_1::ISocketObservable *obs,
+Timer::Timer(yazpp_1::ISocketObservable *obs,
 				 int duration) : 
     m_obs(obs), m_pipe(0), m_timeout(false)
 {
@@ -40,7 +40,7 @@ My_Timer_Thread::My_Timer_Thread(yazpp_1::ISocketObservable *obs,
     obs->timeoutObserver(this, duration);
 }
 
-void My_Timer_Thread::socketNotify(int event)
+void Timer::socketNotify(int event)
 {
     m_timeout = true;
     m_obs->deleteObserver(this);
@@ -50,14 +50,14 @@ BOOST_AUTO_TEST_CASE( test_pipe_1 )
 {
     yazpp_1::SocketManager mySocketManager;
     
-    yp2::Pipe pipe(0);
+    yp2::Pipe pipe(9999);
 
-    My_Timer_Thread t(&mySocketManager, 0);
+    Timer t(&mySocketManager, 0);
 
     while (mySocketManager.processEvent() > 0)
         if (t.timeout())
             break;
-    BOOST_CHECK (t.timeout());
+    BOOST_CHECK(t.timeout());
 }
 
 /*

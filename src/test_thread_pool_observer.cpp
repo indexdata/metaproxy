@@ -1,9 +1,9 @@
-/* $Id: test_thread_pool_observer.cpp,v 1.6 2005-10-15 14:09:09 adam Exp $
+/* $Id: test_thread_pool_observer.cpp,v 1.7 2005-11-07 21:57:10 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
  */
-/* $Id: test_thread_pool_observer.cpp,v 1.6 2005-10-15 14:09:09 adam Exp $
+/* $Id: test_thread_pool_observer.cpp,v 1.7 2005-11-07 21:57:10 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -31,6 +31,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz++/pdu-assoc.h>
 #include <yaz++/socket-manager.h>
 #include <yaz/log.h>
+#include "pipe.hpp"
 #include "thread_pool_observer.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
@@ -52,7 +53,7 @@ public:
 class My_Timer_Thread : public ISocketObserver {
 private:
     ISocketObservable *m_obs;
-    int m_fd[2];
+    yp2::Pipe m_pipe;
     yp2::ThreadPoolSocketObserver *m_t;
 public:
     int m_sum;
@@ -82,14 +83,14 @@ void My_Msg::result()
 }
 
 My_Timer_Thread::My_Timer_Thread(ISocketObservable *obs,
-                                 yp2::ThreadPoolSocketObserver *t) : m_obs(obs) 
+                                 yp2::ThreadPoolSocketObserver *t) : 
+    m_obs(obs), m_pipe(9123) 
 {
-    pipe(m_fd);
     m_t = t;
     m_sum = 0;
     m_requests = 0;
     m_responses = 0;
-    obs->addObserver(m_fd[0], this);
+    obs->addObserver(m_pipe.read_fd(), this);
     obs->maskObserver(this, SOCKET_OBSERVE_READ);
     obs->timeoutObserver(this, 0);
 }

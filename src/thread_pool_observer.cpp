@@ -1,5 +1,5 @@
 
-/* $Id: thread_pool_observer.cpp,v 1.10 2005-11-07 12:31:05 adam Exp $
+/* $Id: thread_pool_observer.cpp,v 1.11 2005-11-07 21:57:10 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -26,6 +26,7 @@
 #include <yaz/log.h>
 
 #include "thread_pool_observer.hpp"
+#include "pipe.hpp"
 
 namespace yp2 {
     class ThreadPoolSocketObserver::Worker {
@@ -44,7 +45,7 @@ namespace yp2 {
         ~Rep();
     private:
         yazpp_1::ISocketObservable *m_socketObservable;
-        int m_fd[2];
+        Pipe m_pipe;
         boost::thread_group m_thrds;
         boost::mutex m_mutex_input_data;
         boost::condition m_cond_input_data;
@@ -61,7 +62,7 @@ using namespace yazpp_1;
 using namespace yp2;
 
 ThreadPoolSocketObserver::Rep::Rep(ISocketObservable *obs)
-    : m_socketObservable(obs)
+    : m_socketObservable(obs), m_pipe(9123)
 {
 }
 
@@ -78,8 +79,7 @@ ThreadPoolSocketObserver::ThreadPoolSocketObserver(ISocketObservable *obs,
                                                    int no_threads)
     : m_p(new Rep(obs))
 {
-    pipe(m_p->m_fd);
-    obs->addObserver(m_p->m_fd[0], this);
+    obs->addObserver(m_p->m_pipe.read_fd(), this);
     obs->maskObserver(this, SOCKET_OBSERVE_READ);
 
     m_p->m_stop_flag = false;
@@ -102,9 +102,6 @@ ThreadPoolSocketObserver::~ThreadPoolSocketObserver()
     m_p->m_thrds.join_all();
 
     m_p->m_socketObservable->deleteObserver(this);
-
-    close(m_p->m_fd[0]);
-    close(m_p->m_fd[1]);
 }
 
 void ThreadPoolSocketObserver::socketNotify(int event)
@@ -112,7 +109,7 @@ void ThreadPoolSocketObserver::socketNotify(int event)
     if (event & SOCKET_OBSERVE_READ)
     {
         char buf[2];
-        read(m_p->m_fd[0], buf, 1);
+        read(m_p->m_pipe.read_fd(), buf, 1);
         IThreadPoolMsg *out;
         {
             boost::mutex::scoped_lock output_lock(m_p->m_mutex_output_data);
@@ -143,7 +140,7 @@ void ThreadPoolSocketObserver::run(void *p)
         {
             boost::mutex::scoped_lock output_lock(m_p->m_mutex_output_data);
             m_p->m_output.push_back(out);
-            write(m_p->m_fd[1], "", 1);
+            write(m_p->m_pipe.write_fd(), "", 1);
         }
     }
 }

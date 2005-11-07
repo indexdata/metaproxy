@@ -1,4 +1,4 @@
-/* $Id: pipe.hpp,v 1.1 2005-11-07 12:32:01 adam Exp $
+/* $Id: pipe.hpp,v 1.2 2005-11-07 21:57:10 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -7,6 +7,7 @@
 #ifndef YP2_PIPE_HPP
 #define YP2_PIPE_HPP
 
+#include <stdexcept>
 #include <boost/scoped_ptr.hpp>
 
 #include <yaz/yconfig.h>
