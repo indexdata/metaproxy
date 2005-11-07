@@ -1,5 +1,5 @@
 
-/* $Id: pipe.cpp,v 1.2 2005-11-07 21:57:10 adam Exp $
+/* $Id: pipe.cpp,v 1.3 2005-11-07 22:43:17 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -49,10 +49,23 @@ namespace yp2 {
         int m_fd[2];
         int m_socket;
         bool nonblock(int s);
+        void close(int &fd);
     };
 }
 
 using namespace yp2;
+
+void Pipe::Rep::close(int &fd)
+{
+#ifdef WIN32
+    if (fd != -1)
+        ::closesocket(fd);
+#else
+    if (fd != -1)
+        ::close(fd);
+#endif
+    fd = -1;
+}
 
 Pipe::Rep::Rep()
 {
@@ -63,6 +76,7 @@ Pipe::Rep::Rep()
 bool Pipe::Rep::nonblock(int s)
 {
 #ifdef WIN32
+    unsigned long tru = 1;
     if (ioctlsocket(s, FIONBIO, &tru) < 0)
         return false;
 #else
@@ -103,7 +117,7 @@ Pipe::Pipe(int port_to_use) : m_p(new Rep)
             throw Pipe::Error("could not listen on socket");
 
         // client socket
-        in_addr_t tmpadd;
+        unsigned int tmpadd;
         tmpadd = (unsigned) inet_addr("127.0.0.1");
         if (tmpadd)
             memcpy(&add.sin_addr.s_addr, &tmpadd, sizeof(struct in_addr));
@@ -116,17 +130,24 @@ Pipe::Pipe(int port_to_use) : m_p(new Rep)
         
         m_p->nonblock(m_p->m_fd[1]);
 
-        if (connect(m_p->m_fd[1], addr, sizeof(*addr)) < 0 &&
-            errno != EINPROGRESS)
+        if (connect(m_p->m_fd[1], addr, sizeof(*addr)) < 0)
         {
-            fprintf(stderr, "errno=%d[%s] tmpadd=%x\n", 
-                    errno, strerror(errno), tmpadd);
-            throw Pipe::Error("could not connect to socket");
+#ifdef WIN32
+            if (WSAGetLastError() != WSAEWOULDBLOCK)
+                throw Pipe::Error("could not connect to socket");
+#else
+            if (errno != EINPROGRESS)
+                throw Pipe::Error("could not connect to socket");
+#endif
         }
 
         // server accept
         struct sockaddr caddr;
+#ifdef WIN32
+        int caddr_len = sizeof(caddr);
+#else
         socklen_t caddr_len = sizeof(caddr);
+#endif
         m_p->m_fd[0] = accept(m_p->m_socket, &caddr, &caddr_len);
         if (m_p->m_fd[0] < 0)
             throw Pipe::Error("could not accept on socket");
@@ -139,23 +160,21 @@ Pipe::Pipe(int port_to_use) : m_p(new Rep)
         if (r != 1)
             throw Pipe::Error("could not complete connect");
 
-        close(m_p->m_socket);
-        m_p->m_socket = -1;
+        m_p->close(m_p->m_socket);
     }
     else
     {
+#ifndef WIN32
         pipe(m_p->m_fd);
+#endif
     }
 }
 
 Pipe::~Pipe()
 {
-    if (m_p->m_fd[0] != -1)
-        close(m_p->m_fd[0]);
-    if (m_p->m_fd[1] != -1)
-        close(m_p->m_fd[1]);
-    if (m_p->m_socket != -1)
-        close(m_p->m_socket);
+    m_p->close(m_p->m_fd[0]);
+    m_p->close(m_p->m_fd[1]);
+    m_p->close(m_p->m_socket);
 }
 
 int &Pipe::read_fd() const
