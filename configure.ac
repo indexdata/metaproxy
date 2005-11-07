@@ -104,7 +104,7 @@ fi
 ##AC_HEADER_STDC
 ##AC_HEADER_SYS_WAIT
 ##AC_HEADER_TIME 
-AC_CHECK_HEADERS(iostream list vector stdexcept)
+AC_CHECK_HEADERS(sys/select.h sys/socket.h iostream list vector stdexcept)
 AC_CHECK_HEADERS(boost/thread/mutex.hpp \ 
                  boost/date_time/posix_time/posix_time.hpp \
                  boost/test/auto_unit_test.hpp)
