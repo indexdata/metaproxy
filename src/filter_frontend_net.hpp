@@ -1,11 +1,11 @@
-/* $Id: filter_frontend_net.hpp,v 1.7 2005-10-31 09:40:18 marc Exp $
+/* $Id: filter_frontend_net.hpp,v 1.8 2005-11-07 12:31:43 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
  */
 
 #ifndef FILTER_FRONTEND_NET_HPP
-#define FILTER_FRONEND_NET_HPP
+#define FILTER_FRONTEND_NET_HPP
 
 #include <stdexcept>
 #include <vector>
@@ -15,6 +15,7 @@
 namespace yp2 {
     namespace filter {
         class FrontendNet : public Base {
+            class ZAssocServerChild;
         public:
             FrontendNet::FrontendNet();
             void process(yp2::Package & package) const;
