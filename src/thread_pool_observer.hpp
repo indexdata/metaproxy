@@ -1,4 +1,4 @@
-/* $Id: thread_pool_observer.hpp,v 1.6 2005-11-04 11:06:52 adam Exp $
+/* $Id: thread_pool_observer.hpp,v 1.7 2005-11-07 12:31:05 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -9,9 +9,6 @@
 
 #include <boost/scoped_ptr.hpp>
 
-#include <ctype.h>
-
-#include <deque>
 #include <yaz++/socket-observer.h>
 #include <yaz/yconfig.h>
 
