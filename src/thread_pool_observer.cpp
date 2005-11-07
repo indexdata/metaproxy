@@ -1,5 +1,5 @@
 
-/* $Id: thread_pool_observer.cpp,v 1.12 2005-11-07 22:43:17 adam Exp $
+/* $Id: thread_pool_observer.cpp,v 1.13 2005-11-07 22:46:42 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -11,6 +11,10 @@
 #endif
 #ifdef WIN32
 #include <winsock.h>
+#endif
+
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
 #endif
 
 #include <boost/thread/thread.hpp>
