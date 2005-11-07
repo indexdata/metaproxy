@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.32 2005-10-31 22:44:55 adam Exp $
+## $Id: Makefile.am,v 1.33 2005-11-07 12:32:01 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -22,6 +22,7 @@ libyp2_la_SOURCES = \
 	filter_virt_db.cpp filter_virt_db.hpp \
 	filter_z3950_client.cpp filter_z3950_client.hpp \
 	filter_backend_test.cpp filter_backend_test.hpp \
+	pipe.cpp pipe.hpp \
 	util.cpp util.hpp
 
 # Rules for programs..
@@ -38,6 +39,7 @@ ex_router_flexml_SOURCES =  ex_router_flexml.cpp
 
 check_PROGRAMS = \
 	test_package1 \
+	test_pipe \
 	test_filter1 test_filter2 \
 	test_session1 test_session2 \
 	test_thread_pool_observer \
@@ -54,6 +56,7 @@ check_PROGRAMS = \
 TESTS=$(check_PROGRAMS)
 
 test_package1_SOURCES=test_package1.cpp
+test_pipe_SOURCES=test_pipe.cpp
 test_filter1_SOURCES=test_filter1.cpp
 test_filter2_SOURCES=test_filter2.cpp
 test_session1_SOURCES=test_session1.cpp
@@ -72,6 +75,8 @@ test_router_flexml_SOURCES = test_router_flexml.cpp
 
 TESTLDADD = $(LDADD) -lboost_unit_test_framework
 
+test_package1_LDADD = $(TESTLDADD)
+test_pipe_LDADD = $(TESTLDADD)
 test_filter1_LDADD = $(TESTLDADD)
 test_filter2_LDADD = $(TESTLDADD)
 test_session1_LDADD = $(TESTLDADD)
@@ -79,7 +84,6 @@ test_session2_LDADD = $(TESTLDADD)
 test_boost_threads_LDADD = $(TESTLDADD)
 test_boost_time_LDADD = $(TESTLDADD)
 test_thread_pool_observer_LDADD = $(TESTLDADD)
-test_package1_LDADD = $(TESTLDADD)
 test_filter_factory_LDADD = $(TESTLDADD)
 test_filter_frontend_net_LDADD = $(TESTLDADD)
 test_filter_log_LDADD = $(TESTLDADD)
