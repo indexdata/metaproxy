@@ -1,6 +1,6 @@
 # Copyright (C) 2005, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.1 2005-11-03 14:45:16 adam Exp $
+# $Id: makefile,v 1.2 2005-11-07 22:43:48 adam Exp $
 
 # MS NMAKE makefile for yp2
 
@@ -27,7 +27,7 @@ default: all
 
 all: dirs config yaz yazpp libxslt dll progs
 
-progs: ex_libxml2_conf
+progs: ex_libxml2_conf ex_filter_frontend_net
 
 NSIS="c:\program files\nsis\makensis.exe"
 
@@ -57,11 +57,13 @@ PROJECT_DLL=$(BINDIR)\yp2.dll
 PROJECT_IMPLIB=$(LIBDIR)\yp2.lib
 EX_FILTER_FRONTEND_NET=$(BINDIR)\ex_filter_frontend_net.exe
 EX_LIBXML2_CONF=$(BINDIR)\ex_libxml2_conf.exe
+TEST_PIPE=$(BINDIR)\test_pipe.exe
 
 # shortcut names defined here
 dll: $(PROJECT_DLL)
 ex_filter_frontend_net: $(EX_FILTER_FRONTEND_NET)
 ex_libxml2_conf: $(EX_LIBXML2_CONF)
+test_pipe: $(TEST_PIPE)
 
 ###########################################################
 ############### Compiler and linker options 
@@ -104,7 +106,8 @@ BOOST_DEF = /I"$(BOOST)\include\boost-$(BOOSTVER)"
 BOOST_LIB = \
     "$(BOOST)\lib\libboost_date_time-vc71-mt-$(BOOSTVER).lib" \
     "$(BOOST)\lib\libboost_program_options-vc71-mt-$(BOOSTVER).lib" \
-    "$(BOOST)\lib\libboost_thread-vc71-mt-$(BOOSTVER).lib"
+    "$(BOOST)\lib\libboost_thread-vc71-mt-$(BOOSTVER).lib" \
+    "$(BOOST)\lib\libboost_unit_test_framework-vc71-mt-$(BOOSTVER).lib" 
 
 
 LIBXSLT_DEF = \
@@ -125,7 +128,6 @@ COMMON_C_OPTIONS=          \
   $(LIBXSLT_DEF)	   \
   /D "_WINDOWS"            \
   /D "WIN32"               \
-  /D "HAVE_WCHAR_H=1"      \
   /EHsc \
   /FR"$(OBJDIR)\\"         \
   /Fo"$(OBJDIR)\\"         \
@@ -164,7 +166,8 @@ LINK_LIBS= kernel32.lib user32.lib   gdi32.lib   \
            advapi32.lib uuid.lib \
            wsock32.lib  advapi32.lib \
 	   $(BOOST_LIB) \
-           $(YAZ_LIB) $(YAZPP_LIB) $(ICONV_LIB) $(LIBXSLT_LIB)
+           $(YAZ_LIB) $(YAZPP_LIB) $(ICONV_LIB) $(LIBXSLT_LIB) \
+	   $(BOOST_LIB) 
 
 COMMON_LNK_OPTIONS= /nologo \
                   /subsystem:windows \
@@ -195,22 +198,22 @@ LNKOPT= $(COMMON_LNK_OPTIONS) $(RELEASE_LNK_OPTIONS)
 ###########################################################
 
 PROJECT_DLL_OBJS = \
+	$(OBJDIR)\pipe.obj \
         $(OBJDIR)\session.obj \
         $(OBJDIR)\router_chain.obj \
         $(OBJDIR)\router_flexml.obj \
         $(OBJDIR)\filter.obj \
+	$(OBJDIR)\filter_frontend_net.obj \
         $(OBJDIR)\filter_log.obj \
         $(OBJDIR)\filter_virt_db.obj \
         $(OBJDIR)\filter_z3950_client.obj \
         $(OBJDIR)\filter_backend_test.obj \
-        $(OBJDIR)\util.obj
-
-# $(OBJDIR)\thread_pool_observer.obj 
-#$(OBJDIR)\filter_frontend_net.obj \
-
+	$(OBJDIR)\thread_pool_observer.obj \
+        $(OBJDIR)\util.obj 
 
 EX_FILTER_FRONTEND_NET_OBJS = $(OBJDIR)\ex_filter_frontend_net.obj
 EX_LIBXML2_CONF_OBJS = $(OBJDIR)\ex_libxml2_conf.obj
+TEST_PIPE_OBJS = $(OBJDIR)\test_pipe.obj
 
 ###########################################################
 ############### Compiling 
@@ -259,28 +262,17 @@ $(PROJECT_DLL) $(PROJECT_IMPLIB): "$(BINDIR)" $(PROJECT_DLL_OBJS)
 		/implib:"$(PROJECT_IMPLIB)"
 <<
 
-$(EX_FILTER_FRONTEND_NET) : "$(BINDIR)" $(EX_FILTER_FRONTEND_OBJS) $(PROJECT_IMPLIB)
+$(EX_FILTER_FRONTEND_NET) : "$(BINDIR)" $(EX_FILTER_FRONTEND_NET_OBJS) $(PROJECT_IMPLIB)
 	@echo Linking $(EX_FILTER_FRONTEND_NET)
-	$(LINK) @<<
-        $(LNKOPT) 
-		$(PROG_LINK_OPTIONS)
-		$(LINK_LIBS) 
-            	$(PROJECT_IMPLIB)
-		$(EX_FILTER_FRONTEND_NET_OBJS)
-		/out:$(EX_FILTER_FRONTEND_NET)
-<<
+	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_DLL_OBJS) $(EX_FILTER_FRONTEND_NET_OBJS) /out:$(EX_FILTER_FRONTEND_NET) 
 
 $(EX_LIBXML2_CONF) : "$(BINDIR)" $(EX_LIBXML2_CONF_OBJS) $(PROJECT_IMPLIB)
 	@echo Linking $(EX_LIBXML2_CONF)
-	$(LINK) @<<
-        $(LNKOPT) 
-		$(PROG_LINK_OPTIONS)
-		$(LINK_LIBS) 
-            	$(PROJECT_IMPLIB)
-		$(EX_LIBXML2_CONF_OBJS)
-		/out:$(EX_LIBXML2_CONF)
-<<
+	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_IMPLIB) $(EX_LIBXML2_CONF_OBJS) /out:$(EX_LIBXML2_CONF)
 
+$(TEST_PIPE) : "$(BINDIR)" $(TEST_PIPE_OBJS) $(PROJECT_IMPLIB)
+	@echo Linking $(TEST_PIPE)
+	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(TEST_PIPE_OBJS) $(PROJECT_IMPLIB) $(LINK_LIBS) /out:$(TEST_PIPE)
 
 ############## clean
 clean:
