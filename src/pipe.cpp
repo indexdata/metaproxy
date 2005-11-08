@@ -1,5 +1,5 @@
 
-/* $Id: pipe.cpp,v 1.3 2005-11-07 22:43:17 adam Exp $
+/* $Id: pipe.cpp,v 1.4 2005-11-08 08:55:41 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -91,6 +91,12 @@ bool Pipe::Rep::nonblock(int s)
 
 Pipe::Pipe(int port_to_use) : m_p(new Rep)
 {
+#ifdef WIN32
+    WSADATA wsaData;
+    WORD wVersionRequested = MAKEWORD(2, 0);
+    if (WSAStartup( wVersionRequested, &wsaData ))
+        throw Pipe::Error("WSAStartup failed");
+#endif
     if (port_to_use)
     {
         // create server socket
@@ -175,6 +181,9 @@ Pipe::~Pipe()
     m_p->close(m_p->m_fd[0]);
     m_p->close(m_p->m_fd[1]);
     m_p->close(m_p->m_socket);
+#ifdef WIN32
+    WSACleanup();
+#endif
 }
 
 int &Pipe::read_fd() const

@@ -1,4 +1,4 @@
-/* $Id: test_pipe.cpp,v 1.2 2005-11-07 21:57:10 adam Exp $
+/* $Id: test_pipe.cpp,v 1.3 2005-11-08 08:55:41 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -33,7 +33,7 @@ public:
 
 Timer::Timer(yazpp_1::ISocketObservable *obs,
 				 int duration) : 
-    m_obs(obs), m_pipe(0), m_timeout(false)
+    m_obs(obs), m_pipe(9122), m_timeout(false)
 {
     obs->addObserver(m_pipe.read_fd(), this);
     obs->maskObserver(this, yazpp_1::SOCKET_OBSERVE_READ);
@@ -50,8 +50,6 @@ BOOST_AUTO_TEST_CASE( test_pipe_1 )
 {
     yazpp_1::SocketManager mySocketManager;
     
-    yp2::Pipe pipe(9999);
-
     Timer t(&mySocketManager, 0);
 
     while (mySocketManager.processEvent() > 0)
