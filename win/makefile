@@ -1,6 +1,6 @@
 # Copyright (C) 2005, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.2 2005-11-07 22:43:48 adam Exp $
+# $Id: makefile,v 1.3 2005-11-08 08:56:39 adam Exp $
 
 # MS NMAKE makefile for yp2
 
@@ -27,7 +27,7 @@ default: all
 
 all: dirs config yaz yazpp libxslt dll progs
 
-progs: ex_libxml2_conf ex_filter_frontend_net
+progs: ex_libxml2_conf ex_filter_frontend_net test_pipe
 
 NSIS="c:\program files\nsis\makensis.exe"
 
@@ -198,7 +198,6 @@ LNKOPT= $(COMMON_LNK_OPTIONS) $(RELEASE_LNK_OPTIONS)
 ###########################################################
 
 PROJECT_DLL_OBJS = \
-	$(OBJDIR)\pipe.obj \
         $(OBJDIR)\session.obj \
         $(OBJDIR)\router_chain.obj \
         $(OBJDIR)\router_flexml.obj \
@@ -209,6 +208,7 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\filter_z3950_client.obj \
         $(OBJDIR)\filter_backend_test.obj \
 	$(OBJDIR)\thread_pool_observer.obj \
+	$(OBJDIR)\pipe.obj \
         $(OBJDIR)\util.obj 
 
 EX_FILTER_FRONTEND_NET_OBJS = $(OBJDIR)\ex_filter_frontend_net.obj
@@ -253,26 +253,19 @@ $(PROJECT_RES): $(PROJECT_RC)
 
 $(PROJECT_DLL) $(PROJECT_IMPLIB): "$(BINDIR)" $(PROJECT_DLL_OBJS)
 	@echo Linking $(PROJECT_DLL)
-	$(LINK) @<<
-		$(LNKOPT) 
-		$(LINK_LIBS) 
-		$(DLL_LINK_OPTIONS)
-		$(PROJECT_DLL_OBJS)
-		/out:"$(PROJECT_DLL)"
-		/implib:"$(PROJECT_IMPLIB)"
-<<
+	$(LINK) $(LNKOPT) $(LINK_LIBS) $(DLL_LINK_OPTIONS) $(PROJECT_DLL_OBJS) /out:"$(PROJECT_DLL)" /implib:"$(PROJECT_IMPLIB)"
 
 $(EX_FILTER_FRONTEND_NET) : "$(BINDIR)" $(EX_FILTER_FRONTEND_NET_OBJS) $(PROJECT_IMPLIB)
 	@echo Linking $(EX_FILTER_FRONTEND_NET)
 	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_DLL_OBJS) $(EX_FILTER_FRONTEND_NET_OBJS) /out:$(EX_FILTER_FRONTEND_NET) 
 
-$(EX_LIBXML2_CONF) : "$(BINDIR)" $(EX_LIBXML2_CONF_OBJS) $(PROJECT_IMPLIB)
+$(EX_LIBXML2_CONF) : "$(BINDIR)" $(EX_LIBXML2_CONF_OBJS) $(PROJECT_DLL_OBJS)
 	@echo Linking $(EX_LIBXML2_CONF)
 	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_IMPLIB) $(EX_LIBXML2_CONF_OBJS) /out:$(EX_LIBXML2_CONF)
 
 $(TEST_PIPE) : "$(BINDIR)" $(TEST_PIPE_OBJS) $(PROJECT_IMPLIB)
 	@echo Linking $(TEST_PIPE)
-	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(TEST_PIPE_OBJS) $(PROJECT_IMPLIB) $(LINK_LIBS) /out:$(TEST_PIPE)
+	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(TEST_PIPE_OBJS) $(PROJECT_DLL_OBJS) /out:$(TEST_PIPE)
 
 ############## clean
 clean:
