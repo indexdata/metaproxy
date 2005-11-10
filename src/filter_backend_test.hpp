@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.hpp,v 1.4 2005-10-31 09:40:18 marc Exp $
+/* $Id: filter_backend_test.hpp,v 1.5 2005-11-10 23:10:42 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -7,8 +7,6 @@
 #ifndef FILTER_BACKEND_TEST_HPP
 #define FILTER_BACKEND_TEST_HPP
 
-#include <stdexcept>
-#include <list>
 #include <boost/scoped_ptr.hpp>
 
 #include "filter.hpp"

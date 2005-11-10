@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.9 2005-11-03 14:45:16 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.10 2005-11-10 23:10:42 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -9,20 +9,20 @@
 #include "filter.hpp"
 #include "router.hpp"
 #include "package.hpp"
-
-#include <boost/thread/mutex.hpp>
-
 #include "util.hpp"
 #include "filter_backend_test.hpp"
+
+#include <stdexcept>
+#include <list>
+#include <map>
+#include <iostream>
+
+#include <boost/thread/mutex.hpp>
 
 #include <yaz/zgdu.h>
 #include <yaz/log.h>
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
-
-#include <list>
-#include <map>
-#include <iostream>
 
 namespace yf = yp2::filter;
 

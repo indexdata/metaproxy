@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.hpp,v 1.4 2005-10-31 09:40:18 marc Exp $
+/* $Id: filter_z3950_client.hpp,v 1.5 2005-11-10 23:10:42 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -7,8 +7,6 @@
 #ifndef FILTER_Z3950_CLIENT_HPP
 #define FILTER_Z3950_CLIENT_HPP
 
-#include <stdexcept>
-#include <list>
 #include <boost/scoped_ptr.hpp>
 
 #include "filter.hpp"

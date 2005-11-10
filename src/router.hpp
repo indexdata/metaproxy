@@ -1,4 +1,4 @@
-/* $Id: router.hpp,v 1.5 2005-11-03 14:45:16 adam Exp $
+/* $Id: router.hpp,v 1.6 2005-11-10 23:10:42 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -7,11 +7,12 @@
 #ifndef ROUTER_HPP
 #define ROUTER_HPP
 
+#include <boost/noncopyable.hpp>
 #include <string>
 #include <stdexcept>
-#include <list>
 
-namespace yp2 {
+namespace yp2 
+{
     namespace filter {
         class Base;
     }
@@ -24,17 +25,15 @@ namespace yp2 {
     };
   
     
-    class Router {
+    class Router : boost::noncopyable {
     public:
         Router(){};
         virtual ~Router(){};
 
         /// determines next Filter to use from current Filter and Package
         virtual const filter::Base *move(const filter::Base *filter,
-                                   const Package *package) const {
-            return 0;
-        };
-
+                                         const Package *package) const = 0;
+        
         /// re-read configuration of routing tables
         //virtual void configure(){};
 
@@ -42,18 +41,8 @@ namespace yp2 {
         //virtual Router & rule(const filter::Base &filter){
         //    return *this;
         //}
-    private:
-        /// disabled because class is singleton
-        Router(const Router &);
-
-        /// disabled because class is singleton
-        Router& operator=(const Router &);
     };
-  
- 
-  
 }
-
 #endif
 /*
  * Local variables:

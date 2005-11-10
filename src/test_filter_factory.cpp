@@ -1,4 +1,4 @@
-/* $Id: test_filter_factory.cpp,v 1.4 2005-10-31 09:40:18 marc Exp $
+/* $Id: test_filter_factory.cpp,v 1.5 2005-11-10 23:10:42 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -39,13 +39,11 @@ yp2::filter::Base* yfilter_creator(){
 }
 
 
-
-//int main(int argc, char **argv)
 BOOST_AUTO_TEST_CASE( test_filter_factory_1 )
 {
     try {
         
-        yp2::filter::FilterFactory  ffactory;
+        yp2::FilterFactory  ffactory;
         
         XFilter xf;
         YFilter yf;
@@ -75,8 +73,7 @@ BOOST_AUTO_TEST_CASE( test_filter_factory_1 )
 
         BOOST_CHECK(0 != xfilter);
         BOOST_CHECK(0 != yfilter);
-
-        }
+    }
     catch ( ... ) {
         throw;
         BOOST_CHECK (false);
@@ -85,27 +82,23 @@ BOOST_AUTO_TEST_CASE( test_filter_factory_1 )
     std::exit(0);
 }
 
+// get function - right val in assignment
+//std::string name() const {
+//return m_name;
+//  return "Base";
+//}
 
+// set function - left val in assignment
+//std::string & name() {
+//    return m_name;
+//}
 
+// set function - can be chained
+//Base & name(const std::string & name){
+//  m_name = name;
+//  return *this;
+//}
 
-
-            // get function - right val in assignment
-            //std::string name() const {
-                //return m_name;
-            //  return "Base";
-            //}
-            
-            // set function - left val in assignment
-            //std::string & name() {
-            //    return m_name;
-            //}
-            
-            // set function - can be chained
-            //Base & name(const std::string & name){
-            //  m_name = name;
-            //  return *this;
-            //}
-            
 
 /*
  * Local variables:

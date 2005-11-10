@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.10 2005-11-03 14:45:16 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.11 2005-11-10 23:10:42 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -6,16 +6,19 @@
 
 #include "config.hpp"
 
-#include <map>
 #include "filter.hpp"
 #include "router.hpp"
 #include "package.hpp"
+#include "util.hpp"
+#include "filter_z3950_client.hpp"
+
+#include <map>
+#include <stdexcept>
+#include <list>
+#include <iostream>
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
-
-#include "util.hpp"
-#include "filter_z3950_client.hpp"
 
 #include <yaz/zgdu.h>
 #include <yaz/log.h>
@@ -26,15 +29,12 @@
 #include <yaz++/pdu-assoc.h>
 #include <yaz++/z-assoc.h>
 
-#include <iostream>
-
 namespace yf = yp2::filter;
 
 namespace yp2 {
     namespace filter {
         class Z3950Client::Assoc : public yazpp_1::Z_Assoc{
             friend class Rep;
-        public:
             Assoc(yazpp_1::SocketManager *socket_manager,
                   yazpp_1::IPDU_Observable *PDU_Observable,
                   std::string host);
@@ -46,8 +46,7 @@ namespace yp2 {
             yazpp_1::IPDU_Observer* sessionNotify(
                 yazpp_1::IPDU_Observable *the_PDU_Observable,
                 int fd);
-        private:
-            // yp2::Session m_session_id;
+
             yazpp_1::SocketManager *m_socket_manager;
             yazpp_1::IPDU_Observable *m_PDU_Observable;
             Package *m_package;
