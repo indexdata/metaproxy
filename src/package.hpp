@@ -1,11 +1,11 @@
-/* $Id: package.hpp,v 1.9 2005-10-15 14:09:09 adam Exp $
+/* $Id: package.hpp,v 1.10 2005-11-11 15:00:25 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
  */
 
-#ifndef PACKAGE_HPP
-#define PACKAGE_HPP
+#ifndef YP2_PACKAGE_HPP
+#define YP2_PACKAGE_HPP
 
 #include <iostream>
 #include <stdexcept>
@@ -31,82 +31,45 @@ namespace yp2 {
     
     class Package {
     public:
-        Package() 
-           :  m_filter(0), m_router(0), m_data(0)  {}
+        Package() ;
         
-        Package(yp2::Session &session, yp2::Origin &origin) 
-            : m_session(session), m_origin(origin),
-              m_filter(0), m_router(0), m_data(0)  {}
+        Package(yp2::Session &session, yp2::Origin &origin);
 
-        Package & copy_filter(const Package &p) {
-            m_router = p.m_router;
-            m_filter = p.m_filter;
-            return *this;
-        }
+        Package & copy_filter(const Package &p);
 
         /// send Package to it's next Filter defined in Router
-        void move() {
-            m_filter = m_router->move(m_filter, this);
-            if (m_filter)
-                m_filter->process(*this);
-        }
+        void move();
         
         /// access session - left val in assignment
-        yp2::Session & session() {
-            return m_session;
-        }
+        yp2::Session & session();
         
         /// get function - right val in assignment
-        unsigned int data() const {
-            return m_data;
-        }
+        unsigned int data() const;
+
         
         /// set function - left val in assignment
-        unsigned int & data() {
-            return m_data;
-        }
+        unsigned int & data();
         
         /// set function - can be chained
-        Package & data(const unsigned int & data){
-            m_data = data;
-            return *this;
-        }
-        
+        Package & data(const unsigned int & data);
         
         /// get function - right val in assignment
-        Origin origin() const {
-            return m_origin;
-        }
+        Origin origin() const;
         
         /// set function - left val in assignment
-        Origin & origin() {
-            return m_origin;
-        }
+        Origin & origin();
         
         /// set function - can be chained
-        Package & origin(const Origin & origin){
-            m_origin = origin;
-            return *this;
-        }
-        
-        Package & router(const Router &router){
-            m_filter = 0;
-            m_router = &router;
-            return *this;
-        }
+        Package & origin(const Origin & origin);
 
-        yazpp_1::GDU &request() {
-            return m_request_gdu;
-        }
+        Package & router(const Router &router);
 
-        yazpp_1::GDU &response() {
-            return m_response_gdu;
-        }
+        yazpp_1::GDU &request();
+
+        yazpp_1::GDU &response();
                 
         /// get function - right val in assignment
-        Session session() const {
-            return m_session;
-        }
+        Session session() const;
         
     private:
         Session m_session;
