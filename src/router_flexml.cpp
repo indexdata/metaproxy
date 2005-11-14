@@ -1,10 +1,11 @@
-/* $Id: router_flexml.cpp,v 1.2 2005-11-10 23:10:42 adam Exp $
+/* $Id: router_flexml.cpp,v 1.3 2005-11-14 23:35:22 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
  */
 
 
+#include "config.hpp"
 #include "router_flexml.hpp"
 
 #include <iostream>

@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.13 2005-11-03 14:45:16 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.14 2005-11-14 23:35:22 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -16,11 +16,9 @@
 #include "filter_virt_db.hpp"
 
 #include <yaz/zgdu.h>
-#include <yaz/log.h>
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
 
-#include <list>
 #include <map>
 #include <iostream>
 

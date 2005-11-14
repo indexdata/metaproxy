@@ -1,4 +1,4 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.17 2005-10-31 09:40:18 marc Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.18 2005-11-14 23:35:22 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -17,6 +17,7 @@ namespace po = boost::program_options;
 #include "filter_frontend_net.hpp"
 #include "filter_z3950_client.hpp"
 #include "filter_virt_db.hpp"
+#include "filter_session_shared.hpp"
 #include "filter_log.hpp"
 
 #include "router_chain.hpp"
@@ -102,10 +103,12 @@ int main(int argc, char **argv)
 
             // put Virt db filter in router
             yp2::filter::Virt_db filter_virt_db;
-            filter_virt_db.add_map_db2vhost("Default", "indexdata.dk/gils");
-            filter_virt_db.add_map_db2vhost("Local", "localhost:9100/Default");
+            filter_virt_db.add_map_db2vhost("gils", "indexdata.dk/gils");
+            filter_virt_db.add_map_db2vhost("Default", "localhost:9100/Default");
+//	    router.append(filter_virt_db);
 
-	    router.append(filter_virt_db);
+            yp2::filter::Session_shared filter_session_shared;
+	    router.append(filter_session_shared);
 
             yp2::filter::Log filter_log_back("BACK");
             router.append(filter_log_back);
