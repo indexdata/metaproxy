@@ -1,6 +1,6 @@
 # Copyright (C) 2005, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.3 2005-11-08 08:56:39 adam Exp $
+# $Id: makefile,v 1.4 2005-11-23 14:48:44 adam Exp $
 
 # MS NMAKE makefile for yp2
 
@@ -202,12 +202,14 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\router_chain.obj \
         $(OBJDIR)\router_flexml.obj \
         $(OBJDIR)\filter.obj \
+        $(OBJDIR)\filter_backend_test.obj \
 	$(OBJDIR)\filter_frontend_net.obj \
         $(OBJDIR)\filter_log.obj \
+	$(OBJDIR)\filter_session_shared.obj \
         $(OBJDIR)\filter_virt_db.obj \
         $(OBJDIR)\filter_z3950_client.obj \
-        $(OBJDIR)\filter_backend_test.obj \
 	$(OBJDIR)\thread_pool_observer.obj \
+	$(OBJDIR)\package.obj \
 	$(OBJDIR)\pipe.obj \
         $(OBJDIR)\util.obj 
 
