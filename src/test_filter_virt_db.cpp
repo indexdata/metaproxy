@@ -1,4 +1,4 @@
-/* $Id: test_filter_virt_db.cpp,v 1.8 2005-10-30 17:13:36 adam Exp $
+/* $Id: test_filter_virt_db.cpp,v 1.9 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -26,7 +26,7 @@
 using namespace boost::unit_test;
 
 
-BOOST_AUTO_TEST_CASE( test_filter_virt_db_1 )
+BOOST_AUTO_UNIT_TEST( test_filter_virt_db_1 )
 {
     try 
     {
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE( test_filter_virt_db_1 )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_virt_db_2 )
+BOOST_AUTO_UNIT_TEST( test_filter_virt_db_2 )
 {
     try 
     {
@@ -189,7 +189,7 @@ static void present(yp2::Package &pack, yp2::Router &router,
     BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_presentResponse);
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_virt_db_3 )
+BOOST_AUTO_UNIT_TEST( test_filter_virt_db_3 )
 {
     try 
     {

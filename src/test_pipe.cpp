@@ -1,4 +1,4 @@
-/* $Id: test_pipe.cpp,v 1.3 2005-11-08 08:55:41 adam Exp $
+/* $Id: test_pipe.cpp,v 1.4 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -46,7 +46,7 @@ void Timer::socketNotify(int event)
     m_obs->deleteObserver(this);
 }
 
-BOOST_AUTO_TEST_CASE( test_pipe_1 )
+BOOST_AUTO_UNIT_TEST( test_pipe_1 )
 {
     yazpp_1::SocketManager mySocketManager;
     

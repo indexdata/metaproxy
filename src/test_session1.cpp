@@ -1,4 +1,4 @@
-/* $Id: test_session1.cpp,v 1.8 2005-10-15 14:09:09 adam Exp $
+/* $Id: test_session1.cpp,v 1.9 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -13,7 +13,7 @@
 
 using namespace boost::unit_test;
 
-BOOST_AUTO_TEST_CASE( testsession1 ) 
+BOOST_AUTO_UNIT_TEST( testsession1 ) 
 {
 
     // test session 

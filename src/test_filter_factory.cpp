@@ -1,4 +1,4 @@
-/* $Id: test_filter_factory.cpp,v 1.5 2005-11-10 23:10:42 adam Exp $
+/* $Id: test_filter_factory.cpp,v 1.6 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -39,7 +39,7 @@ yp2::filter::Base* yfilter_creator(){
 }
 
 
-BOOST_AUTO_TEST_CASE( test_filter_factory_1 )
+BOOST_AUTO_UNIT_TEST( test_filter_factory_1 )
 {
     try {
         

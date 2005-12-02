@@ -1,4 +1,4 @@
-/* $Id: test_filter_log.cpp,v 1.7 2005-10-31 09:40:18 marc Exp $
+/* $Id: test_filter_log.cpp,v 1.8 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -44,7 +44,7 @@ public:
 };
 
 
-BOOST_AUTO_TEST_CASE( test_filter_log_1 )
+BOOST_AUTO_UNIT_TEST( test_filter_log_1 )
 {
     try 
     {
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE( test_filter_log_1 )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_log_2 )
+BOOST_AUTO_UNIT_TEST( test_filter_log_2 )
 {
     try 
     {

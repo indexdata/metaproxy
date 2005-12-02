@@ -1,4 +1,4 @@
-/* $Id: test_filter2.cpp,v 1.15 2005-10-31 09:40:18 marc Exp $
+/* $Id: test_filter2.cpp,v 1.16 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -118,7 +118,7 @@ public:
 };
 
     
-BOOST_AUTO_TEST_CASE( testfilter2_1 ) 
+BOOST_AUTO_UNIT_TEST( testfilter2_1 ) 
 {
     try {
 	FilterConstant fc;
@@ -169,7 +169,7 @@ BOOST_AUTO_TEST_CASE( testfilter2_1 )
 
 }
 
-BOOST_AUTO_TEST_CASE( testfilter2_2 ) 
+BOOST_AUTO_UNIT_TEST( testfilter2_2 ) 
 {
     try {
 	FilterConstant fc;

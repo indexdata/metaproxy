@@ -1,4 +1,4 @@
-/* $Id: test_filter_frontend_net.cpp,v 1.13 2005-10-31 09:40:18 marc Exp $
+/* $Id: test_filter_frontend_net.cpp,v 1.14 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -45,7 +45,7 @@ public:
 };
 
 
-BOOST_AUTO_TEST_CASE( test_filter_frontend_net_1 )
+BOOST_AUTO_UNIT_TEST( test_filter_frontend_net_1 )
 {
     try 
     {
@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_1 )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_frontend_net_2 )
+BOOST_AUTO_UNIT_TEST( test_filter_frontend_net_2 )
 {
     try 
     {
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_2 )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_frontend_net_3 )
+BOOST_AUTO_UNIT_TEST( test_filter_frontend_net_3 )
 {
     try 
     {

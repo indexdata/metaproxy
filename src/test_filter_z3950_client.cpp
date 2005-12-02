@@ -1,4 +1,4 @@
-/* $Id: test_filter_z3950_client.cpp,v 1.6 2005-10-30 17:13:36 adam Exp $
+/* $Id: test_filter_z3950_client.cpp,v 1.7 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -23,7 +23,7 @@
 using namespace boost::unit_test;
 
 
-BOOST_AUTO_TEST_CASE( test_filter_z3950_client_1 )
+BOOST_AUTO_UNIT_TEST( test_filter_z3950_client_1 )
 {
     try 
     {
@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_1 )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_z3950_client_2 )
+BOOST_AUTO_UNIT_TEST( test_filter_z3950_client_2 )
 {
     try 
     {
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_2 )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_z3950_client_3 )
+BOOST_AUTO_UNIT_TEST( test_filter_z3950_client_3 )
 {
     try 
     {
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_3 )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_z3950_client_4 )
+BOOST_AUTO_UNIT_TEST( test_filter_z3950_client_4 )
 {
     try 
     {

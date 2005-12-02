@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.4 2005-10-31 11:59:08 marc Exp $
+/* $Id: test_router_flexml.cpp,v 1.5 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -22,7 +22,7 @@ public:
 };
     
 
-BOOST_AUTO_TEST_CASE( test_router_flexml_1 )
+BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
 {
     try{
         

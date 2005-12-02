@@ -1,4 +1,4 @@
-/* $Id: test_filter_backend_test.cpp,v 1.5 2005-10-30 17:13:36 adam Exp $
+/* $Id: test_filter_backend_test.cpp,v 1.6 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -24,7 +24,7 @@
 #include <boost/test/auto_unit_test.hpp>
 using namespace boost::unit_test;
 
-BOOST_AUTO_TEST_CASE( test_filter_backend_test_1 )
+BOOST_AUTO_UNIT_TEST( test_filter_backend_test_1 )
 {
     try 
     {
@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_1 )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_backend_test_2 )
+BOOST_AUTO_UNIT_TEST( test_filter_backend_test_2 )
 {
     try 
     {
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_2 )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_backend_test_3 )
+BOOST_AUTO_UNIT_TEST( test_filter_backend_test_3 )
 {
     try 
     {
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_3 )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_backend_test_4 )
+BOOST_AUTO_UNIT_TEST( test_filter_backend_test_4 )
 {
     try 
     {

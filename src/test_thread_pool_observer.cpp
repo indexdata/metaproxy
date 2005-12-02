@@ -1,9 +1,9 @@
-/* $Id: test_thread_pool_observer.cpp,v 1.7 2005-11-07 21:57:10 adam Exp $
+/* $Id: test_thread_pool_observer.cpp,v 1.8 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
  */
-/* $Id: test_thread_pool_observer.cpp,v 1.7 2005-11-07 21:57:10 adam Exp $
+/* $Id: test_thread_pool_observer.cpp,v 1.8 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -103,7 +103,7 @@ void My_Timer_Thread::socketNotify(int event)
     m_t->put(m);
 }
 
-BOOST_AUTO_TEST_CASE( thread_pool_observer1 ) 
+BOOST_AUTO_UNIT_TEST( thread_pool_observer1 ) 
 {
     SocketManager mySocketManager;
 

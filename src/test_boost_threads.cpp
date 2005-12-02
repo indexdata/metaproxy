@@ -1,4 +1,4 @@
-/* $Id: test_boost_threads.cpp,v 1.5 2005-10-15 14:09:09 adam Exp $
+/* $Id: test_boost_threads.cpp,v 1.6 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -42,7 +42,7 @@ public:
 #define USE_GROUP 1
 
 
-BOOST_AUTO_TEST_CASE( thread_group )
+BOOST_AUTO_UNIT_TEST( thread_group )
 {
     try 
     {
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE( thread_group )
 }
 
 
-BOOST_AUTO_TEST_CASE( thread_list )
+BOOST_AUTO_UNIT_TEST( thread_list )
 {
     try 
     {

@@ -1,4 +1,4 @@
-/* $Id: test_session2.cpp,v 1.5 2005-10-15 14:09:09 adam Exp $
+/* $Id: test_session2.cpp,v 1.6 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -48,7 +48,7 @@ class Worker
 
 
 
-BOOST_AUTO_TEST_CASE( testsession2 ) 
+BOOST_AUTO_UNIT_TEST( testsession2 ) 
 {
 
     // test session 

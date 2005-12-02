@@ -53,7 +53,7 @@ LIBS="$LIBS -lboost_unit_test_framework"
 AC_TRY_LINK([
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/auto_unit_test.hpp> 
-BOOST_AUTO_TEST_CASE( test )
+BOOST_AUTO_UNIT_TEST( test )
 {
  BOOST_CHECK(true);
 }

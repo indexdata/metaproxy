@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.36 2005-11-14 23:35:22 adam Exp $
+## $Id: Makefile.am,v 1.37 2005-12-02 12:21:07 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -33,10 +33,9 @@ libyp2_la_SOURCES = \
 LDADD= libyp2.la $(YAZPPLALIB) $(XSLT_LIBS)
 
 bin_PROGRAMS =
-noinst_PROGRAMS = ex_filter_frontend_net ex_libxml2_conf ex_router_flexml
+noinst_PROGRAMS = ex_filter_frontend_net ex_router_flexml
 
 ex_filter_frontend_net_SOURCES = ex_filter_frontend_net.cpp
-ex_libxml2_conf_SOURCES = ex_libxml2_conf.cpp
 ex_router_flexml_SOURCES =  ex_router_flexml.cpp
 # Rules for test programs..
 

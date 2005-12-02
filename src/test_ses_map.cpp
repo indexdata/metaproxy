@@ -1,4 +1,4 @@
-/* $Id: test_ses_map.cpp,v 1.1 2005-10-26 18:53:49 adam Exp $
+/* $Id: test_ses_map.cpp,v 1.2 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -50,7 +50,7 @@ namespace yp2 {
 }
 
 
-BOOST_AUTO_TEST_CASE( test_ses_map_1 )
+BOOST_AUTO_UNIT_TEST( test_ses_map_1 )
 {
     try 
     {

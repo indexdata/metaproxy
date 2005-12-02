@@ -1,4 +1,4 @@
-/* $Id: test_filter1.cpp,v 1.13 2005-10-31 09:40:18 marc Exp $
+/* $Id: test_filter1.cpp,v 1.14 2005-12-02 12:21:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -21,7 +21,7 @@ public:
 };
     
 
-BOOST_AUTO_TEST_CASE( test_filter1 )
+BOOST_AUTO_UNIT_TEST( test_filter1 )
 {
     try{
         TFilter filter;
