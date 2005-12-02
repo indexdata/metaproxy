@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.cpp,v 1.1 2005-11-14 23:35:22 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.2 2005-12-02 11:05:08 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -65,7 +65,9 @@ namespace yp2 {
 
 using namespace yp2;
 
-bool yf::Session_shared::InitKey::operator < (const Session_shared::InitKey &k) const {
+bool yf::Session_shared::InitKey::operator < (const Session_shared::InitKey
+                                              &k) const 
+{
     if (m_vhost < k.m_vhost)
         return true;
     else if (m_vhost < k.m_vhost)
