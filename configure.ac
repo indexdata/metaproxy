@@ -42,7 +42,12 @@ AC_CHECK_LIB(boost_program_options, main, [],[
 	AC_MSG_ERROR([Install libboost-program-options-dev (or similar)])
 ])
 
-AC_MSG_CHECKING([for boost_unit_test_framework presence])
+AC_CHECK_HEADER(boost/test/auto_unit_test.hpp,,[
+	AC_MSG_NOTICE([boost test unit header not found.])
+	AC_MSG_ERROR([Install libboost-test-dev (or similar)])
+])
+
+AC_MSG_CHECKING([whether boost_unit_test_framework works])
 OLIBS=$LIBS
 LIBS="$LIBS -lboost_unit_test_framework"
 AC_TRY_LINK([
@@ -59,7 +64,8 @@ BOOST_AUTO_TEST_CASE( test )
 ],
 [
 	AC_MSG_RESULT([no])
-	AC_MSG_ERROR([Install libboost-test-dev (or similar)])
+	AC_MSG_NOTICE([Boost unit test framework does not appear to work])
+	AC_MSG_ERROR([Consult config.log for details])
 ])
 
 ## YAZPP checks
