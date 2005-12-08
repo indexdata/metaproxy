@@ -1,4 +1,4 @@
-/* $Id: router_flexml.cpp,v 1.4 2005-12-08 15:10:34 adam Exp $
+/* $Id: router_flexml.cpp,v 1.5 2005-12-08 15:34:08 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -27,9 +27,7 @@ namespace yp2 {
         typedef std::list<std::string> FilterIdList;
         typedef std::map<std::string, FilterIdList > IdRouteMap ;
 
-        std::string m_xmlconf;
         bool m_xinclude;
-        xmlDoc * m_xmlconf_doc;
         IdFilterMap m_id_filter_map;
         FilterIdList m_filter_id_list;
         IdRouteMap m_id_route_map;
@@ -39,7 +37,7 @@ namespace yp2 {
                            const xmlDoc * xmldoc,
                            std::string id = "");
 
-        void parse_xml_config_dom();
+        void parse_xml_config_dom(xmlDocPtr doc);
         
         const xmlNode* jump_to(const xmlNode* node, int xml_node_type);
 
@@ -80,13 +78,15 @@ const xmlNode* yp2::RouterFleXML::Rep::jump_to(const xmlNode* node, int xml_node
     return node;
 }
 
-void yp2::RouterFleXML::Rep::parse_xml_config_dom()
+void yp2::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
 {
-    if (!m_xmlconf_doc){    
+    if (!doc)
+    {
         std::cerr << "XML configuration DOM pointer empty" << std::endl;
+        return;
     }
     
-    const xmlNode* root = xmlDocGetRootElement(m_xmlconf_doc);
+    const xmlNode* root = xmlDocGetRootElement(doc);
     
     if ((std::string((const char *) root->name) != "yp2")
         || (std::string((const char *)(root->ns->href)) 
@@ -184,9 +184,8 @@ void yp2::RouterFleXML::Rep::xml_dom_error (const xmlNode* node, std::string msg
               << std::endl;
 }
 
-
 yp2::RouterFleXML::Rep::Rep() : 
-    m_xmlconf(""), m_xinclude(false), m_xmlconf_doc(0)
+    m_xinclude(false)
 {
 }
 
@@ -195,16 +194,19 @@ yp2::RouterFleXML::RouterFleXML(std::string xmlconf)
 {            
     LIBXML_TEST_VERSION;
     
-    m_p->m_xmlconf = xmlconf;
-    
-    m_p->m_xmlconf_doc = xmlParseMemory(m_p->m_xmlconf.c_str(),
-                                        m_p->m_xmlconf.size());
-    m_p->parse_xml_config_dom();
+    xmlDocPtr doc = xmlParseMemory(xmlconf.c_str(),
+                                   xmlconf.size());
+    if (!doc)
+        throw XMLError("xmlParseMemory failed");
+    else
+    {
+        m_p->parse_xml_config_dom(doc);
+        xmlFreeDoc(doc);
+    }
 }
 
 yp2::RouterFleXML::~RouterFleXML()
 {
-    xmlFreeDoc(m_p->m_xmlconf_doc);
 }
 
 const yp2::filter::Base *

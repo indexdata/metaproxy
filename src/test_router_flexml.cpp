@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.5 2005-12-02 12:21:07 adam Exp $
+/* $Id: test_router_flexml.cpp,v 1.6 2005-12-08 15:34:08 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -24,8 +24,8 @@ public:
 
 BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
 {
-    try{
-        
+    try
+    {
         std::string xmlconf = "<?xml version=\"1.0\"?>\n"
             "<yp2 xmlns=\"http://indexdata.dk/yp2/config/1\">\n"
             "<start route=\"start\"/>\n"
@@ -46,17 +46,64 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
             "</yp2>\n";
        
         yp2::RouterFleXML rflexml(xmlconf);
-        
-        
-        BOOST_CHECK (true);
-        
-        //BOOST_CHECK_EQUAL(filter.name(), std::string("filter1"));
-        
     }
     catch ( ... ) {
         BOOST_CHECK (false);
     }
 }
+
+BOOST_AUTO_UNIT_TEST( test_router_flexml_2 )
+{
+    bool got_xml_error = false;
+    try
+    {
+        std::string xmlconf_invalid = "<?xml version=\"1.0\"?>\n"
+            "<yp2 xmlns=\"http://indexdata.dk/yp2/config/1\">\n"
+            "<start route=\"start\"/>\n"
+            "<filters>\n";
+
+        yp2::RouterFleXML rflexml(xmlconf_invalid);
+    }
+    catch ( yp2::RouterFleXML::XMLError &e) {
+        got_xml_error = true;
+    }
+    catch ( ... ) {
+        ;
+    }
+    BOOST_CHECK(got_xml_error);
+}
+
+BOOST_AUTO_UNIT_TEST( test_router_flexml_3 )
+{
+    try
+    {
+        std::string xmlconf = "<?xml version=\"1.0\"?>\n"
+            "<y:yp2 xmlns:y=\"http://indexdata.dk/yp2/config/1\">\n"
+            "  <start route=\"start\"/>\n"
+            "  <filters>\n"
+            "    <filter id=\"front_default\" type=\"frontend-net\">\n"
+            "      <port>210</port>\n"
+            "    </filter>\n"
+            "    <filter id=\"log_cout\" type=\"log\">\n"
+            "      <logfile>mylog.log</logfile>\n"
+            "    </filter>\n"
+            "  </filters>\n"
+            "  <routes>\n"  
+            "    <route id=\"start\">\n"
+            "      <filter refid=\"front_default\"/>\n"
+            "      <filter refid=\"log_cout\"/>\n"
+            "    </route>\n"
+            "  </routes>\n"
+            "</y:yp2>\n";
+       
+        yp2::RouterFleXML rflexml(xmlconf);
+    }
+    catch ( ... ) {
+        BOOST_CHECK (false);
+    }
+}
+
+
 
 /*
  * Local variables:

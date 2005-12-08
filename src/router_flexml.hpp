@@ -1,4 +1,4 @@
-/* $Id: router_flexml.hpp,v 1.6 2005-11-10 23:10:42 adam Exp $
+/* $Id: router_flexml.hpp,v 1.7 2005-12-08 15:34:08 adam Exp $
    Copyright (c) 2005, Index Data.
 
    %LICENSE%
@@ -22,6 +22,11 @@ namespace yp2
         
         virtual const filter::Base *move(const filter::Base *filter,
                                          const Package *package) const;
+        class XMLError : public std::runtime_error {
+        public:
+            XMLError(const std::string msg) :
+                std::runtime_error("XMLError : " + msg) {} ;
+        };
     private:
         boost::scoped_ptr<Rep> m_p;
     };
