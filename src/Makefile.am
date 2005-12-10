@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.37 2005-12-02 12:21:07 adam Exp $
+## $Id: Makefile.am,v 1.38 2005-12-10 09:59:10 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -9,7 +9,7 @@ EXTRA_DIST=Jamfile.in
 # Rules for the library..
 
 lib_LTLIBRARIES = libyp2.la
-libyp2_la_LDFLAGS = -version-info 0:0:0
+libyp2_la_LDFLAGS = -version-info 0:0:0 -export-dynamic
 
 libyp2_la_SOURCES = \
 	session.cpp session.hpp \
@@ -33,10 +33,19 @@ libyp2_la_SOURCES = \
 LDADD= libyp2.la $(YAZPPLALIB) $(XSLT_LIBS)
 
 bin_PROGRAMS =
-noinst_PROGRAMS = ex_filter_frontend_net ex_router_flexml
+noinst_PROGRAMS = ex_filter_frontend_net ex_router_flexml tstdl
 
 ex_filter_frontend_net_SOURCES = ex_filter_frontend_net.cpp
 ex_router_flexml_SOURCES =  ex_router_flexml.cpp
+tstdl_SOURCES = tstdl.cpp
+
+# Rules for dl programs
+pkglib_LTLIBRARIES = yp2_filter_dl.la
+
+yp2_filter_dl_la_SOURCES = filter_dl.cpp
+yp2_filter_dl_la_LDFLAGS = -rpath $(pkglibdir) -module -avoid-version
+yp2_filter_dl_la_LIBADD = libyp2.la
+
 # Rules for test programs..
 
 check_PROGRAMS = \
@@ -67,6 +76,7 @@ test_boost_threads_SOURCES=test_boost_threads.cpp
 test_boost_time_SOURCES=test_boost_time.cpp
 test_thread_pool_observer_SOURCES = test_thread_pool_observer.cpp
 test_filter_factory_SOURCES = test_filter_factory.cpp
+test_filter_factory_LDFLAGS = -export-dynamic
 test_filter_frontend_net_SOURCES = test_filter_frontend_net.cpp
 test_filter_log_SOURCES = test_filter_log.cpp
 test_filter_z3950_client_SOURCES = test_filter_z3950_client.cpp

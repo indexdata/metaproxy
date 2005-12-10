@@ -1,4 +1,4 @@
-/* $Id: filter_factory.hpp,v 1.6 2005-11-10 23:10:42 adam Exp $
+/* $Id: filter_factory.hpp,v 1.7 2005-12-10 09:59:10 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -28,7 +28,6 @@ namespace yp2 {
     class FilterFactory : public boost::noncopyable
     {
         typedef yp2::filter::Base* (*CreateFilterCallback)();
-        typedef std::map<std::string, CreateFilterCallback> CallbackMap;
 
         class Rep;
     public:
@@ -38,14 +37,12 @@ namespace yp2 {
         ~FilterFactory();
 
         bool add_creator(std::string fi, CreateFilterCallback cfc);
-        /// true if unregistration ok
         
         bool drop_creator(std::string fi);
         
-        /// factory create method
-        
         yp2::filter::Base* create(std::string fi);
-        
+
+        bool add_creator_dyn(const std::string &fi, const std::string &path);
     private:
         boost::scoped_ptr<Rep> m_p;
     };

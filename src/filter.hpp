@@ -1,4 +1,4 @@
-/* $Id: filter.hpp,v 1.9 2005-11-03 14:45:15 adam Exp $
+/* $Id: filter.hpp,v 1.10 2005-12-10 09:59:10 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -23,12 +23,7 @@ namespace yp2 {
             ///sends Package off to next Filter, returns altered Package
             virtual void process(Package & package) const = 0;
 
-            virtual void configure(const xmlNode * ptr = 0) { };
-        };
-
-        struct Creator {
-            const char* type;
-            yp2::filter::Base* (*creator)();
+            virtual void configure(const xmlNode * ptr) { };
         };
 
         class FilterException : public std::runtime_error {
@@ -39,8 +34,12 @@ namespace yp2 {
         };
         
     }
-  
 }
+
+struct yp2_filter_struct {
+    int ver;
+    yp2::filter::Base* (*creator)();
+};
 
 #endif
 /*

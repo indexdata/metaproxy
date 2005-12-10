@@ -1,16 +1,16 @@
-/* $Id: test_filter_factory.cpp,v 1.6 2005-12-02 12:21:07 adam Exp $
+/* $Id: test_filter_factory.cpp,v 1.7 2005-12-10 09:59:10 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
 
 */
 
-
 #include <iostream>
 #include <stdexcept>
 
 #include "config.hpp"
 #include "filter.hpp"
+#include "package.hpp"
 #include "filter_factory.hpp"
 
 
@@ -19,25 +19,35 @@
 
 using namespace boost::unit_test;
 
+// XFilter
 class XFilter: public yp2::filter::Base {
 public:
-    void process(yp2::Package & package) const {};
+    void process(yp2::Package & package) const;
 };
 
+void XFilter::process(yp2::Package & package) const
+{
+    package.data() = 1;
+}
 
-yp2::filter::Base* xfilter_creator(){
+static yp2::filter::Base* xfilter_creator(){
     return new XFilter;
 }
 
+// YFilter ...
 class YFilter: public yp2::filter::Base {
 public:
-    void process(yp2::Package & package) const {};
+    void process(yp2::Package & package) const;
 };
 
-yp2::filter::Base* yfilter_creator(){
-    return new YFilter;
+void YFilter::process(yp2::Package & package) const
+{
+    package.data() = 2;
 }
 
+static yp2::filter::Base* yfilter_creator(){
+    return new YFilter;
+}
 
 BOOST_AUTO_UNIT_TEST( test_filter_factory_1 )
 {
@@ -51,54 +61,57 @@ BOOST_AUTO_UNIT_TEST( test_filter_factory_1 )
         const std::string xfid = "XFilter";
         const std::string yfid = "YFilter";
         
-        //std::cout << "Xfilter name: " << xfid << std::endl;
-        //std::cout << "Yfilter name: " << yfid << std::endl;
-
-        BOOST_CHECK_EQUAL(ffactory.add_creator(xfid, xfilter_creator),
-                          true);
-        BOOST_CHECK_EQUAL(ffactory.drop_creator(xfid),
-                          true);
-        BOOST_CHECK_EQUAL(ffactory.add_creator(xfid, xfilter_creator),
-                          true);
-        BOOST_CHECK_EQUAL(ffactory.add_creator(yfid, yfilter_creator),
-                          true);
+        BOOST_CHECK(ffactory.add_creator(xfid, xfilter_creator));
+        BOOST_CHECK(ffactory.drop_creator(xfid));
+        BOOST_CHECK(ffactory.add_creator(xfid, xfilter_creator));
+        BOOST_CHECK(ffactory.add_creator(yfid, yfilter_creator));
         
         yp2::filter::Base* xfilter = 0;
         xfilter = ffactory.create(xfid);
         yp2::filter::Base* yfilter = 0;
         yfilter = ffactory.create(yfid);
 
-        //BOOST_CHECK_EQUAL(sizeof(xf), sizeof(*xfilter));
-        //BOOST_CHECK_EQUAL(sizeof(yf), sizeof(*yfilter));
-
         BOOST_CHECK(0 != xfilter);
         BOOST_CHECK(0 != yfilter);
+
+        yp2::Package pack;
+        xfilter->process(pack);
+        BOOST_CHECK_EQUAL(pack.data(), 1);
+
+        yfilter->process(pack);
+        BOOST_CHECK_EQUAL(pack.data(), 2);
     }
     catch ( ... ) {
         throw;
         BOOST_CHECK (false);
     }
-        
-    std::exit(0);
 }
 
-// get function - right val in assignment
-//std::string name() const {
-//return m_name;
-//  return "Base";
-//}
+#if HAVE_DLFCN_H
+BOOST_AUTO_UNIT_TEST( test_filter_factory_2 )
+{
+    try {        
+        yp2::FilterFactory  ffactory;
+        
+        const std::string id = "dl";
+        
+        BOOST_CHECK(ffactory.add_creator_dyn(id, ".libs"));
+        
+        yp2::filter::Base* filter = 0;
+        filter = ffactory.create(id);
 
-// set function - left val in assignment
-//std::string & name() {
-//    return m_name;
-//}
+        BOOST_CHECK(0 != filter);
 
-// set function - can be chained
-//Base & name(const std::string & name){
-//  m_name = name;
-//  return *this;
-//}
-
+        yp2::Package pack;
+        filter->process(pack);
+        BOOST_CHECK_EQUAL(pack.data(), 42); // magic from filter_dl ..
+    }
+    catch ( ... ) {
+        throw;
+        BOOST_CHECK (false);
+    }
+}
+#endif
 
 /*
  * Local variables:
