@@ -1,6 +1,6 @@
 # Copyright (C) 2005, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.4 2005-11-23 14:48:44 adam Exp $
+# $Id: makefile,v 1.5 2005-12-10 10:07:15 adam Exp $
 
 # MS NMAKE makefile for yp2
 
@@ -27,7 +27,7 @@ default: all
 
 all: dirs config yaz yazpp libxslt dll progs
 
-progs: ex_libxml2_conf ex_filter_frontend_net test_pipe
+progs: ex_filter_frontend_net test_pipe
 
 NSIS="c:\program files\nsis\makensis.exe"
 
@@ -49,20 +49,18 @@ SRCDIR=$(ROOTDIR)\src       # for the case we move them under src
 TMPDIR=$(ROOTDIR)\win\tmp
 TMP=$(TMPDIR)
 
-###########################################################
+##########################################################
 ############### Targets - what to make
 ###########################################################
 
 PROJECT_DLL=$(BINDIR)\yp2.dll
 PROJECT_IMPLIB=$(LIBDIR)\yp2.lib
 EX_FILTER_FRONTEND_NET=$(BINDIR)\ex_filter_frontend_net.exe
-EX_LIBXML2_CONF=$(BINDIR)\ex_libxml2_conf.exe
 TEST_PIPE=$(BINDIR)\test_pipe.exe
 
 # shortcut names defined here
 dll: $(PROJECT_DLL)
 ex_filter_frontend_net: $(EX_FILTER_FRONTEND_NET)
-ex_libxml2_conf: $(EX_LIBXML2_CONF)
 test_pipe: $(TEST_PIPE)
 
 ###########################################################
@@ -214,7 +212,6 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\util.obj 
 
 EX_FILTER_FRONTEND_NET_OBJS = $(OBJDIR)\ex_filter_frontend_net.obj
-EX_LIBXML2_CONF_OBJS = $(OBJDIR)\ex_libxml2_conf.obj
 TEST_PIPE_OBJS = $(OBJDIR)\test_pipe.obj
 
 ###########################################################
@@ -260,10 +257,6 @@ $(PROJECT_DLL) $(PROJECT_IMPLIB): "$(BINDIR)" $(PROJECT_DLL_OBJS)
 $(EX_FILTER_FRONTEND_NET) : "$(BINDIR)" $(EX_FILTER_FRONTEND_NET_OBJS) $(PROJECT_IMPLIB)
 	@echo Linking $(EX_FILTER_FRONTEND_NET)
 	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_DLL_OBJS) $(EX_FILTER_FRONTEND_NET_OBJS) /out:$(EX_FILTER_FRONTEND_NET) 
-
-$(EX_LIBXML2_CONF) : "$(BINDIR)" $(EX_LIBXML2_CONF_OBJS) $(PROJECT_DLL_OBJS)
-	@echo Linking $(EX_LIBXML2_CONF)
-	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_IMPLIB) $(EX_LIBXML2_CONF_OBJS) /out:$(EX_LIBXML2_CONF)
 
 $(TEST_PIPE) : "$(BINDIR)" $(TEST_PIPE_OBJS) $(PROJECT_IMPLIB)
 	@echo Linking $(TEST_PIPE)
