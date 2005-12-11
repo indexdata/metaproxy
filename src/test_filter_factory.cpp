@@ -1,4 +1,4 @@
-/* $Id: test_filter_factory.cpp,v 1.7 2005-12-10 09:59:10 adam Exp $
+/* $Id: test_filter_factory.cpp,v 1.8 2005-12-11 17:25:59 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -87,6 +87,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_factory_1 )
     }
 }
 
+#if HAVE_DL_SUPPORT
 #if HAVE_DLFCN_H
 BOOST_AUTO_UNIT_TEST( test_filter_factory_2 )
 {
@@ -111,6 +112,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_factory_2 )
         BOOST_CHECK (false);
     }
 }
+#endif
 #endif
 
 /*

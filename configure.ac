@@ -26,6 +26,11 @@ AM_PROG_LIBTOOL
 # Use C++ compilers only for tests
 AC_LANG(C++)
 
+if test "$enable_shared" = "yes"; then
+   	AC_DEFINE([HAVE_DL_SUPPORT],[1],
+                [Define to 1 if you have shared module support])
+fi
+
 # Checks for libraries.
 AC_CHECK_LIB(boost_thread, main, [],[
 	AC_MSG_NOTICE([boost thread library not found.])
