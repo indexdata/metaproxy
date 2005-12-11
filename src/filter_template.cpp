@@ -1,4 +1,4 @@
-/* $Id: filter_template.cpp,v 1.1 2005-11-14 23:35:22 adam Exp $
+/* $Id: filter_template.cpp,v 1.2 2005-12-11 17:20:18 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -28,14 +28,13 @@ namespace yp2 {
     }
 }
 
-using namespace yp2;
-
 yf::Template::Template() : m_p(new Rep)
 {
+    m_p->dummy = 1;
 }
 
 yf::Template::~Template()
-{
+{  // must have a destructor because of boost::scoped_ptr
 }
 
 void yf::Template::process(Package &package) const

@@ -1,9 +1,10 @@
-/* $Id: filter_template.hpp,v 1.1 2005-11-14 23:35:22 adam Exp $
+/* $Id: filter_template.hpp,v 1.2 2005-12-11 17:20:18 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
  */
 
+// Filter that does nothing. Use as template for new filters 
 #ifndef FILTER_TEMPLATE_HPP
 #define FILTER_TEMPLATE_HPP
 
@@ -15,12 +16,11 @@ namespace yp2 {
     namespace filter {
         class Template : public Base {
             class Rep;
-        public:
-            ~Template();
-            Template();
-            void process(yp2::Package & package) const;
-        private:
             boost::scoped_ptr<Rep> m_p;
+        public:
+            Template();
+            ~Template();
+            void process(yp2::Package & package) const;
         };
     }
 }
