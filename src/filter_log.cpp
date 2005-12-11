@@ -1,9 +1,8 @@
-/* $Id: filter_log.cpp,v 1.8 2005-10-30 17:13:36 adam Exp $
+/* $Id: filter_log.cpp,v 1.9 2005-12-11 17:23:05 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
  */
-
 
 #include "config.hpp"
 
@@ -11,21 +10,42 @@
 #include "router.hpp"
 #include "package.hpp"
 
+#include <string>
+#include <boost/thread/mutex.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 #include "util.hpp"
 #include "filter_log.hpp"
 
 #include <yaz/zgdu.h>
-#include <yaz/log.h>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <iostream>
+namespace yf = yp2::filter;
 
+namespace yp2 {
+    namespace filter {
+        class Log::Rep {
+            friend class Log;
+            static boost::mutex m_log_mutex;
+            std::string m_msg;
+        };
+    }
+}
 
-yp2::filter::Log::Log() {}
-yp2::filter::Log::Log(const std::string &msg) : m_msg(msg) {}
+boost::mutex yf::Log::Rep::m_log_mutex;
 
-void yp2::filter::Log::process(Package &package) const {
+yf::Log::Log(const std::string &x) : m_p(new Rep)
+{
+    m_p->m_msg = x;
+}
 
+yf::Log::Log() : m_p(new Rep)
+{
+}
+
+yf::Log::~Log() {}
+
+void yf::Log::process(Package &package) const
+{
     Z_GDU *gdu;
 
     // getting timestamp for receiving of package
@@ -34,8 +54,8 @@ void yp2::filter::Log::process(Package &package) const {
 
     // scope for locking Ostream 
     { 
-        boost::mutex::scoped_lock scoped_lock(m_log_mutex);
-        std::cout << receive_time << " " << m_msg;
+        boost::mutex::scoped_lock scoped_lock(Rep::m_log_mutex);
+        std::cout << receive_time << " " << m_p->m_msg;
         std::cout << " request id=" << package.session().id();
         std::cout << " close=" 
                   << (package.session().is_closed() ? "yes" : "no")
@@ -59,8 +79,8 @@ void yp2::filter::Log::process(Package &package) const {
 
     // scope for locking Ostream 
     { 
-        boost::mutex::scoped_lock scoped_lock(m_log_mutex);
-        std::cout << send_time << " " << m_msg;
+        boost::mutex::scoped_lock scoped_lock(Rep::m_log_mutex);
+        std::cout << send_time << " " << m_p->m_msg;
         std::cout << " response id=" << package.session().id();
         std::cout << " close=" 
                   << (package.session().is_closed() ? "yes " : "no ")
@@ -77,9 +97,6 @@ void yp2::filter::Log::process(Package &package) const {
         }
     }
 }
-
-// defining and initializing static members
-boost::mutex yp2::filter::Log::m_log_mutex;
 
 /*
  * Local variables:
