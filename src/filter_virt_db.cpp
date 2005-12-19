@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.14 2005-11-14 23:35:22 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.15 2005-12-19 08:42:59 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -119,6 +119,20 @@ void yf::Virt_db::Rep::release_session(Package &package)
 {
     boost::mutex::scoped_lock lock(m_sessions_mutex);
     
+    Ses_it it = m_sessions.find(package.session());
+    
+    if (it != m_sessions.end())
+    {
+        Sets_it sit = it->second.m_sets.begin();
+        for (; sit != it->second.m_sets.end(); sit++)
+        {
+            sit->second.m_backend_session.close();
+            Package close_package(sit->second.m_backend_session, package.origin());
+            close_package.copy_filter(package);
+
+            close_package.move();
+        }
+    }
     m_sessions.erase(package.session());
 }
 
@@ -426,8 +440,10 @@ void yf::Virt_db::add_map_db2vhost(std::string db, std::string vhost)
 void yf::Virt_db::process(Package &package) const
 {
     Z_GDU *gdu = package.request().get();
-
-    if (!gdu || gdu->which != Z_GDU_Z3950)
+    
+    if (package.session().is_closed())
+        m_p->release_session(package);
+    else if (!gdu || gdu->which != Z_GDU_Z3950)
         package.move();
     else
     {
@@ -445,6 +461,11 @@ void yf::Virt_db::process(Package &package) const
         {
             m_p->present(package, apdu, move_later);
         }
+        else if (apdu->which == Z_APDU_close)
+        {
+            package.session().close();
+            m_p->release_session(package);
+        }
         else
         {
             yp2::odr odr;
@@ -454,12 +475,11 @@ void yf::Virt_db::process(Package &package) const
                 "unsupported APDU in filter_virt_db");
                                                  
             package.session().close();
+            m_p->release_session(package);
         }
         if (move_later)
             package.move();
     }
-    if (package.session().is_closed())
-        m_p->release_session(package);
 }
 
 
