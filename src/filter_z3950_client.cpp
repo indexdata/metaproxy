@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.11 2005-11-10 23:10:42 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.12 2006-01-02 14:33:42 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -52,6 +52,7 @@ namespace yp2 {
             Package *m_package;
             bool m_in_use;
             bool m_waiting;
+            bool m_destroyed;
             bool m_connected;
             std::string m_host;
         };
@@ -76,8 +77,8 @@ yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
                               std::string host)
     :  Z_Assoc(PDU_Observable),
        m_socket_manager(socket_manager), m_PDU_Observable(PDU_Observable),
-       m_package(0), m_in_use(true), m_waiting(false), m_connected(false),
-       m_host(host)
+       m_package(0), m_in_use(true), m_waiting(false), 
+       m_destroyed(false), m_connected(false), m_host(host)
 {
     // std::cout << "create assoc " << this << "\n";
 }
@@ -111,6 +112,7 @@ void yf::Z3950Client::Assoc::timeoutNotify()
 {
     m_waiting = false;
 
+#if 0
     yp2::odr odr;
 
     if (m_package)
@@ -118,6 +120,7 @@ void yf::Z3950Client::Assoc::timeoutNotify()
         m_package->response() = odr.create_close(Z_Close_lackOfActivity, 0);
         m_package->session().close();
     }
+#endif
 }
 
 void yf::Z3950Client::Assoc::recv_GDU(Z_GDU *gdu, int len)
@@ -150,12 +153,28 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
 
     std::map<yp2::Session,yf::Z3950Client::Assoc *>::iterator it;
     
+    Z_GDU *gdu = package.request().get();
+    // only deal with Z39.50
+    if (!gdu || gdu->which != Z_GDU_Z3950)
+    {
+        package.move();
+        return 0;
+    }
+    Z_APDU *apdu = gdu->u.z3950;
     while(true)
     {
         it = m_clients.find(package.session());
         if (it == m_clients.end())
             break;
-        
+        if (gdu && gdu->which == Z_GDU_Z3950 &&
+            gdu->u.z3950->which == Z_APDU_initRequest)
+        {
+            yazpp_1::SocketManager *s = it->second->m_socket_manager;
+            delete it->second;  // destroy Z_Assoc
+            delete s;    // then manager
+            m_clients.erase(it);
+            break;
+        }
         if (!it->second->m_in_use)
         {
             it->second->m_in_use = true;
@@ -163,17 +182,6 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         }
         m_cond_session_ready.wait(lock);
     }
-
-    // only deal with Z39.50
-    Z_GDU *gdu = package.request().get();
-
-    if (!gdu || gdu->which != Z_GDU_Z3950)
-    {
-        package.move();
-        return 0;
-    }
-    Z_APDU *apdu = gdu->u.z3950;
-
     // new Z39.50 session ..
 
     // check that it is init. If not, close
@@ -182,7 +190,8 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         yp2::odr odr;
         
         package.response() = odr.create_close(Z_Close_protocolError,
-                                              "no init request for session");
+                                              "First PDU was not an "
+                                              "Initialize Request");
         package.session().close();
         return 0;
     }
@@ -205,6 +214,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     yazpp_1::PDU_Assoc *pdu_as = new yazpp_1::PDU_Assoc(sm);
     yf::Z3950Client::Assoc *as = new yf::Z3950Client::Assoc(sm, pdu_as, vhost);
     m_clients[package.session()] = as;
+    as->timeout(2);
     return as;
 }
 
@@ -221,8 +231,9 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
     if (!c->m_connected)
     {
         c->client(c->m_host.c_str());
-
-        while (c->m_waiting && c->m_socket_manager->processEvent() > 0)
+        
+        while (!c->m_destroyed && c->m_waiting 
+               && c->m_socket_manager->processEvent() > 0)
             ;
     }
     if (!c->m_connected)
@@ -236,9 +247,22 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
     // relay the package  ..
     int len;
     c->send_GDU(gdu, &len);
+
+    switch(gdu->u.z3950->which)
+    {
+    case Z_APDU_triggerResourceControlRequest:
+        // request only..
+        break;
+    default:
+        // for the rest: wait for a response PDU
+        std::cout << "WAITING...\n";
+        while (!c->m_destroyed && c->m_waiting
+               && c->m_socket_manager->processEvent() > 0)
+            ;
+        std::cout << "END OF WAITING...\n";
+        break;
+    }
     
-    while (c->m_waiting && c->m_socket_manager->processEvent() > 0)
-        ;
 }
 
 void yf::Z3950Client::Rep::release_assoc(Package &package)
@@ -250,6 +274,9 @@ void yf::Z3950Client::Rep::release_assoc(Package &package)
     if (it != m_clients.end())
     {
         if (package.session().is_closed())
+            it->second->m_destroyed = true;
+        
+        if (it->second->m_destroyed && !it->second->m_in_use)
         {
             // the Z_Assoc and PDU_Assoc must be destroyed before
             // the socket manager.. so pull that out.. first..
@@ -257,6 +284,7 @@ void yf::Z3950Client::Rep::release_assoc(Package &package)
             delete it->second;  // destroy Z_Assoc
             delete s;    // then manager
             m_clients.erase(it);
+            std::cout << "DESTROY " << package.session().id() << "\n";
         }
         else
         {
