@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.12 2006-01-02 14:33:42 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.13 2006-01-03 15:34:10 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -54,6 +54,8 @@ namespace yp2 {
             bool m_waiting;
             bool m_destroyed;
             bool m_connected;
+            int m_queue_len;
+            int m_ticks;
             std::string m_host;
         };
 
@@ -78,7 +80,8 @@ yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
     :  Z_Assoc(PDU_Observable),
        m_socket_manager(socket_manager), m_PDU_Observable(PDU_Observable),
        m_package(0), m_in_use(true), m_waiting(false), 
-       m_destroyed(false), m_connected(false), m_host(host)
+       m_destroyed(false), m_connected(false), m_queue_len(1), m_ticks(0),
+       m_host(host)
 {
     // std::cout << "create assoc " << this << "\n";
 }
@@ -110,17 +113,24 @@ void yf::Z3950Client::Assoc::failNotify()
 
 void yf::Z3950Client::Assoc::timeoutNotify()
 {
-    m_waiting = false;
-
-#if 0
-    yp2::odr odr;
-
-    if (m_package)
+    std::cout << "TIMEOUT NOTIFY\n";
+    m_ticks++;
+    if (m_ticks == 30)
     {
-        m_package->response() = odr.create_close(Z_Close_lackOfActivity, 0);
-        m_package->session().close();
+        m_waiting = false;
+
+        yp2::odr odr;
+        
+        if (m_package)
+        {
+            if (m_connected)
+                m_package->response() = odr.create_close(Z_Close_lackOfActivity, 0);
+            else
+                m_package->response() = odr.create_close(Z_Close_peerAbort, 0);
+                
+            m_package->session().close();
+        }
     }
-#endif
 }
 
 void yf::Z3950Client::Assoc::recv_GDU(Z_GDU *gdu, int len)
@@ -160,30 +170,33 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         package.move();
         return 0;
     }
-    Z_APDU *apdu = gdu->u.z3950;
-    while(true)
+    it = m_clients.find(package.session());
+    if (it != m_clients.end())
     {
-        it = m_clients.find(package.session());
-        if (it == m_clients.end())
-            break;
-        if (gdu && gdu->which == Z_GDU_Z3950 &&
-            gdu->u.z3950->which == Z_APDU_initRequest)
+        it->second->m_queue_len++;
+        while(true)
         {
-            yazpp_1::SocketManager *s = it->second->m_socket_manager;
-            delete it->second;  // destroy Z_Assoc
-            delete s;    // then manager
-            m_clients.erase(it);
-            break;
+#if 0
+            if (gdu && gdu->which == Z_GDU_Z3950 &&
+                gdu->u.z3950->which == Z_APDU_initRequest)
+            {
+                yazpp_1::SocketManager *s = it->second->m_socket_manager;
+                delete it->second;  // destroy Z_Assoc
+                delete s;    // then manager
+                m_clients.erase(it);
+                break;
+            }
+#endif
+            if (!it->second->m_in_use)
+            {
+                it->second->m_in_use = true;
+                return it->second;
+            }
+            m_cond_session_ready.wait(lock);
         }
-        if (!it->second->m_in_use)
-        {
-            it->second->m_in_use = true;
-            return it->second;
-        }
-        m_cond_session_ready.wait(lock);
     }
     // new Z39.50 session ..
-
+    Z_APDU *apdu = gdu->u.z3950;
     // check that it is init. If not, close
     if (apdu->which != Z_APDU_initRequest)
     {
@@ -214,7 +227,6 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     yazpp_1::PDU_Assoc *pdu_as = new yazpp_1::PDU_Assoc(sm);
     yf::Z3950Client::Assoc *as = new yf::Z3950Client::Assoc(sm, pdu_as, vhost);
     m_clients[package.session()] = as;
-    as->timeout(2);
     return as;
 }
 
@@ -223,15 +235,20 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
 {
     Z_GDU *gdu = package.request().get();
 
+    if (c->m_destroyed)
+        return;
+
     if (!gdu || gdu->which != Z_GDU_Z3950)
         return;
 
+    c->m_ticks = 0;
     c->m_package = &package;
     c->m_waiting = true;
     if (!c->m_connected)
     {
         c->client(c->m_host.c_str());
-        
+        c->timeout(1);
+
         while (!c->m_destroyed && c->m_waiting 
                && c->m_socket_manager->processEvent() > 0)
             ;
@@ -242,6 +259,7 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
     }
 
     // prepare response
+    c->m_ticks = 0;
     c->m_waiting = true;
     
     // relay the package  ..
@@ -255,14 +273,11 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
         break;
     default:
         // for the rest: wait for a response PDU
-        std::cout << "WAITING...\n";
         while (!c->m_destroyed && c->m_waiting
                && c->m_socket_manager->processEvent() > 0)
             ;
-        std::cout << "END OF WAITING...\n";
         break;
     }
-    
 }
 
 void yf::Z3950Client::Rep::release_assoc(Package &package)
@@ -273,22 +288,28 @@ void yf::Z3950Client::Rep::release_assoc(Package &package)
     it = m_clients.find(package.session());
     if (it != m_clients.end())
     {
+        Z_GDU *gdu = package.request().get();
+        if (gdu && gdu->which == Z_GDU_Z3950)
+        {   // only Z39.50 packages lock in get_assoc.. release it
+            it->second->m_in_use = false;
+            it->second->m_queue_len--;
+        }
+
         if (package.session().is_closed())
-            it->second->m_destroyed = true;
-        
-        if (it->second->m_destroyed && !it->second->m_in_use)
         {
+            // destroy hint (send_and_receive)
+            it->second->m_destroyed = true;
+            
+            // wait until no one is waiting for it.
+            while (it->second->m_queue_len)
+                m_cond_session_ready.wait(lock);
+            
             // the Z_Assoc and PDU_Assoc must be destroyed before
             // the socket manager.. so pull that out.. first..
             yazpp_1::SocketManager *s = it->second->m_socket_manager;
             delete it->second;  // destroy Z_Assoc
             delete s;    // then manager
             m_clients.erase(it);
-            std::cout << "DESTROY " << package.session().id() << "\n";
-        }
-        else
-        {
-            it->second->m_in_use = false;
         }
         m_cond_session_ready.notify_all();
     }
