@@ -1,4 +1,4 @@
-/* $Id: test_filter_factory.cpp,v 1.9 2006-01-04 11:55:32 adam Exp $
+/* $Id: test_filter_factory.cpp,v 1.10 2006-01-04 14:30:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -11,7 +11,7 @@
 #include "config.hpp"
 #include "filter.hpp"
 #include "package.hpp"
-#include "filter_factory.hpp"
+#include "factory_filter.hpp"
 
 
 #define BOOST_AUTO_TEST_MAIN
@@ -53,7 +53,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_factory_1 )
 {
     try {
         
-        yp2::FilterFactory  ffactory;
+        yp2::FactoryFilter  ffactory;
         
         XFilter xf;
         YFilter yf;
@@ -92,7 +92,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_factory_1 )
 BOOST_AUTO_UNIT_TEST( test_filter_factory_2 )
 {
     try {        
-        yp2::FilterFactory  ffactory;
+        yp2::FactoryFilter  ffactory;
         
         const std::string id = "dl";
         

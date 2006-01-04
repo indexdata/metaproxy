@@ -1,4 +1,4 @@
-/* $Id: router_flexml.cpp,v 1.8 2006-01-04 14:15:45 adam Exp $
+/* $Id: router_flexml.cpp,v 1.9 2006-01-04 14:30:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -6,7 +6,7 @@
 
 #include "config.hpp"
 #include "router_flexml.hpp"
-#include "filter_factory.hpp"
+#include "factory_filter.hpp"
 #include "factory_static.hpp"
 
 #include <iostream>
@@ -54,7 +54,7 @@ namespace yp2 {
         const xmlNode* jump_to_children(const xmlNode* node, int xml_node_type);
         bool m_xinclude;
     private:
-        FilterFactory *m_factory; // TODO shared_ptr
+        FactoryFilter *m_factory; // TODO shared_ptr
     };
 }
 
@@ -225,7 +225,7 @@ yp2::RouterFleXML::Rep::Rep() :
 {
 }
 
-yp2::RouterFleXML::RouterFleXML(std::string xmlconf, yp2::FilterFactory &factory) 
+yp2::RouterFleXML::RouterFleXML(std::string xmlconf, yp2::FactoryFilter &factory) 
     : m_p(new Rep)
 {            
 

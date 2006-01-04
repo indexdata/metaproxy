@@ -1,4 +1,4 @@
-/* $Id: factory_static.cpp,v 1.3 2006-01-04 14:15:45 adam Exp $
+/* $Id: factory_static.cpp,v 1.4 2006-01-04 14:30:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -14,7 +14,7 @@
 #include "filter.hpp"
 #include "package.hpp"
 
-#include "filter_factory.hpp"
+#include "factory_filter.hpp"
 
 #include "filter_backend_test.hpp"
 #include "filter_frontend_net.hpp"

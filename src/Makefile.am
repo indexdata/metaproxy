@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.39 2006-01-04 11:19:04 adam Exp $
+## $Id: Makefile.am,v 1.40 2006-01-04 14:30:51 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -17,7 +17,7 @@ libyp2_la_SOURCES = \
 	router.hpp router_chain.hpp router_chain.cpp \
         router_flexml.hpp router_flexml.cpp \
 	thread_pool_observer.cpp thread_pool_observer.hpp \
-	filter.hpp filter.cpp filter_factory.cpp filter_factory.hpp \
+	filter.hpp filter.cpp factory_filter.cpp factory_filter.hpp \
 	filter_frontend_net.cpp filter_frontend_net.hpp \
 	filter_log.cpp filter_log.hpp \
 	filter_virt_db.cpp filter_virt_db.hpp \

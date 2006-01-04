@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.10 2006-01-04 14:15:45 adam Exp $
+/* $Id: test_router_flexml.cpp,v 1.11 2006-01-04 14:30:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -84,7 +84,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_2 )
             "    <filter id=\"front_default\" type=\"frontend_net\">\n"
             "      <port>210</port>\n";
         
-        yp2::FilterFactory factory;
+        yp2::FactoryFilter factory;
         yp2::RouterFleXML rflexml(xmlconf_invalid, factory);
     }
     catch ( yp2::RouterFleXML::XMLError &e) {

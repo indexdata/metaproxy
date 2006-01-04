@@ -1,11 +1,11 @@
-/* $Id: filter_factory.hpp,v 1.7 2005-12-10 09:59:10 adam Exp $
+/* $Id: factory_filter.hpp,v 1.1 2006-01-04 14:30:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
  */
 
-#ifndef FILTER_FACTORY_HPP
-#define FILTER_FACTORY_HPP
+#ifndef FACTORY_FILTER_HPP
+#define FACTORY_FILTER_HPP
 
 #include <stdexcept>
 #include <iostream>
@@ -17,15 +17,13 @@
 
 #include "filter.hpp"
 
-
 namespace yp2 {
-
-    class FilterFactoryException : public std::runtime_error {
+    class FactoryFilterException : public std::runtime_error {
     public:
-        FilterFactoryException(const std::string message);
+        FactoryFilterException(const std::string message);
     };
     
-    class FilterFactory : public boost::noncopyable
+    class FactoryFilter : public boost::noncopyable
     {
         typedef yp2::filter::Base* (*CreateFilterCallback)();
 
@@ -33,8 +31,8 @@ namespace yp2 {
     public:
         /// true if registration ok
         
-        FilterFactory();
-        ~FilterFactory();
+        FactoryFilter();
+        ~FactoryFilter();
 
         bool add_creator(std::string fi, CreateFilterCallback cfc);
         

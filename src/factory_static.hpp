@@ -1,4 +1,4 @@
-/* $Id: factory_static.hpp,v 1.2 2006-01-04 14:15:45 adam Exp $
+/* $Id: factory_static.hpp,v 1.3 2006-01-04 14:30:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -7,10 +7,10 @@
 #ifndef FACTORY_STATIC_HPP
 #define FACTORY_STATIC_HPP
 
-#include "filter_factory.hpp"
+#include "factory_filter.hpp"
 
 namespace yp2 {
-    class FactoryStatic : public FilterFactory {
+    class FactoryStatic : public FactoryFilter {
     public:
         FactoryStatic();
     };
