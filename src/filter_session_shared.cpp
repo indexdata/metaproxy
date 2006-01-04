@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.cpp,v 1.3 2006-01-04 11:19:04 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.4 2006-01-04 11:55:31 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -257,7 +257,7 @@ static yp2::filter::Base* filter_creator()
 }
 
 extern "C" {
-    const struct yp2_filter_struct yp2_filter_session_shared = {
+    struct yp2_filter_struct yp2_filter_session_shared = {
         0,
         "session_shared",
         filter_creator

@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.hpp,v 1.5 2006-01-04 11:19:04 adam Exp $
+/* $Id: filter_virt_db.hpp,v 1.6 2006-01-04 11:55:32 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -29,7 +29,7 @@ namespace yp2 {
 }
 
 extern "C" {
-    extern const struct yp2_filter_struct yp2_filter_virt_db;
+    extern struct yp2_filter_struct yp2_filter_virt_db;
 }
 
 #endif

@@ -1,4 +1,4 @@
-/* $Id: test_filter_factory.cpp,v 1.8 2005-12-11 17:25:59 adam Exp $
+/* $Id: test_filter_factory.cpp,v 1.9 2006-01-04 11:55:32 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -96,8 +96,12 @@ BOOST_AUTO_UNIT_TEST( test_filter_factory_2 )
         
         const std::string id = "dl";
         
+        // first load
         BOOST_CHECK(ffactory.add_creator_dyn(id, ".libs"));
-        
+
+        // test double load
+        BOOST_CHECK(ffactory.add_creator_dyn(id, ".libs"));
+                
         yp2::filter::Base* filter = 0;
         filter = ffactory.create(id);
 

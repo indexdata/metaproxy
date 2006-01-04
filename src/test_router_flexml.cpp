@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.8 2006-01-04 11:19:04 adam Exp $
+/* $Id: test_router_flexml.cpp,v 1.9 2006-01-04 11:55:32 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -34,8 +34,11 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
             "    <filter id=\"front_default\" type=\"frontend_net\">\n"
             "      <port>210</port>\n"
             "    </filter>\n"
-            "    <filter id=\"log_cout\" type=\"log\">\n"
-            "      <logfile>mylog.log</logfile>\n"
+            "    <filter id=\"log_cout1\" type=\"log\">\n"
+            "      <logfile>mylog1.log</logfile>\n"
+            "    </filter>\n"
+            "    <filter id=\"log_cout2\" type=\"log\">\n"
+            "      <logfile>mylog2.log</logfile>\n"
             "    </filter>\n"
             "  </filters>\n"
             "  <routes>\n"  

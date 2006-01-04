@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.hpp,v 1.2 2006-01-04 11:19:04 adam Exp $
+/* $Id: filter_session_shared.hpp,v 1.3 2006-01-04 11:55:31 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -28,7 +28,7 @@ namespace yp2 {
 }
 
 extern "C" {
-    extern const struct yp2_filter_struct yp2_filter_session_shared;
+    extern struct yp2_filter_struct yp2_filter_session_shared;
 }
 
 #endif

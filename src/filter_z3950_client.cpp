@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.14 2006-01-04 11:19:04 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.15 2006-01-04 11:55:32 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -332,7 +332,7 @@ static yp2::filter::Base* filter_creator()
 }
 
 extern "C" {
-    const struct yp2_filter_struct yp2_filter_z3950_client = {
+    struct yp2_filter_struct yp2_filter_z3950_client = {
         0,
         "z3950_client",
         filter_creator

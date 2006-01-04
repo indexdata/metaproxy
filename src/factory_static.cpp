@@ -1,4 +1,4 @@
-/* $Id: factory_static.cpp,v 1.1 2006-01-04 11:19:04 adam Exp $
+/* $Id: factory_static.cpp,v 1.2 2006-01-04 11:55:31 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -26,7 +26,7 @@
 
 yp2::FactoryStatic::FactoryStatic(yp2::FilterFactory &factory)
 {
-    const struct yp2_filter_struct *buildins[] = {
+    struct yp2_filter_struct *buildins[] = {
         &yp2_filter_backend_test,
         &yp2_filter_frontend_net,        
         &yp2_filter_log,

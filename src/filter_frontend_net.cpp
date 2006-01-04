@@ -1,4 +1,4 @@
-/* $Id: filter_frontend_net.cpp,v 1.10 2006-01-04 11:19:04 adam Exp $
+/* $Id: filter_frontend_net.cpp,v 1.11 2006-01-04 11:55:31 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -291,7 +291,7 @@ static yp2::filter::Base* filter_creator()
 }
 
 extern "C" {
-    const struct yp2_filter_struct yp2_filter_frontend_net = {
+    struct yp2_filter_struct yp2_filter_frontend_net = {
         0,
         "frontend_net",
         filter_creator

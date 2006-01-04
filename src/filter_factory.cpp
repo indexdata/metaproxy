@@ -1,4 +1,4 @@
-/* $Id: filter_factory.cpp,v 1.2 2005-12-10 09:59:10 adam Exp $
+/* $Id: filter_factory.cpp,v 1.3 2006-01-04 11:55:31 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -19,6 +19,8 @@
 namespace yp2 {
     class FilterFactory::Rep {
         typedef std::map<std::string, CreateFilterCallback> CallbackMap;
+        typedef std::map<std::string, CreateFilterCallback>::iterator 
+            CallbackMapIt;
     public:
         friend class FilterFactory;
         CallbackMap m_fcm;
@@ -78,6 +80,11 @@ yp2::filter::Base* yp2::FilterFactory::create(std::string fi)
 bool yp2::FilterFactory::add_creator_dyn(const std::string &fi,
                                          const std::string &path)
 {
+    if (m_p->m_fcm.find(fi) != m_p->m_fcm.end())
+    {
+        return true;
+    }
+
     std::string full_path = path + "/yp2_filter_" + fi + ".so";
     void *dl_handle = dlopen(full_path.c_str(), RTLD_GLOBAL|RTLD_NOW);
     if (!dl_handle)

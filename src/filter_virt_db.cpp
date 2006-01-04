@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.16 2006-01-04 11:19:04 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.17 2006-01-04 11:55:31 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -869,7 +869,7 @@ static yp2::filter::Base* filter_creator()
 }
 
 extern "C" {
-    const struct yp2_filter_struct yp2_filter_virt_db = {
+    struct yp2_filter_struct yp2_filter_virt_db = {
         0,
         "virt_db",
         filter_creator
