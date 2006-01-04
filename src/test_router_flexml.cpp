@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.9 2006-01-04 11:55:32 adam Exp $
+/* $Id: test_router_flexml.cpp,v 1.10 2006-01-04 14:15:45 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -10,18 +10,24 @@
 
 #include "filter.hpp"
 #include "router_flexml.hpp"
-#include "filter_factory.hpp"
+#include "factory_static.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
 
+static bool tfilter_destroyed = false;
 class TFilter: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {};
+    ~TFilter() { tfilter_destroyed = true; };
 };
-    
+
+static yp2::filter::Base* filter_creator()
+{
+    return new TFilter;
+}
 
 BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
 {
@@ -37,6 +43,9 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
             "    <filter id=\"log_cout1\" type=\"log\">\n"
             "      <logfile>mylog1.log</logfile>\n"
             "    </filter>\n"
+            "    <filter id=\"tfilter_id\" type=\"tfilter\">\n"
+            "      <someelement/>\n"
+            "    </filter>\n"
             "    <filter id=\"log_cout2\" type=\"log\">\n"
             "      <logfile>mylog2.log</logfile>\n"
             "    </filter>\n"
@@ -48,19 +57,19 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
             "    </route>\n"
             "  </routes>\n"
             "</yp2>\n";
-        yp2::RouterFleXML rflexml(xmlconf);
+
+        yp2::FactoryStatic factory;
+        factory.add_creator("tfilter", filter_creator);
+        yp2::RouterFleXML rflexml(xmlconf, factory);
     }
-    catch ( yp2::RouterFleXML::XMLError &e) {
-        std::cout << "XMLError: " << e.what() << "\n";
-        BOOST_CHECK (false);
-    }
-    catch ( yp2::FilterFactoryException &e) {
-        std::cout << "FilterFactoryException: " << e.what() << "\n";
+    catch ( std::runtime_error &e) {
+        std::cout << "std::runtime error: " << e.what() << "\n";
         BOOST_CHECK (false);
     }
     catch ( ... ) {
         BOOST_CHECK (false);
     }
+    BOOST_CHECK(tfilter_destroyed == true);
 }
 
 BOOST_AUTO_UNIT_TEST( test_router_flexml_2 )
@@ -75,10 +84,15 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_2 )
             "    <filter id=\"front_default\" type=\"frontend_net\">\n"
             "      <port>210</port>\n";
         
-        yp2::RouterFleXML rflexml(xmlconf_invalid);
+        yp2::FilterFactory factory;
+        yp2::RouterFleXML rflexml(xmlconf_invalid, factory);
     }
     catch ( yp2::RouterFleXML::XMLError &e) {
         got_xml_error = true;
+    }
+    catch ( std::runtime_error &e) {
+        std::cout << "std::runtime error: " << e.what() << "\n";
+        BOOST_CHECK (false);
     }
     catch ( ... ) {
         ;
@@ -109,7 +123,12 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_3 )
             "  </y:routes>\n"
             "</y:yp2>\n";
        
-        yp2::RouterFleXML rflexml(xmlconf);
+        yp2::FactoryStatic factory;
+        yp2::RouterFleXML rflexml(xmlconf, factory);
+    }
+    catch ( std::runtime_error &e) {
+        std::cout << "std::runtime error: " << e.what() << "\n";
+        BOOST_CHECK (false);
     }
     catch ( ... ) {
         BOOST_CHECK (false);

@@ -1,4 +1,4 @@
-/* $Id: ex_router_flexml.cpp,v 1.3 2006-01-04 11:19:04 adam Exp $
+/* $Id: ex_router_flexml.cpp,v 1.4 2006-01-04 14:15:45 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -34,8 +34,9 @@ int main(int argc, char **argv)
            "</route>\n"
             "</routes>\n"
            "</yp2>\n";
-       
-       yp2::RouterFleXML rflexml(xmlconf);
+
+       yp2::FilterFactory factory;
+       yp2::RouterFleXML rflexml(xmlconf, factory);
        
        
        

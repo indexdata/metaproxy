@@ -1,4 +1,4 @@
-/* $Id: router_flexml.cpp,v 1.7 2006-01-04 11:19:04 adam Exp $
+/* $Id: router_flexml.cpp,v 1.8 2006-01-04 14:15:45 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -25,15 +25,11 @@ namespace yp2 {
         friend class RouterFleXML;
         Rep();
 
-        typedef std::map<std::string, boost::shared_ptr<const yp2::filter::Base> >
-                IdFilterMap ;
-        typedef std::list<std::string> FilterIdList;
-        typedef std::map<std::string, FilterIdList > IdRouteMap ;
+        typedef std::map<std::string,
+                         boost::shared_ptr<const yp2::filter::Base > >
+                         IdFilterMap ;
 
-        bool m_xinclude;
         IdFilterMap m_id_filter_map;
-        FilterIdList m_filter_id_list;
-        IdRouteMap m_id_route_map;
 
         void create_filter(std::string type, 
                            const xmlDoc * xmldoc,
@@ -56,7 +52,9 @@ namespace yp2 {
         const xmlNode* jump_to_next(const xmlNode* node, int xml_node_type);
         
         const xmlNode* jump_to_children(const xmlNode* node, int xml_node_type);
-        FilterFactory m_factory;
+        bool m_xinclude;
+    private:
+        FilterFactory *m_factory; // TODO shared_ptr
     };
 }
 
@@ -166,7 +164,15 @@ void yp2::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
             //const xmlNode *val;
         }
 
-        yp2::filter::Base* filter_base = m_factory.create(type_value);
+        yp2::filter::Base* filter_base = m_factory->create(type_value);
+
+        filter_base->configure(node2);
+
+        if (m_id_filter_map.find(id_value) != m_id_filter_map.end())
+            throw XMLError("Filter " + id_value + " already defined");
+
+        m_id_filter_map[id_value] =
+            boost::shared_ptr<yp2::filter::Base>(filter_base);
 
         node2 = jump_to_next(node2, XML_ELEMENT_NODE);
     }
@@ -219,12 +225,11 @@ yp2::RouterFleXML::Rep::Rep() :
 {
 }
 
-yp2::RouterFleXML::RouterFleXML(std::string xmlconf) 
+yp2::RouterFleXML::RouterFleXML(std::string xmlconf, yp2::FilterFactory &factory) 
     : m_p(new Rep)
 {            
-    {
-        yp2::FactoryStatic fs(m_p->m_factory);
-    }
+
+    m_p->m_factory = &factory;
 
     LIBXML_TEST_VERSION;
     

@@ -1,4 +1,4 @@
-/* $Id: factory_static.cpp,v 1.2 2006-01-04 11:55:31 adam Exp $
+/* $Id: factory_static.cpp,v 1.3 2006-01-04 14:15:45 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -24,7 +24,7 @@
 #include "filter_virt_db.hpp"
 #include "filter_z3950_client.hpp"
 
-yp2::FactoryStatic::FactoryStatic(yp2::FilterFactory &factory)
+yp2::FactoryStatic::FactoryStatic()
 {
     struct yp2_filter_struct *buildins[] = {
         &yp2_filter_backend_test,
@@ -39,7 +39,7 @@ yp2::FactoryStatic::FactoryStatic(yp2::FilterFactory &factory)
     int i;
 
     for (i = 0; buildins[i]; i++)
-        factory.add_creator(buildins[i]->type, buildins[i]->creator);
+        add_creator(buildins[i]->type, buildins[i]->creator);
 }
 
 
