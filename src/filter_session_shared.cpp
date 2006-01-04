@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.cpp,v 1.2 2005-12-02 11:05:08 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.3 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -28,32 +28,32 @@ namespace yf = yp2::filter;
 
 namespace yp2 {
     namespace filter {
-        class Session_shared::Rep {
-            friend class Session_shared;
+        class SessionShared::Rep {
+            friend class SessionShared;
             void handle_init(Z_InitRequest *req, Package &package);
             void handle_search(Z_SearchRequest *req, Package &package);
         public:
-            typedef boost::shared_ptr<Session_shared::List> SharedList;
+            typedef boost::shared_ptr<SessionShared::List> SharedList;
 
-            typedef std::map<Session_shared::InitKey,SharedList> InitListMap;
+            typedef std::map<SessionShared::InitKey,SharedList> InitListMap;
             InitListMap m_init_list_map;
 
             typedef std::map<Session,SharedList> SessionListMap;
             SessionListMap m_session_list_map;
 
         };
-        class Session_shared::InitKey {
-            friend class Session_shared;
-            friend class Session_shared::Rep;
+        class SessionShared::InitKey {
+            friend class SessionShared;
+            friend class SessionShared::Rep;
             std::string m_vhost;
             std::string m_open;
             std::string m_user;
             std::string m_group;
             std::string m_password;
         public:
-            bool operator < (const Session_shared::InitKey &k) const;
+            bool operator < (const SessionShared::InitKey &k) const;
         };
-        class Session_shared::List {
+        class SessionShared::List {
         public:
             yazpp_1::GDU m_init_response;  // init response for backend 
             Session m_session;             // session for backend
@@ -65,7 +65,7 @@ namespace yp2 {
 
 using namespace yp2;
 
-bool yf::Session_shared::InitKey::operator < (const Session_shared::InitKey
+bool yf::SessionShared::InitKey::operator < (const SessionShared::InitKey
                                               &k) const 
 {
     if (m_vhost < k.m_vhost)
@@ -95,15 +95,15 @@ bool yf::Session_shared::InitKey::operator < (const Session_shared::InitKey
     return false;
 }
 
-yf::Session_shared::Session_shared() : m_p(new Rep)
+yf::SessionShared::SessionShared() : m_p(new Rep)
 {
 }
 
-yf::Session_shared::~Session_shared()
+yf::SessionShared::~SessionShared()
 {
 }
 
-void yf::Session_shared::Rep::handle_search(Z_SearchRequest *req,
+void yf::SessionShared::Rep::handle_search(Z_SearchRequest *req,
                                             Package &package)
 {
     yaz_log(YLOG_LOG, "Got search");
@@ -129,11 +129,11 @@ void yf::Session_shared::Rep::handle_search(Z_SearchRequest *req,
     package.response() = search_package.response();
 }
 
-void yf::Session_shared::Rep::handle_init(Z_InitRequest *req, Package &package)
+void yf::SessionShared::Rep::handle_init(Z_InitRequest *req, Package &package)
 {
     yaz_log(YLOG_LOG, "Got init");
 
-    Session_shared::InitKey key;
+    SessionShared::InitKey key;
     const char *vhost =
         yaz_oi_get_string_oidval(&req->otherInfo, VAL_PROXY, 1, 0);
     if (vhost)
@@ -176,7 +176,7 @@ void yf::Session_shared::Rep::handle_init(Z_InitRequest *req, Package &package)
         yaz_log(YLOG_LOG, "New KEY");
 
         // building new package with original init and new session 
-        SharedList l(new Session_shared::List);  // new session for backend
+        SharedList l(new SessionShared::List);  // new session for backend
 
         Package init_package(l->m_session, package.origin());
         init_package.copy_filter(package);
@@ -210,7 +210,7 @@ void yf::Session_shared::Rep::handle_init(Z_InitRequest *req, Package &package)
     }
 }
 
-void yf::Session_shared::process(Package &package) const
+void yf::SessionShared::process(Package &package) const
 {
     // don't tell the backend if the "fronent" filter closes..
     // we want to keep them alive
@@ -250,6 +250,20 @@ void yf::Session_shared::process(Package &package) const
     else
         package.move();  // Not Z39.50 or not Init
 }
+
+static yp2::filter::Base* filter_creator()
+{
+    return new yp2::filter::SessionShared;
+}
+
+extern "C" {
+    const struct yp2_filter_struct yp2_filter_session_shared = {
+        0,
+        "session_shared",
+        filter_creator
+    };
+}
+
 
 
 /*

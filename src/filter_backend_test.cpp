@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.10 2005-11-10 23:10:42 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.11 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -140,6 +140,19 @@ void yf::Backend_test::process(Package &package) const
     }
     if (package.session().is_closed())
         m_p->m_sessions.release(package.session());
+}
+
+static yp2::filter::Base* filter_creator()
+{
+    return new yp2::filter::Backend_test;
+}
+
+extern "C" {
+    const struct yp2_filter_struct yp2_filter_backend_test = {
+        0,
+        "backend_test",
+        filter_creator
+    };
 }
 
 

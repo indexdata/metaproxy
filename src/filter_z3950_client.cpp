@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.13 2006-01-03 15:34:10 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.14 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -325,6 +325,19 @@ void yf::Z3950Client::process(Package &package) const
     m_p->release_assoc(package);
 }
 
+
+static yp2::filter::Base* filter_creator()
+{
+    return new yp2::filter::Z3950Client;
+}
+
+extern "C" {
+    const struct yp2_filter_struct yp2_filter_z3950_client = {
+        0,
+        "z3950_client",
+        filter_creator
+    };
+}
 
 /*
  * Local variables:

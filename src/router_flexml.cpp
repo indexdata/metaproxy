@@ -1,4 +1,4 @@
-/* $Id: router_flexml.cpp,v 1.6 2005-12-08 22:32:57 adam Exp $
+/* $Id: router_flexml.cpp,v 1.7 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -6,6 +6,8 @@
 
 #include "config.hpp"
 #include "router_flexml.hpp"
+#include "filter_factory.hpp"
+#include "factory_static.hpp"
 
 #include <iostream>
 #include <map>
@@ -54,6 +56,7 @@ namespace yp2 {
         const xmlNode* jump_to_next(const xmlNode* node, int xml_node_type);
         
         const xmlNode* jump_to_children(const xmlNode* node, int xml_node_type);
+        FilterFactory m_factory;
     };
 }
 
@@ -139,6 +142,32 @@ void yp2::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
         filter_nr++;
         std::cout << "processing /yp2/filters/filter[" 
                   << filter_nr << "]" << std::endl;
+
+        const struct _xmlAttr *attr;
+        std::string id_value;
+        std::string type_value;
+        for (attr = node2->properties; attr; attr = attr->next)
+        {
+            std::string name = std::string((const char *) attr->name);
+            std::string value;
+
+            if (attr->children && attr->children->type == XML_TEXT_NODE)
+                value = std::string((const char *)attr->children->content);
+
+            if (name == "id")
+                id_value = value;
+            else if (name == "type")
+                type_value = value;
+            else
+                throw XMLError("Error. Only attribute id or type allowed in filter element. Got " + name);
+                
+            std::cout << "attr " << name << "=" << value << "\n";
+
+            //const xmlNode *val;
+        }
+
+        yp2::filter::Base* filter_base = m_factory.create(type_value);
+
         node2 = jump_to_next(node2, XML_ELEMENT_NODE);
     }
     
@@ -193,6 +222,10 @@ yp2::RouterFleXML::Rep::Rep() :
 yp2::RouterFleXML::RouterFleXML(std::string xmlconf) 
     : m_p(new Rep)
 {            
+    {
+        yp2::FactoryStatic fs(m_p->m_factory);
+    }
+
     LIBXML_TEST_VERSION;
     
     xmlDocPtr doc = xmlParseMemory(xmlconf.c_str(),

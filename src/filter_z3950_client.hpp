@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.hpp,v 1.5 2005-11-10 23:10:42 adam Exp $
+/* $Id: filter_z3950_client.hpp,v 1.6 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -24,6 +24,10 @@ namespace yp2 {
             boost::scoped_ptr<Rep> m_p;
         };
     }
+}
+
+extern "C" {
+    extern const struct yp2_filter_struct yp2_filter_z3950_client;
 }
 
 #endif

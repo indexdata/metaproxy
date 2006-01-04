@@ -1,4 +1,4 @@
-/* $Id: package.hpp,v 1.10 2005-11-11 15:00:25 adam Exp $
+/* $Id: package.hpp,v 1.11 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -44,14 +44,13 @@ namespace yp2 {
         yp2::Session & session();
         
         /// get function - right val in assignment
-        unsigned int data() const;
+        int data() const;
 
-        
         /// set function - left val in assignment
-        unsigned int & data();
+        int & data();
         
         /// set function - can be chained
-        Package & data(const unsigned int & data);
+        Package & data(const int & data);
         
         /// get function - right val in assignment
         Origin origin() const;
@@ -77,7 +76,7 @@ namespace yp2 {
         
         const filter::Base *m_filter;
         const Router *m_router;
-        unsigned int m_data;
+        int m_data;
         
         yazpp_1::GDU m_request_gdu;
         yazpp_1::GDU m_response_gdu;

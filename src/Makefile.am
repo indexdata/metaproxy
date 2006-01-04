@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.38 2005-12-10 09:59:10 adam Exp $
+## $Id: Makefile.am,v 1.39 2006-01-04 11:19:04 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -25,6 +25,7 @@ libyp2_la_SOURCES = \
 	filter_backend_test.cpp filter_backend_test.hpp \
 	filter_session_shared.cpp filter_session_shared.hpp \
 	filter_template.cpp filter_template.hpp \
+	factory_static.cpp factory_static.hpp \
 	pipe.cpp pipe.hpp \
 	util.cpp util.hpp
 

@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.9 2005-12-11 17:23:05 adam Exp $
+/* $Id: filter_log.cpp,v 1.10 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -97,6 +97,20 @@ void yf::Log::process(Package &package) const
         }
     }
 }
+
+static yp2::filter::Base* filter_creator()
+{
+    return new yp2::filter::Log;
+}
+
+extern "C" {
+    const struct yp2_filter_struct yp2_filter_log = {
+        0,
+        "log",
+        filter_creator
+    };
+}
+
 
 /*
  * Local variables:

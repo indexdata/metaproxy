@@ -1,4 +1,4 @@
-/* $Id: package.cpp,v 1.1 2005-11-11 15:00:25 adam Exp $
+/* $Id: package.cpp,v 1.2 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -40,18 +40,17 @@ yp2::Session & yp2::Package::session()
 }
 
 
-unsigned int yp2::Package::data() const
+int yp2::Package::data() const
 {
     return m_data;
 }
 
-unsigned int & yp2::Package::data()
+int & yp2::Package::data()
 {
     return m_data;
 }
         
-
-yp2::Package & yp2::Package::data(const unsigned int & data)
+yp2::Package & yp2::Package::data(const int & data)
 {
     m_data = data;
     return *this;

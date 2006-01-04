@@ -1,4 +1,4 @@
-/* $Id: filter_log.hpp,v 1.10 2005-12-11 17:23:05 adam Exp $
+/* $Id: filter_log.hpp,v 1.11 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -23,6 +23,10 @@ namespace yp2 {
             void process(yp2::Package & package) const;
         };
     }
+}
+
+extern "C" {
+    extern const struct yp2_filter_struct yp2_filter_log;
 }
 
 #endif

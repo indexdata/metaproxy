@@ -1,4 +1,4 @@
-/* $Id: ex_router_flexml.cpp,v 1.2 2005-10-31 11:59:08 marc Exp $
+/* $Id: ex_router_flexml.cpp,v 1.3 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -14,8 +14,8 @@
 int main(int argc, char **argv)
 {
     try 
-   {
-       
+    {
+        
        std::string xmlconf = "<?xml version=\"1.0\"?>\n"
            "<yp2 xmlns=\"http://indexdata.dk/yp2/config/1\">\n"
            "<start route=\"start\"/>\n"

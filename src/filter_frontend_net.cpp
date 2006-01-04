@@ -1,4 +1,4 @@
-/* $Id: filter_frontend_net.cpp,v 1.9 2005-11-07 21:57:10 adam Exp $
+/* $Id: filter_frontend_net.cpp,v 1.10 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -283,6 +283,19 @@ std::vector<std::string> &yp2::filter::FrontendNet::ports()
 int &yp2::filter::FrontendNet::listen_duration()
 {
     return m_listen_duration;
+}
+
+static yp2::filter::Base* filter_creator()
+{
+    return new yp2::filter::FrontendNet;
+}
+
+extern "C" {
+    const struct yp2_filter_struct yp2_filter_frontend_net = {
+        0,
+        "frontend_net",
+        filter_creator
+    };
 }
 
 /*

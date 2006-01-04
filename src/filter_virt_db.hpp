@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.hpp,v 1.4 2005-10-31 09:40:18 marc Exp $
+/* $Id: filter_virt_db.hpp,v 1.5 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -26,6 +26,10 @@ namespace yp2 {
             boost::scoped_ptr<Rep> m_p;
         };
     }
+}
+
+extern "C" {
+    extern const struct yp2_filter_struct yp2_filter_virt_db;
 }
 
 #endif

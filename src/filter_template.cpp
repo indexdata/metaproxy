@@ -1,4 +1,4 @@
-/* $Id: filter_template.cpp,v 1.2 2005-12-11 17:20:18 adam Exp $
+/* $Id: filter_template.cpp,v 1.3 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -41,6 +41,19 @@ void yf::Template::process(Package &package) const
 {
     // Z_GDU *gdu = package.request().get();
     package.move();
+}
+
+static yp2::filter::Base* filter_creator()
+{
+    return new yp2::filter::Template;
+}
+
+extern "C" {
+    const struct yp2_filter_struct yp2_filter_template = {
+        0,
+        "template",
+        filter_creator
+    };
 }
 
 

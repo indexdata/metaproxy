@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.hpp,v 1.1 2005-11-14 23:35:22 adam Exp $
+/* $Id: filter_session_shared.hpp,v 1.2 2006-01-04 11:19:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -13,18 +13,22 @@
 
 namespace yp2 {
     namespace filter {
-        class Session_shared : public Base {
+        class SessionShared : public Base {
             class Rep;
             class InitKey;
             class List;
         public:
-            ~Session_shared();
-            Session_shared();
+            ~SessionShared();
+            SessionShared();
             void process(yp2::Package & package) const;
         private:
             boost::scoped_ptr<Rep> m_p;
         };
     }
+}
+
+extern "C" {
+    extern const struct yp2_filter_struct yp2_filter_session_shared;
 }
 
 #endif
