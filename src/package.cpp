@@ -1,4 +1,4 @@
-/* $Id: package.cpp,v 1.2 2006-01-04 11:19:04 adam Exp $
+/* $Id: package.cpp,v 1.3 2006-01-05 16:39:06 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -31,7 +31,7 @@ void yp2::Package::move()
 {
     m_filter = m_router->move(m_filter, this);
     if (m_filter)
-                m_filter->process(*this);
+        m_filter->process(*this);
 }
 
 yp2::Session & yp2::Package::session()
