@@ -1,4 +1,4 @@
-/* $Id: router_flexml.hpp,v 1.9 2006-01-04 14:30:51 adam Exp $
+/* $Id: router_flexml.hpp,v 1.10 2006-01-05 16:39:37 adam Exp $
    Copyright (c) 2005, Index Data.
 
    %LICENSE%
@@ -17,6 +17,7 @@ namespace yp2
     class RouterFleXML : public yp2::Router 
     {
         class Rep;
+        class Route;
     public:
         RouterFleXML(std::string xmlconf, yp2::FactoryFilter &factory);
         

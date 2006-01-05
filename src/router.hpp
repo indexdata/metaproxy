@@ -1,4 +1,4 @@
-/* $Id: router.hpp,v 1.6 2005-11-10 23:10:42 adam Exp $
+/* $Id: router.hpp,v 1.7 2006-01-05 16:39:37 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -23,8 +23,7 @@ namespace yp2
         RouterException(const std::string message)
             : std::runtime_error("RouterException: " + message){};
     };
-  
-    
+      
     class Router : boost::noncopyable {
     public:
         Router(){};
@@ -33,14 +32,6 @@ namespace yp2
         /// determines next Filter to use from current Filter and Package
         virtual const filter::Base *move(const filter::Base *filter,
                                          const Package *package) const = 0;
-        
-        /// re-read configuration of routing tables
-        //virtual void configure(){};
-
-        /// add routing rule expressed as Filter to Router
-        //virtual Router & rule(const filter::Base &filter){
-        //    return *this;
-        //}
     };
 }
 #endif

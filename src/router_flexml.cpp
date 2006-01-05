@@ -1,4 +1,4 @@
-/* $Id: router_flexml.cpp,v 1.9 2006-01-04 14:30:51 adam Exp $
+/* $Id: router_flexml.cpp,v 1.10 2006-01-05 16:39:37 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -21,6 +21,10 @@
 
 
 namespace yp2 {
+    class RouterFleXML::Route {
+        friend class RouterFleXML::Rep;
+        std::list<boost::shared_ptr<const yp2::filter::Base> > m_list;
+    };
     class RouterFleXML::Rep {
         friend class RouterFleXML;
         Rep();
@@ -31,9 +35,7 @@ namespace yp2 {
 
         IdFilterMap m_id_filter_map;
 
-        void create_filter(std::string type, 
-                           const xmlDoc * xmldoc,
-                           std::string id = "");
+        std::map<std::string,RouterFleXML::Route> m_routes;
 
         void parse_xml_config_dom(xmlDocPtr doc);
 
@@ -52,13 +54,17 @@ namespace yp2 {
         const xmlNode* jump_to_next(const xmlNode* node, int xml_node_type);
         
         const xmlNode* jump_to_children(const xmlNode* node, int xml_node_type);
+        void parse_xml_filters(xmlDocPtr doc, const xmlNode *node);
+        void parse_xml_routes(xmlDocPtr doc, const xmlNode *node);
+
         bool m_xinclude;
     private:
         FactoryFilter *m_factory; // TODO shared_ptr
     };
 }
 
-const xmlNode* yp2::RouterFleXML::Rep::jump_to_children(const xmlNode* node, int xml_node_type)
+const xmlNode* yp2::RouterFleXML::Rep::jump_to_children(const xmlNode* node,
+                                                        int xml_node_type)
 {
     node = node->children;
     for (; node && node->type != xml_node_type; node = node->next)
@@ -66,7 +72,8 @@ const xmlNode* yp2::RouterFleXML::Rep::jump_to_children(const xmlNode* node, int
     return node;
 }
         
-const xmlNode* yp2::RouterFleXML::Rep::jump_to_next(const xmlNode* node, int xml_node_type)
+const xmlNode* yp2::RouterFleXML::Rep::jump_to_next(const xmlNode* node,
+                                                    int xml_node_type)
 {
     node = node->next;
     for (; node && node->type != xml_node_type; node = node->next)
@@ -74,7 +81,8 @@ const xmlNode* yp2::RouterFleXML::Rep::jump_to_next(const xmlNode* node, int xml
     return node;
 }
         
-const xmlNode* yp2::RouterFleXML::Rep::jump_to(const xmlNode* node, int xml_node_type)
+const xmlNode* yp2::RouterFleXML::Rep::jump_to(const xmlNode* node,
+                                               int xml_node_type)
 {
     for (; node && node->type != xml_node_type; node = node->next)
         ;
@@ -102,8 +110,154 @@ bool yp2::RouterFleXML::Rep::check_element_yp2(const xmlNode *ptr,
                                                const std::string &name)
 {
     if (!is_element_yp2(ptr, name))
-        throw XMLError("Error. Expected element name " + name);
+        throw XMLError("Expected element name " + name);
     return true;
+}
+
+
+void yp2::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
+                                               const xmlNode *node)
+{
+    unsigned int filter_nr = 0;
+    while(node && check_element_yp2(node, "filter"))
+    {
+        filter_nr++;
+        std::cout << "processing /yp2/filters/filter[" 
+                  << filter_nr << "]" << std::endl;
+
+        const struct _xmlAttr *attr;
+        std::string id_value;
+        std::string type_value;
+        for (attr = node->properties; attr; attr = attr->next)
+        {
+            std::string name = std::string((const char *) attr->name);
+            std::string value;
+
+            if (attr->children && attr->children->type == XML_TEXT_NODE)
+                value = std::string((const char *)attr->children->content);
+
+            if (name == "id")
+                id_value = value;
+            else if (name == "type")
+                type_value = value;
+            else
+                throw XMLError("Only attribute id or type allowed"
+                               " in filter element. Got " + name);
+                
+            std::cout << "attr " << name << "=" << value << "\n";
+        }
+
+        yp2::filter::Base* filter_base = m_factory->create(type_value);
+
+        filter_base->configure(node);
+
+        if (m_id_filter_map.find(id_value) != m_id_filter_map.end())
+            throw XMLError("Filter " + id_value + " already defined");
+
+        m_id_filter_map[id_value] =
+            boost::shared_ptr<yp2::filter::Base>(filter_base);
+
+        node = jump_to_next(node, XML_ELEMENT_NODE);
+    }
+}
+
+void yp2::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
+                                              const xmlNode *node)
+{
+    check_element_yp2(node, "route");
+
+    unsigned int route_nr = 0;
+    while(is_element_yp2(node, "route"))
+    {
+        route_nr++;
+
+        const struct _xmlAttr *attr;
+        std::string id_value;
+        for (attr = node->properties; attr; attr = attr->next)
+        {
+            std::string name = std::string((const char *) attr->name);
+            std::string value;
+            
+            if (attr->children && attr->children->type == XML_TEXT_NODE)
+                value = std::string((const char *)attr->children->content);
+            
+            if (name == "id")
+                id_value = value;
+            else
+                throw XMLError("Only attribute refid allowed route element. Got " + name);
+            
+            std::cout << "attr " << name << "=" << value << "\n";
+        }
+
+        Route route;
+
+        std::cout << "processing /yp2/routes/route[" 
+                  << route_nr << "]" << std::endl;
+        
+        // process <filter> nodes in third level
+
+        const xmlNode* node3 = jump_to_children(node, XML_ELEMENT_NODE);
+
+        unsigned int filter3_nr = 0;
+        while(node3 && check_element_yp2(node3, "filter"))
+        {
+            filter3_nr++;
+            
+            const struct _xmlAttr *attr;
+            std::string refid_value;
+            std::string type_value;
+            for (attr = node3->properties; attr; attr = attr->next)
+            {
+                std::string name = std::string((const char *) attr->name);
+                std::string value;
+                
+                if (attr->children && attr->children->type == XML_TEXT_NODE)
+                    value = std::string((const char *)attr->children->content);
+                
+                if (name == "refid")
+                    refid_value = value;
+                else if (name == "type")
+                    type_value = value;
+                else
+                    throw XMLError("Only attribute refid or type"
+                                   " allowed in filter element. Got " + name);
+                
+                std::cout << "attr " << name << "=" << value << "\n";
+            }
+            if (refid_value.length())
+            {
+                std::map<std::string,
+                    boost::shared_ptr<const yp2::filter::Base > >::iterator it;
+                it = m_id_filter_map.find(refid_value);
+                if (it == m_id_filter_map.end())
+                    throw XMLError("Unknown filter refid " + refid_value);
+                else
+                    route.m_list.push_back(it->second);
+            }
+            else if (type_value.length())
+            {
+                yp2::filter::Base* filter_base = m_factory->create(type_value);
+
+                filter_base->configure(node3);
+                
+                route.m_list.push_back(
+                    boost::shared_ptr<yp2::filter::Base>(filter_base));
+            }
+            std::cout << "processing /yp2/routes/route[" 
+                      << route_nr << "]/filter[" 
+                      << filter3_nr << "]" << std::endl;
+            
+            node3 = jump_to_next(node3, XML_ELEMENT_NODE);
+            
+        }
+        std::map<std::string,RouterFleXML::Route>::iterator it;
+        it = m_routes.find(id_value);
+        if (it != m_routes.end())
+            throw XMLError("Route id='" + id_value + "' already exist");
+        else
+            m_routes[id_value] = route;
+        node = jump_to_next(node, XML_ELEMENT_NODE);
+    }
 }
 
 void yp2::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
@@ -131,97 +285,17 @@ void yp2::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
     check_element_yp2(node, "filters");
     std::cout << "processing /yp2/filters" << std::endl;
     
-    // process <filter> nodes  in next level
-    const xmlNode* node2 = jump_to_children(node, XML_ELEMENT_NODE);
-    
-    unsigned int filter_nr = 0;
-    while(node2 && check_element_yp2(node2, "filter"))
-    {
-        filter_nr++;
-        std::cout << "processing /yp2/filters/filter[" 
-                  << filter_nr << "]" << std::endl;
-
-        const struct _xmlAttr *attr;
-        std::string id_value;
-        std::string type_value;
-        for (attr = node2->properties; attr; attr = attr->next)
-        {
-            std::string name = std::string((const char *) attr->name);
-            std::string value;
-
-            if (attr->children && attr->children->type == XML_TEXT_NODE)
-                value = std::string((const char *)attr->children->content);
-
-            if (name == "id")
-                id_value = value;
-            else if (name == "type")
-                type_value = value;
-            else
-                throw XMLError("Error. Only attribute id or type allowed in filter element. Got " + name);
-                
-            std::cout << "attr " << name << "=" << value << "\n";
-
-            //const xmlNode *val;
-        }
-
-        yp2::filter::Base* filter_base = m_factory->create(type_value);
-
-        filter_base->configure(node2);
-
-        if (m_id_filter_map.find(id_value) != m_id_filter_map.end())
-            throw XMLError("Filter " + id_value + " already defined");
-
-        m_id_filter_map[id_value] =
-            boost::shared_ptr<yp2::filter::Base>(filter_base);
-
-        node2 = jump_to_next(node2, XML_ELEMENT_NODE);
-    }
-    
+    parse_xml_filters(doc, jump_to_children(node, XML_ELEMENT_NODE));
+                      
     // process <routes> node which is expected third element node
     node = jump_to_next(node, XML_ELEMENT_NODE);
     check_element_yp2(node, "routes");
     std::cout << "processing /yp2/routes" << std::endl;
     
-    // process <route> nodes  in next level
-    node2 = jump_to_children(node, XML_ELEMENT_NODE);
-    check_element_yp2(node2, "route");
-    
-    unsigned int route_nr = 0;
-    while(is_element_yp2(node2, "router"))
-    {
-        route_nr++;
-        std::cout << "processing /yp2/routes/route[" 
-                  << route_nr << "]" << std::endl;
-        
-        // process <filter> nodes in third level
-        const xmlNode* node3 = jump_to_children(node2, XML_ELEMENT_NODE);
-        
-        unsigned int filter3_nr = 0;
-        while(node3 && check_element_yp2(node3, "filter"))
-        {
-            filter3_nr++;
-            
-            std::cout << "processing /yp2/routes/route[" 
-                      << route_nr << "]/filter[" 
-                      << filter3_nr << "]" << std::endl;
-            
-            node3 = jump_to_next(node3, XML_ELEMENT_NODE);
-            
-        }
-        node2 = jump_to_next(node2, XML_ELEMENT_NODE);
-    }
+    parse_xml_routes(doc, jump_to_children(node, XML_ELEMENT_NODE));
 }        
 
-void yp2::RouterFleXML::Rep::create_filter(std::string type, 
-                                           const xmlDoc * xmldoc,
-                                           std::string id)
-{
-    std::cout << "Created Filter type='" << type 
-              << "' id='" << id << "'" << std::endl;
-}
-
-yp2::RouterFleXML::Rep::Rep() : 
-    m_xinclude(false)
+yp2::RouterFleXML::Rep::Rep() : m_xinclude(false)
 {
 }
 

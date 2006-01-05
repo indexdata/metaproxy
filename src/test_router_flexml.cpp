@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.11 2006-01-04 14:30:51 adam Exp $
+/* $Id: test_router_flexml.cpp,v 1.12 2006-01-05 16:39:37 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -17,11 +17,12 @@
 
 using namespace boost::unit_test;
 
-static bool tfilter_destroyed = false;
+static int tfilter_ref = 0;
 class TFilter: public yp2::filter::Base {
 public:
     void process(yp2::Package & package) const {};
-    ~TFilter() { tfilter_destroyed = true; };
+    TFilter() { tfilter_ref++; };
+    ~TFilter() { tfilter_ref--; };
 };
 
 static yp2::filter::Base* filter_creator()
@@ -29,6 +30,7 @@ static yp2::filter::Base* filter_creator()
     return new TFilter;
 }
 
+// Pass well-formed XML and valid configuration to it (implicit NS)
 BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
 {
     try
@@ -53,7 +55,11 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
             "  <routes>\n"  
             "    <route id=\"start\">\n"
             "      <filter refid=\"front_default\"/>\n"
-            "      <filter refid=\"log_cout\"/>\n"
+            "      <filter refid=\"log_cout1\"/>\n"
+            "      <filter type=\"tfilter\">\n"
+            "      </filter>\n"
+            "      <filter type=\"z3950_client\">\n"
+            "      </filter>\n"
             "    </route>\n"
             "  </routes>\n"
             "</yp2>\n";
@@ -61,6 +67,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
         yp2::FactoryStatic factory;
         factory.add_creator("tfilter", filter_creator);
         yp2::RouterFleXML rflexml(xmlconf, factory);
+        BOOST_CHECK_EQUAL(tfilter_ref, 2);
     }
     catch ( std::runtime_error &e) {
         std::cout << "std::runtime error: " << e.what() << "\n";
@@ -69,12 +76,13 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
     catch ( ... ) {
         BOOST_CHECK (false);
     }
-    BOOST_CHECK(tfilter_destroyed == true);
+    BOOST_CHECK_EQUAL(tfilter_ref, 0);
 }
 
+// Pass non-wellformed XML
 BOOST_AUTO_UNIT_TEST( test_router_flexml_2 )
 {
-    bool got_xml_error = false;
+    bool got_error_as_expected = false;
     try
     {
         std::string xmlconf_invalid = "<?xml version=\"1.0\"?>\n"
@@ -88,18 +96,19 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_2 )
         yp2::RouterFleXML rflexml(xmlconf_invalid, factory);
     }
     catch ( yp2::RouterFleXML::XMLError &e) {
-        got_xml_error = true;
+        std::cout << "XMLError: " << e.what() << "\n";
+        got_error_as_expected = true;
     }
     catch ( std::runtime_error &e) {
         std::cout << "std::runtime error: " << e.what() << "\n";
-        BOOST_CHECK (false);
     }
     catch ( ... ) {
         ;
     }
-    BOOST_CHECK(got_xml_error);
+    BOOST_CHECK(got_error_as_expected);
 }
 
+// Pass well-formed XML with explicit NS
 BOOST_AUTO_UNIT_TEST( test_router_flexml_3 )
 {
     try
@@ -133,6 +142,41 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_3 )
     catch ( ... ) {
         BOOST_CHECK (false);
     }
+}
+
+// Pass well-formed XML but bad filter type
+BOOST_AUTO_UNIT_TEST( test_router_flexml_4 )
+{
+    bool got_error_as_expected = false;
+    try
+    {
+        std::string xmlconf = "<?xml version=\"1.0\"?>\n"
+            "<yp2 xmlns=\"http://indexdata.dk/yp2/config/1\">\n"
+            "  <start route=\"start\"/>\n"
+            "  <filters>\n"
+            "    <filter id=\"front_default\" type=\"notknown\">\n"
+            "      <port>210</port>\n"
+            "    </filter>\n"
+            "  </filters>\n"
+            "  <routes>\n"  
+            "    <route id=\"start\">\n"
+            "      <filter refid=\"front_default\"/>\n"
+            "    </route>\n"
+            "  </routes>\n"
+            "</yp2>\n";
+
+        yp2::FactoryStatic factory;
+        factory.add_creator("tfilter", filter_creator);
+        yp2::RouterFleXML rflexml(xmlconf, factory);
+    }
+    catch ( yp2::FactoryFilter::NotFound &e) {
+        std::cout << "yp2::FactoryFilter::NotFound: " << e.what() << "\n";
+        got_error_as_expected = true;
+    }
+    catch ( std::runtime_error &e) {
+        std::cout << "std::runtime error: " << e.what() << "\n";
+    }
+    BOOST_CHECK(got_error_as_expected);
 }
 
 

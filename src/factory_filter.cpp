@@ -1,4 +1,4 @@
-/* $Id: factory_filter.cpp,v 1.1 2006-01-04 14:30:51 adam Exp $
+/* $Id: factory_filter.cpp,v 1.2 2006-01-05 16:39:37 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -29,8 +29,8 @@ namespace yp2 {
     };
 }
 
-yp2::FactoryFilterException::FactoryFilterException(const std::string message)
-    : std::runtime_error("FilterException: " + message)
+yp2::FactoryFilter::NotFound::NotFound(const std::string message)
+    : std::runtime_error(message)
 {
 }
 
@@ -70,7 +70,7 @@ yp2::filter::Base* yp2::FactoryFilter::create(std::string fi)
     
     if (it == m_p->m_fcm.end()){
         std::string msg = "filter type '" + fi + "' not found";
-            throw yp2::FactoryFilterException(msg);
+            throw NotFound(msg);
     }
     // call create function
     return (it->second());

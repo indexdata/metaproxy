@@ -1,4 +1,4 @@
-/* $Id: factory_filter.hpp,v 1.1 2006-01-04 14:30:51 adam Exp $
+/* $Id: factory_filter.hpp,v 1.2 2006-01-05 16:39:37 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -18,11 +18,6 @@
 #include "filter.hpp"
 
 namespace yp2 {
-    class FactoryFilterException : public std::runtime_error {
-    public:
-        FactoryFilterException(const std::string message);
-    };
-    
     class FactoryFilter : public boost::noncopyable
     {
         typedef yp2::filter::Base* (*CreateFilterCallback)();
@@ -41,6 +36,12 @@ namespace yp2 {
         yp2::filter::Base* create(std::string fi);
 
         bool add_creator_dyn(const std::string &fi, const std::string &path);
+
+
+        class NotFound : public std::runtime_error {
+        public:
+            NotFound(const std::string msg);
+        };
     private:
         boost::scoped_ptr<Rep> m_p;
     };
