@@ -1,4 +1,4 @@
-/* $Id: test_filter2.cpp,v 1.16 2005-12-02 12:21:07 adam Exp $
+/* $Id: test_filter2.cpp,v 1.17 2006-01-09 13:43:59 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -138,7 +138,7 @@ BOOST_AUTO_UNIT_TEST( testfilter2_1 )
 	    
 	    pack.router(router1).move(); 
 	    
-            BOOST_CHECK (pack.data() == 2468);
+            BOOST_CHECK_EQUAL(pack.data(), 2468);
             
         }
         
@@ -154,7 +154,7 @@ BOOST_AUTO_UNIT_TEST( testfilter2_1 )
 	 
             pack.router(router2).move();
      
-            BOOST_CHECK (pack.data() == 1234);
+            BOOST_CHECK_EQUAL(pack.data(), 1234);
             
 	}
 

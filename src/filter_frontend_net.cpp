@@ -1,4 +1,4 @@
-/* $Id: filter_frontend_net.cpp,v 1.11 2006-01-04 11:55:31 adam Exp $
+/* $Id: filter_frontend_net.cpp,v 1.12 2006-01-09 13:43:59 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -7,6 +7,7 @@
 
 #include "config.hpp"
 
+#include "xmlutil.hpp"
 #include "pipe.hpp"
 #include "filter.hpp"
 #include "router.hpp"
@@ -242,6 +243,9 @@ void yp2::My_Timer_Thread::socketNotify(int event)
 }
 
 void yp2::filter::FrontendNet::process(Package &package) const {
+    if (m_ports.size() == 0)
+        return;
+
     yazpp_1::SocketManager mySocketManager;
 
     My_Timer_Thread *tt = 0;
@@ -273,6 +277,34 @@ void yp2::filter::FrontendNet::process(Package &package) const {
 
     delete [] az;
     delete tt;
+}
+
+void yp2::filter::FrontendNet::configure(const xmlNode * ptr)
+{
+    if (!ptr || !ptr->children)
+    {
+        throw yp2::filter::FilterException("No ports for Frontend");
+    }
+    std::vector<std::string> ports;
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
+    {
+        if (ptr->type == XML_ELEMENT_NODE)
+        {
+            if (!strcmp((const char *) ptr->name, "port"))
+            {
+                std::string port = yp2::xml::get_text(ptr);
+                ports.push_back(port);
+                
+            }
+            else
+            {
+                throw yp2::filter::FilterException("Bad element " 
+                                                   + std::string((const char *)
+                                                                 ptr->name));
+            }
+        }
+    }
+    m_ports = ports;
 }
 
 std::vector<std::string> &yp2::filter::FrontendNet::ports()

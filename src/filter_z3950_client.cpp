@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.15 2006-01-04 11:55:32 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.16 2006-01-09 13:43:59 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -113,7 +113,6 @@ void yf::Z3950Client::Assoc::failNotify()
 
 void yf::Z3950Client::Assoc::timeoutNotify()
 {
-    std::cout << "TIMEOUT NOTIFY\n";
     m_ticks++;
     if (m_ticks == 30)
     {

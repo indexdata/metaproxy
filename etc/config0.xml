@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!-- $Id: config0.xml,v 1.1 2006-01-09 13:43:59 adam Exp $ -->
+<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+  <start route="start"/>
+  <filters>
+    <filter id="frontend" type="frontend_net">
+      <port>@:9000</port>
+    </filter>
+    <filter id="backend" type="z3950_client">
+    </filter>
+  </filters>
+  <routes>  
+    <route id="start">
+      <filter refid="frontend"/>
+      <filter type="log"/>
+      <filter refid="backend"/>
+    </route>
+   </routes>
+</yp2>
+

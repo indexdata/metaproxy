@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.12 2006-01-05 16:39:37 adam Exp $
+/* $Id: test_router_flexml.cpp,v 1.13 2006-01-09 13:43:59 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -40,7 +40,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
             "  <start route=\"start\"/>\n"
             "  <filters>\n"
             "    <filter id=\"front_default\" type=\"frontend_net\">\n"
-            "      <port>210</port>\n"
+            "      <port>@:210</port>\n"
             "    </filter>\n"
             "    <filter id=\"log_cout1\" type=\"log\">\n"
             "      <logfile>mylog1.log</logfile>\n"
@@ -90,7 +90,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_2 )
             "  <start route=\"start\"/>\n"
             "  <filters>\n"
             "    <filter id=\"front_default\" type=\"frontend_net\">\n"
-            "      <port>210</port>\n";
+            "      <port>@:210</port>\n";
         
         yp2::FactoryFilter factory;
         yp2::RouterFleXML rflexml(xmlconf_invalid, factory);
@@ -118,7 +118,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_3 )
             "  <y:start route=\"start\"/>\n"
             "  <y:filters>\n"
             "    <y:filter id=\"front_default\" type=\"frontend_net\">\n"
-            "      <port>210</port>\n"
+            "      <port>@:210</port>\n"
             "    </y:filter>\n"
             "    <y:filter id=\"log_cout\" type=\"log\">\n"
             "      <logfile>mylog.log</logfile>\n"
@@ -155,7 +155,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_4 )
             "  <start route=\"start\"/>\n"
             "  <filters>\n"
             "    <filter id=\"front_default\" type=\"notknown\">\n"
-            "      <port>210</port>\n"
+            "      <port>@:210</port>\n"
             "    </filter>\n"
             "  </filters>\n"
             "  <routes>\n"  

@@ -1,4 +1,4 @@
-/* $Id: package.hpp,v 1.11 2006-01-04 11:19:04 adam Exp $
+/* $Id: package.hpp,v 1.12 2006-01-09 13:43:59 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -28,10 +28,12 @@ namespace yp2 {
     public:
         Origin() : type(API) {};
     };
-    
+
     class Package {
     public:
-        Package() ;
+        Package();
+
+        ~Package();
         
         Package(yp2::Session &session, yp2::Origin &origin);
 
@@ -73,9 +75,13 @@ namespace yp2 {
     private:
         Session m_session;
         Origin m_origin;
-        
+
+#if ROUTE_POS
+        RoutePos *m_route_pos;
+#else
         const filter::Base *m_filter;
         const Router *m_router;
+#endif
         int m_data;
         
         yazpp_1::GDU m_request_gdu;

@@ -1,8 +1,10 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.20 2006-01-04 11:19:04 adam Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.21 2006-01-09 13:43:59 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
  */
+
+#include "config.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -11,7 +13,6 @@
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
-#include "config.hpp"
 
 #include "util.hpp"
 #include "filter_frontend_net.hpp"

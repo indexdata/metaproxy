@@ -10,7 +10,7 @@
   <filters>
     <filter id="front_default" type="frontend-net">
       <!-- the Z39.50/HTTP frontend -->
-      <port>210</port>
+      <port>@:210</port>
     </filter>
     <filter id="log_out" type="log">          <!-- apply logging always -->
       <logfile>out.log</logfile>

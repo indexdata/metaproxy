@@ -1,4 +1,4 @@
-/* $Id: package.cpp,v 1.3 2006-01-05 16:39:06 adam Exp $
+/* $Id: package.cpp,v 1.4 2006-01-09 13:43:59 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -9,29 +9,60 @@
 #include "package.hpp"
 
 yp2::Package::Package() 
-    :  m_filter(0), m_router(0), m_data(0)
+    :  
+#if ROUTE_POS
+    m_route_pos(0),
+#else
+    m_filter(0), m_router(0),
+#endif
+    m_data(0)
 {
+}
+
+yp2::Package::~Package()
+{
+#if ROUTE_POS
+    delete m_route_pos;
+#endif
 }
 
 yp2::Package::Package(yp2::Session &session, yp2::Origin &origin) 
     : m_session(session), m_origin(origin),
-      m_filter(0), m_router(0), m_data(0)
+#if ROUTE_POS
+      m_route_pos(0),
+#else
+      m_filter(0), m_router(0),
+#endif
+      m_data(0)
 {
 }
 
 yp2::Package & yp2::Package::copy_filter(const Package &p)
 {
+#if ROUTE_POS
+    m_route_pos = p.m_route_pos->clone();
+#else
     m_router = p.m_router;
     m_filter = p.m_filter;
+#endif
     return *this;
 }
 
 
 void yp2::Package::move()
 {
+#if ROUTE_POS
+    if (m_route_pos)
+    {
+        const filter::Base *next_filter = m_route_pos->move();
+        if (next_filter)
+            next_filter->process(*this);
+    }
+#else
     m_filter = m_router->move(m_filter, this);
     if (m_filter)
         m_filter->process(*this);
+#endif
 }
 
 yp2::Session & yp2::Package::session()
@@ -74,8 +105,12 @@ yp2::Package & yp2::Package::origin(const Origin & origin)
 
 yp2::Package & yp2::Package::router(const yp2::Router &router)
 {
+#if ROUTE_POS
+    m_route_pos = router.createpos();
+#else
     m_filter = 0;
     m_router = &router;
+#endif
     return *this;
 }
 
@@ -87,7 +122,7 @@ yazpp_1::GDU &yp2::Package::request()
 
 yazpp_1::GDU &yp2::Package::response()
 {
-            return m_response_gdu;
+    return m_response_gdu;
 }
 
 yp2::Session yp2::Package::session() const

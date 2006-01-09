@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.40 2006-01-04 14:30:51 adam Exp $
+## $Id: Makefile.am,v 1.41 2006-01-09 13:43:59 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -27,7 +27,8 @@ libyp2_la_SOURCES = \
 	filter_template.cpp filter_template.hpp \
 	factory_static.cpp factory_static.hpp \
 	pipe.cpp pipe.hpp \
-	util.cpp util.hpp
+	util.cpp util.hpp \
+	xmlutil.cpp xmlutil.hpp
 
 # Rules for programs..
 
