@@ -1,4 +1,4 @@
-/* $Id: filter.hpp,v 1.13 2006-01-09 18:19:09 adam Exp $
+/* $Id: filter.hpp,v 1.14 2006-01-09 21:20:15 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -32,7 +32,6 @@ namespace yp2 {
                 : std::runtime_error("FilterException: " + message){
             };
         };
-        
     }
 }
 

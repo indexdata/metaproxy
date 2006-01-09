@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.12 2006-01-09 14:47:09 adam Exp $
+/* $Id: filter_log.cpp,v 1.13 2006-01-09 21:20:15 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -7,7 +7,6 @@
 #include "config.hpp"
 
 #include "filter.hpp"
-#include "router.hpp"
 #include "package.hpp"
 
 #include <string>

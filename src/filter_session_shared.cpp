@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.cpp,v 1.4 2006-01-04 11:55:31 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.5 2006-01-09 21:20:15 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -7,7 +7,6 @@
 #include "config.hpp"
 
 #include "filter.hpp"
-#include "router.hpp"
 #include "package.hpp"
 
 #include <boost/thread/mutex.hpp>

@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.12 2006-01-04 11:55:31 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.13 2006-01-09 21:20:15 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -7,7 +7,6 @@
 #include "config.hpp"
 
 #include "filter.hpp"
-#include "router.hpp"
 #include "package.hpp"
 #include "util.hpp"
 #include "filter_backend_test.hpp"

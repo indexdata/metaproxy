@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.17 2006-01-09 18:19:09 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.18 2006-01-09 21:20:15 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -8,7 +8,6 @@
 
 #include "xmlutil.hpp"
 #include "filter.hpp"
-#include "router.hpp"
 #include "package.hpp"
 #include "util.hpp"
 #include "filter_z3950_client.hpp"
