@@ -1,4 +1,4 @@
-/* $Id: filter_frontend_net.hpp,v 1.11 2006-01-09 13:43:59 adam Exp $
+/* $Id: filter_frontend_net.hpp,v 1.12 2006-01-09 21:19:11 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -6,6 +6,8 @@
 
 #ifndef FILTER_FRONTEND_NET_HPP
 #define FILTER_FRONTEND_NET_HPP
+
+#include <boost/scoped_ptr.hpp>
 
 #include <stdexcept>
 #include <vector>
@@ -15,18 +17,17 @@
 namespace yp2 {
     namespace filter {
         class FrontendNet : public Base {
-            class ZAssocServerChild;
+            class Rep;
+            boost::scoped_ptr<Rep> m_p;
         public:
-            FrontendNet::FrontendNet();
+            FrontendNet();
+            ~FrontendNet();
             void process(yp2::Package & package) const;
             void configure(const xmlNode * ptr);
-        private:
-            int m_no_threads;
-            std::vector<std::string> m_ports;
-            int m_listen_duration;
         public:
-            /// set function - left val in assignment
+            /// set ports
             std::vector<std::string> &ports();
+            // set liten duraction (number of seconcds to listen)
             int &listen_duration();
         };
     }

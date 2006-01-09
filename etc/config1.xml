@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
-<!-- $Id: config1.xml,v 1.6 2006-01-09 18:19:09 adam Exp $ -->
+<!-- $Id: config1.xml,v 1.7 2006-01-09 21:19:11 adam Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <filters>
     <filter id="frontend" type="frontend_net">
+      <threads>10</threads>
       <port>@:9000</port>
     </filter>
     <filter id="backend" type="z3950_client">

@@ -1,16 +1,14 @@
-/* $Id: filter_frontend_net.cpp,v 1.13 2006-01-09 18:18:07 adam Exp $
+/* $Id: filter_frontend_net.cpp,v 1.14 2006-01-09 21:19:11 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
  */
-
 
 #include "config.hpp"
 
 #include "xmlutil.hpp"
 #include "pipe.hpp"
 #include "filter.hpp"
-#include "router.hpp"
 #include "package.hpp"
 #include "thread_pool_observer.hpp"
 #include "filter_frontend_net.hpp"
@@ -22,6 +20,14 @@
 #include <iostream>
 
 namespace yp2 {
+    namespace filter {
+        class FrontendNet::Rep {
+            friend class FrontendNet;
+            int m_no_threads;
+            std::vector<std::string> m_ports;
+            int m_listen_duration;
+        };
+    }
     class My_Timer_Thread : public yazpp_1::ISocketObserver {
     private:
         yazpp_1::ISocketObservable *m_obs;
@@ -215,12 +221,15 @@ void yp2::ZAssocServer::connectNotify()
 {
 }
 
-yp2::filter::FrontendNet::FrontendNet()
+yp2::filter::FrontendNet::FrontendNet() : m_p(new Rep)
 {
-    m_no_threads = 5;
-    m_listen_duration = 0;
+    m_p->m_no_threads = 5;
+    m_p->m_listen_duration = 0;
 }
 
+yp2::filter::FrontendNet::~FrontendNet()
+{
+}
 
 bool yp2::My_Timer_Thread::timeout()
 {
@@ -242,37 +251,38 @@ void yp2::My_Timer_Thread::socketNotify(int event)
     m_obs->deleteObserver(this);
 }
 
-void yp2::filter::FrontendNet::process(Package &package) const {
-    if (m_ports.size() == 0)
+void yp2::filter::FrontendNet::process(Package &package) const
+{
+    if (m_p->m_ports.size() == 0)
         return;
 
     yazpp_1::SocketManager mySocketManager;
 
     My_Timer_Thread *tt = 0;
-    if (m_listen_duration)
-	tt = new My_Timer_Thread(&mySocketManager, m_listen_duration);
+    if (m_p->m_listen_duration)
+	tt = new My_Timer_Thread(&mySocketManager, m_p->m_listen_duration);
 
-    ThreadPoolSocketObserver threadPool(&mySocketManager, m_no_threads);
+    ThreadPoolSocketObserver threadPool(&mySocketManager, m_p->m_no_threads);
 
-    yp2::ZAssocServer **az = new yp2::ZAssocServer *[m_ports.size()];
+    yp2::ZAssocServer **az = new yp2::ZAssocServer *[m_p->m_ports.size()];
 
     // Create yp2::ZAssocServer for each port
     size_t i;
-    for (i = 0; i<m_ports.size(); i++)
+    for (i = 0; i<m_p->m_ports.size(); i++)
     {
 	// create a PDU assoc object (one per yp2::ZAssocServer)
 	yazpp_1::PDU_Assoc *as = new yazpp_1::PDU_Assoc(&mySocketManager);
 
 	// create ZAssoc with PDU Assoc
 	az[i] = new yp2::ZAssocServer(as, &threadPool, &package);
-	az[i]->server(m_ports[i].c_str());
+	az[i]->server(m_p->m_ports[i].c_str());
     }
     while (mySocketManager.processEvent() > 0)
     {
 	if (tt && tt->timeout())
 	    break;
     }
-    for (i = 0; i<m_ports.size(); i++)
+    for (i = 0; i<m_p->m_ports.size(); i++)
 	delete az[i];
 
     delete [] az;
@@ -296,6 +306,15 @@ void yp2::filter::FrontendNet::configure(const xmlNode * ptr)
             ports.push_back(port);
             
         }
+        else if (!strcmp((const char *) ptr->name, "threads"))
+        {
+            std::string threads_str = yp2::xml::get_text(ptr);
+            int threads = atoi(threads_str.c_str());
+            if (threads < 1)
+                throw yp2::filter::FilterException("Bad value for threads: " 
+                                                   + threads_str);
+            m_p->m_no_threads = threads;
+        }
         else
         {
             throw yp2::filter::FilterException("Bad element " 
@@ -303,17 +322,17 @@ void yp2::filter::FrontendNet::configure(const xmlNode * ptr)
                                                              ptr->name));
         }
     }
-    m_ports = ports;
+    m_p->m_ports = ports;
 }
 
 std::vector<std::string> &yp2::filter::FrontendNet::ports()
 {
-    return m_ports;
+    return m_p->m_ports;
 }
 
 int &yp2::filter::FrontendNet::listen_duration()
 {
-    return m_listen_duration;
+    return m_p->m_listen_duration;
 }
 
 static yp2::filter::Base* filter_creator()
