@@ -1,6 +1,6 @@
 # Copyright (C) 2005, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.5 2005-12-10 10:07:15 adam Exp $
+# $Id: makefile,v 1.6 2006-01-09 14:46:31 adam Exp $
 
 # MS NMAKE makefile for yp2
 
@@ -27,7 +27,7 @@ default: all
 
 all: dirs config yaz yazpp libxslt dll progs
 
-progs: ex_filter_frontend_net test_pipe
+progs: ex_filter_frontend_net test_pipe ex_router_flexml
 
 NSIS="c:\program files\nsis\makensis.exe"
 
@@ -56,11 +56,13 @@ TMP=$(TMPDIR)
 PROJECT_DLL=$(BINDIR)\yp2.dll
 PROJECT_IMPLIB=$(LIBDIR)\yp2.lib
 EX_FILTER_FRONTEND_NET=$(BINDIR)\ex_filter_frontend_net.exe
+EX_ROUTER_FLEXML=$(BINDIR)\ex_router_flexml.exe
 TEST_PIPE=$(BINDIR)\test_pipe.exe
 
 # shortcut names defined here
 dll: $(PROJECT_DLL)
 ex_filter_frontend_net: $(EX_FILTER_FRONTEND_NET)
+ex_router_flexml: $(EX_ROUTER_FLEXML)
 test_pipe: $(TEST_PIPE)
 
 ###########################################################
@@ -197,21 +199,26 @@ LNKOPT= $(COMMON_LNK_OPTIONS) $(RELEASE_LNK_OPTIONS)
 
 PROJECT_DLL_OBJS = \
         $(OBJDIR)\session.obj \
+	$(OBJDIR)\package.obj \
         $(OBJDIR)\router_chain.obj \
         $(OBJDIR)\router_flexml.obj \
+	$(OBJDIR)\thread_pool_observer.obj \
         $(OBJDIR)\filter.obj \
-        $(OBJDIR)\filter_backend_test.obj \
+	$(OBJDIR)\factory_filter.obj \
 	$(OBJDIR)\filter_frontend_net.obj \
         $(OBJDIR)\filter_log.obj \
-	$(OBJDIR)\filter_session_shared.obj \
         $(OBJDIR)\filter_virt_db.obj \
         $(OBJDIR)\filter_z3950_client.obj \
-	$(OBJDIR)\thread_pool_observer.obj \
-	$(OBJDIR)\package.obj \
+        $(OBJDIR)\filter_backend_test.obj \
+        $(OBJDIR)\filter_session_shared.obj \
+        $(OBJDIR)\filter_template.obj \
+	$(OBJDIR)\factory_static.obj \
 	$(OBJDIR)\pipe.obj \
-        $(OBJDIR)\util.obj 
+        $(OBJDIR)\util.obj \
+        $(OBJDIR)\xmlutil.obj 
 
 EX_FILTER_FRONTEND_NET_OBJS = $(OBJDIR)\ex_filter_frontend_net.obj
+EX_ROUTER_FLEXML_OBJS = $(OBJDIR)\ex_router_flexml.obj
 TEST_PIPE_OBJS = $(OBJDIR)\test_pipe.obj
 
 ###########################################################
@@ -257,6 +264,10 @@ $(PROJECT_DLL) $(PROJECT_IMPLIB): "$(BINDIR)" $(PROJECT_DLL_OBJS)
 $(EX_FILTER_FRONTEND_NET) : "$(BINDIR)" $(EX_FILTER_FRONTEND_NET_OBJS) $(PROJECT_IMPLIB)
 	@echo Linking $(EX_FILTER_FRONTEND_NET)
 	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_DLL_OBJS) $(EX_FILTER_FRONTEND_NET_OBJS) /out:$(EX_FILTER_FRONTEND_NET) 
+
+$(EX_ROUTER_FLEXML) : "$(BINDIR)" $(EX_ROUTER_FLEXML_OBJS) $(PROJECT_IMPLIB)
+	@echo Linking $(EX_ROUTER_FLEXML)
+	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_DLL_OBJS) $(EX_ROUTER_FLEXML_OBJS) /out:$(EX_ROUTER_FLEXML) 
 
 $(TEST_PIPE) : "$(BINDIR)" $(TEST_PIPE_OBJS) $(PROJECT_IMPLIB)
 	@echo Linking $(TEST_PIPE)
