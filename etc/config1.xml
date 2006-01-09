@@ -1,112 +1,30 @@
 <?xml version="1.0"?>
-<!-- imagined config for yp2..
-  The router system understands yp2, sequence and filter elements.
-  Everything else interpreted by filters.
-  Each filter is invoked in a sequence (unless a filter invokes another
-  sequence.. A start sequence must be determined somehow.
-  -->
+<!-- $Id: config1.xml,v 1.5 2006-01-09 15:35:18 adam Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
-  <start route="id_hytg"/>
+  <start route="start"/>
   <filters>
-    <filter id="front_default" type="frontend-net">
-      <!-- the Z39.50/HTTP frontend -->
-      <port>@:210</port>
+    <filter id="frontend" type="frontend_net">
+      <port>@:9000</port>
     </filter>
-    <filter id="log_out" type="log">          <!-- apply logging always -->
-      <logfile>out.log</logfile>
-    </filter>
-    <filter id="log_cerr" type="log">          <!-- apply logging always -->
-      <logfile>std::cerr</logfile>
+    <filter id="backend" type="z3950_client">
     </filter>
   </filters>
-
   <routes>  
     <route id="start">
-      <filter refid="log_cout"/>
-      <filter type="cond">           <!-- conditional -->
-	<if test="port=210 and db=public" route="A"/> 
-	<if test="port=210 and db=other" route="B"/> 
-        <switch>
-          <case test="blabla" route="C"/>
-          <case test="blabla2" route="C2"/>
-          <default route="C3"/>
-	</switch>
+      <filter refid="frontend"/>
+      <filter type="log"/>
+      <filter type="virt_db">
+        <virtual>
+          <database>loc</database>
+          <target>z3950.loc.gov:7090/voyager</target>
+        </virtual>
+        <virtual>
+          <database>idgils</database>
+          <target>indexdata.dk/gils</target>
+        </virtual>
       </filter>
-      <filter refid="log_out"/>
-      <filter refid="log_cerr"/>
-      <filter type="log">          <!-- apply logging always -->
-	<logfile>mylog.log</logfile>
-      </filter>   
-    <filter name="reject">        <!-- reject .. -->
-    </filter>
+      <filter refid="backend"/>
     </route>
-    <route id="public">
-      <filter type="z3950-client">
-	<target>localhost:9999/A</target>
-    </filter>
-    </route>
-    <route id="internal">
-      <filter type="z3950-client">
-	<target>localhost:9999/B</target>
-      </filter>
-    </route>
-    <route id="internal">
-      <xml:include href="file://module2.xml#filter45"/>
-      <xml:include href="file://module4.xml#filter145"/>
-    </route>
-    <route id="AB">
-      <filter type="multi">
-        <package route="A"/>
-        <package route="B"/>
-        <merge type="simple"/>
-      </filter>
-    </route>
-  </routes>
+   </routes>
 </yp2>
 
-<!-- functions:
-    db           returns Z39.50 database(s)
-    path         HTTP path
-    HTTP-header  Any HTTP header (including content-type)
-    request-type Init,Search,HTTP,...
-    origin       IP of origin
-    port         Port
-
-
-mother object filter-dom-hash
-  deletes pointers to contexts and filters  on program exit
-hash filter-type -> hash-filter-id -> Context
-                 -> filter-binary-pointer
-
-moher object router pointer hash
-
-created in mother thread, read only structures.
-
-Context* filter.configure(dom );
-
-
-
-process(Context con)
-
-where each filter can have is own context class
-
-yp2::filter::Log::Context : public Context
-
-
-Filters are constructed with a FilterFactory class which exposes a
-method 
-
-Filter* createFilter(std::string type)
-
- .. which returns a filter
-instance. (The interface pointer that is). The FilterFactory may later
-offer function
-  loadModule(std::string filename);
-or even
-  loadModules(std::string filenamemask);
-
-
-
--->
-
-<!-- observation: the logic could be controlled by a XSLT! -->
