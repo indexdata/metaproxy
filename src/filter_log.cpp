@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.11 2006-01-04 11:55:31 adam Exp $
+/* $Id: filter_log.cpp,v 1.12 2006-01-09 14:47:09 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -44,7 +44,7 @@ yf::Log::Log() : m_p(new Rep)
 
 yf::Log::~Log() {}
 
-void yf::Log::process(Package &package) const
+void yf::Log::process(yp2::Package &package) const
 {
     Z_GDU *gdu;
 

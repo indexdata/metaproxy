@@ -1,4 +1,4 @@
-/* $Id: filter_template.cpp,v 1.4 2006-01-04 11:55:31 adam Exp $
+/* $Id: filter_template.cpp,v 1.5 2006-01-09 14:47:09 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -37,7 +37,7 @@ yf::Template::~Template()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
-void yf::Template::process(Package &package) const
+void yf::Template::process(yp2::Package &package) const
 {
     // Z_GDU *gdu = package.request().get();
     package.move();
