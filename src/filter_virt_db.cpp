@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.17 2006-01-04 11:55:31 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.18 2006-01-09 15:32:46 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -6,6 +6,7 @@
 
 #include "config.hpp"
 
+#include "xmlutil.hpp"
 #include "filter.hpp"
 #include "router.hpp"
 #include "package.hpp"
@@ -862,6 +863,45 @@ void yf::Virt_db::process(Package &package) const
 }
 #endif
 
+void yp2::filter::Virt_db::configure(const xmlNode * ptr)
+{
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
+    {
+        if (ptr->type != XML_ELEMENT_NODE)
+            continue;
+        if (!strcmp((const char *) ptr->name, "virtual"))
+        {
+            std::string database;
+            std::string target;
+            xmlNode *v_node = ptr->children;
+            for (; v_node; v_node = v_node->next)
+            {
+                if (v_node->type != XML_ELEMENT_NODE)
+                    continue;
+                
+                if (yp2::xml::is_element_yp2(v_node, "database"))
+                    database = yp2::xml::get_text(v_node);
+                else if (yp2::xml::is_element_yp2(v_node, "target"))
+                    target = yp2::xml::get_text(v_node);
+                else
+                    throw yp2::filter::FilterException
+                        ("Bad element " 
+                         + std::string((const char *) v_node->name)
+                         + " in virtual section"
+                            );
+            }
+            add_map_db2vhost(database, target);
+            std::cout << "Add " << database << "->" << target << "\n";
+        }
+        else
+        {
+            throw yp2::filter::FilterException
+                ("Bad element " 
+                 + std::string((const char *) ptr->name)
+                 + " in virt_db filter");
+        }
+    }
+}
 
 static yp2::filter::Base* filter_creator()
 {
