@@ -1,4 +1,4 @@
-/* $Id: router_flexml.cpp,v 1.11 2006-01-09 13:43:59 adam Exp $
+/* $Id: router_flexml.cpp,v 1.12 2006-01-09 13:53:13 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -45,13 +45,6 @@ namespace yp2 {
 
         std::string m_start_route;
 
-#if ROUTE_POS
-#else        
-        std::map<std::string, 
-                 RouterFleXML::Route>::iterator m_cur_route_it;
-
-        std::list<boost::shared_ptr <const yp2::filter::Base> >::iterator m_cur_filter_it;
-#endif
         void parse_xml_config_dom(xmlDocPtr doc);
 
         bool check_element_yp2(const xmlNode *ptr, 
@@ -70,7 +63,6 @@ namespace yp2 {
         FactoryFilter *m_factory; // TODO shared_ptr
     };
 
-#if ROUTE_POS
     class RouterFleXML::Pos : public RoutePos {
     public:
         virtual const filter::Base *move();
@@ -82,7 +74,6 @@ namespace yp2 {
                  RouterFleXML::Route>::iterator m_route_it;
         std::list<boost::shared_ptr <const yp2::filter::Base> >::iterator m_filter_it;
     };
-#endif
 }
 
 const xmlNode* yp2::RouterFleXML::Rep::jump_to_children(const xmlNode* node,
@@ -332,7 +323,6 @@ yp2::RouterFleXML::~RouterFleXML()
 {
 }
 
-#if ROUTE_POS
 const yp2::filter::Base *yp2::RouterFleXML::Pos::move()
 {
     if (m_filter_it == m_route_it->second.m_list.end())
@@ -370,42 +360,6 @@ yp2::RouterFleXML::Pos::~Pos()
 {
 }
 
-#else
-const yp2::filter::Base *
-yp2::RouterFleXML::move(const yp2::filter::Base *filter,
-                        const yp2::Package *package) const 
-{
-    if (!filter)
-    {   // Initial move. find start route
-        m_p->m_cur_route_it = m_p->m_routes.find("start");
-        if (m_p->m_cur_route_it == m_p->m_routes.end())
-            return 0;
-        m_p->m_cur_filter_it = m_p->m_cur_route_it->second.m_list.begin();
-    }
-    else
-    {
-        const yp2::filter::Base *f = (*m_p->m_cur_filter_it).get();
-        if (f != filter)
-            (m_p->m_cur_filter_it)++;
-        else
-        {
-            // TOTO: should search all routes (not only start)!
-            m_p->m_cur_filter_it = m_p->m_cur_route_it->second.m_list.begin();
-            while (m_p->m_cur_filter_it !=
-                   m_p->m_cur_route_it->second.m_list.end())
-            {
-                const yp2::filter::Base *f = (*m_p->m_cur_filter_it).get();
-                (m_p->m_cur_filter_it)++;
-                if (filter == f)
-                    break;
-            }
-        }
-    }
-    if (m_p->m_cur_filter_it == m_p->m_cur_route_it->second.m_list.end())
-        return 0;
-    return (*m_p->m_cur_filter_it).get();
-}
-#endif   
 
 /*
  * Local variables:

@@ -1,4 +1,4 @@
-/* $Id: router_chain.hpp,v 1.4 2006-01-09 13:43:59 adam Exp $
+/* $Id: router_chain.hpp,v 1.5 2006-01-09 13:53:13 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -20,12 +20,7 @@ namespace yp2 {
     public:
         RouterChain();
         virtual ~RouterChain();
-#if ROUTE_POS
         virtual RoutePos *createpos() const;
-#else
-        virtual const filter::Base *move(const filter::Base *filter,
-                                         const Package *package) const;
-#endif
         RouterChain & append(const filter::Base &filter);
     private:
         boost::scoped_ptr<Rep> m_p;

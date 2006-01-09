@@ -1,4 +1,4 @@
-/* $Id: package.hpp,v 1.12 2006-01-09 13:43:59 adam Exp $
+/* $Id: package.hpp,v 1.13 2006-01-09 13:53:13 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -76,12 +76,8 @@ namespace yp2 {
         Session m_session;
         Origin m_origin;
 
-#if ROUTE_POS
         RoutePos *m_route_pos;
-#else
-        const filter::Base *m_filter;
-        const Router *m_router;
-#endif
+
         int m_data;
         
         yazpp_1::GDU m_request_gdu;
