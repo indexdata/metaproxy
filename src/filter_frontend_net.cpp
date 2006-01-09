@@ -1,4 +1,4 @@
-/* $Id: filter_frontend_net.cpp,v 1.12 2006-01-09 13:43:59 adam Exp $
+/* $Id: filter_frontend_net.cpp,v 1.13 2006-01-09 18:18:07 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -288,20 +288,19 @@ void yp2::filter::FrontendNet::configure(const xmlNode * ptr)
     std::vector<std::string> ports;
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
-        if (ptr->type == XML_ELEMENT_NODE)
+        if (ptr->type != XML_ELEMENT_NODE)
+            continue;
+        if (!strcmp((const char *) ptr->name, "port"))
         {
-            if (!strcmp((const char *) ptr->name, "port"))
-            {
-                std::string port = yp2::xml::get_text(ptr);
-                ports.push_back(port);
-                
-            }
-            else
-            {
-                throw yp2::filter::FilterException("Bad element " 
-                                                   + std::string((const char *)
-                                                                 ptr->name));
-            }
+            std::string port = yp2::xml::get_text(ptr);
+            ports.push_back(port);
+            
+        }
+        else
+        {
+            throw yp2::filter::FilterException("Bad element " 
+                                               + std::string((const char *)
+                                                             ptr->name));
         }
     }
     m_ports = ports;
