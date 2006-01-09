@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.hpp,v 1.7 2006-01-04 11:55:32 adam Exp $
+/* $Id: filter_z3950_client.hpp,v 1.8 2006-01-09 18:19:09 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -20,6 +20,7 @@ namespace yp2 {
             ~Z3950Client();
             Z3950Client();
             void process(yp2::Package & package) const;
+            void configure(const xmlNode * ptr);
         private:
             boost::scoped_ptr<Rep> m_p;
         };

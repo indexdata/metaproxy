@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.16 2006-01-09 13:43:59 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.17 2006-01-09 18:19:09 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -6,6 +6,7 @@
 
 #include "config.hpp"
 
+#include "xmlutil.hpp"
 #include "filter.hpp"
 #include "router.hpp"
 #include "package.hpp"
@@ -37,7 +38,7 @@ namespace yp2 {
             friend class Rep;
             Assoc(yazpp_1::SocketManager *socket_manager,
                   yazpp_1::IPDU_Observable *PDU_Observable,
-                  std::string host);
+                  std::string host, int timeout);
             ~Assoc();
             void connectNotify();
             void failNotify();
@@ -55,12 +56,14 @@ namespace yp2 {
             bool m_destroyed;
             bool m_connected;
             int m_queue_len;
-            int m_ticks;
+            int m_time_elapsed;
+            int m_time_max;
             std::string m_host;
         };
 
         class Z3950Client::Rep {
         public:
+            int m_timeout_sec;
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
             std::map<yp2::Session,Z3950Client::Assoc *> m_clients;
@@ -76,11 +79,12 @@ using namespace yp2;
 
 yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
                               yazpp_1::IPDU_Observable *PDU_Observable,
-                              std::string host)
+                              std::string host, int timeout_sec)
     :  Z_Assoc(PDU_Observable),
        m_socket_manager(socket_manager), m_PDU_Observable(PDU_Observable),
        m_package(0), m_in_use(true), m_waiting(false), 
-       m_destroyed(false), m_connected(false), m_queue_len(1), m_ticks(0),
+       m_destroyed(false), m_connected(false), m_queue_len(1),
+       m_time_elapsed(0), m_time_max(timeout_sec), 
        m_host(host)
 {
     // std::cout << "create assoc " << this << "\n";
@@ -113,8 +117,8 @@ void yf::Z3950Client::Assoc::failNotify()
 
 void yf::Z3950Client::Assoc::timeoutNotify()
 {
-    m_ticks++;
-    if (m_ticks == 30)
+    m_time_elapsed++;
+    if (m_time_elapsed >= m_time_max)
     {
         m_waiting = false;
 
@@ -150,6 +154,7 @@ yazpp_1::IPDU_Observer *yf::Z3950Client::Assoc::sessionNotify(
 
 yf::Z3950Client::Z3950Client() :  m_p(new yf::Z3950Client::Rep)
 {
+    m_p->m_timeout_sec = 30;
 }
 
 yf::Z3950Client::~Z3950Client() {
@@ -210,7 +215,8 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     // check virtual host
     const char *vhost =
         yaz_oi_get_string_oidval(&apdu->u.initRequest->otherInfo,
-                                 VAL_PROXY, 1, 0);
+                                 VAL_PROXY, 
+                                 /* categoryValue */ 1, /* delete */ 1);
     if (!vhost)
     {
         yp2::odr odr;
@@ -221,10 +227,11 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         package.session().close();
         return 0;
     }
-    
+                      
     yazpp_1::SocketManager *sm = new yazpp_1::SocketManager;
     yazpp_1::PDU_Assoc *pdu_as = new yazpp_1::PDU_Assoc(sm);
-    yf::Z3950Client::Assoc *as = new yf::Z3950Client::Assoc(sm, pdu_as, vhost);
+    yf::Z3950Client::Assoc *as = new yf::Z3950Client::Assoc(sm, pdu_as, vhost,
+                                                            m_timeout_sec);
     m_clients[package.session()] = as;
     return as;
 }
@@ -240,7 +247,7 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
     if (!gdu || gdu->which != Z_GDU_Z3950)
         return;
 
-    c->m_ticks = 0;
+    c->m_time_elapsed = 0;
     c->m_package = &package;
     c->m_waiting = true;
     if (!c->m_connected)
@@ -258,7 +265,7 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
     }
 
     // prepare response
-    c->m_ticks = 0;
+    c->m_time_elapsed = 0;
     c->m_waiting = true;
     
     // relay the package  ..
@@ -324,6 +331,29 @@ void yf::Z3950Client::process(Package &package) const
     m_p->release_assoc(package);
 }
 
+void yf::Z3950Client::configure(const xmlNode *ptr)
+{
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
+    {
+        if (ptr->type != XML_ELEMENT_NODE)
+            continue;
+        if (!strcmp((const char *) ptr->name, "timeout"))
+        {
+            std::string timeout_str = yp2::xml::get_text(ptr);
+            int timeout_sec = atoi(timeout_str.c_str());
+            if (timeout_sec < 2)
+                throw yp2::filter::FilterException("Bad timeout value " 
+                                                   + timeout_str);
+            m_p->m_timeout_sec = timeout_sec;
+        }
+        else
+        {
+            throw yp2::filter::FilterException("Bad element " 
+                                               + std::string((const char *)
+                                                             ptr->name));
+        }
+    }
+}
 
 static yp2::filter::Base* filter_creator()
 {

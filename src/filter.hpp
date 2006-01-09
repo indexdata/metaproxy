@@ -1,4 +1,4 @@
-/* $Id: filter.hpp,v 1.12 2006-01-09 13:43:59 adam Exp $
+/* $Id: filter.hpp,v 1.13 2006-01-09 18:19:09 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -14,7 +14,6 @@
 namespace yp2 {
 
     class Package;
-
 
     namespace filter {
         class Base {
