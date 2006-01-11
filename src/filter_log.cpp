@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.13 2006-01-09 21:20:15 adam Exp $
+/* $Id: filter_log.cpp,v 1.14 2006-01-11 08:53:52 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -6,7 +6,7 @@
 
 #include "config.hpp"
 
-#include "filter.hpp"
+#include "xmlutil.hpp"
 #include "package.hpp"
 
 #include <string>
@@ -93,6 +93,23 @@ void yf::Log::process(yp2::Package &package) const
         {
             yp2::odr odr(ODR_PRINT);
             z_GDU(odr, &gdu, 0, 0);
+        }
+    }
+}
+
+void yf::Log::configure(const xmlNode *ptr)
+{
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
+    {
+        if (ptr->type != XML_ELEMENT_NODE)
+            continue;
+        if (!strcmp((const char *) ptr->name, "message"))
+            m_p->m_msg = yp2::xml::get_text(ptr);
+        else
+        {
+            throw yp2::filter::FilterException("Bad element " 
+                                               + std::string((const char *)
+                                                             ptr->name));
         }
     }
 }

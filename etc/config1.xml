@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config1.xml,v 1.7 2006-01-09 21:19:11 adam Exp $ -->
+<!-- $Id: config1.xml,v 1.8 2006-01-11 08:53:52 adam Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <filters>
@@ -14,6 +14,9 @@
   <routes>  
     <route id="start">
       <filter refid="frontend"/>
+      <filter type="log">
+        <message>F</message>
+      </filter>
       <filter type="virt_db">
         <virtual>
           <database>loc</database>
@@ -23,8 +26,14 @@
           <database>idgils</database>
           <target>indexdata.dk/gils</target>
         </virtual>
+        <virtual>
+          <database>Default</database>
+          <target>localhost:9999</target>
+        </virtual>
       </filter>
-      <filter type="log"/>
+      <filter type="log">
+        <message>B</message>
+      </filter>
       <filter refid="backend"/>
     </route>
    </routes>

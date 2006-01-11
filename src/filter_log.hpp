@@ -1,4 +1,4 @@
-/* $Id: filter_log.hpp,v 1.12 2006-01-04 11:55:31 adam Exp $
+/* $Id: filter_log.hpp,v 1.13 2006-01-11 08:53:52 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -21,6 +21,7 @@ namespace yp2 {
             Log(const std::string &x);
             ~Log();
             void process(yp2::Package & package) const;
+            void configure(const xmlNode * ptr);
         };
     }
 }
