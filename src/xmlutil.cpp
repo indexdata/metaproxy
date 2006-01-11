@@ -1,4 +1,4 @@
-/* $Id: xmlutil.cpp,v 1.3 2006-01-11 13:13:49 adam Exp $
+/* $Id: xmlutil.cpp,v 1.4 2006-01-11 14:58:28 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -94,6 +94,17 @@ const xmlNode* yp2::xml::jump_to(const xmlNode* node,
     return node;
 }
 
+void yp2::xml::check_empty(const xmlNode *node)
+{
+    if (node)
+    {
+        const xmlNode *n;
+        for (n = node->children; n; n = n->next)
+            if (n->type == XML_ELEMENT_NODE)
+                throw yp2::XMLError("No child elements allowed inside element "
+                                    + std::string((const char *) node->name));
+    }
+}
 
 /*
  * Local variables:

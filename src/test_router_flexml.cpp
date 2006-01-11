@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.14 2006-01-11 11:51:50 adam Exp $
+/* $Id: test_router_flexml.cpp,v 1.15 2006-01-11 14:58:28 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -45,9 +45,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
             "    <filter id=\"log_cout1\" type=\"log\">\n"
             "      <message>my msg</message>\n"
             "    </filter>\n"
-            "    <filter id=\"tfilter_id\" type=\"tfilter\">\n"
-            "      <someelement/>\n"
-            "    </filter>\n"
+            "    <filter id=\"tfilter_id\" type=\"tfilter\"/>\n"
             "    <filter id=\"log_cout2\" type=\"log\">\n"
             "      <message>other</message>\n"
             "    </filter>\n"

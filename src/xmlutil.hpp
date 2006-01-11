@@ -1,4 +1,4 @@
-/* $Id: xmlutil.hpp,v 1.3 2006-01-11 13:13:49 adam Exp $
+/* $Id: xmlutil.hpp,v 1.4 2006-01-11 14:58:28 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -27,6 +27,9 @@ namespace yp2 {
         const xmlNode* jump_to_next(const xmlNode* node, int node_type);
         
         const xmlNode* jump_to_children(const xmlNode* node, int node_type);
+
+        void check_empty(const xmlNode *node);
+
     }
     class XMLError : public std::runtime_error {
     public:
