@@ -1,4 +1,4 @@
-/* $Id: tstdl.cpp,v 1.1 2005-12-10 09:59:10 adam Exp $
+/* $Id: tstdl.cpp,v 1.2 2006-01-11 17:57:38 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -25,7 +25,7 @@ int main(int argc, char **argv)
     void *mod = dlopen(argv[1][0] ? argv[1] : 0, RTLD_NOW|RTLD_LOCAL);
     if (!mod)
     {
-	cerr << "dlopen failed for file " << argv[1] << 
+	cerr << "dlopen failed for file '" << argv[1] << "'\n" <<
 	    "dlerror=" << dlerror() << endl;
 	exit(1);
     }
