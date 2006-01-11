@@ -3,7 +3,7 @@
 
 # Autoconf and automake setup
 AC_PREREQ(2.57)
-AC_INIT(yp2, 0.0.1, marc@indexdata.dk)
+AC_INIT(yp2, 0.0.1, adam@indexdata.dk)
 
 AC_CONFIG_HEADERS(src/config.hpp)
 

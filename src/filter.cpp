@@ -1,4 +1,4 @@
-/* $Id: filter.cpp,v 1.3 2005-11-07 21:57:10 adam Exp $
+/* $Id: filter.cpp,v 1.4 2006-01-11 11:51:49 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -9,10 +9,9 @@
 #include "config.hpp"
 #include "filter.hpp"
 
-
-// defining and initializing static members
-// std::string yp2::filter::Base:m_type("Base");
-
+void yp2::filter::Base::configure(const xmlNode * ptr)
+{
+}
 
 /*
  * Local variables:

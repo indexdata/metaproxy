@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.hpp,v 1.7 2006-01-09 15:32:46 adam Exp $
+/* $Id: filter_virt_db.hpp,v 1.8 2006-01-11 11:51:50 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -22,7 +22,8 @@ namespace yp2 {
             Virt_db();
             void process(yp2::Package & package) const;
             void configure(const xmlNode * ptr);
-            void add_map_db2vhost(std::string db, std::string vhost);
+            void add_map_db2vhost(std::string db, std::string vhost,
+                                  std::string route);
         private:
             boost::scoped_ptr<Rep> m_p;
         };

@@ -1,4 +1,4 @@
-/* $Id: router_chain.cpp,v 1.4 2006-01-09 13:53:13 adam Exp $
+/* $Id: router_chain.cpp,v 1.5 2006-01-11 11:51:50 adam Exp $
    Copyright (c) 2005, Index Data.
    
    %LICENSE%
@@ -19,7 +19,7 @@ namespace yp2
     };
     class RouterChain::Pos : public RoutePos {
     public:
-        virtual const filter::Base *move();
+        virtual const filter::Base *move(const char *route);
         virtual RoutePos *clone();
         virtual ~Pos();
         std::list<const filter::Base *>::const_iterator it;
@@ -35,7 +35,7 @@ yp2::RouterChain::~RouterChain()
 {
 }
 
-const yp2::filter::Base *yp2::RouterChain::Pos::move()
+const yp2::filter::Base *yp2::RouterChain::Pos::move(const char *route)
 {
     if (it == m_p->m_filter_list.end())
         return 0;

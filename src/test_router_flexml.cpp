@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.13 2006-01-09 13:43:59 adam Exp $
+/* $Id: test_router_flexml.cpp,v 1.14 2006-01-11 11:51:50 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -43,13 +43,13 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
             "      <port>@:210</port>\n"
             "    </filter>\n"
             "    <filter id=\"log_cout1\" type=\"log\">\n"
-            "      <logfile>mylog1.log</logfile>\n"
+            "      <message>my msg</message>\n"
             "    </filter>\n"
             "    <filter id=\"tfilter_id\" type=\"tfilter\">\n"
             "      <someelement/>\n"
             "    </filter>\n"
             "    <filter id=\"log_cout2\" type=\"log\">\n"
-            "      <logfile>mylog2.log</logfile>\n"
+            "      <message>other</message>\n"
             "    </filter>\n"
             "  </filters>\n"
             "  <routes>\n"  
@@ -95,7 +95,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_2 )
         yp2::FactoryFilter factory;
         yp2::RouterFleXML rflexml(xmlconf_invalid, factory);
     }
-    catch ( yp2::RouterFleXML::XMLError &e) {
+    catch ( yp2::XMLError &e) {
         std::cout << "XMLError: " << e.what() << "\n";
         got_error_as_expected = true;
     }
@@ -121,7 +121,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_3 )
             "      <port>@:210</port>\n"
             "    </y:filter>\n"
             "    <y:filter id=\"log_cout\" type=\"log\">\n"
-            "      <logfile>mylog.log</logfile>\n"
+            "      <message>my msg</message>\n"
             "    </y:filter>\n"
             "  </y:filters>\n"
             "  <y:routes>\n"  

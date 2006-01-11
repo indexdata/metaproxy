@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.18 2006-01-09 21:20:15 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.19 2006-01-11 11:51:50 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -6,7 +6,6 @@
 
 #include "config.hpp"
 
-#include "xmlutil.hpp"
 #include "filter.hpp"
 #include "package.hpp"
 #include "util.hpp"

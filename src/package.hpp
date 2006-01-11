@@ -1,4 +1,4 @@
-/* $Id: package.hpp,v 1.13 2006-01-09 13:53:13 adam Exp $
+/* $Id: package.hpp,v 1.14 2006-01-11 11:51:50 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -41,6 +41,9 @@ namespace yp2 {
 
         /// send Package to it's next Filter defined in Router
         void move();
+
+        /// send Package to other route
+        void move(std::string route);
         
         /// access session - left val in assignment
         yp2::Session & session();

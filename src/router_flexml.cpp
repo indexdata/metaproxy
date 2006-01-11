@@ -1,4 +1,4 @@
-/* $Id: router_flexml.cpp,v 1.12 2006-01-09 13:53:13 adam Exp $
+/* $Id: router_flexml.cpp,v 1.13 2006-01-11 11:51:50 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -65,7 +65,7 @@ namespace yp2 {
 
     class RouterFleXML::Pos : public RoutePos {
     public:
-        virtual const filter::Base *move();
+        virtual const filter::Base *move(const char *route);
         virtual RoutePos *clone();
         virtual ~Pos();
         yp2::RouterFleXML::Rep *m_p;
@@ -106,7 +106,7 @@ bool yp2::RouterFleXML::Rep::check_element_yp2(const xmlNode *ptr,
                                                const std::string &name)
 {
     if (!yp2::xml::is_element_yp2(ptr, name))
-        throw XMLError("Expected element name " + name);
+        throw yp2::XMLError("Expected element name " + name);
     return true;
 }
 
@@ -135,8 +135,8 @@ void yp2::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
             else if (name == "type")
                 type_value = value;
             else
-                throw XMLError("Only attribute id or type allowed"
-                               " in filter element. Got " + name);
+                throw yp2::XMLError("Only attribute id or type allowed"
+                                    " in filter element. Got " + name);
         }
 
         yp2::filter::Base* filter_base = m_factory->create(type_value);
@@ -144,7 +144,7 @@ void yp2::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
         filter_base->configure(node);
 
         if (m_id_filter_map.find(id_value) != m_id_filter_map.end())
-            throw XMLError("Filter " + id_value + " already defined");
+            throw yp2::XMLError("Filter " + id_value + " already defined");
 
         m_id_filter_map[id_value] =
             boost::shared_ptr<yp2::filter::Base>(filter_base);
@@ -176,9 +176,9 @@ void yp2::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
             if (name == "id")
                 id_value = value;
             else
-                throw XMLError("Only attribute 'id' allowed for element"
-                               "'route'."
-                               " Got " + name);
+                throw yp2::XMLError("Only attribute 'id' allowed for"
+                                         " element 'route'."
+                                         " Got " + name);
         }
 
         Route route;
@@ -207,9 +207,9 @@ void yp2::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
                 else if (name == "type")
                     type_value = value;
                 else
-                    throw XMLError("Only attribute 'refid' or 'type'"
-                                   " allowed for element 'filter'."
-                                   " Got " + name);
+                    throw yp2::XMLError("Only attribute 'refid' or 'type'"
+                                        " allowed for element 'filter'."
+                                        " Got " + name);
             }
             if (refid_value.length())
             {
@@ -217,7 +217,8 @@ void yp2::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
                     boost::shared_ptr<const yp2::filter::Base > >::iterator it;
                 it = m_id_filter_map.find(refid_value);
                 if (it == m_id_filter_map.end())
-                    throw XMLError("Unknown filter refid " + refid_value);
+                    throw yp2::XMLError("Unknown filter refid "
+                                        + refid_value);
                 else
                     route.m_list.push_back(it->second);
             }
@@ -236,7 +237,8 @@ void yp2::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
         std::map<std::string,RouterFleXML::Route>::iterator it;
         it = m_routes.find(id_value);
         if (it != m_routes.end())
-            throw XMLError("Route id='" + id_value + "' already exist");
+            throw yp2::XMLError("Route id='" + id_value
+                                + "' already exist");
         else
             m_routes[id_value] = route;
         node = jump_to_next(node, XML_ELEMENT_NODE);
@@ -246,7 +248,7 @@ void yp2::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
 void yp2::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
 {
     if (!doc)
-        throw XMLError("Empty XML Document");
+        throw yp2::XMLError("Empty XML Document");
     
     const xmlNode* root = xmlDocGetRootElement(doc);
     
@@ -269,8 +271,8 @@ void yp2::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
             if (name == "route")
                 m_start_route = value;
             else
-                throw XMLError("Only attribute start allowed"
-                               " in element 'start'. Got " + name);
+                throw yp2::XMLError("Only attribute start allowed"
+                                    " in element 'start'. Got " + name);
         }
         node = jump_to_next(node, XML_ELEMENT_NODE);
     }
@@ -284,6 +286,13 @@ void yp2::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
     check_element_yp2(node, "routes");
     
     parse_xml_routes(doc, jump_to_children(node, XML_ELEMENT_NODE));
+
+    node = jump_to_next(node, XML_ELEMENT_NODE);
+    if (node)
+    {
+        throw yp2::XMLError("Unexpected element " 
+                            + std::string((const char *)node->name));
+    }
 }        
 
 yp2::RouterFleXML::Rep::Rep() : m_xinclude(false)
@@ -311,7 +320,7 @@ yp2::RouterFleXML::RouterFleXML(std::string xmlconf, yp2::FactoryFilter &factory
     xmlDocPtr doc = xmlParseMemory(xmlconf.c_str(),
                                    xmlconf.size());
     if (!doc)
-        throw XMLError("xmlParseMemory failed");
+        throw yp2::XMLError("xmlParseMemory failed");
     else
     {
         m_p->base(doc, factory);
@@ -323,8 +332,19 @@ yp2::RouterFleXML::~RouterFleXML()
 {
 }
 
-const yp2::filter::Base *yp2::RouterFleXML::Pos::move()
+const yp2::filter::Base *yp2::RouterFleXML::Pos::move(const char *route)
 {
+    if (route && *route)
+    {
+        std::cout << "move to " << route << "\n";
+        m_route_it = m_p->m_routes.find(route);
+        if (m_route_it == m_p->m_routes.end())
+        {
+            std::cout << "no such route " << route << "\n";
+            throw yp2::XMLError("bad route " + std::string(route));
+        }
+        m_filter_it = m_route_it->second.m_list.begin();
+    }
     if (m_filter_it == m_route_it->second.m_list.end())
         return 0;
     const yp2::filter::Base *f = (*m_filter_it).get();

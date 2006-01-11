@@ -1,4 +1,4 @@
-/* $Id: xmlutil.cpp,v 1.1 2006-01-09 13:43:59 adam Exp $
+/* $Id: xmlutil.cpp,v 1.2 2006-01-11 11:51:50 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -33,6 +33,30 @@ bool yp2::xml::is_element_yp2(const xmlNode *ptr,
     return yp2::xml::is_element(ptr, "http://indexdata.dk/yp2/config/1", name);
 }
 
+std::string yp2::xml::get_route(const xmlNode *node)
+{
+    std::string route_value;
+    if (node)
+    {
+        const struct _xmlAttr *attr;
+        for (attr = node->properties; attr; attr = attr->next)
+        {
+            std::string name = std::string((const char *) attr->name);
+            std::string value;
+            
+            if (attr->children && attr->children->type == XML_TEXT_NODE)
+                value = std::string((const char *)attr->children->content);
+            
+            if (name == "route")
+                route_value = value;
+            else
+                throw XMLError("Only attribute route allowed"
+                               " in " + std::string((const char *)node->name)
+                               + " element. Got " + std::string(name));
+        }
+    }
+    return route_value;
+}
 
 /*
  * Local variables:

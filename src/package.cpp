@@ -1,4 +1,4 @@
-/* $Id: package.cpp,v 1.5 2006-01-09 13:53:13 adam Exp $
+/* $Id: package.cpp,v 1.6 2006-01-11 11:51:50 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -35,11 +35,23 @@ void yp2::Package::move()
 {
     if (m_route_pos)
     {
-        const filter::Base *next_filter = m_route_pos->move();
+        const filter::Base *next_filter = m_route_pos->move(0);
         if (next_filter)
             next_filter->process(*this);
     }
 }
+
+void yp2::Package::move(std::string route)
+{
+    if (m_route_pos)
+    {
+        const char *r_cstr = route.length() ? route.c_str() : 0;
+        const filter::Base *next_filter = m_route_pos->move(r_cstr);
+        if (next_filter)
+            next_filter->process(*this);
+    }
+}
+
 
 yp2::Session & yp2::Package::session()
 {

@@ -1,4 +1,4 @@
-/* $Id: router.hpp,v 1.9 2006-01-09 13:53:13 adam Exp $
+/* $Id: router.hpp,v 1.10 2006-01-11 11:51:50 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -34,7 +34,7 @@ namespace yp2
 
     class RoutePos : boost::noncopyable {
     public:
-        virtual const filter::Base *move() = 0;
+        virtual const filter::Base *move(const char *route) = 0;
         virtual RoutePos *clone() = 0;
         virtual ~RoutePos() {};
     };

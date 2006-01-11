@@ -1,4 +1,4 @@
-/* $Id: filter_frontend_net.cpp,v 1.14 2006-01-09 21:19:11 adam Exp $
+/* $Id: filter_frontend_net.cpp,v 1.15 2006-01-11 11:51:49 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -6,7 +6,6 @@
 
 #include "config.hpp"
 
-#include "xmlutil.hpp"
 #include "pipe.hpp"
 #include "filter.hpp"
 #include "package.hpp"

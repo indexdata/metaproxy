@@ -1,4 +1,4 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.21 2006-01-09 13:43:59 adam Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.22 2006-01-11 11:51:49 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -104,9 +104,11 @@ int main(int argc, char **argv)
 
             // put Virt db filter in router
             yp2::filter::Virt_db filter_virt_db;
-            filter_virt_db.add_map_db2vhost("gils", "indexdata.dk/gils");
-            filter_virt_db.add_map_db2vhost("Default", "localhost:9999/Default");
-            filter_virt_db.add_map_db2vhost("2", "localhost:9999/2");
+            filter_virt_db.add_map_db2vhost("gils", "indexdata.dk/gils",
+                                            "");
+            filter_virt_db.add_map_db2vhost("Default", "localhost:9999/Default",
+                                            "");
+            filter_virt_db.add_map_db2vhost("2", "localhost:9999/2", "");
 	    // router.append(filter_virt_db);
 
             yp2::filter::SessionShared filter_session_shared;

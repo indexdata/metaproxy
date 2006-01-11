@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.19 2006-01-09 21:20:15 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.20 2006-01-11 11:51:50 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -6,7 +6,6 @@
 
 #include "config.hpp"
 
-#include "xmlutil.hpp"
 #include "filter.hpp"
 #include "package.hpp"
 
@@ -29,13 +28,15 @@ namespace yp2 {
     namespace filter {
         struct Virt_db_set {
             Virt_db_set(yp2::Session &id, std::string setname,
-                        std::string vhost, bool named_result_sets);
+                        std::string vhost, std::string route,
+                        bool named_result_sets);
             Virt_db_set();
             ~Virt_db_set();
 
             yp2::Session m_backend_session;
             std::string m_backend_setname;
             std::string m_vhost;
+            std::string m_route;
             bool m_named_result_sets;
         };
         struct Virt_db_session {
@@ -46,9 +47,10 @@ namespace yp2 {
             std::map<std::string,Virt_db_set> m_sets;
         };
         struct Virt_db_map {
-            Virt_db_map(std::string vhost);
+            Virt_db_map(std::string vhost, std::string route);
             Virt_db_map();
             std::string m_vhost;
+            std::string m_route;
         };
         struct Frontend {
             Frontend();
@@ -104,7 +106,7 @@ void yf::Frontend::close(Package &package)
         Package close_package(sit->second.m_backend_session, package.origin());
         close_package.copy_filter(package);
         
-        close_package.move();
+        close_package.move(sit->second.m_route);
     }
 }
 
@@ -162,9 +164,10 @@ void yf::Virt_db::Rep::release_frontend(Package &package)
 }
 
 yf::Virt_db_set::Virt_db_set(yp2::Session &id, std::string setname,
-                             std::string vhost, bool named_result_sets)
+                             std::string vhost, std::string route,
+                             bool named_result_sets)
     :   m_backend_session(id), m_backend_setname(setname), m_vhost(vhost),
-        m_named_result_sets(named_result_sets)
+        m_route(route), m_named_result_sets(named_result_sets)
 {
 }
 
@@ -178,8 +181,8 @@ yf::Virt_db_set::~Virt_db_set()
 {
 }
 
-yf::Virt_db_map::Virt_db_map(std::string vhost)
-    : m_vhost(vhost) 
+yf::Virt_db_map::Virt_db_map(std::string vhost, std::string route)
+    : m_vhost(vhost), m_route(route) 
 {
 }
 
@@ -222,7 +225,7 @@ void yf::Virt_db::Rep::release_session(Package &package)
             Package close_package(sit->second.m_backend_session, package.origin());
             close_package.copy_filter(package);
 
-            close_package.move();
+            close_package.move(sit->second.m_route);
         }
     }
     m_sessions.erase(package.session());
@@ -369,6 +372,7 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
     std::string vhost;
     std::string database;
     std::string resultSetId = req->resultSetName;
+    std::string route;
     bool support_named_result_sets = false;  // whether backend supports it
     yp2::odr odr;
     {
@@ -442,6 +446,7 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
         }
         it->second.m_sets.erase(req->resultSetName);
         vhost = map_it->second.m_vhost;
+        route = map_it->second.m_route;
     }
     // we might look for an existing session with same vhost
     Session id;
@@ -458,7 +463,7 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
         
         init_package.request() = init_apdu;
 
-        init_package.move();  // sending init 
+        init_package.move(route);  // sending init 
 
         if (init_package.session().is_closed())
         {
@@ -510,7 +515,7 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
     req->resultSetName = odr_strdup(odr, backend_resultSetId.c_str());
     search_package.request() = yazpp_1::GDU(apdu);
     
-    search_package.move();
+    search_package.move(route);
 
     if (search_package.session().is_closed())
     {
@@ -532,7 +537,7 @@ void yf::Virt_db::Rep::search(Package &package, Z_APDU *apdu, bool &move_later)
     Ses_it it = m_sessions.find(package.session());
     if (it != m_sessions.end())
         it->second.m_sets[resultSetId] =
-            Virt_db_set(id, backend_resultSetId, vhost,
+            Virt_db_set(id, backend_resultSetId, vhost, route,
                         support_named_result_sets);
 }
 
@@ -599,6 +604,7 @@ void yf::Frontend::search(Package &package, Z_APDU *apdu,
     }
     m_sets.erase(req->resultSetName);
     vhost = map_it->second.m_vhost;
+    std::string route = map_it->second.m_route;
     // we might look for an existing session with same vhost
     Session id;
     const char *vhost_cstr = vhost.c_str();
@@ -614,7 +620,7 @@ void yf::Frontend::search(Package &package, Z_APDU *apdu,
         
         init_package.request() = init_apdu;
 
-        init_package.move();  // sending init 
+        init_package.move(route);  // sending init 
 
         if (init_package.session().is_closed())
         {
@@ -666,7 +672,7 @@ void yf::Frontend::search(Package &package, Z_APDU *apdu,
     req->resultSetName = odr_strdup(odr, backend_resultSetId.c_str());
     search_package.request() = yazpp_1::GDU(apdu);
     
-    search_package.move();
+    search_package.move(route);
 
     if (search_package.session().is_closed())
     {
@@ -685,7 +691,7 @@ void yf::Frontend::search(Package &package, Z_APDU *apdu,
     package.response() = search_package.response();
     
     m_sets[resultSetId] =
-        Virt_db_set(id, backend_resultSetId, vhost,
+        Virt_db_set(id, backend_resultSetId, vhost, route,
                     support_named_result_sets);
 }
 
@@ -735,9 +741,10 @@ void yf::Virt_db::Rep::init(Package &package, Z_APDU *apdu, bool &move_later)
     }
 }
 
-void yf::Virt_db::add_map_db2vhost(std::string db, std::string vhost)
+void yf::Virt_db::add_map_db2vhost(std::string db, std::string vhost,
+                                   std::string route)
 {
-    m_p->m_maps[db] = Virt_db_map(vhost);
+    m_p->m_maps[db] = Virt_db_map(vhost, route);
 }
 
 #if 0
@@ -889,8 +896,10 @@ void yp2::filter::Virt_db::configure(const xmlNode * ptr)
                          + " in virtual section"
                             );
             }
-            add_map_db2vhost(database, target);
-            std::cout << "Add " << database << "->" << target << "\n";
+            std::string route = yp2::xml::get_route(ptr);
+            add_map_db2vhost(database, target, route);
+            std::cout << "Add " << database << "->" << target
+                      << "," << route << "\n";
         }
         else
         {

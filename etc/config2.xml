@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!-- $Id: config2.xml,v 1.1 2006-01-11 11:51:49 adam Exp $ -->
+<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+  <start route="start"/>
+  <filters>
+    <filter id="frontend" type="frontend_net">
+      <threads>10</threads>
+      <port>@:9000</port>
+    </filter>
+  </filters>
+  <routes>
+    <route id="start">
+      <filter refid="frontend"/>
+      <filter type="log">
+        <message>F</message>
+      </filter>
+      <filter type="virt_db">
+        <virtual>
+          <database>loc</database>
+          <target>z3950.loc.gov:7090/voyager</target>
+        </virtual>
+        <virtual>
+          <database>idgils</database>
+          <target>indexdata.dk/gils</target>
+        </virtual>
+        <virtual route="test">
+          <database>test</database>
+          <target>localhost:9999</target>
+        </virtual>
+      </filter>
+      <filter type="log">
+        <message>B</message>
+      </filter>
+      <filter type="z3950_client">
+        <timeout>30</timeout>
+      </filter>
+    </route>
+    <route id="test">
+      <filter type="log">
+       <message>T</message>
+      </filter>
+      <filter type="backend_test"/>
+    </route>
+  </routes>
+</yp2>
+
