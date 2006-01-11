@@ -18,6 +18,7 @@ test_filter2
 test_filter_frontend_net
 test_filter_log
 test_package1
+test_pipe
 test_thread_pool_observer
 test_session1
 test_session2
