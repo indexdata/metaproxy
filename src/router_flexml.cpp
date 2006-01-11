@@ -1,4 +1,4 @@
-/* $Id: router_flexml.cpp,v 1.13 2006-01-11 11:51:50 adam Exp $
+/* $Id: router_flexml.cpp,v 1.14 2006-01-11 13:13:49 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -47,14 +47,6 @@ namespace yp2 {
 
         void parse_xml_config_dom(xmlDocPtr doc);
 
-        bool check_element_yp2(const xmlNode *ptr, 
-                               const std::string &name);
-        
-        const xmlNode* jump_to(const xmlNode* node, int xml_node_type);
-
-        const xmlNode* jump_to_next(const xmlNode* node, int xml_node_type);
-        
-        const xmlNode* jump_to_children(const xmlNode* node, int xml_node_type);
         void parse_xml_filters(xmlDocPtr doc, const xmlNode *node);
         void parse_xml_routes(xmlDocPtr doc, const xmlNode *node);
 
@@ -76,46 +68,11 @@ namespace yp2 {
     };
 }
 
-const xmlNode* yp2::RouterFleXML::Rep::jump_to_children(const xmlNode* node,
-                                                        int xml_node_type)
-{
-    node = node->children;
-    for (; node && node->type != xml_node_type; node = node->next)
-        ;
-    return node;
-}
-        
-const xmlNode* yp2::RouterFleXML::Rep::jump_to_next(const xmlNode* node,
-                                                    int xml_node_type)
-{
-    node = node->next;
-    for (; node && node->type != xml_node_type; node = node->next)
-        ;
-    return node;
-}
-        
-const xmlNode* yp2::RouterFleXML::Rep::jump_to(const xmlNode* node,
-                                               int xml_node_type)
-{
-    for (; node && node->type != xml_node_type; node = node->next)
-        ;
-    return node;
-}
-
-bool yp2::RouterFleXML::Rep::check_element_yp2(const xmlNode *ptr, 
-                                               const std::string &name)
-{
-    if (!yp2::xml::is_element_yp2(ptr, name))
-        throw yp2::XMLError("Expected element name " + name);
-    return true;
-}
-
-
 void yp2::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
                                                const xmlNode *node)
 {
     unsigned int filter_nr = 0;
-    while(node && check_element_yp2(node, "filter"))
+    while(node && yp2::xml::check_element_yp2(node, "filter"))
     {
         filter_nr++;
 
@@ -149,14 +106,14 @@ void yp2::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
         m_id_filter_map[id_value] =
             boost::shared_ptr<yp2::filter::Base>(filter_base);
 
-        node = jump_to_next(node, XML_ELEMENT_NODE);
+        node = yp2::xml::jump_to_next(node, XML_ELEMENT_NODE);
     }
 }
 
 void yp2::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
                                               const xmlNode *node)
 {
-    check_element_yp2(node, "route");
+    yp2::xml::check_element_yp2(node, "route");
 
     unsigned int route_nr = 0;
     while(yp2::xml::is_element_yp2(node, "route"))
@@ -184,10 +141,10 @@ void yp2::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
         Route route;
 
         // process <filter> nodes in third level
-        const xmlNode* node3 = jump_to_children(node, XML_ELEMENT_NODE);
+        const xmlNode* node3 = yp2::xml::jump_to_children(node, XML_ELEMENT_NODE);
 
         unsigned int filter3_nr = 0;
-        while(node3 && check_element_yp2(node3, "filter"))
+        while(node3 && yp2::xml::check_element_yp2(node3, "filter"))
         {
             filter3_nr++;
             
@@ -231,7 +188,7 @@ void yp2::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
                 route.m_list.push_back(
                     boost::shared_ptr<yp2::filter::Base>(filter_base));
             }
-            node3 = jump_to_next(node3, XML_ELEMENT_NODE);
+            node3 = yp2::xml::jump_to_next(node3, XML_ELEMENT_NODE);
             
         }
         std::map<std::string,RouterFleXML::Route>::iterator it;
@@ -241,7 +198,7 @@ void yp2::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
                                 + "' already exist");
         else
             m_routes[id_value] = route;
-        node = jump_to_next(node, XML_ELEMENT_NODE);
+        node = yp2::xml::jump_to_next(node, XML_ELEMENT_NODE);
     }
 }
 
@@ -252,11 +209,11 @@ void yp2::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
     
     const xmlNode* root = xmlDocGetRootElement(doc);
     
-    check_element_yp2(root,  "yp2");
+    yp2::xml::check_element_yp2(root,  "yp2");
 
     // process <start> node which is expected first element node
-    const xmlNode* node = jump_to_children(root, XML_ELEMENT_NODE);
-    if (check_element_yp2(node, "start"))
+    const xmlNode* node = yp2::xml::jump_to_children(root, XML_ELEMENT_NODE);
+    if (yp2::xml::check_element_yp2(node, "start"))
     {
         const struct _xmlAttr *attr;
         std::string id_value;
@@ -274,20 +231,20 @@ void yp2::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
                 throw yp2::XMLError("Only attribute start allowed"
                                     " in element 'start'. Got " + name);
         }
-        node = jump_to_next(node, XML_ELEMENT_NODE);
+        node = yp2::xml::jump_to_next(node, XML_ELEMENT_NODE);
     }
     // process <filters> node which is expected second element node
-    check_element_yp2(node, "filters");
+    yp2::xml::check_element_yp2(node, "filters");
     
-    parse_xml_filters(doc, jump_to_children(node, XML_ELEMENT_NODE));
+    parse_xml_filters(doc, yp2::xml::jump_to_children(node, XML_ELEMENT_NODE));
                       
     // process <routes> node which is expected third element node
-    node = jump_to_next(node, XML_ELEMENT_NODE);
-    check_element_yp2(node, "routes");
+    node = yp2::xml::jump_to_next(node, XML_ELEMENT_NODE);
+    yp2::xml::check_element_yp2(node, "routes");
     
-    parse_xml_routes(doc, jump_to_children(node, XML_ELEMENT_NODE));
+    parse_xml_routes(doc, yp2::xml::jump_to_children(node, XML_ELEMENT_NODE));
 
-    node = jump_to_next(node, XML_ELEMENT_NODE);
+    node = yp2::xml::jump_to_next(node, XML_ELEMENT_NODE);
     if (node)
     {
         throw yp2::XMLError("Unexpected element " 

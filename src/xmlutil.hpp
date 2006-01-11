@@ -1,4 +1,4 @@
-/* $Id: xmlutil.hpp,v 1.2 2006-01-11 11:51:50 adam Exp $
+/* $Id: xmlutil.hpp,v 1.3 2006-01-11 13:13:49 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -18,8 +18,15 @@ namespace yp2 {
                         const std::string &ns,
                         const std::string &name);
         bool is_element_yp2(const xmlNode *ptr, const std::string &name);
+        bool check_element_yp2(const xmlNode *ptr, 
+                               const std::string &name);
         std::string get_route(const xmlNode *node);
 
+        const xmlNode* jump_to(const xmlNode* node, int node_type);
+
+        const xmlNode* jump_to_next(const xmlNode* node, int node_type);
+        
+        const xmlNode* jump_to_children(const xmlNode* node, int node_type);
     }
     class XMLError : public std::runtime_error {
     public:

@@ -1,4 +1,4 @@
-/* $Id: filter.cpp,v 1.4 2006-01-11 11:51:49 adam Exp $
+/* $Id: filter.cpp,v 1.5 2006-01-11 13:13:49 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -11,6 +11,7 @@
 
 void yp2::filter::Base::configure(const xmlNode * ptr)
 {
+    
 }
 
 /*

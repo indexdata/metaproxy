@@ -1,4 +1,4 @@
-/* $Id: xmlutil.cpp,v 1.2 2006-01-11 11:51:50 adam Exp $
+/* $Id: xmlutil.cpp,v 1.3 2006-01-11 13:13:49 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -33,6 +33,15 @@ bool yp2::xml::is_element_yp2(const xmlNode *ptr,
     return yp2::xml::is_element(ptr, "http://indexdata.dk/yp2/config/1", name);
 }
 
+
+bool yp2::xml::check_element_yp2(const xmlNode *ptr, 
+                                 const std::string &name)
+{
+    if (!yp2::xml::is_element_yp2(ptr, name))
+        throw yp2::XMLError("Expected element name " + name);
+    return true;
+}
+
 std::string yp2::xml::get_route(const xmlNode *node)
 {
     std::string route_value;
@@ -57,6 +66,34 @@ std::string yp2::xml::get_route(const xmlNode *node)
     }
     return route_value;
 }
+
+
+const xmlNode* yp2::xml::jump_to_children(const xmlNode* node,
+                                          int xml_node_type)
+{
+    node = node->children;
+    for (; node && node->type != xml_node_type; node = node->next)
+        ;
+    return node;
+}
+
+const xmlNode* yp2::xml::jump_to_next(const xmlNode* node,
+                                      int xml_node_type)
+{
+    node = node->next;
+    for (; node && node->type != xml_node_type; node = node->next)
+        ;
+    return node;
+}
+
+const xmlNode* yp2::xml::jump_to(const xmlNode* node,
+                                 int xml_node_type)
+{
+    for (; node && node->type != xml_node_type; node = node->next)
+        ;
+    return node;
+}
+
 
 /*
  * Local variables:
