@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.hpp,v 1.8 2006-01-11 11:51:50 adam Exp $
+/* $Id: filter_virt_db.hpp,v 1.9 2006-01-12 14:45:04 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -17,6 +17,9 @@ namespace yp2 {
     namespace filter {
         class Virt_db : public Base {
             class Rep;
+            class Frontend;
+            class Map;
+            class Set;
         public:
             ~Virt_db();
             Virt_db();
