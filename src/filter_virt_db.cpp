@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.20 2006-01-11 11:51:50 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.21 2006-01-12 14:09:08 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -30,8 +30,7 @@ namespace yp2 {
             Virt_db_set(yp2::Session &id, std::string setname,
                         std::string vhost, std::string route,
                         bool named_result_sets);
-            Virt_db_set();
-            ~Virt_db_set();
+            Virt_db_set();            ~Virt_db_set();
 
             yp2::Session m_backend_session;
             std::string m_backend_setname;
@@ -56,7 +55,7 @@ namespace yp2 {
             Frontend();
             ~Frontend();
             yp2::Session m_session;
-            bool m_use_vhost;
+            bool m_is_virtual;
             bool m_in_use;
             std::map<std::string,Virt_db_set> m_sets;
             void search(Package &package, Z_APDU *apdu,
@@ -94,7 +93,7 @@ using namespace yp2;
 
 yf::Frontend::Frontend()
 {
-    m_use_vhost = false;
+    m_is_virtual = false;
 }
 
 void yf::Frontend::close(Package &package)
@@ -150,7 +149,6 @@ void yf::Virt_db::Rep::release_frontend(Package &package)
     {
         if (package.session().is_closed())
         {
-            std::cout << "Closing IT\n";
             it->second->close(package);
             delete it->second;
             m_clients.erase(it);
@@ -754,50 +752,56 @@ void yf::Virt_db::process(Package &package) const
     if (f)
     {
         Z_GDU *gdu = package.request().get();
-        if (!gdu || gdu->which != Z_GDU_Z3950 || f->m_use_vhost)
+        
+        if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
+            Z_APDU_initRequest)
+        {
+            Z_InitRequest *req = gdu->u.z3950->u.initRequest;
+            
+            const char *vhost =
+                yaz_oi_get_string_oidval(&req->otherInfo, VAL_PROXY, 1, 0);
+            if (!vhost)
+            {
+                yp2::odr odr;
+                Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
+                Z_InitResponse *resp = apdu->u.initResponse;
+                
+                int i;
+                static const int masks[] = {
+                    Z_Options_search,
+                    Z_Options_present,
+                    Z_Options_namedResultSets,
+                    -1 
+                };
+                for (i = 0; masks[i] != -1; i++)
+                    if (ODR_MASK_GET(req->options, masks[i]))
+                        ODR_MASK_SET(resp->options, masks[i]);
+                
+                static const int versions[] = {
+                    Z_ProtocolVersion_1,
+                    Z_ProtocolVersion_2,
+                    Z_ProtocolVersion_3,
+                    -1
+                };
+                for (i = 0; versions[i] != -1; i++)
+                    if (ODR_MASK_GET(req->protocolVersion, versions[i]))
+                        ODR_MASK_SET(resp->protocolVersion, versions[i]);
+                    else
+                        break;
+                
+                package.response() = apdu;
+                f->m_is_virtual = true;
+            }
+            else
+                package.move();
+        }
+        else if (!f->m_is_virtual)
             package.move();
-        else
+        else if (gdu && gdu->which == Z_GDU_Z3950)
         {
             Z_APDU *apdu = gdu->u.z3950;
             if (apdu->which == Z_APDU_initRequest)
             {
-                Z_InitRequest *req = apdu->u.initRequest;
-                
-                const char *vhost =
-                    yaz_oi_get_string_oidval(&req->otherInfo, VAL_PROXY, 1, 0);
-                if (!vhost)
-                {
-                    yp2::odr odr;
-                    Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
-                    Z_InitResponse *resp = apdu->u.initResponse;
-                    
-                    int i;
-                    static const int masks[] = {
-                        Z_Options_search, Z_Options_present, Z_Options_namedResultSets, -1 
-                    };
-                    for (i = 0; masks[i] != -1; i++)
-                        if (ODR_MASK_GET(req->options, masks[i]))
-                            ODR_MASK_SET(resp->options, masks[i]);
-                    
-                    static const int versions[] = {
-                        Z_ProtocolVersion_1,
-                        Z_ProtocolVersion_2,
-                        Z_ProtocolVersion_3,
-                        -1
-                    };
-                    for (i = 0; versions[i] != -1; i++)
-                        if (ODR_MASK_GET(req->protocolVersion, versions[i]))
-                            ODR_MASK_SET(resp->protocolVersion, versions[i]);
-                        else
-                            break;
-                    
-                    package.response() = apdu;
-                }
-                else
-                {
-                    f->m_use_vhost = true;
-                    package.move();
-                }
             }
             else if (apdu->which == Z_APDU_searchRequest)
             {
