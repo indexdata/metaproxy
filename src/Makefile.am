@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.41 2006-01-09 13:43:59 adam Exp $
+## $Id: Makefile.am,v 1.42 2006-01-12 10:04:34 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -18,6 +18,7 @@ libyp2_la_SOURCES = \
         router_flexml.hpp router_flexml.cpp \
 	thread_pool_observer.cpp thread_pool_observer.hpp \
 	filter.hpp filter.cpp factory_filter.cpp factory_filter.hpp \
+	filter_auth_simple.cpp filter_auth_simple.hpp \
 	filter_frontend_net.cpp filter_frontend_net.hpp \
 	filter_log.cpp filter_log.hpp \
 	filter_virt_db.cpp filter_virt_db.hpp \
@@ -57,6 +58,7 @@ check_PROGRAMS = \
 	test_session1 test_session2 \
 	test_thread_pool_observer \
 	test_boost_threads test_boost_time \
+	test_filter_auth_simple \
 	test_filter_factory \
 	test_filter_frontend_net \
 	test_filter_log \
@@ -77,8 +79,8 @@ test_session2_SOURCES=test_session2.cpp
 test_boost_threads_SOURCES=test_boost_threads.cpp
 test_boost_time_SOURCES=test_boost_time.cpp
 test_thread_pool_observer_SOURCES = test_thread_pool_observer.cpp
+test_filter_auth_simple_SOURCES = test_filter_auth_simple.cpp
 test_filter_factory_SOURCES = test_filter_factory.cpp
-test_filter_factory_LDFLAGS = -export-dynamic
 test_filter_frontend_net_SOURCES = test_filter_frontend_net.cpp
 test_filter_log_SOURCES = test_filter_log.cpp
 test_filter_z3950_client_SOURCES = test_filter_z3950_client.cpp
@@ -98,6 +100,7 @@ test_session2_LDADD = $(TESTLDADD)
 test_boost_threads_LDADD = $(TESTLDADD)
 test_boost_time_LDADD = $(TESTLDADD)
 test_thread_pool_observer_LDADD = $(TESTLDADD)
+test_filter_auth_simple_LDADD = $(TESTLDADD)
 test_filter_factory_LDADD = $(TESTLDADD)
 test_filter_frontend_net_LDADD = $(TESTLDADD)
 test_filter_log_LDADD = $(TESTLDADD)

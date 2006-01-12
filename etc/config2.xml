@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config2.xml,v 1.1 2006-01-11 11:51:49 adam Exp $ -->
+<!-- $Id: config2.xml,v 1.2 2006-01-12 10:04:34 adam Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <filters>
@@ -14,6 +14,7 @@
       <filter type="log">
         <message>F</message>
       </filter>
+      <filter type="auth_simple"/>
       <filter type="virt_db">
         <virtual>
           <database>loc</database>
