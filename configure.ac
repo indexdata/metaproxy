@@ -32,6 +32,8 @@ if test "$enable_shared" = "yes"; then
 fi
 
 # Checks for libraries.
+AC_CHECK_LIB(dl,dlopen)
+
 AC_CHECK_LIB(boost_thread, main, [],[
 	AC_MSG_NOTICE([boost thread library not found.])
 	AC_MSG_ERROR([Install libboost-thread-dev (or similar)])
