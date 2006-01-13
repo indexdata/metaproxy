@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.19 2006-01-11 11:51:50 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.20 2006-01-13 15:09:35 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -108,7 +108,12 @@ void yf::Z3950Client::Assoc::failNotify()
 
     if (m_package)
     {
-        m_package->response() = odr.create_close(Z_Close_peerAbort, 0);
+        Z_GDU *gdu = m_package->request().get();
+        Z_APDU *apdu = 0;
+        if (gdu && gdu->which == Z_GDU_Z3950)
+            apdu = gdu->u.z3950;
+        
+        m_package->response() = odr.create_close(apdu, Z_Close_peerAbort, 0);
         m_package->session().close();
     }
 }
@@ -124,10 +129,17 @@ void yf::Z3950Client::Assoc::timeoutNotify()
         
         if (m_package)
         {
+            Z_GDU *gdu = m_package->request().get();
+            Z_APDU *apdu = 0;
+            if (gdu && gdu->which == Z_GDU_Z3950)
+                apdu = gdu->u.z3950;
+        
             if (m_connected)
-                m_package->response() = odr.create_close(Z_Close_lackOfActivity, 0);
+                m_package->response() =
+                    odr.create_close(apdu, Z_Close_lackOfActivity, 0);
             else
-                m_package->response() = odr.create_close(Z_Close_peerAbort, 0);
+                m_package->response() = 
+                    odr.create_close(apdu, Z_Close_peerAbort, 0);
                 
             m_package->session().close();
         }
@@ -204,7 +216,8 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     {
         yp2::odr odr;
         
-        package.response() = odr.create_close(Z_Close_protocolError,
+        package.response() = odr.create_close(apdu,
+                                              Z_Close_protocolError,
                                               "First PDU was not an "
                                               "Initialize Request");
         package.session().close();
@@ -219,6 +232,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     {
         yp2::odr odr;
         package.response() = odr.create_initResponse(
+            apdu,
             YAZ_BIB1_INIT_NEGOTIATION_OPTION_REQUIRED,
             "Virtual host not given");
         

@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.1 2006-01-12 10:04:34 adam Exp $
+/* $Id: filter_auth_simple.cpp,v 1.2 2006-01-13 15:09:35 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -50,7 +50,7 @@ void yf::AuthSimple::process(yp2::Package &package) const
         if (!init->idAuthentication)
         {
             yp2::odr odr;
-            Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
+            Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950, 0, 0);
             
             apdu->u.initResponse->implementationName = "YP2/YAZ";
             *apdu->u.initResponse->result = 0; // reject

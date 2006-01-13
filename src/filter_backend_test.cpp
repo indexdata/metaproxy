@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.13 2006-01-09 21:20:15 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.14 2006-01-13 15:09:35 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -65,13 +65,14 @@ void yf::Backend_test::process(Package &package) const
         if (apdu_req->which != Z_APDU_initRequest && 
             !m_p->m_sessions.exist(package.session()))
         {
-            apdu_res = odr.create_close(Z_Close_protocolError,
+            apdu_res = odr.create_close(apdu_req,
+                                        Z_Close_protocolError,
                                         "no init for filter_backend_test");
             package.session().close();
         }
         else if (apdu_req->which == Z_APDU_initRequest)
         {
-            apdu_res = zget_APDU(odr, Z_APDU_initResponse);
+            apdu_res = odr.create_initResponse(apdu_req, 0, 0);
             Z_InitRequest *req = apdu_req->u.initRequest;
             Z_InitResponse *resp = apdu_res->u.initResponse;
             
@@ -106,7 +107,7 @@ void yf::Backend_test::process(Package &package) const
         }
         else if (apdu_req->which == Z_APDU_searchRequest)
         {
-            apdu_res = zget_APDU(odr, Z_APDU_searchResponse);
+            apdu_res = odr.create_searchResponse(apdu_req, 0, 0);
             Z_SearchRequest *req = apdu_req->u.searchRequest;
             Z_SearchResponse *resp = apdu_res->u.searchResponse;
                 
@@ -126,11 +127,15 @@ void yf::Backend_test::process(Package &package) const
         }
         else if (apdu_req->which == Z_APDU_presentRequest)
         { 
-            apdu_res = zget_APDU(odr, Z_APDU_presentResponse);
+            apdu_res =
+                odr.create_presentResponse(apdu_req,
+                                           YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
+                                           0);
         }
         else
         {
-            apdu_res = odr.create_close(Z_Close_protocolError,
+            apdu_res = odr.create_close(apdu_req,
+                                        Z_Close_protocolError,
                                         "bad APDU in filter_backend_test");
             package.session().close();
         }

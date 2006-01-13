@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.hpp,v 1.9 2006-01-12 14:45:04 adam Exp $
+/* $Id: filter_virt_db.hpp,v 1.10 2006-01-13 15:09:35 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <list>
 #include <boost/scoped_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include "filter.hpp"
 
@@ -20,6 +21,8 @@ namespace yp2 {
             class Frontend;
             class Map;
             class Set;
+            class Backend;
+            typedef boost::shared_ptr<Virt_db::Backend> BackendPtr;
         public:
             ~Virt_db();
             Virt_db();

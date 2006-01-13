@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.cpp,v 1.5 2006-01-09 21:20:15 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.6 2006-01-13 15:09:35 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -30,7 +30,7 @@ namespace yp2 {
         class SessionShared::Rep {
             friend class SessionShared;
             void handle_init(Z_InitRequest *req, Package &package);
-            void handle_search(Z_SearchRequest *req, Package &package);
+            void handle_search(Z_APDU *req, Package &package);
         public:
             typedef boost::shared_ptr<SessionShared::List> SharedList;
 
@@ -102,18 +102,21 @@ yf::SessionShared::~SessionShared()
 {
 }
 
-void yf::SessionShared::Rep::handle_search(Z_SearchRequest *req,
-                                            Package &package)
+void yf::SessionShared::Rep::handle_search(Z_APDU *apdu_req,
+                                           Package &package)
 {
     yaz_log(YLOG_LOG, "Got search");
+
+    // Z_SearchRequest *req = apdu_req->u.searchRequest;
 
     SessionListMap::iterator it = m_session_list_map.find(package.session());
     if (it == m_session_list_map.end())
     {
         yp2::odr odr;
-        package.response() = odr.create_close(
-                Z_Close_protocolError,
-                "no session for search request in session_shared");
+        package.response() =
+            odr.create_close(apdu_req,
+                             Z_Close_protocolError,
+                             "no session for search request in session_shared");
         package.session().close();
         
         return;
@@ -231,13 +234,13 @@ void yf::SessionShared::process(Package &package) const
             m_p->handle_init(apdu->u.initRequest, package);
             break;
         case Z_APDU_searchRequest:
-            m_p->handle_search(apdu->u.searchRequest, package);
+            m_p->handle_search(apdu, package);
             break;
         default:
             yp2::odr odr;
-            package.response() = odr.create_close(
-                Z_Close_protocolError,
-                "cannot handle a package of this type");
+            package.response() =
+                odr.create_close(apdu, Z_Close_protocolError,
+                                 "cannot handle a package of this type");
             package.session().close();
             break;
             

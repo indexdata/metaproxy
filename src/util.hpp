@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.3 2005-10-30 18:51:21 adam Exp $
+/* $Id: util.hpp,v 1.4 2006-01-13 15:09:35 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -13,8 +13,10 @@
 #include <boost/utility.hpp>
 
 namespace yp2 {
-    struct util  {
-	static bool pqf(ODR odr, Z_APDU *apdu, const std::string &q);
+    namespace util  {
+	bool pqf(ODR odr, Z_APDU *apdu, const std::string &q);
+        Z_ReferenceId **get_referenceId(Z_APDU *apdu);
+        Z_APDU *create_APDU(ODR odr, int type, Z_APDU *in_apdu);
     };
 
     class odr : public boost::noncopyable {
@@ -23,8 +25,17 @@ namespace yp2 {
         odr();
         ~odr();
         operator ODR() const;
-        Z_APDU *create_close(int reason, const char *addinfo);
-        Z_APDU *create_initResponse(int error, const char *addinfo);
+        Z_APDU *create_close(Z_APDU *in_apdu, 
+                             int reason, const char *addinfo);
+        Z_APDU *create_initResponse(Z_APDU *in_apdu, 
+                                    int error, const char *addinfo);
+        Z_APDU *create_searchResponse(Z_APDU *in_apdu,
+                                      int error, const char *addinfo);
+        Z_APDU *create_presentResponse(Z_APDU *in_apdu,
+                                       int error, const char *addinfo);
+        Z_APDU *create_scanResponse(Z_APDU *in_apdu,
+                                    int error, const char *addinfo);
+        Z_APDU *create_APDU(int type, Z_APDU *in_apdu);
     private:
         ODR m_odr;
     };
