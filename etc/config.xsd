@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id: config.xsd,v 1.1 2006-01-13 16:28:00 mike Exp $ -->
+<!--
+	This Schema prescribes the format of YP2 configuration files.
+	Invoke it like this:
+		xmllint -noout -schema config.xsd config1.xml
+	But use double-dashes for the option names instead of single.
+	(I couldn't include them literally, as, believe it or not,
+	it's an error to include a double dash in an XML comment.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified"
+           targetNamespace="http://indexdata.dk/yp2/config/1"
+           xmlns:config="http://indexdata.dk/yp2/config/1">
+
+  <xs:element name="yp2">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="config:start"/>
+        <xs:element ref="config:filters"/>
+        <xs:element ref="config:routes"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+
+  <xs:element name="start">
+    <xs:complexType>
+      <!-- ### need to specify here that the element is empty -->
+      <xs:attribute name="route" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+
+
+  <xs:element name="filters">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="config:filter"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="filter">
+    <xs:complexType>
+      <xs:choice>
+        <!-- In general, the content depends on the "type" attribute.
+             Perhaps the various filter-types' configuration
+             structures should each be described by their own little
+             subschemas? -->
+
+	<!-- type="frontend_net" -->
+        <xs:sequence>
+          <xs:element ref="config:threads"/>
+          <xs:element ref="config:port"/>
+        </xs:sequence>
+
+	<!-- type="z3950_client" -->
+        <xs:element ref="config:timeout"/>
+
+	<!-- type="log" -->
+        <xs:element ref="config:message"/>
+
+	<!-- type="virt_db" -->
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="config:virtual"/>
+
+      </xs:choice>
+      <xs:attribute name="id" type="xs:NCName"/>
+      <xs:attribute name="refid" type="xs:NCName"/>
+      <xs:attribute name="type" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="threads" type="xs:integer"/>
+  <xs:element name="port" type="xs:string"/>
+  <xs:element name="timeout" type="xs:integer"/>
+  <xs:element name="message" type="xs:NCName"/>
+
+  <xs:element name="virtual">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="config:database"/>
+        <xs:element ref="config:target"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="database" type="xs:NCName"/>
+  <xs:element name="target" type="xs:anyURI"/>
+
+
+  <xs:element name="routes">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="config:route"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="route">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="config:filter"/>
+      </xs:sequence>
+      <xs:attribute name="id" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
