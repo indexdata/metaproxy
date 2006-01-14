@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.23 2006-01-13 15:09:35 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.24 2006-01-14 08:38:57 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -78,7 +78,7 @@ namespace yp2 {
             friend class Virt_db;
             friend class Frontend;
             
-            Frontend *get_frontend(Package &package);
+            FrontendPtr get_frontend(Package &package);
             void release_frontend(Package &package);
         private:
             boost::mutex m_sessions_mutex;
@@ -88,7 +88,7 @@ namespace yp2 {
 
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
-            std::map<yp2::Session,Frontend *> m_clients;
+            std::map<yp2::Session, FrontendPtr> m_clients;
         };
     }
 }
@@ -294,12 +294,10 @@ void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
     std::string backend_setname;
     if (b->m_named_result_sets)
     {
-        std::cout << "named_result_sets TRUE\n";
         backend_setname = std::string(req->resultSetName);
     }
     else
     {
-        std::cout << "named_result_sets FALSE\n";
         backend_setname = "default";
         req->resultSetName = odr_strdup(odr, backend_setname.c_str());
     }
@@ -353,11 +351,11 @@ yf::Virt_db::Frontend::~Frontend()
 {
 }
 
-yf::Virt_db::Frontend *yf::Virt_db::Rep::get_frontend(Package &package)
+yf::Virt_db::FrontendPtr yf::Virt_db::Rep::get_frontend(Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
 
-    std::map<yp2::Session,yf::Virt_db::Frontend *>::iterator it;
+    std::map<yp2::Session,yf::Virt_db::FrontendPtr>::iterator it;
     
     while(true)
     {
@@ -372,17 +370,16 @@ yf::Virt_db::Frontend *yf::Virt_db::Rep::get_frontend(Package &package)
         }
         m_cond_session_ready.wait(lock);
     }
-    Frontend *f = new Frontend(this);
+    FrontendPtr f(new Frontend(this));
     m_clients[package.session()] = f;
     f->m_in_use = true;
     return f;
 }
 
-
 void yf::Virt_db::Rep::release_frontend(Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
-    std::map<yp2::Session,yf::Virt_db::Frontend *>::iterator it;
+    std::map<yp2::Session,yf::Virt_db::FrontendPtr>::iterator it;
     
     it = m_clients.find(package.session());
     if (it != m_clients.end())
@@ -390,7 +387,6 @@ void yf::Virt_db::Rep::release_frontend(Package &package)
         if (package.session().is_closed())
         {
             it->second->close(package);
-            delete it->second;
             m_clients.erase(it);
         }
         else
@@ -557,92 +553,90 @@ void yf::Virt_db::add_map_db2vhost(std::string db, std::string vhost,
 
 void yf::Virt_db::process(Package &package) const
 {
-    yf::Virt_db::Frontend *f = m_p->get_frontend(package);
-    if (f)
-    {
-        Z_GDU *gdu = package.request().get();
-        
-        if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
-            Z_APDU_initRequest && !f->m_is_virtual)
-        {
-            Z_InitRequest *req = gdu->u.z3950->u.initRequest;
+    FrontendPtr f = m_p->get_frontend(package);
 
-            const char *vhost =
-                yaz_oi_get_string_oidval(&req->otherInfo, VAL_PROXY, 1, 0);
-            if (!vhost)
-            {
-                yp2::odr odr;
-                Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950, 0, 0);
-                Z_InitResponse *resp = apdu->u.initResponse;
-                
-                int i;
-                static const int masks[] = {
-                    Z_Options_search,
-                    Z_Options_present,
-                    Z_Options_namedResultSets,
-                    Z_Options_scan,
-                    -1 
-                };
-                for (i = 0; masks[i] != -1; i++)
-                    if (ODR_MASK_GET(req->options, masks[i]))
-                        ODR_MASK_SET(resp->options, masks[i]);
-                
-                static const int versions[] = {
-                    Z_ProtocolVersion_1,
-                    Z_ProtocolVersion_2,
-                    Z_ProtocolVersion_3,
-                    -1
-                };
-                for (i = 0; versions[i] != -1; i++)
-                    if (ODR_MASK_GET(req->protocolVersion, versions[i]))
-                        ODR_MASK_SET(resp->protocolVersion, versions[i]);
-                    else
-                        break;
-                
-                package.response() = apdu;
-                f->m_is_virtual = true;
-            }
-            else
-                package.move();
-        }
-        else if (!f->m_is_virtual)
-            package.move();
-        else if (gdu && gdu->which == Z_GDU_Z3950)
+    Z_GDU *gdu = package.request().get();
+    
+    if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
+        Z_APDU_initRequest && !f->m_is_virtual)
+    {
+        Z_InitRequest *req = gdu->u.z3950->u.initRequest;
+        
+        const char *vhost =
+            yaz_oi_get_string_oidval(&req->otherInfo, VAL_PROXY, 1, 0);
+        if (!vhost)
         {
-            Z_APDU *apdu = gdu->u.z3950;
-            if (apdu->which == Z_APDU_initRequest)
-            {
-                yp2::odr odr;
-                
-                package.response() = odr.create_close(
-                    apdu,
-                    Z_Close_protocolError,
-                    "double init");
-                
-                package.session().close();
-            }
-            else if (apdu->which == Z_APDU_searchRequest)
-            {
-                f->search(package, apdu);
-            }
-            else if (apdu->which == Z_APDU_presentRequest)
-            {
-                f->present(package, apdu);
-            }
-            else if (apdu->which == Z_APDU_scanRequest)
-            {
-                f->scan(package, apdu);
-            }
-            else
-            {
-                yp2::odr odr;
-                
-                package.response() = odr.create_close(
-                    apdu, Z_Close_protocolError,
-                    "unsupported APDU in filter_virt_db");
-                
-                package.session().close();
-            }
+            yp2::odr odr;
+            Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950, 0, 0);
+            Z_InitResponse *resp = apdu->u.initResponse;
+            
+            int i;
+            static const int masks[] = {
+                Z_Options_search,
+                Z_Options_present,
+                Z_Options_namedResultSets,
+                Z_Options_scan,
+                -1 
+            };
+            for (i = 0; masks[i] != -1; i++)
+                if (ODR_MASK_GET(req->options, masks[i]))
+                    ODR_MASK_SET(resp->options, masks[i]);
+            
+            static const int versions[] = {
+                Z_ProtocolVersion_1,
+                Z_ProtocolVersion_2,
+                Z_ProtocolVersion_3,
+                -1
+            };
+            for (i = 0; versions[i] != -1; i++)
+                if (ODR_MASK_GET(req->protocolVersion, versions[i]))
+                    ODR_MASK_SET(resp->protocolVersion, versions[i]);
+                else
+                    break;
+            
+            package.response() = apdu;
+            f->m_is_virtual = true;
+        }
+        else
+            package.move();
+    }
+    else if (!f->m_is_virtual)
+        package.move();
+    else if (gdu && gdu->which == Z_GDU_Z3950)
+    {
+        Z_APDU *apdu = gdu->u.z3950;
+        if (apdu->which == Z_APDU_initRequest)
+        {
+            yp2::odr odr;
+            
+            package.response() = odr.create_close(
+                apdu,
+                Z_Close_protocolError,
+                "double init");
+            
+            package.session().close();
+        }
+        else if (apdu->which == Z_APDU_searchRequest)
+        {
+            f->search(package, apdu);
+        }
+        else if (apdu->which == Z_APDU_presentRequest)
+        {
+            f->present(package, apdu);
+        }
+        else if (apdu->which == Z_APDU_scanRequest)
+        {
+            f->scan(package, apdu);
+        }
+        else
+        {
+            yp2::odr odr;
+            
+            package.response() = odr.create_close(
+                apdu, Z_Close_protocolError,
+                "unsupported APDU in filter_virt_db");
+            
+            package.session().close();
         }
     }
     m_p->release_frontend(package);

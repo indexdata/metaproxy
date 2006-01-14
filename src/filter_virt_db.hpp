@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.hpp,v 1.10 2006-01-13 15:09:35 adam Exp $
+/* $Id: filter_virt_db.hpp,v 1.11 2006-01-14 08:38:57 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -23,6 +23,7 @@ namespace yp2 {
             class Set;
             class Backend;
             typedef boost::shared_ptr<Virt_db::Backend> BackendPtr;
+            typedef boost::shared_ptr<Virt_db::Frontend> FrontendPtr;
         public:
             ~Virt_db();
             Virt_db();
