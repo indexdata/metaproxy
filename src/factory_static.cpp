@@ -1,4 +1,4 @@
-/* $Id: factory_static.cpp,v 1.5 2006-01-12 10:04:34 adam Exp $
+/* $Id: factory_static.cpp,v 1.6 2006-01-15 20:03:14 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -20,6 +20,7 @@
 #include "filter_backend_test.hpp"
 #include "filter_frontend_net.hpp"
 #include "filter_log.hpp"
+#include "filter_multi.hpp"
 #include "filter_session_shared.hpp"
 #include "filter_template.hpp"
 #include "filter_virt_db.hpp"
@@ -32,6 +33,7 @@ yp2::FactoryStatic::FactoryStatic()
         &yp2_filter_backend_test,
         &yp2_filter_frontend_net,        
         &yp2_filter_log,
+        &yp2_filter_multi,
         &yp2_filter_session_shared,
         &yp2_filter_template,
         &yp2_filter_virt_db,

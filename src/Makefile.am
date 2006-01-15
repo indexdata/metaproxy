@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.42 2006-01-12 10:04:34 adam Exp $
+## $Id: Makefile.am,v 1.43 2006-01-15 20:03:14 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -21,6 +21,7 @@ libyp2_la_SOURCES = \
 	filter_auth_simple.cpp filter_auth_simple.hpp \
 	filter_frontend_net.cpp filter_frontend_net.hpp \
 	filter_log.cpp filter_log.hpp \
+	filter_multi.cpp filter_multi.hpp \
 	filter_virt_db.cpp filter_virt_db.hpp \
 	filter_z3950_client.cpp filter_z3950_client.hpp \
 	filter_backend_test.cpp filter_backend_test.hpp \
@@ -62,6 +63,7 @@ check_PROGRAMS = \
 	test_filter_factory \
 	test_filter_frontend_net \
 	test_filter_log \
+	test_filter_multi \
 	test_filter_z3950_client \
 	test_filter_backend_test \
 	test_filter_virt_db \
@@ -83,6 +85,7 @@ test_filter_auth_simple_SOURCES = test_filter_auth_simple.cpp
 test_filter_factory_SOURCES = test_filter_factory.cpp
 test_filter_frontend_net_SOURCES = test_filter_frontend_net.cpp
 test_filter_log_SOURCES = test_filter_log.cpp
+test_filter_multi_SOURCES = test_filter_multi.cpp
 test_filter_z3950_client_SOURCES = test_filter_z3950_client.cpp
 test_filter_backend_test_SOURCES = test_filter_backend_test.cpp
 test_filter_virt_db_SOURCES = test_filter_virt_db.cpp
@@ -104,6 +107,7 @@ test_filter_auth_simple_LDADD = $(TESTLDADD)
 test_filter_factory_LDADD = $(TESTLDADD)
 test_filter_frontend_net_LDADD = $(TESTLDADD)
 test_filter_log_LDADD = $(TESTLDADD)
+test_filter_multi_LDADD = $(TESTLDADD)
 test_filter_z3950_client_LDADD = $(TESTLDADD)
 test_filter_backend_test_LDADD = $(TESTLDADD)
 test_filter_virt_db_LDADD = $(TESTLDADD)
