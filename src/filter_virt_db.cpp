@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.27 2006-01-16 16:05:50 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.28 2006-01-16 17:03:09 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -470,8 +470,9 @@ void yf::Virt_db::Frontend::present(Package &package, Z_APDU *apdu_req)
     // sending present to backend
     Package present_package(*id, package.origin());
     present_package.copy_filter(package);
+
+    req->resultSetId = odr_strdup(odr, sets_it->second.m_setname.c_str());
     
-    req->resultSetId = odr_strdup(odr, "default");
     present_package.request() = yazpp_1::GDU(apdu_req);
 
     present_package.move();
