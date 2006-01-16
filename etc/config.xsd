@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: config.xsd,v 1.4 2006-01-16 12:03:11 mike Exp $ -->
+<!-- $Id: config.xsd,v 1.5 2006-01-16 12:24:14 mike Exp $ -->
 <!--
 	This Schema prescribes the format of YP2 configuration files.
 	Invoke it like this:
@@ -66,10 +66,30 @@
 	<!-- type="auth_simple" or type="backend_test" -->
 	<!-- No elements included -->
 
+	<!-- type="session_shared" -->
+	<!-- No example configuration to deduce from yet -->
+
+	<!-- type="template" -->
+	<!-- No example configuration to deduce from yet -->
+
       </xs:choice>
       <xs:attribute name="id" type="xs:NCName"/>
       <xs:attribute name="refid" type="xs:NCName"/>
-      <xs:attribute name="type" type="xs:NCName"/>
+      <xs:attribute name="type">
+        <xs:simpleType>
+          <xs:restriction base="xs:NCName">
+            <xs:enumeration value="frontend_net"/>
+            <xs:enumeration value="z3950_client"/>
+            <xs:enumeration value="log"/>
+            <xs:enumeration value="virt_db"/>
+            <xs:enumeration value="auth_simple"/>
+            <xs:enumeration value="backend_test"/>
+            <xs:enumeration value="multi"/>
+            <xs:enumeration value="session_shared"/>
+            <xs:enumeration value="template"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>
 
