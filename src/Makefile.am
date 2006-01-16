@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.43 2006-01-15 20:03:14 adam Exp $
+## $Id: Makefile.am,v 1.44 2006-01-16 11:22:56 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -36,12 +36,13 @@ libyp2_la_SOURCES = \
 
 LDADD= libyp2.la $(YAZPPLALIB) $(XSLT_LIBS)
 
-bin_PROGRAMS =
+bin_PROGRAMS = yp2
 noinst_PROGRAMS = ex_filter_frontend_net ex_router_flexml tstdl
 
 ex_filter_frontend_net_SOURCES = ex_filter_frontend_net.cpp
 ex_router_flexml_SOURCES =  ex_router_flexml.cpp
 tstdl_SOURCES = tstdl.cpp
+yp2_SOURCES = yp2_prog.cpp
 
 # Rules for dl programs
 pkglib_LTLIBRARIES = yp2_filter_dl.la

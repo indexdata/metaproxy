@@ -1,4 +1,4 @@
-/* $Id: ex_router_flexml.cpp,v 1.7 2006-01-16 11:22:56 adam Exp $
+/* $Id: yp2_prog.cpp,v 1.1 2006-01-16 11:22:56 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
