@@ -1,4 +1,4 @@
-$Id: classes,v 1.2 2006-01-16 14:33:41 mike Exp $
+$Id: classes,v 1.3 2006-01-16 15:22:56 mike Exp $
 
 
 A Hitch-Hiker's Guide to the YP2 Classes
@@ -16,8 +16,8 @@ registered filters (as opposed to those that are dynamically loaded).
 Classes
 =======
 
-FactoryFilter
--------------
+yp::FactoryFilter
+-----------------
 
 A factory class that exists primarily to provide the create() method,
 which takes the name of a filter class as its argument and returns a
@@ -26,8 +26,8 @@ populated by calling add_creator() for static filters (this is done by
 the FactoryStatic class, see below) and add_creator_dyn() for filters
 loaded dynamically.
 
-FactoryStatic
--------------
+yp2::FactoryStatic
+------------------
 
 A subclass of FactoryFilter which is responsible for registering all
 the statically defined filter types.  It does this by knowing about
@@ -36,7 +36,101 @@ Merely instantiating this class registers all the static classes.  It
 is for the benefit of this class that struct yp2_filter_struct exists,
 and that all the filter classes provide a static object of that type.
 
+yp2::filter::Base
+-----------------
+
+The virtual base class of all filters.  The filter API is, on the
+surface at least, extremely simple: two methods.  configure() is
+passed a DOM tree representing that part of the configuration file
+that pertains to this filter instance, and is expected to walk that
+tree extracting relevant information.  And process() processes a
+Package (see below).  That surface simplicitly is a bit misleading, as
+process() needs to know a lot about the Package class in order to do
+anything useful.
+
+yp2::filter::AuthSimple, Backend_test, FrontendNet, etc.
+--------------------------------------------------------
+
+Individual filters.  Each of these is implemented by a header and a
+source file, named filter_*.hpp and filter_*.cpp respectively.  All
+the header files should be pretty much identical, in that they declare
+the class, including a private Rep class and a member pointer to it,
+and the two public methods.  The only extra information in any filter
+header is additional private types and members (the latter should
+really all be in the Rep anyway).
+
+The source file for each filter needs to supply:
+- a definition of the private Rep class
+- some boilerplate constructors and destructors
+- a configure() method that uses the appropriate XML fragment
+- most important, the prcoess() method that does all the actual work.
+
+In a better world, each of the filters (nine so far) would be
+documented separately.  Very, very briefly, though:
+- auth_simple: authentication against a plain-text file
+- backend_test: trivial ztest-like dummy hardwired back-end
+- frontend_net: receives incoming Z39.50 and SRW PSUs
+- log: writes log messages
+- multi: fans out searches to multiple back-ends
+- session_shared: ### no idea -- not used in sample configs
+- template: ### no idea -- not used in sample configs
+- virt_db: chooses which server/db to use based on database name
+- z3950_client: forwards PDUs to a nominated Z39.50 server
+
+### What is "filter_dl.cpp"?  It's to do with dynamic loading, but in
+what way and to what extent does it function as a filter?
+
+yp2::Package
+------------
+
+###
+
+yp2::Pipe
+---------
+
+###
 
 
-### Much more to add!
+yp2::Router and yp2::RouterChain
+--------------------------------
 
+###
+
+
+yp2::RouterFleXML
+-----------------
+
+###
+
+
+yp2::Session
+------------
+
+###
+
+yp2::ThreadPoolSocketObserver
+-----------------------------
+
+###
+
+yp2::util
+---------
+
+A namespace of various small utility functions and classes, collected
+together for convenience.  Most importantly, includes the
+yp2::util::odr class, a wrapper for YAZ's ODR facilities.
+
+
+yp2::xml
+---------
+
+A namespace of various XML utility functions and classes, collected
+together for convenience.
+
+
+Other Source Files
+==================
+
+ex_router_flexml.cpp -- the main function of the proxy.
+yp2_prog.cpp -- identical to the above: it's not clear why.
+test_*.cpp -- unit-tests for various modules.
