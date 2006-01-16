@@ -1,4 +1,4 @@
-/* $Id: test_filter_virt_db.cpp,v 1.10 2006-01-11 11:51:50 adam Exp $
+/* $Id: test_filter_virt_db.cpp,v 1.11 2006-01-16 17:02:55 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -202,7 +202,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_virt_db_3 )
    
         yp2::filter::Virt_db vdb;        
         router.append(vdb);
-        vdb.add_map_db2vhost("Default", "localhost:210", "");
+        vdb.add_map_db2target("Default", "localhost:210", "");
         yp2::filter::Log filter_log2("BACK");
 #if 0
         router.append(filter_log2);
