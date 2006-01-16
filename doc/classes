@@ -1,0 +1,40 @@
+$Id: classes,v 1.1 2006-01-16 14:33:29 mike Exp $
+
+A Hitch-Hiker's Guide to the YP2 Classes
+========================================
+
+
+Introductory Notes
+------------------
+
+In general, classes seem to be named big-endianly, so that
+"FactoryFilter" is not a filter for factories, but a factory that
+produces filters, and "FactoryStatic" is a factory for the statically
+registered filters (as opposed to those that are dynamically loaded).
+
+
+Classes
+=======
+
+FactoryFilter
+-------------
+
+A factory class that exists primarily to provide the create() method,
+which takes the name of a filter class as its argument and returns a
+new filter of that type.  To enable this, the factory must first be
+populated by calling add_creator() for static filters (this is done by
+the FactoryStatic class, see below) and add_creator_dyn() for filters
+loaded dynamically.
+
+FactoryStatic
+-------------
+
+A subclass of FactoryFilter which is responsible for registering all
+the statically defined filter types.  It does this by knowing about
+all those filters' structures, which are listed in its constructor.
+Merely instantiating this class registers all the static classes.  It
+is for the benefit of this class that struct yp2_filter_struct exists,
+and that all the filter classes provide a static object of that type.
+
+### Much more to add!
+
