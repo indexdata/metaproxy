@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.24 2006-01-14 08:38:57 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.25 2006-01-16 01:10:19 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -443,7 +443,6 @@ void yf::Virt_db::Frontend::present(Package &package, Z_APDU *apdu_req)
                 YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST,
                 resultSetId.c_str());
         package.response() = apdu;
-        
         return;
     }
     Session *id =
