@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: config.xsd,v 1.3 2006-01-16 11:33:04 mike Exp $ -->
+<!-- $Id: config.xsd,v 1.4 2006-01-16 12:03:11 mike Exp $ -->
 <!--
 	This Schema prescribes the format of YP2 configuration files.
 	Invoke it like this:
@@ -26,7 +26,7 @@
 
   <xs:element name="start">
     <xs:complexType>
-      <!-- ### need to specify here that the element is empty -->
+      <!-- ### We need to specify here that the element is empty -->
       <xs:attribute name="route" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
@@ -60,8 +60,11 @@
 	<!-- type="log" -->
         <xs:element ref="config:message"/>
 
-	<!-- type="virt_db" -->
+	<!-- type="virt_db" or type="multi" -->
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="config:virtual"/>
+
+	<!-- type="auth_simple" or type="backend_test" -->
+	<!-- No elements included -->
 
       </xs:choice>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -75,17 +78,24 @@
   <xs:element name="timeout" type="xs:integer"/>
   <xs:element name="message" type="xs:NCName"/>
 
+  <!-- ### This is used differently depending on whether it occurs
+       within a "virt_db" or "multi" filter: for the former, it
+       contains one database and one target; for the latter, it
+       contains an optional vhost and one or more targets.  This
+       schema should be tweaked to enforce this. -->
   <xs:element name="virtual">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="config:database"/>
-        <xs:element ref="config:target"/>
+        <xs:element minOccurs="0" ref="config:database"/>
+        <xs:element minOccurs="0" ref="config:vhost"/>
+        <xs:element maxOccurs="unbounded" ref="config:target"/>
       </xs:sequence>
       <xs:attribute name="route" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
 
   <xs:element name="database" type="xs:NCName"/>
+  <xs:element name="vhost" type="xs:NCName"/>
   <xs:element name="target" type="xs:anyURI"/>
 
 
