@@ -1,0 +1,10 @@
+# $Id: example.simple-auth,v 1.1 2006-01-16 16:29:49 mike Exp $
+#
+# Sample user-register for YP2's simple authentication.  Each
+# non-blank line either begins with a hash (in which case it is a
+# comment, and is ignored) or consists of a username and a password
+# sparated by a colon (with no spaces).
+
+mike:quercus
+adam:betula
+rob:nothofagus
