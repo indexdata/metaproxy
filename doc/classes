@@ -1,8 +1,8 @@
-$Id: classes,v 1.1 2006-01-16 14:33:29 mike Exp $
+$Id: classes,v 1.2 2006-01-16 14:33:41 mike Exp $
+
 
 A Hitch-Hiker's Guide to the YP2 Classes
 ========================================
-
 
 Introductory Notes
 ------------------
@@ -35,6 +35,8 @@ all those filters' structures, which are listed in its constructor.
 Merely instantiating this class registers all the static classes.  It
 is for the benefit of this class that struct yp2_filter_struct exists,
 and that all the filter classes provide a static object of that type.
+
+
 
 ### Much more to add!
 
