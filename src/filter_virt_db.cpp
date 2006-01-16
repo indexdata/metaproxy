@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.25 2006-01-16 01:10:19 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.26 2006-01-16 15:51:56 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -37,16 +37,18 @@ namespace yp2 {
             std::string m_setname;
         };
         struct Virt_db::Map {
-            Map(std::string vhost, std::string route);
+            Map(std::list<std::string> targets, std::string route);
             Map();
-            std::string m_vhost;
+            std::list<std::string> m_targets;
             std::string m_route;
         };
         struct Virt_db::Backend {
             yp2::Session m_backend_session;
+#if 0
             std::string m_backend_database;
-            std::string m_frontend_database;
-            std::string m_vhost;
+#endif
+            std::list<std::string> m_frontend_databases;
+            std::list<std::string> m_targets;
             std::string m_route;
             bool m_named_result_sets;
             int m_number_of_sets;
@@ -67,10 +69,13 @@ namespace yp2 {
             void close(Package &package);
             typedef std::map<std::string,Virt_db::Set>::iterator Sets_it;
 
-            BackendPtr lookup_backend_from_database(std::string database);
-            BackendPtr create_backend_from_database(std::string database);
+            BackendPtr lookup_backend_from_databases(
+                std::list<std::string> databases);
+            BackendPtr create_backend_from_databases(
+                std::list<std::string> databases);
             
-            BackendPtr init_backend(std::string database, Package &package,
+            BackendPtr init_backend(std::list<std::string> database,
+                                    Package &package,
                                     int &error_code, std::string &addinfo);
             Rep *m_p;
         };            
@@ -95,54 +100,67 @@ namespace yp2 {
 
 using namespace yp2;
 
-yf::Virt_db::BackendPtr yf::Virt_db::Frontend::lookup_backend_from_database(
-    std::string database)
+yf::Virt_db::BackendPtr yf::Virt_db::Frontend::lookup_backend_from_databases(
+    std::list<std::string> databases)
 {
     std::list<BackendPtr>::const_iterator map_it;
     map_it = m_backend_list.begin();
     for (; map_it != m_backend_list.end(); map_it++)
-        if ((*map_it)->m_frontend_database == database)
+        if ((*map_it)->m_frontend_databases == databases)
             return *map_it;
     BackendPtr null;
     return null;
 }
 
-yf::Virt_db::BackendPtr yf::Virt_db::Frontend::create_backend_from_database(
-    std::string database)
+yf::Virt_db::BackendPtr yf::Virt_db::Frontend::create_backend_from_databases(
+    std::list<std::string> databases)
 {
-    std::map<std::string, Virt_db::Map>::iterator map_it;
-    map_it = m_p->m_maps.find(database);
-    if (map_it == m_p->m_maps.end())
-    {
-        BackendPtr ptr;
-        return ptr;
-    }
     BackendPtr b(new Backend);
+    std::list<std::string>::const_iterator db_it = databases.begin();
 
     b->m_number_of_sets = 0;
-    b->m_frontend_database = database;
+    b->m_frontend_databases = databases;
     b->m_named_result_sets = false;
-    b->m_route = map_it->second.m_route;
-    b->m_vhost = map_it->second.m_vhost;
+
+    std::map<std::string,bool> targets_dedup;
+    for (; db_it != databases.end(); db_it++)
+    {
+        std::map<std::string, Virt_db::Map>::iterator map_it;
+        map_it = m_p->m_maps.find(*db_it);
+        if (map_it == m_p->m_maps.end())  // database not found
+        {
+            BackendPtr ptr;
+            return ptr;
+        }
+        std::list<std::string>::const_iterator t_it =
+            map_it->second.m_targets.begin();
+        for (; t_it != map_it->second.m_targets.end(); t_it++)
+            targets_dedup[*t_it] = true;
+        b->m_route = map_it->second.m_route;
+    }
+    std::map<std::string,bool>::const_iterator tm_it = targets_dedup.begin();
+    for (; tm_it != targets_dedup.end(); tm_it++)
+        b->m_targets.push_back(tm_it->first);
+#if 0
     const char *sep = strchr(b->m_vhost.c_str(), '/');
     std::string backend_database;
     if (sep)
         b->m_backend_database = std::string(sep+1);
     else
         b->m_backend_database = database;
-
+#endif
     return b;
 }
 
 yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
-    std::string database, Package &package,
+    std::list<std::string> databases, Package &package,
     int &error_code, std::string &addinfo)
 {
-    BackendPtr b = create_backend_from_database(database);
+    BackendPtr b = create_backend_from_databases(databases);
     if (!b)
     {
         error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
-        addinfo = database;
+        // addinfo = database;
         return b;
     }
     Package init_package(b->m_backend_session, package.origin());
@@ -152,9 +170,13 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
 
     Z_APDU *init_apdu = zget_APDU(odr, Z_APDU_initRequest);
     
-    yaz_oi_set_string_oidval(&init_apdu->u.initRequest->otherInfo, odr,
-                             VAL_PROXY, 1, b->m_vhost.c_str());
-    
+    std::list<std::string>::const_iterator t_it = b->m_targets.begin();
+    int cat = 1;
+    for (; t_it != b->m_targets.end(); t_it++, cat++)
+    {
+        yaz_oi_set_string_oidval(&init_apdu->u.initRequest->otherInfo, odr,
+                                 VAL_PROXY, cat, t_it->c_str());
+    }
     Z_InitRequest *req = init_apdu->u.initRequest;
 
     ODR_MASK_SET(req->options, Z_Options_search);
@@ -173,7 +195,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
     if (init_package.session().is_closed())
     {
         error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
-        addinfo = database;
+        // addinfo = database;
         BackendPtr null;
         return null;
     }
@@ -191,7 +213,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
     else
     {
         error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
-        addinfo = database;
+        // addinfo = database;
         BackendPtr null;
         return null;
     }        
@@ -206,17 +228,10 @@ void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
     std::string resultSetId = req->resultSetName;
     yp2::odr odr;
 
-    // only one datatabase for now
-    if (req->num_databaseNames != 1)
-    {   // exactly one database must be specified
-        Z_APDU *apdu =
-            odr.create_searchResponse(
-                apdu_req, YAZ_BIB1_TOO_MANY_DATABASES_SPECIFIED, 0);
-        package.response() = apdu;
-        
-        return;
-    }
-    std::string database = std::string(req->databaseNames[0]);
+    std::list<std::string> databases;
+    int i;
+    for (i = 0; i<req->num_databaseNames; i++)
+        databases.push_back(req->databaseNames[i]);
 
     BackendPtr b; // null for now
     Sets_it sets_it = m_sets.find(req->resultSetName);
@@ -244,7 +259,7 @@ void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
         for (; map_it != m_backend_list.end(); map_it++)
         {
             BackendPtr tmp = *map_it;
-            if (tmp->m_frontend_database == database)
+            if (tmp->m_frontend_databases == databases)
                 break;
         }
         if (map_it != m_backend_list.end()) 
@@ -261,7 +276,7 @@ void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
         for (; map_it != m_backend_list.end(); map_it++)
         {
             BackendPtr tmp = *map_it;
-            if (tmp->m_frontend_database == database &&
+            if (tmp->m_frontend_databases == databases &&
                 (tmp->m_named_result_sets ||
                  tmp->m_number_of_sets == 0))
                 break;
@@ -273,7 +288,7 @@ void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
     {
         int error_code;
         std::string addinfo;
-        b = init_backend(database, package, error_code, addinfo);
+        b = init_backend(databases, package, error_code, addinfo);
         if (!b)
         {
             // did not get a backend (unavailable somehow?)
@@ -302,8 +317,10 @@ void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
         req->resultSetName = odr_strdup(odr, backend_setname.c_str());
     }
 
+#if 0
     const char *backend_database = b->m_backend_database.c_str();
     req->databaseNames[0] = odr_strdup(odr, backend_database);
+#endif
 
     *req->replaceIndicator = 1;
 
@@ -315,8 +332,7 @@ void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
     {
         Z_APDU *apdu = 
             odr.create_searchResponse(
-                apdu_req,
-                YAZ_BIB1_DATABASE_UNAVAILABLE, database.c_str());
+                apdu_req, YAZ_BIB1_DATABASE_UNAVAILABLE, 0);
         package.response() = apdu;
         return;
     }
@@ -412,8 +428,8 @@ yf::Virt_db::Set::~Set()
 {
 }
 
-yf::Virt_db::Map::Map(std::string vhost, std::string route)
-    : m_vhost(vhost), m_route(route) 
+yf::Virt_db::Map::Map(std::list<std::string> targets, std::string route)
+    : m_targets(targets), m_route(route) 
 {
 }
 
@@ -480,18 +496,11 @@ void yf::Virt_db::Frontend::scan(Package &package, Z_APDU *apdu_req)
     std::string vhost;
     yp2::odr odr;
 
-    // only one datatabase for now
-    if (req->num_databaseNames != 1)
-    {   // exactly one database must be specified
-        Z_APDU *apdu =
-            odr.create_scanResponse(
-                apdu_req,
-                YAZ_BIB1_TOO_MANY_DATABASES_SPECIFIED, 0);
-        package.response() = apdu;
-        return;
-    }
-    std::string database = std::string(req->databaseNames[0]);
-    
+    std::list<std::string> databases;
+    int i;
+    for (i = 0; i<req->num_databaseNames; i++)
+        databases.push_back(req->databaseNames[i]);
+
     BackendPtr b;
     // pick up any existing backend with a database match
     std::list<BackendPtr>::const_iterator map_it;
@@ -499,7 +508,7 @@ void yf::Virt_db::Frontend::scan(Package &package, Z_APDU *apdu_req)
     for (; map_it != m_backend_list.end(); map_it++)
     {
         BackendPtr tmp = *map_it;
-        if (tmp->m_frontend_database == database)
+        if (tmp->m_frontend_databases == databases)
             break;
     }
     if (map_it != m_backend_list.end()) 
@@ -508,7 +517,7 @@ void yf::Virt_db::Frontend::scan(Package &package, Z_APDU *apdu_req)
     {
         int error_code;
         std::string addinfo;
-        b = init_backend(database, package, error_code, addinfo);
+        b = init_backend(databases, package, error_code, addinfo);
         if (!b)
         {
             // did not get a backend (unavailable somehow?)
@@ -525,8 +534,10 @@ void yf::Virt_db::Frontend::scan(Package &package, Z_APDU *apdu_req)
 
     scan_package.copy_filter(package);
 
+#if 0
     const char *backend_database = b->m_backend_database.c_str();
     req->databaseNames[0] = odr_strdup(odr, backend_database);
+#endif
 
     scan_package.request() = yazpp_1::GDU(apdu_req);
     
@@ -536,7 +547,7 @@ void yf::Virt_db::Frontend::scan(Package &package, Z_APDU *apdu_req)
     {
         Z_APDU *apdu =
             odr.create_scanResponse(
-                apdu_req, YAZ_BIB1_DATABASE_UNAVAILABLE, database.c_str());
+                apdu_req, YAZ_BIB1_DATABASE_UNAVAILABLE, 0);
         package.response() = apdu;
         return;
     }
@@ -544,10 +555,22 @@ void yf::Virt_db::Frontend::scan(Package &package, Z_APDU *apdu_req)
 }
 
 
-void yf::Virt_db::add_map_db2vhost(std::string db, std::string vhost,
-                                   std::string route)
+void yf::Virt_db::add_map_db2targets(std::string db, 
+                                     std::list<std::string> targets,
+                                     std::string route)
 {
-    m_p->m_maps[db] = Virt_db::Map(vhost, route);
+    m_p->m_maps[db] = Virt_db::Map(targets, route);
+}
+
+
+void yf::Virt_db::add_map_db2target(std::string db, 
+                                    std::string target,
+                                    std::string route)
+{
+    std::list<std::string> targets;
+    targets.push_back(target);
+
+    m_p->m_maps[db] = Virt_db::Map(targets, route);
 }
 
 void yf::Virt_db::process(Package &package) const
@@ -651,7 +674,7 @@ void yp2::filter::Virt_db::configure(const xmlNode * ptr)
         if (!strcmp((const char *) ptr->name, "virtual"))
         {
             std::string database;
-            std::string target;
+            std::list<std::string> targets;
             xmlNode *v_node = ptr->children;
             for (; v_node; v_node = v_node->next)
             {
@@ -661,7 +684,7 @@ void yp2::filter::Virt_db::configure(const xmlNode * ptr)
                 if (yp2::xml::is_element_yp2(v_node, "database"))
                     database = yp2::xml::get_text(v_node);
                 else if (yp2::xml::is_element_yp2(v_node, "target"))
-                    target = yp2::xml::get_text(v_node);
+                    targets.push_back(yp2::xml::get_text(v_node));
                 else
                     throw yp2::filter::FilterException
                         ("Bad element " 
@@ -670,9 +693,11 @@ void yp2::filter::Virt_db::configure(const xmlNode * ptr)
                             );
             }
             std::string route = yp2::xml::get_route(ptr);
-            add_map_db2vhost(database, target, route);
+            add_map_db2targets(database, targets, route);
+#if 0
             std::cout << "Add " << database << "->" << target
                       << "," << route << "\n";
+#endif
         }
         else
         {

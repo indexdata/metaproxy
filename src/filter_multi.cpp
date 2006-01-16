@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.2 2006-01-16 01:10:19 adam Exp $
+/* $Id: filter_multi.cpp,v 1.3 2006-01-16 15:51:56 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -284,34 +284,39 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
 {
     Z_InitRequest *req = gdu->u.z3950->u.initRequest;
 
-    // empty or non-existang vhost is the same..
-    const char *vhost_cstr =
-        yaz_oi_get_string_oidval(&req->otherInfo, VAL_PROXY, 1, 0);
-    std::string vhost;
-    if (vhost_cstr)
-        vhost = std::string(vhost_cstr);
+    std::list<std::string> targets;
 
-    std::map<std::string, Map>::const_iterator it;
-    it = m_p->m_maps.find(std::string(vhost));
-    if (it == m_p->m_maps.end())
+    int no_targets = 0;
+    while (true)
     {
-        // might return diagnostics if no match
+        const char *vhost_cstr =
+            yaz_oi_get_string_oidval(&req->otherInfo, VAL_PROXY, no_targets+1,
+                                     0);
+        if (!vhost_cstr)
+            break;
+        no_targets++;
+        if (no_targets > 1000)
+            return;
+        targets.push_back(vhost_cstr);
+    }
+    if (no_targets < 2)
+    {
         package.move();
         return;
     }
-    std::list<std::string>::const_iterator hit = it->second.m_hosts.begin();
-    for (; hit != it->second.m_hosts.end(); hit++)
+
+    std::list<std::string>::const_iterator t_it = targets.begin();
+    for (; t_it != targets.end(); t_it++)
     {
         Session s;
         Backend *b = new Backend;
-        b->m_vhost = *hit;
-        b->m_route = it->second.m_route;
+        b->m_vhost = *t_it;
+
+        // b->m_route unset
         b->m_package = PackagePtr(new Package(s, package.origin()));
 
         m_backend_list.push_back(BackendPtr(b));
     }
-    // we're going to deal with this for sure..
-
     m_is_multi = true;
 
     // create init request 
@@ -344,8 +349,6 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
     // create the frontend init response based on each backend init response
     yp2::odr odr;
 
-    int i;
-
     Z_APDU *f_apdu = odr.create_initResponse(gdu->u.z3950, 0, 0);
     Z_InitResponse *f_resp = f_apdu->u.initResponse;
 
@@ -367,6 +370,7 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
         if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
             Z_APDU_initResponse)
         {
+            int i;
             Z_APDU *b_apdu = gdu->u.z3950;
             Z_InitResponse *b_resp = b_apdu->u.initResponse;
 
@@ -399,18 +403,28 @@ void yf::Multi::Frontend::search(Package &package, Z_APDU *apdu_req)
 {
     // create search request 
     Z_SearchRequest *req = apdu_req->u.searchRequest;
-
+        
     // deal with piggy back (for now disable)
     *req->smallSetUpperBound = 0;
     *req->largeSetLowerBound = 1;
     *req->mediumSetPresentNumber = 1;
 
+    int default_num_db = req->num_databaseNames;
+    char **default_db = req->databaseNames;
+
     std::list<BackendPtr>::const_iterator bit;
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
         PackagePtr p = (*bit)->m_package;
-        // we don't modify database name yet!
-
+        yp2::odr odr;
+    
+        if (!yp2::util::set_databases_from_zurl(odr, (*bit)->m_vhost,
+                                                &req->num_databaseNames,
+                                                &req->databaseNames))
+        {
+            req->num_databaseNames = default_num_db;
+            req->databaseNames = default_db;
+        }
         p->request() = apdu_req;
         p->copy_filter(package);
     }

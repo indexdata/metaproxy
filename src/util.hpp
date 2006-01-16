@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.4 2006-01-13 15:09:35 adam Exp $
+/* $Id: util.hpp,v 1.5 2006-01-16 15:51:56 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -17,6 +17,8 @@ namespace yp2 {
 	bool pqf(ODR odr, Z_APDU *apdu, const std::string &q);
         Z_ReferenceId **get_referenceId(Z_APDU *apdu);
         Z_APDU *create_APDU(ODR odr, int type, Z_APDU *in_apdu);
+        bool set_databases_from_zurl(ODR odr, std::string zurl,
+                                     int *db_num, char ***db_strings);
     };
 
     class odr : public boost::noncopyable {

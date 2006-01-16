@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!-- $Id: config-zurg.xml,v 1.1 2006-01-16 15:51:56 adam Exp $ -->
+<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+  <start route="start"/>
+  <filters>
+  </filters>
+  <routes>
+    <route id="start">
+      <filter type="frontend_net">
+        <threads>10</threads>
+        <port>@:9000</port>
+      </filter>
+      <filter type="log">
+        <message>F</message>
+      </filter>
+
+      <filter type="virt_db">
+        <virtual>
+          <database>bdsbkm21</database>
+          <target>zurg:9901/bdsbkm21</target>
+        </virtual>
+        <virtual>
+          <database>blconm21</database>
+          <target>zurg:9902/blconm21</target>
+        </virtual>
+        <virtual>
+          <database>lcbkm21</database>
+          <target>zurg:9903/lcbkm21</target>
+        </virtual>
+        <virtual>
+          <database>radmarc</database>
+          <target>zurg:9904/radmarc</target>
+        </virtual>
+        <virtual>
+          <database>books</database>
+          <target>zurg:9901/bdsbkm21</target>
+          <target>zurg:9902/blconm21</target>
+          <target>zurg:9903/lcbkm21</target>
+          <target>zurg:9904/radmarc</target>
+        </virtual>
+      </filter>
+      <filter type="log">
+        <message>M</message>
+      </filter>
+      <filter type="multi">
+      </virtual>
+      </filter>
+      <filter type="log">
+        <message>B</message>
+      </filter>
+      <filter type="z3950_client">
+        <timeout>30</timeout>
+      </filter>
+    </route>
+  </routes>
+</yp2>
+

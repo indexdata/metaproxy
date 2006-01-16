@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.4 2006-01-13 15:09:35 adam Exp $
+/* $Id: util.cpp,v 1.5 2006-01-16 15:51:56 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -9,6 +9,7 @@
 #include <yaz/odr.h>
 #include <yaz/pquery.h>
 #include "util.hpp"
+
 
 bool yp2::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
     YAZ_PQF_Parser pqf_parser = yaz_pqf_create();
@@ -25,6 +26,45 @@ bool yp2::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
     query->u.type_1 = rpn;
     
     apdu->u.searchRequest->query = query;
+    return true;
+}
+
+
+bool yp2::util::set_databases_from_zurl(ODR odr, std::string zurl,
+                                        int *db_num, char ***db_strings)
+{
+    const char *sep = strchr(zurl.c_str(), '/');
+    if (!sep)
+        return false;
+
+    int num = 0;
+    const char *cp1 = sep+1;
+    while(1)
+    {
+        const char *cp2 = strchr(cp1, '+');
+        if (!cp2)
+            break;
+        cp1 = cp2+1;
+        num++;
+    }
+    *db_num = num+1;
+    *db_strings = (char **) odr_malloc(odr, sizeof(char*) * (*db_num));
+
+    num = 0;
+    cp1 = sep+1;
+    while(1)
+    {
+        const char *cp2 = strchr(cp1, '+');
+        if (cp2)
+            (*db_strings)[num] = odr_strdupn(odr, cp1, cp2-cp1-1);
+        else
+        {
+            (*db_strings)[num] = odr_strdup(odr, cp1);
+            break;
+        }
+        cp1 = cp2+1;
+        num++;
+    }
     return true;
 }
 
