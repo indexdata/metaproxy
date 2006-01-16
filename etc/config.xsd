@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: config.xsd,v 1.5 2006-01-16 12:24:14 mike Exp $ -->
+<!-- $Id: config.xsd,v 1.6 2006-01-16 12:29:03 mike Exp $ -->
 <!--
 	This Schema prescribes the format of YP2 configuration files.
 	Invoke it like this:
@@ -26,7 +26,7 @@
 
   <xs:element name="start">
     <xs:complexType>
-      <!-- ### We need to specify here that the element is empty -->
+      <!-- Absence of elements listed here mandates that <start> is empty -->
       <xs:attribute name="route" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
