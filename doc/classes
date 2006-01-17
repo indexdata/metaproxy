@@ -1,4 +1,4 @@
-$Id: classes,v 1.3 2006-01-16 15:22:56 mike Exp $
+$Id: classes,v 1.4 2006-01-17 09:26:44 mike Exp $
 
 
 A Hitch-Hiker's Guide to the YP2 Classes
@@ -72,23 +72,32 @@ documented separately.  Very, very briefly, though:
 - frontend_net: receives incoming Z39.50 and SRW PSUs
 - log: writes log messages
 - multi: fans out searches to multiple back-ends
-- session_shared: ### no idea -- not used in sample configs
-- template: ### no idea -- not used in sample configs
+- session_shared: global sharing of cached result-sets
+- template: NOT TO BE USED: just a template source file for new filters
 - virt_db: chooses which server/db to use based on database name
 - z3950_client: forwards PDUs to a nominated Z39.50 server
 
 ### What is "filter_dl.cpp"?  It's to do with dynamic loading, but in
 what way and to what extent does it function as a filter?
 
+See the file "filters" for more information.
+
+
 yp2::Package
 ------------
 
-###
+Represents a package on its way through the series of filters that
+make up a route.  This is essentially a Z39.50 or SRU APDU together
+with information about where it came from, which is modified as it
+passes through the various filters.
+
 
 yp2::Pipe
 ---------
 
-###
+This class provides a compatibility layer so that we have an IPC
+mechanism that works the same under Unix and Windows.  It's not
+particularly exciting.
 
 
 yp2::Router and yp2::RouterChain
