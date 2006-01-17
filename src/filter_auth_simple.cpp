@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.5 2006-01-17 17:24:14 mike Exp $
+/* $Id: filter_auth_simple.cpp,v 1.6 2006-01-17 17:30:49 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -128,6 +128,15 @@ void yf::AuthSimple::process(yp2::Package &package) const
     case Z_APDU_initRequest: return process_init(package);
     case Z_APDU_searchRequest: return process_search(package);
     case Z_APDU_scanRequest: return process_scan(package);
+        // In theory, we should check database authorisation for
+        // extended services, too (A) the proxy currently does not
+        // implement XS and turns off its negotiation bit; (B) it
+        // would be insanely complex to do as the top-level XS request
+        // structure does not carry a database name, but it is buried
+        // down in some of the possible EXTERNALs used as
+        // taskSpecificParameters; and (C) since many extended
+        // services modify the database, we'd need to more exotic
+        // authorisation database than we want to support.
     default: break;
     }   
 
