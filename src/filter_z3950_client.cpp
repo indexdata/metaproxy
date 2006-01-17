@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.22 2006-01-17 16:42:28 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.23 2006-01-17 17:55:18 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -255,7 +255,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     
     if (dblist.size())
     {
-        std::cout << "z3950_client: No databases in vhost supported\n";
+        ; // z3950_client: Databases in vhost ignored
     }
 
     yazpp_1::SocketManager *sm = new yazpp_1::SocketManager;
