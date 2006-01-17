@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.14 2006-01-13 15:09:35 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.15 2006-01-17 13:54:36 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -128,15 +128,16 @@ void yf::Backend_test::process(Package &package) const
         else if (apdu_req->which == Z_APDU_presentRequest)
         { 
             apdu_res =
-                odr.create_presentResponse(apdu_req,
-                                           YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
-                                           0);
+                odr.create_presentResponse(
+                    apdu_req,
+                    YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
+                    "backend_test: present not implemented");
         }
         else
         {
             apdu_res = odr.create_close(apdu_req,
                                         Z_Close_protocolError,
-                                        "bad APDU in filter_backend_test");
+                                        "backend_test: unhandled APDU");
             package.session().close();
         }
         if (apdu_res)
