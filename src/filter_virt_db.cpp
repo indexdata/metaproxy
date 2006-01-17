@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.30 2006-01-17 13:54:54 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.31 2006-01-17 16:45:49 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -195,23 +195,23 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
     init_package.request() = init_apdu;
     
     init_package.move(b->m_route);  // sending init 
-    
-    if (init_package.session().is_closed())
-    {
-        error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
-        // addinfo = database;
-        BackendPtr null;
-        return null;
-    }
+
     Z_GDU *gdu = init_package.response().get();
     // we hope to get an init response
     if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
         Z_APDU_initResponse)
     {
-        if (ODR_MASK_GET(gdu->u.z3950->u.initResponse->options,
-                         Z_Options_namedResultSets))
+        Z_InitResponse *res = gdu->u.z3950->u.initResponse;
+        if (ODR_MASK_GET(res->options, Z_Options_namedResultSets))
         {
             b->m_named_result_sets = true;
+        }
+        std::cout << "GOT INIT res=" << *res->result << "\n";
+        if (!*res->result)
+        {
+            yp2::util::get_init_diagnostics(res, error_code, addinfo);
+            BackendPtr null;
+            return null; 
         }
     }
     else
@@ -221,6 +221,14 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
         BackendPtr null;
         return null;
     }        
+    if (init_package.session().is_closed())
+    {
+        error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
+        // addinfo = database;
+        BackendPtr null;
+        return null;
+    }
+
     m_backend_list.push_back(b);
     return b;
 }
