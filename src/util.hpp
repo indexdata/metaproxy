@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.7 2006-01-17 16:43:29 adam Exp $
+/* $Id: util.hpp,v 1.8 2006-01-17 17:55:40 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -30,6 +30,12 @@ namespace yp2 {
                                   int &error_code, std::string &addinfo);
         void get_default_diag(Z_DefaultDiagFormat *r,
                               int &error_code, std::string &addinfo);
+
+        void piggyback(int smallSetUpperBound,
+                       int largeSetLowerBound,
+                       int mediumSetPresentNumber,
+                       int result_set_size,
+                       int &number_to_present);
     };
 
     class odr : public boost::noncopyable {

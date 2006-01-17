@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.8 2006-01-17 16:56:48 adam Exp $
+/* $Id: util.cpp,v 1.9 2006-01-17 17:55:40 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -11,6 +11,32 @@
 #include <yaz/otherinfo.h>
 #include "util.hpp"
 
+void yp2::util::piggyback(int smallSetUpperBound,
+                          int largeSetLowerBound,
+                          int mediumSetPresentNumber,
+                          int result_set_size,
+                          int &number_to_present)
+{
+    // deal with piggyback
+
+    if (result_set_size < smallSetUpperBound)
+    {
+        // small set . Return all records in set
+        number_to_present = result_set_size;
+    }
+    else if (result_set_size > largeSetLowerBound)
+    {
+        // large set . Return no records
+        number_to_present = 0;
+    }
+    else
+    {
+        // medium set . Return mediumSetPresentNumber records
+        number_to_present = mediumSetPresentNumber;
+        if (number_to_present > result_set_size)
+            number_to_present = result_set_size;
+    }
+}
 
 bool yp2::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
     YAZ_PQF_Parser pqf_parser = yaz_pqf_create();

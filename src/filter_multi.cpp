@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.4 2006-01-17 13:34:51 adam Exp $
+/* $Id: filter_multi.cpp,v 1.5 2006-01-17 17:55:40 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -59,7 +59,6 @@ namespace yp2 {
         struct Multi::Frontend {
             Frontend(Rep *rep);
             ~Frontend();
-            yp2::Session m_session;
             bool m_is_multi;
             bool m_in_use;
             std::list<BackendPtr> m_backend_list;
@@ -392,8 +391,13 @@ void yf::Multi::Frontend::search(Package &package, Z_APDU *apdu_req)
 {
     // create search request 
     Z_SearchRequest *req = apdu_req->u.searchRequest;
-        
-    // deal with piggy back (for now disable)
+
+    // save these for later
+    int smallSetUpperBound = *req->smallSetUpperBound;
+    int largeSetLowerBound = *req->largeSetLowerBound;
+    int mediumSetPresentNumber = *req->mediumSetPresentNumber;
+    
+    // they are altered now - to disable piggyback
     *req->smallSetUpperBound = 0;
     *req->largeSetLowerBound = 1;
     *req->mediumSetPresentNumber = 1;
@@ -422,7 +426,7 @@ void yf::Multi::Frontend::search(Package &package, Z_APDU *apdu_req)
     // look at each response
     FrontendSet resultSet(std::string(req->resultSetName));
 
-    int total_count = 0;
+    int result_set_size = 0;
     Z_Records *z_records_diag = 0;  // no diagnostics (yet)
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
@@ -449,7 +453,7 @@ void yf::Multi::Frontend::search(Package &package, Z_APDU *apdu_req)
             BackendSet backendSet;
             backendSet.m_backend = *bit;
             backendSet.m_count = *b_resp->resultCount;
-            total_count += *b_resp->resultCount;
+            result_set_size += *b_resp->resultCount;
             resultSet.m_backend_sets.push_back(backendSet);
         }
         else
@@ -464,18 +468,57 @@ void yf::Multi::Frontend::search(Package &package, Z_APDU *apdu_req)
     Z_APDU *f_apdu = odr.create_searchResponse(apdu_req, 0, 0);
     Z_SearchResponse *f_resp = f_apdu->u.searchResponse;
 
+    *f_resp->resultCount = result_set_size;
     if (z_records_diag)
     {
         // search error
         f_resp->records = z_records_diag;
+        package.response() = f_apdu;
+        return;
     }
-    else
-    {   // assume OK
-        m_sets[resultSet.m_setname] = resultSet;
+    // assume OK
+    m_sets[resultSet.m_setname] = resultSet;
+
+    int number;
+    yp2::util::piggyback(smallSetUpperBound,
+                         largeSetLowerBound,
+                         mediumSetPresentNumber,
+                         result_set_size,
+                         number);
+    Package pp(package.session(), package.origin());
+    if (number > 0)
+    {
+        pp.copy_filter(package);
+        Z_APDU *p_apdu = zget_APDU(odr, Z_APDU_presentRequest);
+        Z_PresentRequest *p_req = p_apdu->u.presentRequest;
+        p_req->preferredRecordSyntax = req->preferredRecordSyntax;
+        p_req->resultSetId = req->resultSetName;
+        *p_req->resultSetStartPoint = 1;
+        *p_req->numberOfRecordsRequested = number;
+        pp.request() = p_apdu;
+        present(pp, p_apdu);
+        
+        if (pp.session().is_closed())
+            package.session().close();
+        
+        Z_GDU *gdu = pp.response().get();
+        if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
+            Z_APDU_presentResponse)
+        {
+            Z_PresentResponse *p_res = gdu->u.z3950->u.presentResponse;
+            f_resp->records = p_res->records;
+            *f_resp->numberOfRecordsReturned = 
+                *p_res->numberOfRecordsReturned;
+            *f_resp->nextResultSetPosition = 
+                *p_res->nextResultSetPosition;
+        }
+        else 
+        {
+            package.response() = pp.response(); 
+            return;
+        }
     }
-    *f_resp->resultCount = total_count;
-    
-    package.response() = f_apdu;
+    package.response() = f_apdu; // in this scope because of p
 }
 
 void yf::Multi::Frontend::present(Package &package, Z_APDU *apdu_req)

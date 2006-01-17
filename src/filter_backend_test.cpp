@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.16 2006-01-17 16:45:49 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.17 2006-01-17 17:55:40 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -214,30 +214,19 @@ void yf::Backend_test::process(Package &package) const
                 int next_position = 0;
                 int error_code = 0;
                 std::string addinfo;
+                
+                int number = 0;
+                yp2::util::piggyback(*req->smallSetUpperBound,
+                                     *req->largeSetLowerBound,
+                                     *req->mediumSetPresentNumber,
+                                     result_set_size,
+                                     number);
 
-                if (result_set_size < *req->smallSetUpperBound)
+                if (number)
                 {
-                    // small set . Return all records in set
                     records = m_p->fetch(
                         odr, req->preferredRecordSyntax,
-                        1, result_set_size,
-                        error_code, addinfo,
-                        &number_returned,
-                        &next_position);
-                }
-                else if (result_set_size > *req->largeSetLowerBound)
-                {
-                    // large set . Return no records
-                }
-                else
-                {
-                    // medium set .Return mediumSetPresentNumber records
-                    int to_get = *req->mediumSetPresentNumber;
-                    if (to_get > result_set_size)
-                        to_get = result_set_size;
-                    records = m_p->fetch(
-                        odr, req->preferredRecordSyntax,
-                        1, to_get,
+                        1, number,
                         error_code, addinfo,
                         &number_returned,
                         &next_position);
