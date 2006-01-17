@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.20 2006-01-13 15:09:35 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.21 2006-01-17 13:34:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -223,26 +223,45 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         package.session().close();
         return 0;
     }
-    // check virtual host
-    const char *vhost =
-        yaz_oi_get_string_oidval(&apdu->u.initRequest->otherInfo,
-                                 VAL_PROXY, 
-                                 /* categoryValue */ 1, /* delete */ 1);
-    if (!vhost)
+    std::list<std::string> vhosts;
+    yp2::util::get_vhost_otherinfo(&apdu->u.initRequest->otherInfo,
+                                   true, vhosts);
+    size_t no_vhosts = vhosts.size();
+    if (no_vhosts == 0)
     {
         yp2::odr odr;
         package.response() = odr.create_initResponse(
             apdu,
             YAZ_BIB1_INIT_NEGOTIATION_OPTION_REQUIRED,
-            "Virtual host not given");
+            "z3950_client: No virtal host given");
         
         package.session().close();
         return 0;
     }
-                      
+    if (no_vhosts > 1)
+    {
+        yp2::odr odr;
+        package.response() = odr.create_initResponse(
+            apdu,
+            YAZ_BIB1_INIT_NEGOTIATION_OPTION_REQUIRED,
+            "z3950_client: Can not cope with multiple vhosts");
+        package.session().close();
+        return 0;
+    }
+    std::list<std::string>::const_iterator v_it = vhosts.begin();
+    std::list<std::string> dblist;
+    std::string host;
+    yp2::util::split_zurl(*v_it, host, dblist);
+    
+    if (dblist.size())
+    {
+        std::cout << "z3950_client: No databases in vhost supported\n";
+    }
+
     yazpp_1::SocketManager *sm = new yazpp_1::SocketManager;
     yazpp_1::PDU_Assoc *pdu_as = new yazpp_1::PDU_Assoc(sm);
-    yf::Z3950Client::Assoc *as = new yf::Z3950Client::Assoc(sm, pdu_as, vhost,
+    yf::Z3950Client::Assoc *as = new yf::Z3950Client::Assoc(sm, pdu_as,
+                                                            host.c_str(),
                                                             m_timeout_sec);
     m_clients[package.session()] = as;
     return as;

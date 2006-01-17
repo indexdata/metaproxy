@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.5 2006-01-16 15:51:56 adam Exp $
+/* $Id: util.hpp,v 1.6 2006-01-17 13:34:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -9,6 +9,7 @@
 
 #include <yaz/z-core.h>
 #include <string>
+#include <list>
 
 #include <boost/utility.hpp>
 
@@ -19,6 +20,12 @@ namespace yp2 {
         Z_APDU *create_APDU(ODR odr, int type, Z_APDU *in_apdu);
         bool set_databases_from_zurl(ODR odr, std::string zurl,
                                      int *db_num, char ***db_strings);
+        void split_zurl(std::string zurl, std::string &host,
+                        std::list<std::string> &db);
+
+        int get_vhost_otherinfo(Z_OtherInformation **otherInformation,
+                                bool remove_flag,
+                                std::list<std::string> &vhosts);
     };
 
     class odr : public boost::noncopyable {

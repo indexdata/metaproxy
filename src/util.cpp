@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.5 2006-01-16 15:51:56 adam Exp $
+/* $Id: util.cpp,v 1.6 2006-01-17 13:34:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -8,6 +8,7 @@
 
 #include <yaz/odr.h>
 #include <yaz/pquery.h>
+#include <yaz/otherinfo.h>
 #include "util.hpp"
 
 
@@ -29,42 +30,73 @@ bool yp2::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
     return true;
 }
 
+int yp2::util::get_vhost_otherinfo(Z_OtherInformation **otherInformation,
+                                   bool remove_flag,
+                                   std::list<std::string> &vhosts)
+{
+    int cat;
+    for (cat = 1; ; cat++)
+    {
+        // check virtual host
+        const char *vhost =
+            yaz_oi_get_string_oidval(otherInformation,
+                                     VAL_PROXY, 
+                                     cat /* categoryValue */,
+                                     remove_flag /* delete flag */);
+        if (!vhost)
+            break;
+        vhosts.push_back(std::string(vhost));
+    }
+    --cat;
+    return cat;
+}
+
+void yp2::util::split_zurl(std::string zurl, std::string &host,
+                           std::list<std::string> &db)
+{
+    const char *zurl_cstr = zurl.c_str();
+    const char *sep = strchr(zurl_cstr, '/');
+    
+    if (sep)
+    {
+        host = std::string(zurl_cstr, sep - zurl_cstr);
+
+        const char *cp1 = sep+1;
+        while(1)
+        {
+            const char *cp2 = strchr(cp1, '+');
+            if (cp2)
+                db.push_back(std::string(cp1, cp2 - cp1));
+            else
+            {
+                db.push_back(std::string(cp1));
+                break;
+            }
+            cp1 = cp2+1;
+        }
+    }
+    else
+    {
+        host = zurl;
+    }
+}
 
 bool yp2::util::set_databases_from_zurl(ODR odr, std::string zurl,
                                         int *db_num, char ***db_strings)
 {
-    const char *sep = strchr(zurl.c_str(), '/');
-    if (!sep)
-        return false;
+    std::string host;
+    std::list<std::string> dblist;
 
-    int num = 0;
-    const char *cp1 = sep+1;
-    while(1)
-    {
-        const char *cp2 = strchr(cp1, '+');
-        if (!cp2)
-            break;
-        cp1 = cp2+1;
-        num++;
-    }
-    *db_num = num+1;
+    split_zurl(zurl, host, dblist);
+   
+    if (dblist.size() == 0)
+        return false;
+    *db_num = dblist.size();
     *db_strings = (char **) odr_malloc(odr, sizeof(char*) * (*db_num));
 
-    num = 0;
-    cp1 = sep+1;
-    while(1)
-    {
-        const char *cp2 = strchr(cp1, '+');
-        if (cp2)
-            (*db_strings)[num] = odr_strdupn(odr, cp1, cp2-cp1-1);
-        else
-        {
-            (*db_strings)[num] = odr_strdup(odr, cp1);
-            break;
-        }
-        cp1 = cp2+1;
-        num++;
-    }
+    std::list<std::string>::const_iterator it = dblist.begin();
+    for (int i = 0; it != dblist.end(); it++, i++)
+        (*db_strings)[i] = odr_strdup(odr, it->c_str());
     return true;
 }
 

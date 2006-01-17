@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.3 2006-01-16 15:51:56 adam Exp $
+/* $Id: filter_multi.cpp,v 1.4 2006-01-17 13:34:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -286,20 +286,9 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
 
     std::list<std::string> targets;
 
-    int no_targets = 0;
-    while (true)
-    {
-        const char *vhost_cstr =
-            yaz_oi_get_string_oidval(&req->otherInfo, VAL_PROXY, no_targets+1,
-                                     0);
-        if (!vhost_cstr)
-            break;
-        no_targets++;
-        if (no_targets > 1000)
-            return;
-        targets.push_back(vhost_cstr);
-    }
-    if (no_targets < 2)
+    yp2::util::get_vhost_otherinfo(&req->otherInfo, false, targets);
+
+    if (targets.size() < 1)
     {
         package.move();
         return;

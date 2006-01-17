@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.28 2006-01-16 17:03:09 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.29 2006-01-17 13:34:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -44,9 +44,6 @@ namespace yp2 {
         };
         struct Virt_db::Backend {
             yp2::Session m_backend_session;
-#if 0
-            std::string m_backend_database;
-#endif
             std::list<std::string> m_frontend_databases;
             std::list<std::string> m_targets;
             std::string m_route;
@@ -143,14 +140,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::create_backend_from_databases(
     std::map<std::string,bool>::const_iterator tm_it = targets_dedup.begin();
     for (; tm_it != targets_dedup.end(); tm_it++)
         b->m_targets.push_back(tm_it->first);
-#if 0
-    const char *sep = strchr(b->m_vhost.c_str(), '/');
-    std::string backend_database;
-    if (sep)
-        b->m_backend_database = std::string(sep+1);
-    else
-        b->m_backend_database = database;
-#endif
+
     return b;
 }
 
@@ -172,7 +162,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
     yp2::odr odr;
 
     Z_APDU *init_apdu = zget_APDU(odr, Z_APDU_initRequest);
-    
+
     std::list<std::string>::const_iterator t_it = b->m_targets.begin();
     int cat = 1;
     for (; t_it != b->m_targets.end(); t_it++, cat++)
@@ -180,6 +170,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
         yaz_oi_set_string_oidval(&init_apdu->u.initRequest->otherInfo, odr,
                                  VAL_PROXY, cat, t_it->c_str());
     }
+        
     Z_InitRequest *req = init_apdu->u.initRequest;
 
     ODR_MASK_SET(req->options, Z_Options_search);
@@ -320,10 +311,14 @@ void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
         req->resultSetName = odr_strdup(odr, backend_setname.c_str());
     }
 
-#if 0
-    const char *backend_database = b->m_backend_database.c_str();
-    req->databaseNames[0] = odr_strdup(odr, backend_database);
-#endif
+    // pick first targets spec and move the databases from it ..
+    std::list<std::string>::const_iterator t_it = b->m_targets.begin();
+    if (t_it != b->m_targets.end())
+    {
+        if (!yp2::util::set_databases_from_zurl(odr, *t_it,
+                                                &req->num_databaseNames,
+                                                &req->databaseNames));
+    }
 
     *req->replaceIndicator = 1;
 
@@ -333,10 +328,8 @@ void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
 
     if (search_package.session().is_closed())
     {
-        Z_APDU *apdu = 
-            odr.create_searchResponse(
-                apdu_req, YAZ_BIB1_DATABASE_UNAVAILABLE, 0);
-        package.response() = apdu;
+        package.response() = search_package.response();
+        package.session().close();
         return;
     }
     package.response() = search_package.response();
@@ -479,13 +472,9 @@ void yf::Virt_db::Frontend::present(Package &package, Z_APDU *apdu_req)
 
     if (present_package.session().is_closed())
     {
-        Z_APDU *apdu = 
-            odr.create_presentResponse(
-                apdu_req,
-                YAZ_BIB1_RESULT_SET_NO_LONGER_EXISTS_UNILATERALLY_DELETED_BY_,
-                resultSetId.c_str());
-        package.response() = apdu;
-        m_sets.erase(resultSetId);
+        package.response() = present_package.response();
+        package.session().close();
+        return;
     }
     else
     {
@@ -538,21 +527,22 @@ void yf::Virt_db::Frontend::scan(Package &package, Z_APDU *apdu_req)
 
     scan_package.copy_filter(package);
 
-#if 0
-    const char *backend_database = b->m_backend_database.c_str();
-    req->databaseNames[0] = odr_strdup(odr, backend_database);
-#endif
-
+    // pick first targets spec and move the databases from it ..
+    std::list<std::string>::const_iterator t_it = b->m_targets.begin();
+    if (t_it != b->m_targets.end())
+    {
+        if (!yp2::util::set_databases_from_zurl(odr, *t_it,
+                                                &req->num_databaseNames,
+                                                &req->databaseNames));
+    }
     scan_package.request() = yazpp_1::GDU(apdu_req);
     
     scan_package.move(b->m_route);
 
     if (scan_package.session().is_closed())
     {
-        Z_APDU *apdu =
-            odr.create_scanResponse(
-                apdu_req, YAZ_BIB1_DATABASE_UNAVAILABLE, 0);
-        package.response() = apdu;
+        package.response() = scan_package.response();
+        package.session().close();
         return;
     }
     package.response() = scan_package.response();
@@ -698,10 +688,6 @@ void yp2::filter::Virt_db::configure(const xmlNode * ptr)
             }
             std::string route = yp2::xml::get_route(ptr);
             add_map_db2targets(database, targets, route);
-#if 0
-            std::cout << "Add " << database << "->" << target
-                      << "," << route << "\n";
-#endif
         }
         else
         {
