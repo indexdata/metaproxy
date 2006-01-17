@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-zurg.xml,v 1.2 2006-01-16 16:53:37 mike Exp $ -->
+<!-- $Id: config-zurg.xml,v 1.3 2006-01-17 10:10:36 robstyles Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <filters>
@@ -21,8 +21,25 @@
           <database>bdsbkm21</database>
           <target>zurg:9901/bdsbkm21</target>
         </virtual>
-        <virtual>
-          <database>blconm21</database>
+	<virtual>
+	  <database>foo</database>
+	  <target>zurg:9991/foo</target>
+	</virtual>
+	<virtual>
+	  <database>bar</database>
+	  <target>zurg:9992/bar</target>
+	</virtual>
+	<virtual>
+	  <database>baz</database>
+	  <target>zurg:9993/baz</target>
+	</virtual>
+	<virtual>
+	  <database>foobaralias</database>
+	  <target>zurg:9991/foo</target>
+	  <target>zurg:9992/bar</target>
+	</virtual>
+	<virtual>
+	  <database>blconm21</database>
           <target>zurg:9902/blconm21</target>
         </virtual>
         <virtual>
