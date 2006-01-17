@@ -1,4 +1,4 @@
-$Id: config,v 1.1 2006-01-17 14:13:00 mike Exp $
+$Id: config,v 1.2 2006-01-17 17:57:43 mike Exp $
 
 The Guerilla Guide to Configuring YP2
 =====================================
@@ -59,4 +59,55 @@ to those used for filters defined in the <filters> section.
 Filter configuration
 --------------------
 
-###
+All <filter> elements have in common that they must carry a "type"
+attribute whose value is one of the supported ones, listed in the
+schema file and discussed below.  In additional, <filters>s occurring
+the <filters> section must have an "id" attribute, and those occurring
+within a route must have either a "refid" attribute referencing a
+previously defined filter or contain its own configuration
+information.
+
+In general, each filter recognises different configuration elements
+within its element, as each filter has different functionality.  These
+are as follows:
+
+<filter type="frontend_net">
+  <threads>10</threads>
+  <port>@:9000</port>
+</filter>
+
+<filter type="z3950_client">
+  <timeout>30</timeout>
+</filter>
+
+<filter type="log">
+  <message>B</message>
+</filter>
+
+<filter type="virt_db">
+  <virtual>
+    <database>loc</database>
+    <target>z3950.loc.gov:7090/voyager</target>
+  </virtual>
+  <virtual>
+    <database>idgils</database>
+    <target>indexdata.dk/gils</target>
+  </virtual>
+</filter>
+
+<filter type="auth_simple">
+  <filename>../etc/example.simple-auth</filename>
+</filter>
+
+<filter type="backend_test"/>
+
+<filter type="multi">
+  ### Not yet resolved
+</filter>
+
+<filter type="session_shared">
+  ### Not yet defined
+</filter>
+
+<filter type="template"/>
+
