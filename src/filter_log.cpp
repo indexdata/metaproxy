@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.15 2006-01-11 11:51:49 adam Exp $
+/* $Id: filter_log.cpp,v 1.16 2006-01-17 15:08:02 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -23,13 +23,11 @@ namespace yp2 {
     namespace filter {
         class Log::Rep {
             friend class Log;
-            static boost::mutex m_log_mutex;
+            boost::mutex m_log_mutex;
             std::string m_msg;
         };
     }
 }
-
-boost::mutex yf::Log::Rep::m_log_mutex;
 
 yf::Log::Log(const std::string &x) : m_p(new Rep)
 {
@@ -52,7 +50,7 @@ void yf::Log::process(yp2::Package &package) const
 
     // scope for locking Ostream 
     { 
-        boost::mutex::scoped_lock scoped_lock(Rep::m_log_mutex);
+        boost::mutex::scoped_lock scoped_lock(m_p->m_log_mutex);
         std::cout << receive_time << " " << m_p->m_msg;
         std::cout << " request id=" << package.session().id();
         std::cout << " close=" 
@@ -77,7 +75,7 @@ void yf::Log::process(yp2::Package &package) const
 
     // scope for locking Ostream 
     { 
-        boost::mutex::scoped_lock scoped_lock(Rep::m_log_mutex);
+        boost::mutex::scoped_lock scoped_lock(m_p->m_log_mutex);
         std::cout << send_time << " " << m_p->m_msg;
         std::cout << " response id=" << package.session().id();
         std::cout << " close=" 
