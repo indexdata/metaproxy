@@ -1,4 +1,6 @@
-# $Id: Jamfile.in,v 1.1 2005-10-31 22:44:55 adam Exp $
+# $Id: Jamfile.in,v 1.2 2006-01-17 09:35:02 robstyles Exp $
+
+# Not maintained..
 
 # YAZ/YAZ++ flags:
 YAZPP_CFLAGS = @YAZPPINC@ ;
