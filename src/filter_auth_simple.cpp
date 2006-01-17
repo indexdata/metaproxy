@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.4 2006-01-17 17:13:31 mike Exp $
+/* $Id: filter_auth_simple.cpp,v 1.5 2006-01-17 17:24:14 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -127,6 +127,7 @@ void yf::AuthSimple::process(yp2::Package &package) const
     switch (gdu->u.z3950->which) {
     case Z_APDU_initRequest: return process_init(package);
     case Z_APDU_searchRequest: return process_search(package);
+    case Z_APDU_scanRequest: return process_scan(package);
     default: break;
     }   
 
@@ -196,6 +197,37 @@ void yf::AuthSimple::process_search(yp2::Package &package) const
             // Make an Search rejection APDU
             yp2::odr odr;
             Z_APDU *apdu = odr.create_searchResponse(
+                package.request().get()->u.z3950, 
+                YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED,
+                req->databaseNames[i]);
+            package.response() = apdu;
+            package.session().close();
+            return;
+        }
+    }
+
+    // All the requested databases are acceptable
+    return package.move();
+}
+
+
+void yf::AuthSimple::process_scan(yp2::Package &package) const
+{
+    Z_ScanRequest *req =
+        package.request().get()->u.z3950->u.scanRequest;
+
+    if (m_p->userBySession.count(package.session()) == 0) {
+        // It's a non-authenticated session, so just accept the operation
+        return package.move();
+    }
+
+    std::string user = m_p->userBySession[package.session()];
+    yf::AuthSimple::Rep::PasswordAndDBs pdb = m_p->userRegister[user];
+    for (int i = 0; i < req->num_databaseNames; i++) {
+        if (!contains(pdb.dbs, req->databaseNames[i])) {
+            // Make an Scan rejection APDU
+            yp2::odr odr;
+            Z_APDU *apdu = odr.create_scanResponse(
                 package.request().get()->u.z3950, 
                 YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED,
                 req->databaseNames[i]);
