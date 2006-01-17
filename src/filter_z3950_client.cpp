@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.21 2006-01-17 13:34:51 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.22 2006-01-17 16:42:28 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -243,7 +243,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         yp2::odr odr;
         package.response() = odr.create_initResponse(
             apdu,
-            YAZ_BIB1_INIT_NEGOTIATION_OPTION_REQUIRED,
+            YAZ_BIB1_COMBI_OF_SPECIFIED_DATABASES_UNSUPP,
             "z3950_client: Can not cope with multiple vhosts");
         package.session().close();
         return 0;
