@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.6 2006-01-17 17:30:49 mike Exp $
+/* $Id: filter_auth_simple.cpp,v 1.7 2006-01-17 17:58:46 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -102,7 +102,7 @@ void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
         boost::split(tmp.dbs, databasesp, boost::is_any_of(","));
         m_p->userRegister[buf] = tmp;
 
-        if (1) {                // debugging
+        if (0) {                // debugging
             printf("Added user '%s' -> password '%s'\n", buf, passwdp);
             std::list<std::string>::const_iterator i;
             for (i = tmp.dbs.begin(); i != tmp.dbs.end(); i++) {
