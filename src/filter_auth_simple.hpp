@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.hpp,v 1.1 2006-01-12 10:04:34 adam Exp $
+/* $Id: filter_auth_simple.hpp,v 1.2 2006-01-17 17:11:45 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -19,8 +19,11 @@ namespace yp2 {
         public:
             AuthSimple();
             ~AuthSimple();
-            void process(yp2::Package & package) const;
             void configure(const xmlNode * ptr);
+            void process(yp2::Package & package) const;
+        private:
+            void process_init(yp2::Package & package) const;
+            void process_search(yp2::Package & package) const;
         };
     }
 }
