@@ -1,0 +1,62 @@
+$Id: config,v 1.1 2006-01-17 14:13:00 mike Exp $
+
+The Guerilla Guide to Configuring YP2
+=====================================
+
+Introduction: invocation, schema and namespace
+----------------------------------------------
+
+YP2 configuration is by means of a single XML file, the name of which
+is supplied as the sole command-line argument to the "yp2" binary.
+This document briefly describes the format of that configuration file.
+
+An XML schema, config.xsd, is provided for validating configuration
+files.  It can be used by (among other tools) the "xmllint" program
+supplied as part of the libxml2 distribution:
+
+	xmllint --noout --schema config.xsd config1.xml
+
+(A recent version of libxml2 is required, as support for XML Schemas
+is a relatively recent addition.)
+
+All elements and attributes are in the namespace
+	http://indexdata.dk/yp2/config/1
+This is most easily achieved by setting the default namespace on the
+top-level element, as here:
+
+	<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+
+
+Overview of XML structure
+-------------------------
+
+The top-level element is <yp2>.  This contains a <start> element, a
+<filters> element and a <routes> element, in that order.  <filters> is
+optional; the other two are mandatory.  All three are non-repeatable.
+
+<start> is empty, but carries a "route" attribute, whose value is the
+name of route at which to start running -- a bit like the name of the
+start production in a grammar.
+
+If present, <filters> contains zero or more <filter> elements; filters
+carry a "type" attribute and contain various elements that provide
+suitable configuration for filters of that type.  The filter-specific
+elements are described below.  Filters defined in this part of the
+file must carry an "id" attribute so that they can be referenced from
+elsewhere.
+
+<routes> contains zero or more <route> elements, each of which must
+carry an "id" element.  One of the routes must have the id that was
+specified for the start route in the <start> element's "route"
+attribute.  Each route contains zero or more <filter> elements.  These
+are of two types.  They may be empty, but carry a "refid" attribute
+whose value is the same as the "id" of a filter previously defined in
+the <filters> section.  Alternatively, a route within a filter may
+omit the "refid" attribute, but contain configuration elements similar
+to those used for filters defined in the <filters> section.
+
+
+Filter configuration
+--------------------
+
+###
