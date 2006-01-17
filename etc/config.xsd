@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: config.xsd,v 1.8 2006-01-16 16:42:15 mike Exp $ -->
+<!-- $Id: config.xsd,v 1.9 2006-01-17 13:46:52 mike Exp $ -->
 <!--
 	This Schema prescribes the format of YP2 configuration files.
 	Invoke it like this:
@@ -17,7 +17,7 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element ref="config:start"/>
-        <xs:element ref="config:filters"/>
+        <xs:element minOccurs="0" ref="config:filters"/>
         <xs:element ref="config:routes"/>
       </xs:sequence>
     </xs:complexType>
