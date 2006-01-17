@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.29 2006-01-17 13:34:51 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.30 2006-01-17 13:54:54 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -70,6 +70,7 @@ namespace yp2 {
                 std::list<std::string> databases);
             BackendPtr create_backend_from_databases(
                 std::list<std::string> databases,
+                int &error_code,
                 std::string &failing_database);
             
             BackendPtr init_backend(std::list<std::string> database,
@@ -111,7 +112,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::lookup_backend_from_databases(
 }
 
 yf::Virt_db::BackendPtr yf::Virt_db::Frontend::create_backend_from_databases(
-    std::list<std::string> databases, std::string &failing_database)
+    std::list<std::string> databases, int &error_code, std::string &addinfo)
 {
     BackendPtr b(new Backend);
     std::list<std::string>::const_iterator db_it = databases.begin();
@@ -120,6 +121,8 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::create_backend_from_databases(
     b->m_frontend_databases = databases;
     b->m_named_result_sets = false;
 
+    bool first_route = true;
+
     std::map<std::string,bool> targets_dedup;
     for (; db_it != databases.end(); db_it++)
     {
@@ -127,7 +130,8 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::create_backend_from_databases(
         map_it = m_p->m_maps.find(*db_it);
         if (map_it == m_p->m_maps.end())  // database not found
         {
-            failing_database = *db_it;
+            error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
+            addinfo = *db_it;
             BackendPtr ptr;
             return ptr;
         }
@@ -135,7 +139,17 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::create_backend_from_databases(
             map_it->second.m_targets.begin();
         for (; t_it != map_it->second.m_targets.end(); t_it++)
             targets_dedup[*t_it] = true;
+
+        // see if we have a route conflict.
+        if (!first_route && b->m_route != map_it->second.m_route)
+        {
+            // we have a conflict.. 
+            error_code =  YAZ_BIB1_COMBI_OF_SPECIFIED_DATABASES_UNSUPP;
+            BackendPtr ptr;
+            return ptr;
+        }
         b->m_route = map_it->second.m_route;
+        first_route = false;
     }
     std::map<std::string,bool>::const_iterator tm_it = targets_dedup.begin();
     for (; tm_it != targets_dedup.end(); tm_it++)
@@ -148,14 +162,10 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
     std::list<std::string> databases, Package &package,
     int &error_code, std::string &addinfo)
 {
-    std::string failing_database;
-    BackendPtr b = create_backend_from_databases(databases, failing_database);
+    BackendPtr b = create_backend_from_databases(databases, error_code,
+                                                 addinfo);
     if (!b)
-    {
-        error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
-        addinfo = failing_database;
         return b;
-    }
     Package init_package(b->m_backend_session, package.origin());
     init_package.copy_filter(package);
 
@@ -468,7 +478,7 @@ void yf::Virt_db::Frontend::present(Package &package, Z_APDU *apdu_req)
     
     present_package.request() = yazpp_1::GDU(apdu_req);
 
-    present_package.move();
+    present_package.move(sets_it->second.m_backend->m_route);
 
     if (present_package.session().is_closed())
     {
