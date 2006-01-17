@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.6 2006-01-17 13:34:51 adam Exp $
+/* $Id: util.hpp,v 1.7 2006-01-17 16:43:29 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -26,6 +26,10 @@ namespace yp2 {
         int get_vhost_otherinfo(Z_OtherInformation **otherInformation,
                                 bool remove_flag,
                                 std::list<std::string> &vhosts);
+        void get_init_diagnostics(Z_InitResponse *res,
+                                  int &error_code, std::string &addinfo);
+        void get_default_diag(Z_DefaultDiagFormat *r,
+                              int &error_code, std::string &addinfo);
     };
 
     class odr : public boost::noncopyable {

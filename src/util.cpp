@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.6 2006-01-17 13:34:51 adam Exp $
+/* $Id: util.cpp,v 1.7 2006-01-17 16:43:22 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -28,6 +28,53 @@ bool yp2::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
     
     apdu->u.searchRequest->query = query;
     return true;
+}
+
+void yp2::util::get_default_diag(Z_DefaultDiagFormat *r,
+                                 int &error_code, std::string &addinfo)
+{
+    error_code = *r->condition;
+    switch (r->which)
+    {
+    case Z_DefaultDiagFormat_v2Addinfo:
+        addinfo = std::string(r->u.v2Addinfo);
+        break;
+    case Z_DefaultDiagFormat_v3Addinfo:
+        addinfo = r->u.v3Addinfo;
+        break;
+    }
+}
+
+void yp2::util::get_init_diagnostics(Z_InitResponse *initrs,
+                                     int &error_code, std::string &addinfo)
+{
+    Z_External *uif = initrs->userInformationField;
+    
+    if (uif && uif->which == Z_External_userInfo1)
+    {
+        Z_OtherInformation *ui = uif->u.userInfo1;
+        int i;
+        for (i = 0; i < ui->num_elements; i++)
+        {
+            Z_OtherInformationUnit *unit = ui->list[i];
+            if (unit->which == Z_OtherInfo_externallyDefinedInfo &&
+                unit->information.externallyDefinedInfo &&
+                unit->information.externallyDefinedInfo->which ==
+                Z_External_diag1) 
+            {
+                Z_DiagnosticFormat *diag = 
+                    unit->information.externallyDefinedInfo->u.diag1;
+
+                if (diag->num > 0)
+                {
+                    Z_DiagnosticFormat_s *ds = diag->elements[0];
+                    if (ds->which == Z_DiagnosticFormat_s_defaultDiagRec)
+                        yp2::util::get_default_diag(ds->u.defaultDiagRec,
+                                                    error_code, addinfo);
+                }
+            } 
+        }
+    }
 }
 
 int yp2::util::get_vhost_otherinfo(Z_OtherInformation **otherInformation,
