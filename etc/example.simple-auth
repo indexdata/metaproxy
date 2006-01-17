@@ -1,10 +1,12 @@
-# $Id: example.simple-auth,v 1.1 2006-01-16 16:29:49 mike Exp $
+# $Id: example.simple-auth,v 1.2 2006-01-17 16:09:41 mike Exp $
 #
 # Sample user-register for YP2's simple authentication.  Each
 # non-blank line either begins with a hash (in which case it is a
-# comment, and is ignored) or consists of a username and a password
-# sparated by a colon (with no spaces).
+# comment, and is ignored) or is a user-register entry.  Each entry
+# consists of three colon-separated fields: a username, a
+# corresponding password, and a comma-separated list of the databases
+# that user is allowed to access.
 
-mike:quercus
-adam:betula
-rob:nothofagus
+mike:quercus:idgils,Default,dummy
+adam:betula:loc,idgils,Default,dummy
+rob:nothofagus:loc,idgils
