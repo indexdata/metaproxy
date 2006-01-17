@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config2.xml,v 1.4 2006-01-16 16:30:06 mike Exp $ -->
+<!-- $Id: config2.xml,v 1.5 2006-01-17 13:31:09 adam Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <filters>
@@ -26,9 +26,13 @@
           <database>idgils</database>
           <target>indexdata.dk/gils</target>
         </virtual>
+        <virtual>
+          <database>Default</database>
+          <target>localhost:9999/Default</target>
+        </virtual>
         <virtual route="test">
-          <database>test</database>
-          <target>localhost:9999</target>
+          <database>dummy</database>
+          <target>something_for_backend_test_to_know</target>
         </virtual>
       </filter>
       <filter type="log">
