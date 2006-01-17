@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.5 2006-01-17 17:55:40 adam Exp $
+/* $Id: filter_multi.cpp,v 1.6 2006-01-17 18:55:55 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -69,6 +69,7 @@ namespace yp2 {
             void close(Package &package);
             void search(Package &package, Z_APDU *apdu);
             void present(Package &package, Z_APDU *apdu);
+            void scan(Package &package, Z_APDU *apdu);
             Rep *m_p;
         };            
         struct Multi::Map {
@@ -323,6 +324,7 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
         ODR_MASK_SET(req->options, Z_Options_search);
         ODR_MASK_SET(req->options, Z_Options_present);
         ODR_MASK_SET(req->options, Z_Options_namedResultSets);
+        ODR_MASK_SET(req->options, Z_Options_scan);
         
         ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_1);
         ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_2);
@@ -654,6 +656,63 @@ void yf::Multi::Frontend::present(Package &package, Z_APDU *apdu_req)
     package.response() = f_apdu;
 }
 
+void yf::Multi::Frontend::scan(Package &package, Z_APDU *apdu_req)
+{
+    if (m_backend_list.size() > 1)
+    {
+        yp2::odr odr;
+        Z_APDU *f_apdu = 
+            odr.create_scanResponse(
+                apdu_req, YAZ_BIB1_COMBI_OF_SPECIFIED_DATABASES_UNSUPP, 0);
+        package.response() = f_apdu;
+        return;
+    }
+    Z_ScanRequest *req = apdu_req->u.scanRequest;
+
+    int default_num_db = req->num_databaseNames;
+    char **default_db = req->databaseNames;
+
+    std::list<BackendPtr>::const_iterator bit;
+    for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
+    {
+        PackagePtr p = (*bit)->m_package;
+        yp2::odr odr;
+    
+        if (!yp2::util::set_databases_from_zurl(odr, (*bit)->m_vhost,
+                                                &req->num_databaseNames,
+                                                &req->databaseNames))
+        {
+            req->num_databaseNames = default_num_db;
+            req->databaseNames = default_db;
+        }
+        p->request() = apdu_req;
+        p->copy_filter(package);
+    }
+    multi_move(m_backend_list);
+
+    for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
+    {
+        PackagePtr p = (*bit)->m_package;
+        
+        if (p->session().is_closed()) // if any backend closes, close frontend
+            package.session().close();
+        
+        Z_GDU *gdu = p->response().get();
+        if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
+            Z_APDU_scanResponse)
+        {
+            package.response() = p->response();
+            break;
+        }
+        else
+        {
+            // if any target does not return scan response - return that 
+            package.response() = p->response();
+            return;
+        }
+    }
+}
+
 void yf::Multi::process(Package &package) const
 {
     FrontendPtr f = m_p->get_frontend(package);
@@ -688,6 +747,10 @@ void yf::Multi::process(Package &package) const
         else if (apdu->which == Z_APDU_presentRequest)
         {
             f->present(package, apdu);
+        }
+        else if (apdu->which == Z_APDU_scanRequest)
+        {
+            f->scan(package, apdu);
         }
         else
         {
