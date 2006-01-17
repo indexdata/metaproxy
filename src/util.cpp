@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.7 2006-01-17 16:43:22 adam Exp $
+/* $Id: util.cpp,v 1.8 2006-01-17 16:56:48 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -246,6 +246,7 @@ Z_APDU *yp2::odr::create_presentResponse(Z_APDU *in_apdu,
         rec->which = Z_Records_NSD;
         rec->u.nonSurrogateDiagnostic =
             zget_DefaultDiagFormat(m_odr, error, addinfo);
+        *apdu->u.presentResponse->presentStatus = Z_PresentStatus_failure;
     }
     return apdu;
 }
