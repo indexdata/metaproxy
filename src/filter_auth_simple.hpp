@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.hpp,v 1.3 2006-01-17 17:24:23 mike Exp $
+/* $Id: filter_auth_simple.hpp,v 1.4 2006-01-18 11:11:33 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -22,6 +22,8 @@ namespace yp2 {
             void configure(const xmlNode * ptr);
             void process(yp2::Package & package) const;
         private:
+            void config_userRegister(std::string filename);
+            void config_targetRegister(std::string filename);
             void process_init(yp2::Package & package) const;
             void process_search(yp2::Package & package) const;
             void process_scan(yp2::Package & package) const;
