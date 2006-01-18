@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: config.xsd,v 1.11 2006-01-18 14:12:50 mike Exp $ -->
+<!-- $Id: config.xsd,v 1.12 2006-01-18 15:06:12 mike Exp $ -->
 <!--
 	This Schema prescribes the format of YP2 configuration files.
 	Invoke it like this:
@@ -67,7 +67,7 @@
         <xs:sequence>
 	  <xs:element minOccurs="0" ref="config:userRegister"/>
 	  <xs:element minOccurs="0" ref="config:targetRegister"/>
-	  <xs:element minOccurs="0" name="discardUnauthorisedDBs">
+	  <xs:element minOccurs="0" name="discardUnauthorisedTargets">
 	    <xs:complexType/>
 	  </xs:element>
         </xs:sequence>
@@ -108,7 +108,7 @@
   <xs:element name="message" type="xs:NCName"/>
   <xs:element name="userRegister" type="xs:string"/>
   <xs:element name="targetRegister" type="xs:string"/>
-  <xs:element name="discardUnauthorisedDBs" type="xs:string"/>
+  <xs:element name="discardUnauthorisedTargets" type="xs:string"/>
 
   <!-- ### This is used differently depending on whether it occurs
        within a "virt_db" or "multi" filter: for the former, it

@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.16 2006-01-18 15:03:02 mike Exp $
+/* $Id: filter_auth_simple.cpp,v 1.17 2006-01-18 15:07:09 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -38,10 +38,10 @@ namespace yp2 {
             std::map<std::string, PasswordAndDBs> userRegister;
             std::map<std::string, std::list<std::string> > targetsByUser;
             std::map<yp2::Session, std::string> userBySession;
-            bool discardUnauthorisedDBs;
+            bool discardUnauthorisedTargets;
             Rep() { got_userRegister = false;
                     got_targetRegister = false;
-                    discardUnauthorisedDBs = false; }
+                    discardUnauthorisedTargets = false; }
         };
     }
 }
@@ -75,8 +75,8 @@ void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
             targetRegisterName = yp2::xml::get_text(ptr);
             m_p->got_targetRegister = true;
         } else if (!strcmp((const char *) ptr->name,
-                           "discardUnauthorisedDBs")) {
-            m_p->discardUnauthorisedDBs = true;
+                           "discardUnauthorisedTargets")) {
+            m_p->discardUnauthorisedTargets = true;
         } else {
             die("Bad element in auth_simple: <"
                 + std::string((const char *) ptr->name) + ">");
@@ -352,7 +352,7 @@ void yf::AuthSimple::check_targets(yp2::Package & package) const
             contains(authorisedTargets, "*")) {
             i++;
         } else {
-            if (!m_p->discardUnauthorisedDBs)
+            if (!m_p->discardUnauthorisedTargets)
                 return reject_init(package,
                     YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED, i->c_str());
             i = targets.erase(i);
