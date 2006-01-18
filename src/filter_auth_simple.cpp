@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.12 2006-01-18 11:41:08 mike Exp $
+/* $Id: filter_auth_simple.cpp,v 1.13 2006-01-18 13:32:59 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -172,28 +172,33 @@ void yf::AuthSimple::process(yp2::Package &package) const
         return package.move();
     }
 
-    switch (gdu->u.z3950->which) {
-    case Z_APDU_initRequest: return process_init(package);
-    case Z_APDU_searchRequest: return process_search(package);
-    case Z_APDU_scanRequest: return process_scan(package);
-        // In theory, we should check database authorisation for
-        // extended services, too (A) the proxy currently does not
-        // implement XS and turns off its negotiation bit; (B) it
-        // would be insanely complex to do as the top-level XS request
-        // structure does not carry a database name, but it is buried
-        // down in some of the possible EXTERNALs used as
-        // taskSpecificParameters; and (C) since many extended
-        // services modify the database, we'd need to more exotic
-        // authorisation database than we want to support.
-    default: break;
-    }   
+    if (m_p->got_userRegister) {
+        switch (gdu->u.z3950->which) {
+        case Z_APDU_initRequest: return process_init(package);
+        case Z_APDU_searchRequest: return process_search(package);
+        case Z_APDU_scanRequest: return process_scan(package);
+            // In theory, we should check database authorisation for
+            // extended services, too (A) the proxy currently does not
+            // implement XS and turns off its negotiation bit; (B) it
+            // would be insanely complex to do as the top-level XS request
+            // structure does not carry a database name, but it is buried
+            // down in some of the possible EXTERNALs used as
+            // taskSpecificParameters; and (C) since many extended
+            // services modify the database, we'd need to more exotic
+            // authorisation database than we want to support.
+        default: break;
+        }
+    }
+
+    if (m_p->got_targetRegister && gdu->u.z3950->which == Z_APDU_initRequest)
+        return check_targets(package);
 
     // Operations other than those listed above do not require authorisation
     return package.move();
 }
 
 
-static void reject_init(yp2::Package &package, const char *addinfo);
+static void reject_init(yp2::Package &package, int err, const char *addinfo);
 
 
 void yf::AuthSimple::process_init(yp2::Package &package) const
@@ -203,9 +208,10 @@ void yf::AuthSimple::process_init(yp2::Package &package) const
         // This is just plain perverted.
 
     if (!auth)
-        return reject_init(package, "no credentials supplied");
+        return reject_init(package, 0, "no credentials supplied");
     if (auth->which != Z_IdAuthentication_idPass)
-        return reject_init(package, "only idPass authentication is supported");
+        return reject_init(package, 0,
+                           "only idPass authentication is supported");
     Z_IdPass *idPass = auth->u.idPass;
 
     if (m_p->userRegister.count(idPass->userId)) {
@@ -222,7 +228,7 @@ void yf::AuthSimple::process_init(yp2::Package &package) const
         }
     }
 
-    return reject_init(package, "username/password combination rejected");
+    return reject_init(package, 0, "username/password combination rejected");
 }
 
 
@@ -300,16 +306,55 @@ void yf::AuthSimple::process_scan(yp2::Package &package) const
 }
 
 
-static void reject_init(yp2::Package &package, const char *addinfo) { 
+static void reject_init(yp2::Package &package, int err, const char *addinfo) { 
+    if (err == 0)
+        err = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
     // Make an Init rejection APDU
     Z_GDU *gdu = package.request().get();
     yp2::odr odr;
-    Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950,
-        YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR, addinfo);
+    Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950, err, addinfo);
     apdu->u.initResponse->implementationName = "YP2/YAZ";
     *apdu->u.initResponse->result = 0; // reject
     package.response() = apdu;
     package.session().close();
+}
+
+
+void yf::AuthSimple::check_targets(yp2::Package & package) const
+{
+    Z_InitRequest *initReq = package.request().get()->u.z3950->u.initRequest;
+
+    Z_IdAuthentication *auth = initReq->idAuthentication;
+    // We only get into this method if we are dealing with a session
+    // that has been authenticated using idPass authentication.  So we
+    // know what kind of information is in the Init Request, and we
+    // can trust the username without needing to re-authenticate.
+    assert(auth->which == Z_IdAuthentication_idPass);
+    std::string user = auth->u.idPass->userId;
+    std::list<std::string> authorisedTargets = m_p->targetsByUser[user];
+
+    std::list<std::string> targets;
+    Z_OtherInformation *otherInfo = initReq->otherInfo;
+    yp2::util::get_vhost_otherinfo(&otherInfo, 0, targets);
+
+    // Check each of the targets specified in the otherInfo package
+    std::list<std::string>::const_iterator i;
+    for (i = targets.begin(); i != targets.end(); i++) {
+        printf("checking target '%s'\n", (*i).c_str());
+        if (!contains(authorisedTargets, *i)) {
+            // ### check whether to quietly discard this target, or to reject
+            return reject_init(package,
+                               YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED,
+                               i->c_str());
+        }
+    }
+
+/*
+    // ### This is a no-op if the list has not changed
+    yp2::odr odr;
+    yp2::util::set_vhost_otherinfo(&otherInfo, odr, targets);
+*/
+    package.move();
 }
 
 
