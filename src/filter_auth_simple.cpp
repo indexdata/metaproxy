@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.11 2006-01-18 11:22:03 mike Exp $
+/* $Id: filter_auth_simple.cpp,v 1.12 2006-01-18 11:41:08 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -34,6 +34,7 @@ namespace yp2 {
                 void addDB(std::string db) { dbs.push_back(db); }
             };
             boost::mutex mutex;
+            bool got_userRegister, got_targetRegister;
             std::map<std::string, PasswordAndDBs> userRegister;
             std::map<std::string, std::list<std::string> > targetsByUser;
             std::map<yp2::Session, std::string> userBySession;
@@ -58,32 +59,32 @@ static void die(std::string s) { throw yp2::filter::FilterException(s); }
 void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
 {
     std::string userRegisterName;
-    bool got_userRegisterName = false;
     std::string targetRegisterName;
-    bool got_targetRegisterName = false;
+    m_p->got_userRegister = false;
+    m_p->got_targetRegister = false;
 
     for (ptr = ptr->children; ptr != 0; ptr = ptr->next) {
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
         if (!strcmp((const char *) ptr->name, "userRegister")) {
             userRegisterName = yp2::xml::get_text(ptr);
-            got_userRegisterName = true;
+            m_p->got_userRegister = true;
         } else if (!strcmp((const char *) ptr->name, "targetRegister")) {
             targetRegisterName = yp2::xml::get_text(ptr);
-            got_targetRegisterName = true;
+            m_p->got_targetRegister = true;
         } else {
             die("Bad element in auth_simple: <"
                 + std::string((const char *) ptr->name) + ">");
         }
     }
 
-    if (!got_userRegisterName && !got_targetRegisterName)
+    if (!m_p->got_userRegister && !m_p->got_targetRegister)
         die("auth_simple: no user-register or target-register "
             "filename specified");
 
-    if (got_userRegisterName)
+    if (m_p->got_userRegister)
         config_userRegister(userRegisterName);
-    if (got_targetRegisterName)
+    if (m_p->got_targetRegister)
         config_targetRegister(targetRegisterName);
 }
 
