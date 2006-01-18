@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.9 2006-01-18 14:10:47 adam Exp $
+/* $Id: filter_multi.cpp,v 1.10 2006-01-18 14:36:15 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -807,6 +807,23 @@ void yf::Multi::Frontend::scan2(Package &package, Z_APDU *apdu_req)
             Z_APDU_scanResponse)
         {
             Z_ScanResponse *res = gdu->u.z3950->u.scanResponse;
+
+            if (res->entries && res->entries->nonsurrogateDiagnostics)
+            {
+                // failure
+                yp2::odr odr;
+                Z_APDU *f_apdu = odr.create_scanResponse(apdu_req, 1, 0);
+                Z_ScanResponse *f_res = f_apdu->u.scanResponse;
+
+                f_res->entries->nonsurrogateDiagnostics = 
+                    res->entries->nonsurrogateDiagnostics;
+                f_res->entries->num_nonsurrogateDiagnostics = 
+                    res->entries->num_nonsurrogateDiagnostics;
+
+                package.response() = f_apdu;
+                return;
+            }
+
             if (res->entries && res->entries->entries)
             {
                 Z_Entry **entries = res->entries->entries;
