@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.32 2006-01-18 10:30:28 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.33 2006-01-18 10:57:27 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -174,14 +174,8 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
 
     Z_APDU *init_apdu = zget_APDU(odr, Z_APDU_initRequest);
 
-    std::list<std::string>::const_iterator t_it = b->m_targets.begin();
-    int cat = 1;
-    for (; t_it != b->m_targets.end(); t_it++, cat++)
-    {
-        yaz_oi_set_string_oidval(&init_apdu->u.initRequest->otherInfo, odr,
-                                 VAL_PROXY, cat, t_it->c_str());
-    }
-        
+    yp2::util::set_vhost_otherinfo(&init_apdu->u.initRequest->otherInfo, odr,
+                                   b->m_targets);
     Z_InitRequest *req = init_apdu->u.initRequest;
 
     // copy stuff from Frontend Init Request
@@ -606,9 +600,9 @@ void yf::Virt_db::process(Package &package) const
     {
         Z_InitRequest *req = gdu->u.z3950->u.initRequest;
         
-        const char *vhost =
-            yaz_oi_get_string_oidval(&req->otherInfo, VAL_PROXY, 1, 0);
-        if (!vhost)
+        std::list<std::string> vhosts;
+        yp2::util::get_vhost_otherinfo(&req->otherInfo, false, vhosts);
+        if (vhosts.size() == 0)
         {
             f->m_init_gdu = gdu;
             

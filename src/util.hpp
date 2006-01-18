@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.8 2006-01-17 17:55:40 adam Exp $
+/* $Id: util.hpp,v 1.9 2006-01-18 10:57:27 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -26,6 +26,9 @@ namespace yp2 {
         int get_vhost_otherinfo(Z_OtherInformation **otherInformation,
                                 bool remove_flag,
                                 std::list<std::string> &vhosts);
+        void set_vhost_otherinfo(Z_OtherInformation **otherInformation,
+                                 ODR odr,
+                                 const std::list<std::string> &vhosts);
         void get_init_diagnostics(Z_InitResponse *res,
                                   int &error_code, std::string &addinfo);
         void get_default_diag(Z_DefaultDiagFormat *r,

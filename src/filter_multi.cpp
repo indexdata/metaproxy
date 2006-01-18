@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.7 2006-01-18 09:20:30 adam Exp $
+/* $Id: filter_multi.cpp,v 1.8 2006-01-18 10:57:27 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -317,9 +317,11 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
         BackendPtr b = *bit;
         Z_APDU *init_apdu = zget_APDU(odr, Z_APDU_initRequest);
         
-        yaz_oi_set_string_oidval(&init_apdu->u.initRequest->otherInfo, odr,
-                                 VAL_PROXY, 1, b->m_vhost.c_str());
-        
+        std::list<std::string>vhost_one;
+        vhost_one.push_back(b->m_vhost);
+        yp2::util::set_vhost_otherinfo(&init_apdu->u.initRequest->otherInfo,
+                                       odr, vhost_one);
+
         Z_InitRequest *req = init_apdu->u.initRequest;
         
         ODR_MASK_SET(req->options, Z_Options_search);

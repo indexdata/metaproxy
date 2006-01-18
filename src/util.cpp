@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.9 2006-01-17 17:55:40 adam Exp $
+/* $Id: util.cpp,v 1.10 2006-01-18 10:57:27 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -122,6 +122,19 @@ int yp2::util::get_vhost_otherinfo(Z_OtherInformation **otherInformation,
     }
     --cat;
     return cat;
+}
+
+void yp2::util::set_vhost_otherinfo(Z_OtherInformation **otherInformation,
+                                    ODR odr,
+                                    const std::list<std::string> &vhosts)
+{
+    int cat;
+    std::list<std::string>::const_iterator it = vhosts.begin();
+    for (cat = 1; it != vhosts.end() ; cat++, it++)
+    {
+        yaz_oi_set_string_oidval(otherInformation, odr,
+                                 VAL_PROXY, cat, it->c_str());
+    }
 }
 
 void yp2::util::split_zurl(std::string zurl, std::string &host,
