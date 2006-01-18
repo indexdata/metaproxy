@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.7 2006-01-17 17:58:46 mike Exp $
+/* $Id: filter_auth_simple.cpp,v 1.8 2006-01-18 10:30:32 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -53,15 +53,15 @@ yf::AuthSimple::~AuthSimple()
 // Read XML config.. Put config info in m_p.
 void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
 {
-    std::string filename;
-    bool got_filename = false;
+    std::string userRegisterName;
+    bool got_userRegisterName = false;
 
     for (ptr = ptr->children; ptr != 0; ptr = ptr->next) {
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
-        if (!strcmp((const char *) ptr->name, "filename")) {
-            filename = yp2::xml::get_text(ptr);
-            got_filename = true;
+        if (!strcmp((const char *) ptr->name, "userRegister")) {
+            userRegisterName = yp2::xml::get_text(ptr);
+            got_userRegisterName = true;
         } else {
             throw yp2::filter::FilterException("Bad element in auth_simple: <"
                                                + std::string((const char *)
@@ -69,15 +69,15 @@ void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
         }
     }
 
-    if (!got_filename)
+    if (!got_userRegisterName)
         throw yp2::filter::FilterException("auth_simple: no user-register "
                                            "filename specified");
 
-    FILE *fp = fopen(filename.c_str(), "r");
+    FILE *fp = fopen(userRegisterName.c_str(), "r");
     if (fp == 0)
         throw yp2::filter::FilterException("can't open auth_simple " 
-                                           "user-register '" + filename +
-                                           "': " + strerror(errno));
+                                           "user-register '" + userRegisterName
+                                           + "': " + strerror(errno));
 
     char buf[1000];
     while (fgets(buf, sizeof buf, fp)) {
@@ -87,14 +87,14 @@ void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
         char *passwdp = strchr(buf, ':');
         if (passwdp == 0)
             throw yp2::filter::FilterException("auth_simple user-register '" +
-                                               filename + "': " +
+                                               userRegisterName + "': " +
                                                "no password on line: '"
                                                + buf + "'");
         *passwdp++ = 0;
         char *databasesp = strchr(passwdp, ':');
         if (databasesp == 0)
             throw yp2::filter::FilterException("auth_simple user-register '" +
-                                               filename + "': " +
+                                               userRegisterName + "': " +
                                                "no databases on line: '" +
                                                buf + ":" + passwdp + "'");
         *databasesp++ = 0;
