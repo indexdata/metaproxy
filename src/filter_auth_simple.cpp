@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.10 2006-01-18 11:12:15 mike Exp $
+/* $Id: filter_auth_simple.cpp,v 1.11 2006-01-18 11:22:03 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -125,9 +125,38 @@ void yp2::filter::AuthSimple::config_userRegister(std::string filename)
 }
 
 
+// I feel a little bad about the duplication of code between this and
+// config_userRegister().  But not bad enough to refactor.
+//
 void yp2::filter::AuthSimple::config_targetRegister(std::string filename)
 {
-    // ### empty!
+    FILE *fp = fopen(filename.c_str(), "r");
+    if (fp == 0)
+        die("can't open auth_simple target-register '" + filename + "': " +
+            strerror(errno));
+
+    char buf[1000];
+    while (fgets(buf, sizeof buf, fp)) {
+        if (*buf == '\n' || *buf == '#')
+            continue;
+        buf[strlen(buf)-1] = 0;
+        char *targetsp = strchr(buf, ':');
+        if (targetsp == 0)
+            die("auth_simple target-register '" + filename + "': " +
+                "no targets on line: '" + buf + "'");
+        *targetsp++ = 0;
+        std::list<std::string> tmp;
+        boost::split(tmp, targetsp, boost::is_any_of(","));
+        m_p->targetsByUser[buf] = tmp;
+
+        if (0) {                // debugging
+            printf("Added user '%s' with targets:\n", buf);
+            std::list<std::string>::const_iterator i;
+            for (i = tmp.begin(); i != tmp.end(); i++) {
+                printf("\t%s\n", (*i).c_str());
+            }
+        }
+    }
 }
 
 
