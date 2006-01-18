@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.hpp,v 1.4 2006-01-18 11:11:33 mike Exp $
+/* $Id: filter_auth_simple.hpp,v 1.5 2006-01-18 13:32:46 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -27,6 +27,7 @@ namespace yp2 {
             void process_init(yp2::Package & package) const;
             void process_search(yp2::Package & package) const;
             void process_scan(yp2::Package & package) const;
+            void check_targets(yp2::Package & package) const;
         };
     }
 }
