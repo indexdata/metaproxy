@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-zurg.xml,v 1.6 2006-01-18 13:38:57 mike Exp $ -->
+<!-- $Id: config-zurg.xml,v 1.7 2006-01-18 15:04:06 mike Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <filters>
@@ -68,6 +68,7 @@
       </filter>
       <filter type="auth_simple">
         <targetRegister>../etc/example.target-auth</targetRegister>
+	<discardUnauthorisedDBs/>
       </filter>
       <filter type="multi">
       </filter>
