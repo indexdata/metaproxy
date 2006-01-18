@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.14 2006-01-18 13:56:12 mike Exp $
+/* $Id: filter_auth_simple.cpp,v 1.15 2006-01-18 14:38:48 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -38,6 +38,10 @@ namespace yp2 {
             std::map<std::string, PasswordAndDBs> userRegister;
             std::map<std::string, std::list<std::string> > targetsByUser;
             std::map<yp2::Session, std::string> userBySession;
+            bool discardUnauthorisedDBs;
+            Rep() { got_userRegister = false;
+                    got_targetRegister = false;
+                    discardUnauthorisedDBs = false; }
         };
     }
 }
@@ -60,8 +64,6 @@ void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
 {
     std::string userRegisterName;
     std::string targetRegisterName;
-    m_p->got_userRegister = false;
-    m_p->got_targetRegister = false;
 
     for (ptr = ptr->children; ptr != 0; ptr = ptr->next) {
         if (ptr->type != XML_ELEMENT_NODE)
@@ -72,6 +74,9 @@ void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
         } else if (!strcmp((const char *) ptr->name, "targetRegister")) {
             targetRegisterName = yp2::xml::get_text(ptr);
             m_p->got_targetRegister = true;
+        } else if (!strcmp((const char *) ptr->name,
+                           "discardUnauthorisedDBs")) {
+            m_p->discardUnauthorisedDBs = true;
         } else {
             die("Bad element in auth_simple: <"
                 + std::string((const char *) ptr->name) + ">");
@@ -339,23 +344,46 @@ void yf::AuthSimple::check_targets(yp2::Package & package) const
     yp2::util::get_vhost_otherinfo(&otherInfo, 0, targets);
 
     // Check each of the targets specified in the otherInfo package
-    std::list<std::string>::const_iterator i;
-    for (i = targets.begin(); i != targets.end(); i++) {
+    std::list<std::string>::iterator i;
+
+    printf("pre: got %d targets\n", targets.size());
+    i = targets.begin();
+    while (i != targets.end()) {
+        printf("pre: considering target '%s'\n", (*i).c_str());
+        i++;
+    }
+
+    i = targets.begin();
+    while (i != targets.end()) {
         printf("checking target '%s'\n", (*i).c_str());
-        if (!contains(authorisedTargets, *i) &&
-            !contains(authorisedTargets, "*")) {
-            // ### check whether to quietly discard this target, or to reject
-            return reject_init(package,
-                               YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED,
-                               i->c_str());
+        if (contains(authorisedTargets, *i) ||
+            contains(authorisedTargets, "*")) {
+            printf("target '%s' is ok\n", (*i).c_str());
+            i++;
+        } else {
+            printf("target '%s' sucks\n", (*i).c_str());
+            if (!m_p->discardUnauthorisedDBs)
+                return reject_init(package,
+                    YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED, i->c_str());
+            i = targets.erase(i);
         }
     }
 
-/*
+    printf("post: got %d targets\n", targets.size());
+    i = targets.begin();
+    while (i != targets.end()) {
+        printf("post: considering target '%s'\n", (*i).c_str());
+        i++;
+    }
+
+    if (targets.size() == 0)
+        return reject_init(package,
+                           YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED,
+                           "all databases");
+
     // ### This is a no-op if the list has not changed
     yp2::odr odr;
     yp2::util::set_vhost_otherinfo(&otherInfo, odr, targets);
-*/
     package.move();
 }
 
