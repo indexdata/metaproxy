@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.6 2006-01-17 18:55:55 adam Exp $
+/* $Id: filter_multi.cpp,v 1.7 2006-01-18 09:20:30 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -87,7 +87,7 @@ namespace yp2 {
         private:
             boost::mutex m_sessions_mutex;
             std::map<std::string, Multi::Map>m_maps;
-
+            std::map<std::string,std::string> m_target_route;
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
             std::map<yp2::Session, FrontendPtr> m_clients;
@@ -301,6 +301,7 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
         Backend *b = new Backend;
         b->m_vhost = *t_it;
 
+        b->m_route = m_p->m_target_route[*t_it];
         // b->m_route unset
         b->m_package = PackagePtr(new Package(s, package.origin()));
 
@@ -772,7 +773,14 @@ void yp2::filter::Multi::configure(const xmlNode * ptr)
     {
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
-        if (!strcmp((const char *) ptr->name, "virtual"))
+        if (!strcmp((const char *) ptr->name, "target"))
+        {
+            std::string route = yp2::xml::get_route(ptr);
+            std::string target = yp2::xml::get_text(ptr);
+            std::cout << "route=" << route << " target=" << target << "\n";
+            m_p->m_target_route[target] = route;
+        }
+        else if (!strcmp((const char *) ptr->name, "virtual"))
         {
             std::list<std::string> targets;
             std::string vhost;
