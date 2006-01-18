@@ -1,4 +1,4 @@
-/* $Id: filter_multi.hpp,v 1.2 2006-01-16 01:10:19 adam Exp $
+/* $Id: filter_multi.hpp,v 1.3 2006-01-18 14:10:47 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -24,6 +24,8 @@ namespace yp2 {
             class FrontendSet;
             class Backend;
             class BackendSet;
+            class ScanTermInfo;
+            typedef std::list<ScanTermInfo> ScanTermInfoList;
             typedef boost::shared_ptr<Backend> BackendPtr;
             typedef boost::shared_ptr<Frontend> FrontendPtr;
             typedef boost::shared_ptr<Package> PackagePtr;

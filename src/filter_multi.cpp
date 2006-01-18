@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.8 2006-01-18 10:57:27 adam Exp $
+/* $Id: filter_multi.cpp,v 1.9 2006-01-18 14:10:47 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -21,6 +21,8 @@
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
 
+#include <vector>
+#include <algorithm>
 #include <map>
 #include <iostream>
 
@@ -33,6 +35,15 @@ namespace yp2 {
             BackendPtr m_backend;
             int m_count;
             bool operator < (const BackendSet &k) const;
+            bool operator == (const BackendSet &k) const;
+        };
+        struct Multi::ScanTermInfo {
+            std::string m_norm_term;
+            std::string m_display_term;
+            int m_count;
+            bool operator < (const ScanTermInfo &) const;
+            bool operator == (const ScanTermInfo &) const;
+            Z_Entry *get_entry(ODR odr);
         };
         struct Multi::FrontendSet {
             struct PresentJob {
@@ -69,7 +80,8 @@ namespace yp2 {
             void close(Package &package);
             void search(Package &package, Z_APDU *apdu);
             void present(Package &package, Z_APDU *apdu);
-            void scan(Package &package, Z_APDU *apdu);
+            void scan1(Package &package, Z_APDU *apdu);
+            void scan2(Package &package, Z_APDU *apdu);
             Rep *m_p;
         };            
         struct Multi::Map {
@@ -201,6 +213,7 @@ void yf::Multi::Backend::operator() (void)
 {
     m_package->move(m_route);
 }
+
 
 void yf::Multi::Frontend::close(Package &package)
 {
@@ -659,7 +672,7 @@ void yf::Multi::Frontend::present(Package &package, Z_APDU *apdu_req)
     package.response() = f_apdu;
 }
 
-void yf::Multi::Frontend::scan(Package &package, Z_APDU *apdu_req)
+void yf::Multi::Frontend::scan1(Package &package, Z_APDU *apdu_req)
 {
     if (m_backend_list.size() > 1)
     {
@@ -716,6 +729,236 @@ void yf::Multi::Frontend::scan(Package &package, Z_APDU *apdu_req)
     }
 }
 
+bool yf::Multi::ScanTermInfo::operator < (const ScanTermInfo &k) const
+{
+    return m_norm_term < k.m_norm_term;
+}
+
+bool yf::Multi::ScanTermInfo::operator == (const ScanTermInfo &k) const
+{
+    return m_norm_term == k.m_norm_term;
+}
+
+Z_Entry *yf::Multi::ScanTermInfo::get_entry(ODR odr)
+{
+    Z_Entry *e = (Z_Entry *)odr_malloc(odr, sizeof(*e));
+    e->which = Z_Entry_termInfo;
+    Z_TermInfo *t;
+    t = e->u.termInfo = (Z_TermInfo *) odr_malloc(odr, sizeof(*t));
+    t->suggestedAttributes = 0;
+    t->displayTerm = 0;
+    t->alternativeTerm = 0;
+    t->byAttributes = 0;
+    t->otherTermInfo = 0;
+    t->globalOccurrences = odr_intdup(odr, m_count);
+    t->term = (Z_Term *)
+        odr_malloc(odr, sizeof(*t->term));
+    t->term->which = Z_Term_general;
+    Odr_oct *o;
+    t->term->u.general = o = (Odr_oct *)odr_malloc(odr, sizeof(Odr_oct));
+
+    o->len = o->size = m_norm_term.size();
+    o->buf = (unsigned char *) odr_malloc(odr, o->len);
+    memcpy(o->buf, m_norm_term.c_str(), o->len);
+    return e;
+}
+
+void yf::Multi::Frontend::scan2(Package &package, Z_APDU *apdu_req)
+{
+    Z_ScanRequest *req = apdu_req->u.scanRequest;
+    int no_targets = 0;
+
+    int default_num_db = req->num_databaseNames;
+    char **default_db = req->databaseNames;
+
+    std::list<BackendPtr>::const_iterator bit;
+    for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
+    {
+        PackagePtr p = (*bit)->m_package;
+        yp2::odr odr;
+    
+        if (!yp2::util::set_databases_from_zurl(odr, (*bit)->m_vhost,
+                                                &req->num_databaseNames,
+                                                &req->databaseNames))
+        {
+            req->num_databaseNames = default_num_db;
+            req->databaseNames = default_db;
+        }
+        p->request() = apdu_req;
+        p->copy_filter(package);
+        no_targets++;
+    }
+    multi_move(m_backend_list);
+
+    ScanTermInfoList entries_before;
+    ScanTermInfoList entries_after;
+    int no_before = 0;
+    int no_after = 0;
+
+    for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
+    {
+        PackagePtr p = (*bit)->m_package;
+        
+        if (p->session().is_closed()) // if any backend closes, close frontend
+            package.session().close();
+        
+        Z_GDU *gdu = p->response().get();
+        if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
+            Z_APDU_scanResponse)
+        {
+            Z_ScanResponse *res = gdu->u.z3950->u.scanResponse;
+            if (res->entries && res->entries->entries)
+            {
+                Z_Entry **entries = res->entries->entries;
+                int num_entries = res->entries->num_entries;
+                int position = 1;
+                if (req->preferredPositionInResponse)
+                    position = *req->preferredPositionInResponse;
+                if (res->positionOfTerm)
+                    position = *res->positionOfTerm;
+
+                // before
+                int i;
+                for (i = 0; i<position-1 && i<num_entries; i++)
+                {
+                    Z_Entry *ent = entries[i];
+
+                    if (ent->which == Z_Entry_termInfo)
+                    {
+                        ScanTermInfo my;
+
+                        int *occur = ent->u.termInfo->globalOccurrences;
+                        my.m_count = occur ? *occur : 0;
+
+                        if (ent->u.termInfo->term->which == Z_Term_general)
+                        {
+                            my.m_norm_term = std::string(
+                                (const char *)
+                                ent->u.termInfo->term->u.general->buf,
+                                ent->u.termInfo->term->u.general->len);
+                        }
+                        if (my.m_norm_term.length())
+                        {
+                            ScanTermInfoList::iterator it = 
+                                entries_before.begin();
+                            while (it != entries_before.end() && my <*it)
+                                it++;
+                            if (my == *it)
+                            {
+                                it->m_count += my.m_count;
+                            }
+                            else
+                            {
+                                entries_before.insert(it, my);
+                                no_before++;
+                            }
+                        }
+                    }
+                }
+                // after
+                for (i = position-1; i<num_entries; i++)
+                {
+                    Z_Entry *ent = entries[i];
+
+                    if (ent->which == Z_Entry_termInfo)
+                    {
+                        ScanTermInfo my;
+
+                        int *occur = ent->u.termInfo->globalOccurrences;
+                        my.m_count = occur ? *occur : 0;
+
+                        if (ent->u.termInfo->term->which == Z_Term_general)
+                        {
+                            my.m_norm_term = std::string(
+                                (const char *)
+                                ent->u.termInfo->term->u.general->buf,
+                                ent->u.termInfo->term->u.general->len);
+                        }
+                        if (my.m_norm_term.length())
+                        {
+                            ScanTermInfoList::iterator it = 
+                                entries_after.begin();
+                            while (it != entries_after.end() && *it < my)
+                                it++;
+                            if (my == *it)
+                            {
+                                it->m_count += my.m_count;
+                            }
+                            else
+                            {
+                                entries_after.insert(it, my);
+                                no_after++;
+                            }
+                        }
+                    }
+                }
+
+            }                
+        }
+        else
+        {
+            // if any target does not return scan response - return that 
+            package.response() = p->response();
+            return;
+        }
+    }
+
+
+    if (false)
+    {
+        std::cout << "BEFORE\n";
+        ScanTermInfoList::iterator it = entries_before.begin();
+        for(; it != entries_before.end(); it++)
+        {
+            std::cout << " " << it->m_norm_term << " " << it->m_count << "\n";
+        }
+        
+        std::cout << "AFTER\n";
+        it = entries_after.begin();
+        for(; it != entries_after.end(); it++)
+        {
+            std::cout << " " << it->m_norm_term << " " << it->m_count << "\n";
+        }
+    }
+
+    if (false)
+    {
+        yp2::odr odr;
+        Z_APDU *f_apdu = odr.create_scanResponse(apdu_req, 1, "not implemented");
+        package.response() = f_apdu;
+    }
+    else
+    {
+        yp2::odr odr;
+        Z_APDU *f_apdu = odr.create_scanResponse(apdu_req, 0, 0);
+        Z_ScanResponse *resp = f_apdu->u.scanResponse;
+        
+        int number_returned = *req->numberOfTermsRequested;
+        int position_returned = *req->preferredPositionInResponse;
+        
+        resp->positionOfTerm = odr_intdup(odr, position_returned);
+        resp->numberOfEntriesReturned = odr_intdup(odr, number_returned);
+        
+        resp->entries->num_entries = number_returned;
+        resp->entries->entries = (Z_Entry**)
+            odr_malloc(odr, sizeof(Z_Entry*) * number_returned);
+        int i;
+        
+        ScanTermInfoList::iterator it = entries_before.begin();
+        for (i = 0; i<position_returned-1; i++, it++)
+        {
+            resp->entries->entries[i] = it->get_entry(odr);
+        }
+        it = entries_after.begin();
+        for (i = position_returned-1; i<number_returned; i++, it++)
+        {
+            resp->entries->entries[i] = it->get_entry(odr);
+        }
+        package.response() = f_apdu;
+    }
+}
+
+
 void yf::Multi::process(Package &package) const
 {
     FrontendPtr f = m_p->get_frontend(package);
@@ -753,7 +996,7 @@ void yf::Multi::process(Package &package) const
         }
         else if (apdu->which == Z_APDU_scanRequest)
         {
-            f->scan(package, apdu);
+            f->scan2(package, apdu);
         }
         else
         {

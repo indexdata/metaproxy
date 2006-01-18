@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.10 2006-01-18 10:57:27 adam Exp $
+/* $Id: util.cpp,v 1.11 2006-01-18 14:10:47 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -282,6 +282,7 @@ Z_APDU *yp2::odr::create_presentResponse(Z_APDU *in_apdu,
     {
         Z_Records *rec = (Z_Records *) odr_malloc(m_odr, sizeof(Z_Records));
         apdu->u.presentResponse->records = rec;
+        
         rec->which = Z_Records_NSD;
         rec->u.nonSurrogateDiagnostic =
             zget_DefaultDiagFormat(m_odr, error, addinfo);
@@ -294,19 +295,25 @@ Z_APDU *yp2::odr::create_scanResponse(Z_APDU *in_apdu,
                                       int error, const char *addinfo)
 {
     Z_APDU *apdu = create_APDU(Z_APDU_scanResponse, in_apdu);
+    Z_ScanResponse *res = apdu->u.scanResponse;
+    res->entries = (Z_ListEntries *) odr_malloc(m_odr, sizeof(*res->entries));
+    res->entries->num_entries = 0;
+    res->entries->entries = 0;
+
     if (error)
     {
-        Z_ScanResponse *res = apdu->u.scanResponse;
-        res->entries = (Z_ListEntries *) odr_malloc(m_odr, sizeof(*res->entries));
         *res->scanStatus = Z_Scan_failure;
 
-        res->entries->num_entries = 0;
-        res->entries->entries = 0;
         res->entries->num_nonsurrogateDiagnostics = 1;
         res->entries->nonsurrogateDiagnostics = (Z_DiagRec **)
             odr_malloc(m_odr, sizeof(Z_DiagRec *));
         res->entries->nonsurrogateDiagnostics[0] = 
             zget_DiagRec(m_odr, error, addinfo);
+    }
+    else
+    {
+        res->entries->num_nonsurrogateDiagnostics = 0;
+        res->entries->nonsurrogateDiagnostics = 0;
     }
     return apdu;
 }
