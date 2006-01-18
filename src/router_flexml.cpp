@@ -1,4 +1,4 @@
-/* $Id: router_flexml.cpp,v 1.14 2006-01-11 13:13:49 adam Exp $
+/* $Id: router_flexml.cpp,v 1.15 2006-01-18 10:30:58 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -233,13 +233,15 @@ void yp2::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
         }
         node = yp2::xml::jump_to_next(node, XML_ELEMENT_NODE);
     }
-    // process <filters> node which is expected second element node
-    yp2::xml::check_element_yp2(node, "filters");
-    
-    parse_xml_filters(doc, yp2::xml::jump_to_children(node, XML_ELEMENT_NODE));
+    // process <filters> node if given
+    if (yp2::xml::is_element_yp2(node, "filters"))
+    {
+        parse_xml_filters(doc, yp2::xml::jump_to_children(node,
+                                                          XML_ELEMENT_NODE));
                       
+        node = yp2::xml::jump_to_next(node, XML_ELEMENT_NODE);
+    }
     // process <routes> node which is expected third element node
-    node = yp2::xml::jump_to_next(node, XML_ELEMENT_NODE);
     yp2::xml::check_element_yp2(node, "routes");
     
     parse_xml_routes(doc, yp2::xml::jump_to_children(node, XML_ELEMENT_NODE));
