@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config2.xml,v 1.6 2006-01-18 10:30:05 mike Exp $ -->
+<!-- $Id: config2.xml,v 1.7 2006-01-18 15:06:48 mike Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <filters>
@@ -34,6 +34,18 @@
           <database>dummy</database>
           <target>something_for_backend_test_to_know</target>
         </virtual>
+        <virtual>
+          <database>all</database>
+          <target>z3950.loc.gov:7090/voyager</target>
+          <target>indexdata.dk/gils</target>
+          <target>localhost:9999/Default</target>
+        </virtual>
+      </filter>
+      <filter type="auth_simple">
+        <targetRegister>../etc/example.target-auth</targetRegister>
+	<discardUnauthorisedTargets/>
+      </filter>
+      <filter type="multi">
       </filter>
       <filter type="log">
         <message>B</message>
