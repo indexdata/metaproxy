@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.31 2006-01-17 16:45:49 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.32 2006-01-18 10:30:28 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -56,6 +56,7 @@ namespace yp2 {
             yp2::Session m_session;
             bool m_is_virtual;
             bool m_in_use;
+            yazpp_1::GDU m_init_gdu;
             std::list<BackendPtr> m_backend_list;
             std::map<std::string,Virt_db::Set> m_sets;
 
@@ -182,6 +183,15 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
     }
         
     Z_InitRequest *req = init_apdu->u.initRequest;
+
+    // copy stuff from Frontend Init Request
+    Z_GDU *org_gdu = m_init_gdu.get();
+    Z_InitRequest *org_init = org_gdu->u.z3950->u.initRequest;
+
+    req->idAuthentication = org_init->idAuthentication;
+    req->implementationId = org_init->implementationId;
+    req->implementationName = org_init->implementationName;
+    req->implementationVersion = org_init->implementationVersion;
 
     ODR_MASK_SET(req->options, Z_Options_search);
     ODR_MASK_SET(req->options, Z_Options_present);
@@ -600,6 +610,8 @@ void yf::Virt_db::process(Package &package) const
             yaz_oi_get_string_oidval(&req->otherInfo, VAL_PROXY, 1, 0);
         if (!vhost)
         {
+            f->m_init_gdu = gdu;
+            
             yp2::odr odr;
             Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950, 0, 0);
             Z_InitResponse *resp = apdu->u.initResponse;
