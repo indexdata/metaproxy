@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.10 2006-01-18 14:36:15 adam Exp $
+/* $Id: filter_multi.cpp,v 1.11 2006-01-18 16:21:48 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -766,7 +766,6 @@ Z_Entry *yf::Multi::ScanTermInfo::get_entry(ODR odr)
 void yf::Multi::Frontend::scan2(Package &package, Z_APDU *apdu_req)
 {
     Z_ScanRequest *req = apdu_req->u.scanRequest;
-    int no_targets = 0;
 
     int default_num_db = req->num_databaseNames;
     char **default_db = req->databaseNames;
@@ -786,7 +785,6 @@ void yf::Multi::Frontend::scan2(Package &package, Z_APDU *apdu_req)
         }
         p->request() = apdu_req;
         p->copy_filter(package);
-        no_targets++;
     }
     multi_move(m_backend_list);
 
@@ -873,7 +871,11 @@ void yf::Multi::Frontend::scan2(Package &package, Z_APDU *apdu_req)
                     }
                 }
                 // after
-                for (i = position-1; i<num_entries; i++)
+                if (position <= 0)
+                    i = 0;
+                else
+                    i = position-1;
+                for ( ; i<num_entries; i++)
                 {
                     Z_Entry *ent = entries[i];
 
@@ -920,8 +922,7 @@ void yf::Multi::Frontend::scan2(Package &package, Z_APDU *apdu_req)
         }
     }
 
-
-    if (false)
+    if (true)
     {
         std::cout << "BEFORE\n";
         ScanTermInfoList::iterator it = entries_before.begin();
@@ -953,24 +954,38 @@ void yf::Multi::Frontend::scan2(Package &package, Z_APDU *apdu_req)
         int number_returned = *req->numberOfTermsRequested;
         int position_returned = *req->preferredPositionInResponse;
         
-        resp->positionOfTerm = odr_intdup(odr, position_returned);
-        resp->numberOfEntriesReturned = odr_intdup(odr, number_returned);
-        
         resp->entries->num_entries = number_returned;
         resp->entries->entries = (Z_Entry**)
             odr_malloc(odr, sizeof(Z_Entry*) * number_returned);
         int i;
-        
+
+        int lbefore = entries_before.size();
+        if (lbefore < position_returned-1)
+            position_returned = lbefore+1;
+
         ScanTermInfoList::iterator it = entries_before.begin();
-        for (i = 0; i<position_returned-1; i++, it++)
+        for (i = 0; i<position_returned-1 && it != entries_before.end(); i++, it++)
         {
-            resp->entries->entries[i] = it->get_entry(odr);
+            resp->entries->entries[position_returned-2-i] = it->get_entry(odr);
         }
+
         it = entries_after.begin();
-        for (i = position_returned-1; i<number_returned; i++, it++)
+
+        if (position_returned <= 0)
+            i = 0;
+        else
+            i = position_returned-1;
+        for (; i<number_returned && it != entries_after.end(); i++, it++)
         {
             resp->entries->entries[i] = it->get_entry(odr);
         }
+
+        number_returned = i;
+
+        resp->positionOfTerm = odr_intdup(odr, position_returned);
+        resp->numberOfEntriesReturned = odr_intdup(odr, number_returned);
+        resp->entries->num_entries = number_returned;
+
         package.response() = f_apdu;
     }
 }
