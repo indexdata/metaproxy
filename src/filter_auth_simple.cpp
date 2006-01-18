@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.15 2006-01-18 14:38:48 mike Exp $
+/* $Id: filter_auth_simple.cpp,v 1.16 2006-01-18 15:03:02 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -341,27 +341,17 @@ void yf::AuthSimple::check_targets(yp2::Package & package) const
 
     std::list<std::string> targets;
     Z_OtherInformation *otherInfo = initReq->otherInfo;
-    yp2::util::get_vhost_otherinfo(&otherInfo, 0, targets);
+    yp2::util::get_vhost_otherinfo(&otherInfo, 1, targets);
 
     // Check each of the targets specified in the otherInfo package
     std::list<std::string>::iterator i;
 
-    printf("pre: got %d targets\n", targets.size());
     i = targets.begin();
     while (i != targets.end()) {
-        printf("pre: considering target '%s'\n", (*i).c_str());
-        i++;
-    }
-
-    i = targets.begin();
-    while (i != targets.end()) {
-        printf("checking target '%s'\n", (*i).c_str());
         if (contains(authorisedTargets, *i) ||
             contains(authorisedTargets, "*")) {
-            printf("target '%s' is ok\n", (*i).c_str());
             i++;
         } else {
-            printf("target '%s' sucks\n", (*i).c_str());
             if (!m_p->discardUnauthorisedDBs)
                 return reject_init(package,
                     YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED, i->c_str());
@@ -369,19 +359,12 @@ void yf::AuthSimple::check_targets(yp2::Package & package) const
         }
     }
 
-    printf("post: got %d targets\n", targets.size());
-    i = targets.begin();
-    while (i != targets.end()) {
-        printf("post: considering target '%s'\n", (*i).c_str());
-        i++;
-    }
-
     if (targets.size() == 0)
         return reject_init(package,
                            YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED,
+                           // ### It would be better to use the Z-db name
                            "all databases");
 
-    // ### This is a no-op if the list has not changed
     yp2::odr odr;
     yp2::util::set_vhost_otherinfo(&otherInfo, odr, targets);
     package.move();
