@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.13 2006-01-18 13:32:59 mike Exp $
+/* $Id: filter_auth_simple.cpp,v 1.14 2006-01-18 13:56:12 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -288,7 +288,8 @@ void yf::AuthSimple::process_scan(yp2::Package &package) const
     std::string user = m_p->userBySession[package.session()];
     yf::AuthSimple::Rep::PasswordAndDBs pdb = m_p->userRegister[user];
     for (int i = 0; i < req->num_databaseNames; i++) {
-        if (!contains(pdb.dbs, req->databaseNames[i])) {
+        if (!contains(pdb.dbs, req->databaseNames[i]) &&
+            !contains(pdb.dbs, "*")) {
             // Make an Scan rejection APDU
             yp2::odr odr;
             Z_APDU *apdu = odr.create_scanResponse(
@@ -341,7 +342,8 @@ void yf::AuthSimple::check_targets(yp2::Package & package) const
     std::list<std::string>::const_iterator i;
     for (i = targets.begin(); i != targets.end(); i++) {
         printf("checking target '%s'\n", (*i).c_str());
-        if (!contains(authorisedTargets, *i)) {
+        if (!contains(authorisedTargets, *i) &&
+            !contains(authorisedTargets, "*")) {
             // ### check whether to quietly discard this target, or to reject
             return reject_init(package,
                                YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED,
