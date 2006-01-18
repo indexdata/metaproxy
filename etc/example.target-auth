@@ -1,4 +1,4 @@
-# $Id: example.target-auth,v 1.2 2006-01-18 13:32:19 mike Exp $
+# $Id: example.target-auth,v 1.3 2006-01-18 13:52:19 robstyles Exp $
 #
 # Sample user-to-target mapping for YP2's target authorisation.  Each
 # non-blank line either begins with a hash (in which case it is a
@@ -15,3 +15,6 @@
 mike:z3950.loc.gov:7090/voyager,indexdata.dk/gils
 adam:indexdata.dk/gils,localhost:9999/Default,something_for_backend_test_to_know
 rob:localhost:9999/Default,something_for_backend_test_to_know
+AllDbsUser:*
+FooOnlyUser:zurg:9991/foo
+NoDbsUser:

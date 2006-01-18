@@ -1,4 +1,4 @@
-# $Id: example.simple-auth,v 1.4 2006-01-18 10:49:00 mike Exp $
+# $Id: example.simple-auth,v 1.5 2006-01-18 13:52:19 robstyles Exp $
 #
 # Sample user-register for YP2's simple authentication.  Each
 # non-blank line either begins with a hash (in which case it is a
@@ -8,6 +8,8 @@
 # that user is allowed to access.
 
 mike:quercus:*
-adam:betula:loc,idgils,Default,dummy
-rob:nothofagus:loc,idgils,foo,bar,baz
-FooOnlyUser:FooOnlyPassword:foo
+adam:betula:*
+rob:nothofagus:*
+AllDbsUser:AllDbsPassword:*
+FooOnlyUser:FooOnlyPassword:*
+NoDbsUser:NoDbsPassword:
