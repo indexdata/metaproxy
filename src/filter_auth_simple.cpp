@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.8 2006-01-18 10:30:32 mike Exp $
+/* $Id: filter_auth_simple.cpp,v 1.9 2006-01-18 10:50:13 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -202,7 +202,8 @@ void yf::AuthSimple::process_search(yp2::Package &package) const
     std::string user = m_p->userBySession[package.session()];
     yf::AuthSimple::Rep::PasswordAndDBs pdb = m_p->userRegister[user];
     for (int i = 0; i < req->num_databaseNames; i++) {
-        if (!contains(pdb.dbs, req->databaseNames[i])) {
+        if (!contains(pdb.dbs, req->databaseNames[i]) &&
+            !contains(pdb.dbs, "*")) {
             // Make an Search rejection APDU
             yp2::odr odr;
             Z_APDU *apdu = odr.create_searchResponse(
