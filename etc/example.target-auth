@@ -1,0 +1,17 @@
+# $Id: example.target-auth,v 1.1 2006-01-18 10:28:39 mike Exp $
+#
+# Sample user-to-target mapping for YP2's target authorisation.  Each
+# non-blank line either begins with a hash (in which case it is a
+# comment, and is ignored) or is a mapping entry.  Each entry consists
+# of two colon-separated fields: a username and a comma-separated list
+# of the targets that user is allowed to access.  Note that these are
+# not Z39.50 database names (those can be specified in the main
+# user-register) but the tokens specified as <target>blah</target>
+# within a Virtual DB filter in the YP2 configuration file.
+#
+# This file is accessed by an Auth-Simple filter containing a
+# <targetRegister> element whose content is the filename.
+
+mike:zurg:9901/bdsbkm21,zurg:9902/blconm21
+adam:zurg:9902/blconm21,zurg:9903/lcbkm21
+rob:zurg:9901/bdsbkm21,zurg:9902/blconm21,zurg:9903/lcbkm21,zurg:9904/radmarc
