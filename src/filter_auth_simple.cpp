@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.9 2006-01-18 10:50:13 mike Exp $
+/* $Id: filter_auth_simple.cpp,v 1.10 2006-01-18 11:12:15 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -35,6 +35,7 @@ namespace yp2 {
             };
             boost::mutex mutex;
             std::map<std::string, PasswordAndDBs> userRegister;
+            std::map<std::string, std::list<std::string> > targetsByUser;
             std::map<yp2::Session, std::string> userBySession;
         };
     }
@@ -50,11 +51,16 @@ yf::AuthSimple::~AuthSimple()
 }
 
 
+static void die(std::string s) { throw yp2::filter::FilterException(s); }
+
+
 // Read XML config.. Put config info in m_p.
 void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
 {
     std::string userRegisterName;
     bool got_userRegisterName = false;
+    std::string targetRegisterName;
+    bool got_targetRegisterName = false;
 
     for (ptr = ptr->children; ptr != 0; ptr = ptr->next) {
         if (ptr->type != XML_ELEMENT_NODE)
@@ -62,22 +68,32 @@ void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
         if (!strcmp((const char *) ptr->name, "userRegister")) {
             userRegisterName = yp2::xml::get_text(ptr);
             got_userRegisterName = true;
+        } else if (!strcmp((const char *) ptr->name, "targetRegister")) {
+            targetRegisterName = yp2::xml::get_text(ptr);
+            got_targetRegisterName = true;
         } else {
-            throw yp2::filter::FilterException("Bad element in auth_simple: <"
-                                               + std::string((const char *)
-                                                             ptr->name) + ">");
+            die("Bad element in auth_simple: <"
+                + std::string((const char *) ptr->name) + ">");
         }
     }
 
-    if (!got_userRegisterName)
-        throw yp2::filter::FilterException("auth_simple: no user-register "
-                                           "filename specified");
+    if (!got_userRegisterName && !got_targetRegisterName)
+        die("auth_simple: no user-register or target-register "
+            "filename specified");
 
-    FILE *fp = fopen(userRegisterName.c_str(), "r");
+    if (got_userRegisterName)
+        config_userRegister(userRegisterName);
+    if (got_targetRegisterName)
+        config_targetRegister(targetRegisterName);
+}
+
+
+void yp2::filter::AuthSimple::config_userRegister(std::string filename)
+{
+    FILE *fp = fopen(filename.c_str(), "r");
     if (fp == 0)
-        throw yp2::filter::FilterException("can't open auth_simple " 
-                                           "user-register '" + userRegisterName
-                                           + "': " + strerror(errno));
+        die("can't open auth_simple user-register '" + filename + "': " +
+            strerror(errno));
 
     char buf[1000];
     while (fgets(buf, sizeof buf, fp)) {
@@ -86,17 +102,13 @@ void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
         buf[strlen(buf)-1] = 0;
         char *passwdp = strchr(buf, ':');
         if (passwdp == 0)
-            throw yp2::filter::FilterException("auth_simple user-register '" +
-                                               userRegisterName + "': " +
-                                               "no password on line: '"
-                                               + buf + "'");
+            die("auth_simple user-register '" + filename + "': " +
+                "no password on line: '" + buf + "'");
         *passwdp++ = 0;
         char *databasesp = strchr(passwdp, ':');
         if (databasesp == 0)
-            throw yp2::filter::FilterException("auth_simple user-register '" +
-                                               userRegisterName + "': " +
-                                               "no databases on line: '" +
-                                               buf + ":" + passwdp + "'");
+            die("auth_simple user-register '" + filename + "': " +
+                "no databases on line: '" + buf + ":" + passwdp + "'");
         *databasesp++ = 0;
         yf::AuthSimple::Rep::PasswordAndDBs tmp(passwdp);
         boost::split(tmp.dbs, databasesp, boost::is_any_of(","));
@@ -110,6 +122,12 @@ void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
             }
         }
     }
+}
+
+
+void yp2::filter::AuthSimple::config_targetRegister(std::string filename)
+{
+    // ### empty!
 }
 
 
