@@ -1,4 +1,4 @@
-/* $Id: yp2_prog.cpp,v 1.1 2006-01-16 11:22:56 adam Exp $
+/* $Id: yp2_prog.cpp,v 1.2 2006-01-19 09:32:08 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -66,19 +66,21 @@ int main(int argc, char **argv)
         }
         if (doc)
         {
-            yp2::FactoryStatic factory;
-            yp2::RouterFleXML router(doc, factory);
-
-	    yp2::Package pack;
-	 
-            pack.router(router).move();
-
+            try {
+                yp2::FactoryStatic factory;
+                yp2::RouterFleXML router(doc, factory);
+                yp2::Package pack;
+                pack.router(router).move();
+            }
+            catch (std::runtime_error &e) {
+                std::cout << "std::runtime error: " << e.what() << "\n";
+                exit(1);
+            }
             xmlFreeDoc(doc);
         }
     }
     catch ( ... ) {
         std::cerr << "Unknown Exception" << std::endl;
-        throw;
         std::exit(1);
     }
     std::exit(0);
