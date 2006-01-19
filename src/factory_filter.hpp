@@ -1,4 +1,4 @@
-/* $Id: factory_filter.hpp,v 1.2 2006-01-05 16:39:37 adam Exp $
+/* $Id: factory_filter.hpp,v 1.3 2006-01-19 09:41:01 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -34,9 +34,11 @@ namespace yp2 {
         bool drop_creator(std::string fi);
         
         yp2::filter::Base* create(std::string fi);
+        bool exist(std::string fi);
+    
+        bool add_creator_dl(const std::string &fi, const std::string &path);
 
-        bool add_creator_dyn(const std::string &fi, const std::string &path);
-
+        bool have_dl_support();
 
         class NotFound : public std::runtime_error {
         public:

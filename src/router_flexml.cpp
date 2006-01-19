@@ -1,4 +1,4 @@
-/* $Id: router_flexml.cpp,v 1.15 2006-01-18 10:30:58 adam Exp $
+/* $Id: router_flexml.cpp,v 1.16 2006-01-19 09:41:01 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -44,6 +44,8 @@ namespace yp2 {
         std::map<std::string,RouterFleXML::Route> m_routes;
 
         std::string m_start_route;
+
+        std::string m_dl_path;
 
         void parse_xml_config_dom(xmlDocPtr doc);
 
@@ -96,6 +98,12 @@ void yp2::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
                                     " in filter element. Got " + name);
         }
 
+        if (!m_factory->exist(type_value))
+        {
+            std::cout << "about to load " << type_value << ", path=" << 
+                m_dl_path << "\n";
+            m_factory->add_creator_dl(type_value, m_dl_path);
+        }
         yp2::filter::Base* filter_base = m_factory->create(type_value);
 
         filter_base->configure(node);
@@ -134,8 +142,8 @@ void yp2::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
                 id_value = value;
             else
                 throw yp2::XMLError("Only attribute 'id' allowed for"
-                                         " element 'route'."
-                                         " Got " + name);
+                                    " element 'route'."
+                                    " Got " + name);
         }
 
         Route route;
@@ -181,6 +189,12 @@ void yp2::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
             }
             else if (type_value.length())
             {
+                if (!m_factory->exist(type_value))
+                {
+                    std::cout << "about to load " << type_value << ", path=" << 
+                        m_dl_path << "\n";
+                    m_factory->add_creator_dl(type_value, m_dl_path);
+                }
                 yp2::filter::Base* filter_base = m_factory->create(type_value);
 
                 filter_base->configure(node3);
@@ -211,8 +225,14 @@ void yp2::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
     
     yp2::xml::check_element_yp2(root,  "yp2");
 
-    // process <start> node which is expected first element node
     const xmlNode* node = yp2::xml::jump_to_children(root, XML_ELEMENT_NODE);
+
+    if (yp2::xml::is_element_yp2(node, "dlpath"))
+    {
+        m_dl_path = yp2::xml::get_text(node);
+        node = yp2::xml::jump_to_next(node, XML_ELEMENT_NODE);
+    }
+    // process <start> node which is expected first element node
     if (yp2::xml::check_element_yp2(node, "start"))
     {
         const struct _xmlAttr *attr;

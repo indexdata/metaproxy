@@ -1,4 +1,4 @@
-/* $Id: factory_filter.cpp,v 1.2 2006-01-05 16:39:37 adam Exp $
+/* $Id: factory_filter.cpp,v 1.3 2006-01-19 09:41:01 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -64,6 +64,17 @@ bool yp2::FactoryFilter::drop_creator(std::string fi)
     return m_p->m_fcm.erase(fi) == 1;
 }
 
+bool yp2::FactoryFilter::exist(std::string fi)
+{
+    Rep::CallbackMap::const_iterator it = m_p->m_fcm.find(fi);
+    
+    if (it == m_p->m_fcm.end())
+    {
+        return false;
+    }
+    return true;
+}
+
 yp2::filter::Base* yp2::FactoryFilter::create(std::string fi)
 {
     Rep::CallbackMap::const_iterator it = m_p->m_fcm.find(fi);
@@ -76,10 +87,19 @@ yp2::filter::Base* yp2::FactoryFilter::create(std::string fi)
     return (it->second());
 }
 
-#if HAVE_DLFCN_H
-bool yp2::FactoryFilter::add_creator_dyn(const std::string &fi,
-                                         const std::string &path)
+bool yp2::FactoryFilter::have_dl_support()
 {
+#if HAVE_DLFCN_H
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool yp2::FactoryFilter::add_creator_dl(const std::string &fi,
+                                        const std::string &path)
+{
+#if HAVE_DLFCN_H
     if (m_p->m_fcm.find(fi) != m_p->m_fcm.end())
     {
         return true;
@@ -105,8 +125,10 @@ bool yp2::FactoryFilter::add_creator_dyn(const std::string &fi,
     }
     struct yp2_filter_struct *s = (struct yp2_filter_struct *) dlsym_ptr;
     return add_creator(fi, s->creator);
-}
+#else
+    return false;
 #endif
+}
 
 /*
  * Local variables:
