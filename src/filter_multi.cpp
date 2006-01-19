@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.11 2006-01-18 16:21:48 adam Exp $
+/* $Id: filter_multi.cpp,v 1.12 2006-01-19 09:35:43 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -240,14 +240,9 @@ void yf::Multi::Frontend::multi_move(std::list<BackendPtr> &blist)
     g.join_all();
 }
 
-
 void yf::Multi::FrontendSet::round_robin(int start, int number,
                                          std::list<PresentJob> &jobs)
 {
-    int fetched = 0;
-    int p = 1;
-    bool eof = true;
-
     std::list<int> pos;
     std::list<int> inside_pos;
     std::list<BackendSet>::const_iterator bsit;
@@ -257,39 +252,85 @@ void yf::Multi::FrontendSet::round_robin(int start, int number,
         inside_pos.push_back(0);
     }
 
-    std::list<int>::iterator psit = pos.begin();
-    std::list<int>::iterator esit = inside_pos.begin();
-    bsit = m_backend_sets.begin();
-    while (fetched < number)
+    int p = 1;
+#if 1
+    // optimization step!
+    int omin = 0;
+    while(true)
     {
-        if (bsit == m_backend_sets.end())
+        int min = 0;
+        int no_left = 0;
+        // find min count for each set which is > omin
+        for (bsit = m_backend_sets.begin(); bsit != m_backend_sets.end(); bsit++)
         {
-            psit = pos.begin();
-            esit = inside_pos.begin();
-            bsit = m_backend_sets.begin();
-            if (eof)
-                break;
-            eof = true;
-        }
-        if (*psit <= bsit->m_count)
-        {
-            if (p >= start)
+            if (bsit->m_count > omin)
             {
-                PresentJob job;
-                job.m_backend = bsit->m_backend;
-                job.m_pos = *psit;
-                job.m_inside_pos = *esit;
-                jobs.push_back(job);
-                (*esit)++;
-                fetched++;
+                if (no_left == 0 || bsit->m_count < min)
+                    min = bsit->m_count;
+                no_left++;
             }
-            (*psit)++;
-            p++;
-            eof = false;
         }
-        psit++;
-        esit++;
-        bsit++;
+        if (no_left == 0) // if nothing greater than omin, bail out.
+            break;
+        int skip = no_left * min;
+        if (p + skip > start)  // step gets us "into" present range?
+        {
+            // Yes. skip until start.. Rounding off is deliberate!
+            min = (start-p) / no_left;
+            p += no_left * min;
+            
+            std::cout << "\nBREAK min=" << min << " no_left=" << no_left << "\n\n";
+            // update positions in each set..
+            std::list<int>::iterator psit = pos.begin();
+            for (psit = pos.begin(); psit != pos.end(); psit++)
+                *psit += min;
+            break;
+        }
+        // skip on each set.. before "present range"..
+        p = p + skip;
+        
+        std::cout << "\nSKIP min=" << min << " no_left=" << no_left << "\n\n";
+        
+        std::list<int>::iterator psit = pos.begin();
+        for (psit = pos.begin(); psit != pos.end(); psit++)
+            *psit += min;
+        
+        omin = min; // update so we consider next class (with higher count)
+    }
+#endif
+    int fetched = 0;
+    bool more = true;
+    while (more)
+    {
+        more = false;
+        std::list<int>::iterator psit = pos.begin();
+        std::list<int>::iterator esit = inside_pos.begin();
+        bsit = m_backend_sets.begin();
+
+        for (; bsit != m_backend_sets.end(); psit++,esit++,bsit++)
+        {
+            if (fetched >= number)
+            {
+                more = false;
+                break;
+            }
+            if (*psit <= bsit->m_count)
+            {
+                if (p >= start)
+                {
+                    PresentJob job;
+                    job.m_backend = bsit->m_backend;
+                    job.m_pos = *psit;
+                    job.m_inside_pos = *esit;
+                    jobs.push_back(job);
+                    (*esit)++;
+                    fetched++;
+                }
+                (*psit)++;
+                p++;
+                more = true;
+            }
+        }
     }
 }
 
