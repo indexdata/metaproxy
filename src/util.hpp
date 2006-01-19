@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.9 2006-01-18 10:57:27 adam Exp $
+/* $Id: util.hpp,v 1.10 2006-01-19 21:43:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -12,6 +12,8 @@
 #include <list>
 
 #include <boost/utility.hpp>
+
+#include "package.hpp"
 
 namespace yp2 {
     namespace util  {
@@ -58,6 +60,8 @@ namespace yp2 {
         Z_APDU *create_scanResponse(Z_APDU *in_apdu,
                                     int error, const char *addinfo);
         Z_APDU *create_APDU(int type, Z_APDU *in_apdu);
+        Z_GDU *create_HTTP_Response(yp2::Session &session,
+                                    Z_HTTP_Request *req, int code);
     private:
         ODR m_odr;
     };

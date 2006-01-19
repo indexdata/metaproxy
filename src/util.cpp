@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.11 2006-01-18 14:10:47 adam Exp $
+/* $Id: util.cpp,v 1.12 2006-01-19 21:43:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -316,6 +316,39 @@ Z_APDU *yp2::odr::create_scanResponse(Z_APDU *in_apdu,
         res->entries->nonsurrogateDiagnostics = 0;
     }
     return apdu;
+}
+
+Z_GDU *yp2::odr::create_HTTP_Response(yp2::Session &session,
+                                      Z_HTTP_Request *hreq, int code)
+{
+    const char *response_version = "1.0";
+    bool keepalive = false;
+    if (!strcmp(hreq->version, "1.0")) 
+    {
+        const char *v = z_HTTP_header_lookup(hreq->headers, "Connection");
+        if (v && !strcmp(v, "Keep-Alive"))
+            keepalive = true;
+        else
+            session.close();
+        response_version = "1.0";
+    }
+    else
+    {
+        const char *v = z_HTTP_header_lookup(hreq->headers, "Connection");
+        if (v && !strcmp(v, "close"))
+            session.close();
+        else
+            keepalive = true;
+        response_version = "1.1";
+    }
+
+    Z_GDU *gdu = z_get_HTTP_Response(m_odr, code);
+    Z_HTTP_Response *hres = gdu->u.HTTP_Response;
+    hres->version = odr_strdup(m_odr, response_version);
+    if (keepalive)
+        z_HTTP_header_add(m_odr, &hres->headers, "Connection", "Keep-Alive");
+    
+    return gdu;
 }
 
 Z_ReferenceId **yp2::util::get_referenceId(Z_APDU *apdu)

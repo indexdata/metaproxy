@@ -1,8 +1,7 @@
-/* $Id: factory_static.cpp,v 1.6 2006-01-15 20:03:14 adam Exp $
+/* $Id: factory_static.cpp,v 1.7 2006-01-19 21:43:51 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
-
 */
 
 #include <iostream>
@@ -19,6 +18,7 @@
 #include "filter_auth_simple.hpp"
 #include "filter_backend_test.hpp"
 #include "filter_frontend_net.hpp"
+#include "filter_http_file.hpp"
 #include "filter_log.hpp"
 #include "filter_multi.hpp"
 #include "filter_session_shared.hpp"
@@ -32,6 +32,7 @@ yp2::FactoryStatic::FactoryStatic()
         &yp2_filter_auth_simple,
         &yp2_filter_backend_test,
         &yp2_filter_frontend_net,        
+        &yp2_filter_http_file,
         &yp2_filter_log,
         &yp2_filter_multi,
         &yp2_filter_session_shared,
