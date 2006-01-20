@@ -49,6 +49,11 @@ AC_CHECK_LIB(boost_program_options, main, [],[
 	AC_MSG_ERROR([Install libboost-program-options-dev (or similar)])
 ])
 
+AC_CHECK_LIB(boost_regex, main, [],[
+	AC_MSG_NOTICE([boost regex library not found.])
+	AC_MSG_ERROR([Install libboost-regex-dev (or similar)])
+])
+
 AC_CHECK_HEADER(boost/test/auto_unit_test.hpp,,[
 	AC_MSG_NOTICE([boost test unit header not found.])
 	AC_MSG_ERROR([Install libboost-test-dev (or similar)])
@@ -120,6 +125,7 @@ fi
 AC_CHECK_HEADERS(sys/select.h sys/socket.h iostream list vector stdexcept)
 AC_CHECK_HEADERS(boost/thread/mutex.hpp \ 
                  boost/date_time/posix_time/posix_time.hpp \
+                 boost/regex.hpp \
                  boost/test/auto_unit_test.hpp)
 
 # Checks for typedefs, structures, and compiler characteristics.

@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.10 2006-01-19 21:43:51 adam Exp $
+/* $Id: util.hpp,v 1.11 2006-01-20 22:38:12 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -18,21 +18,30 @@
 namespace yp2 {
     namespace util  {
 	bool pqf(ODR odr, Z_APDU *apdu, const std::string &q);
+
+        std::string zQueryToString(Z_Query *query);
+
         Z_ReferenceId **get_referenceId(Z_APDU *apdu);
+
         Z_APDU *create_APDU(ODR odr, int type, Z_APDU *in_apdu);
+
         bool set_databases_from_zurl(ODR odr, std::string zurl,
                                      int *db_num, char ***db_strings);
+
         void split_zurl(std::string zurl, std::string &host,
                         std::list<std::string> &db);
 
         int get_vhost_otherinfo(Z_OtherInformation **otherInformation,
                                 bool remove_flag,
                                 std::list<std::string> &vhosts);
+
         void set_vhost_otherinfo(Z_OtherInformation **otherInformation,
                                  ODR odr,
                                  const std::list<std::string> &vhosts);
+
         void get_init_diagnostics(Z_InitResponse *res,
                                   int &error_code, std::string &addinfo);
+
         void get_default_diag(Z_DefaultDiagFormat *r,
                               int &error_code, std::string &addinfo);
 

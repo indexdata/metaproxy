@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.12 2006-01-19 21:43:51 adam Exp $
+/* $Id: util.cpp,v 1.13 2006-01-20 22:38:12 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -9,7 +9,10 @@
 #include <yaz/odr.h>
 #include <yaz/pquery.h>
 #include <yaz/otherinfo.h>
+#include <yaz/querytowrbuf.h> // for yaz_query_to_wrbuf()
 #include "util.hpp"
+
+//#include <iostream>
 
 void yp2::util::piggyback(int smallSetUpperBound,
                           int largeSetLowerBound,
@@ -38,6 +41,7 @@ void yp2::util::piggyback(int smallSetUpperBound,
     }
 }
 
+
 bool yp2::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
     YAZ_PQF_Parser pqf_parser = yaz_pqf_create();
     
@@ -54,6 +58,49 @@ bool yp2::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
     
     apdu->u.searchRequest->query = query;
     return true;
+}
+
+
+std::string yp2::util::zQueryToString(Z_Query *query)
+{
+    std::string query_str = "";
+
+    if (query && query->which == Z_Query_type_1){
+        Z_RPNQuery *rpn = query->u.type_1;
+        
+        if (rpn){
+            
+            // allocate wrbuf (strings in YAZ!)
+            WRBUF w = wrbuf_alloc();
+            
+            // put query in w
+            yaz_rpnquery_to_wrbuf(w, rpn);
+            
+            // from w to std::string
+            query_str = std::string(wrbuf_buf(w), wrbuf_len(w));
+            
+            // destroy wrbuf
+            wrbuf_free(w, 1);
+        }
+    }
+
+#if 0
+    if (query && query->which == Z_Query_type_1){
+        
+        // allocate wrbuf (strings in YAZ!)
+        WRBUF w = wrbuf_alloc();
+        
+        // put query in w
+        yaz_query_to_wrbuf(w, query);
+        
+        // from w to std::string
+        query_str = std::string(wrbuf_buf(w), wrbuf_len(w));
+        
+        // destroy wrbuf
+        wrbuf_free(w, 1);
+    }    
+#endif
+    return query_str;
 }
 
 void yp2::util::get_default_diag(Z_DefaultDiagFormat *r,
