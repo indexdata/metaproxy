@@ -1,4 +1,4 @@
-/* $Id: filter_query_rewrite.hpp,v 1.1 2006-01-19 12:18:09 marc Exp $
+/* $Id: filter_query_rewrite.hpp,v 1.2 2006-01-22 00:05:51 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -21,6 +21,7 @@ namespace yp2 {
             QueryRewrite();
             ~QueryRewrite();
             void process(yp2::Package & package) const;
+            void configure(const xmlNode * ptr);
         };
     }
 }

@@ -1,4 +1,4 @@
-/* $Id: test_filter_query_rewrite.cpp,v 1.2 2006-01-20 22:38:12 marc Exp $
+/* $Id: test_filter_query_rewrite.cpp,v 1.3 2006-01-22 00:05:51 marc Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -18,6 +18,7 @@
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
+using namespace yp2::util;
 
 class FilterBounceZ3950: public yp2::filter::Base {
 public:
@@ -26,6 +27,7 @@ public:
         if (package.session().is_closed())
         {
             std::cout << "Got Close.\n";
+            return;
         }
        
         Z_GDU *gdu = package.request().get();
@@ -36,20 +38,23 @@ public:
             std::cout << "Got Z3950 Init PDU\n";         
             //Z_InitRequest *req = gdu->u.z3950->u.initRequest;
             //package.request() = gdu;
+            return;
         } 
-        else if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
-            Z_APDU_searchRequest)
+        else if (gdu && gdu->which == Z_GDU_Z3950 
+                 && gdu->u.z3950->which == Z_APDU_searchRequest)
         {
             std::cout << "Got Z3950 Search PDU\n";   
             //Z_SearchRequest *req = gdu->u.z3950->u.searchRequest;
             //package.request() = gdu;
+            return;
         } 
-        else if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
-            Z_APDU_scanRequest)
+        else if (gdu && gdu->which == Z_GDU_Z3950 
+                 && gdu->u.z3950->which == Z_APDU_scanRequest)
         {
             std::cout << "Got Z3950 Scan PDU\n";   
             //Z_ScanRequest *req = gdu->u.z3950->u.scanRequest;
             //package.request() = gdu;
+            return;
         } 
         
         package.move();
@@ -127,17 +132,8 @@ void check_query_rewrite_search(yp2::RouterChain &router,
         BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_searchRequest);
 
         // take query out of package again and check rewrite
-        //std::string query_changed = yp2::util::apduToPqf(apdu);
         std::string query_changed 
-            = yp2::util::zQueryToString(z_gdu->u.z3950->u.searchRequest->query);
-
-        //BOOST_CHECK_EQUAL(query_in, query_expect);
-
-        //std::cout << "'" << query_expect << "'\n";
-        //std::cout << "'" << query_changed << "'\n";
-        
-        // need ugly whitespace here ..
-        //BOOST_CHECK_EQUAL(query_expect, std::string(" ") + query_changed);
+            = zQueryToString(z_gdu->u.z3950->u.searchRequest->query);
         BOOST_CHECK_EQUAL(query_expect, query_changed);
     }
 }
@@ -172,6 +168,78 @@ BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite2 )
                                    "@attrset Bib-1 @attr 1=4 the");
 
     }
+    catch ( ... ) {
+        BOOST_CHECK (false);
+    }
+}
+
+
+BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite3 )
+{
+    
+
+    try 
+    {
+        yp2::RouterChain router;
+        
+
+        std::string xmlconf = 
+            "<?xml version='1.0'?>\n"
+            "<filter xmlns='http://indexdata.dk/yp2/config/1'\n"
+            "        id='qrw1' type='query_rewrite'>\n"
+            "  <regex action='all'>\n"
+            "    <expression>@attrset XYZ</expression>\n"
+            "    <format>@attrset Bib-1</format>\n"
+            "  </regex>\n"
+            "  <regex action='search'>\n"
+            "    <expression>@attr 1=4</expression>\n"
+            "    <format>@attr 1=4 @attr 4=2</format>\n"
+            "  </regex>\n"
+            "  <regex action='search'>\n"
+            "    <expression>fish</expression>\n"
+            "    <format>cat</format>\n"
+            "  </regex>\n"
+            "  <regex action='scan'>\n"
+            "    <expression>@attr 1=4</expression>\n"
+            "    <format>@attr 1=5 @attr 4=1</format>\n"
+            "  </regex>\n"
+            "  <regex action='scan'>\n"
+            "    <expression>fish</expression>\n"
+            "    <format>mouse</format>\n"
+            "  </regex>\n"
+            "</filter>\n"
+            ;
+         
+        //std::cout << xmlconf  << std::endl;
+
+        // reading and parsing XML conf
+        xmlDocPtr doc = xmlParseMemory(xmlconf.c_str(), xmlconf.size());
+        BOOST_CHECK(doc);
+        xmlNode *root_element = xmlDocGetRootElement(doc);
+
+        // creating and configuring filter
+        yp2::filter::QueryRewrite f_query_rewrite;
+        f_query_rewrite.configure(root_element);
+        
+        // remeber to free XML DOM
+        xmlFreeDoc(doc);
+        
+        // add only filter to router
+        router.append(f_query_rewrite);
+
+        // start testing
+        check_query_rewrite_init(router);
+        check_query_rewrite_search(router, 
+                                   "@attrset Bib-1 @attr 1=4 the", 
+                                   "@attrset Bib-1 @attr 1=4 the");
+
+    }
+
+    catch (std::exception &e) {
+        std::cout << e.what() << "\n";
+        BOOST_CHECK (false);
+    }
+
     catch ( ... ) {
         BOOST_CHECK (false);
     }
