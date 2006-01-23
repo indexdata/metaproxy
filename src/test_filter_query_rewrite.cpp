@@ -1,4 +1,4 @@
-/* $Id: test_filter_query_rewrite.cpp,v 1.7 2006-01-23 08:14:32 mike Exp $
+/* $Id: test_filter_query_rewrite.cpp,v 1.8 2006-01-23 08:23:37 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -211,6 +211,10 @@ BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite3 )
             "    <expression>^</expression>\n"
             "    <format>@and @attr1=9999 vdb</format>\n"
             "  </regex>\n"
+            "  <test action='scan'><!-- unit-test for configuration -->\n"
+            "     <in>@attr 1=4 foo</in>\n"
+            "     <out>@attr 1=1034 fish</out>\n"
+            "  </test>\n"
             "</filter>\n"
             ;
          
