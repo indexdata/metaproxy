@@ -1,4 +1,4 @@
-/* $Id: test_filter_query_rewrite.cpp,v 1.6 2006-01-23 08:13:11 mike Exp $
+/* $Id: test_filter_query_rewrite.cpp,v 1.7 2006-01-23 08:14:32 mike Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -207,7 +207,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite3 )
             "    <expression>fish</expression>\n"
             "    <format>mouse</format>\n"
             "  </regex>\n"
-            "  <regex action='finally'>\n"
+            "  <regex action='all' when='finally'>\n"
             "    <expression>^</expression>\n"
             "    <format>@and @attr1=9999 vdb</format>\n"
             "  </regex>\n"
