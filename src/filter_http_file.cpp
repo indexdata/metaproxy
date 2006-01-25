@@ -1,4 +1,4 @@
-/* $Id: filter_http_file.cpp,v 1.1 2006-01-19 21:44:26 adam Exp $
+/* $Id: filter_http_file.cpp,v 1.2 2006-01-25 11:28:23 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -66,6 +66,7 @@ yf::HttpFile::Mime::Mime(std::string type) : m_type(type) {}
 
 yf::HttpFile::HttpFile() : m_p(new Rep)
 {
+#if 0
     m_p->m_ext_to_map["html"] = Mime("text/html");
     m_p->m_ext_to_map["htm"] = Mime("text/html");
     m_p->m_ext_to_map["png"] = Mime("image/png");
@@ -74,11 +75,13 @@ yf::HttpFile::HttpFile() : m_p(new Rep)
     m_p->m_ext_to_map["asc"] = Mime("text/plain");
     m_p->m_ext_to_map["xml"] = Mime("application/xml");
     m_p->m_ext_to_map["xsl"] = Mime("application/xml");
-
+#endif
+#if 0
     Area a;
     a.m_url_path_prefix = "/etc";
-    a.m_file_root = "..";
+    a.m_file_root = ".";
     m_p->m_area_list.push_back(a);
+#endif
 }
 
 yf::HttpFile::~HttpFile()
@@ -179,7 +182,8 @@ void yf::HttpFile::Rep::fetch_uri(yp2::Session &session,
 
             if (path.compare(0, l, it->m_url_path_prefix) == 0)
             {
-                std::string fname = it->m_file_root + path;
+                std::string fname = it->m_file_root + path.substr(l);
+                std::cout << "fname = " << fname << "\n";
                 fetch_file(session, req, fname, package);
                 return;
             }
@@ -197,6 +201,67 @@ void yf::HttpFile::process(yp2::Package &package) const
         m_p->fetch_uri(package.session(), gdu->u.HTTP_Request, package);
     else
         package.move();
+}
+
+void yp2::filter::HttpFile::configure(const xmlNode * ptr)
+{
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
+    {
+        if (ptr->type != XML_ELEMENT_NODE)
+            continue;
+        if (!strcmp((const char *) ptr->name, "mimetypes"))
+        {
+            std::string fname = yp2::xml::get_text(ptr);
+
+            yp2::PlainFile f;
+
+            if (!f.open(fname))
+            {
+                throw yp2::filter::FilterException
+                    ("Can not open mime types file " + fname);
+            }
+            
+            std::vector<std::string> args;
+            while (f.getline(args))
+            {
+                size_t i;
+                for (i = 1; i<args.size(); i++)
+                    m_p->m_ext_to_map[args[i]] = args[0];
+            }
+        }
+        else if (!strcmp((const char *) ptr->name, "area"))
+        {
+            xmlNode *a_node = ptr->children;
+            Area a;
+            for (; a_node; a_node = a_node->next)
+            {
+                if (a_node->type != XML_ELEMENT_NODE)
+                    continue;
+                
+                if (yp2::xml::is_element_yp2(a_node, "documentroot"))
+                    a.m_file_root = yp2::xml::get_text(a_node);
+                else if (yp2::xml::is_element_yp2(a_node, "prefix"))
+                    a.m_url_path_prefix = yp2::xml::get_text(a_node);
+                else
+                    throw yp2::filter::FilterException
+                        ("Bad element " 
+                         + std::string((const char *) a_node->name)
+                         + " in area section"
+                            );
+            }
+            if (a.m_file_root.length())
+            {
+                m_p->m_area_list.push_back(a);
+            }
+        }
+        else
+        {
+            throw yp2::filter::FilterException
+                ("Bad element " 
+                 + std::string((const char *) ptr->name)
+                 + " in virt_db filter");
+        }
+    }
 }
 
 static yp2::filter::Base* filter_creator()

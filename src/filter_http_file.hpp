@@ -1,4 +1,4 @@
-/* $Id: filter_http_file.hpp,v 1.1 2006-01-19 21:44:26 adam Exp $
+/* $Id: filter_http_file.hpp,v 1.2 2006-01-25 11:28:23 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -22,6 +22,7 @@ namespace yp2 {
             HttpFile();
             ~HttpFile();
             void process(yp2::Package & package) const;
+            void configure(const xmlNode * ptr);
         };
     }
 }
