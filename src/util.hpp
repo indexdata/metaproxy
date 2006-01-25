@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.11 2006-01-20 22:38:12 marc Exp $
+/* $Id: util.hpp,v 1.12 2006-01-25 11:27:19 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -10,9 +10,10 @@
 #include <yaz/z-core.h>
 #include <string>
 #include <list>
+#include <vector>
 
 #include <boost/utility.hpp>
-
+#include <boost/scoped_ptr.hpp>
 #include "package.hpp"
 
 namespace yp2 {
@@ -74,7 +75,16 @@ namespace yp2 {
     private:
         ODR m_odr;
     };
-        
+
+    class PlainFile {
+        class Rep;
+        boost::scoped_ptr<Rep> m_p;
+    public:
+        PlainFile();
+        ~PlainFile();
+        bool open(const std::string &fname);
+        bool getline(std::vector<std::string> &args);
+    };
 }
 #endif
 /*
