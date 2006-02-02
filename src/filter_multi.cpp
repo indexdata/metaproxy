@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.12 2006-01-19 09:35:43 adam Exp $
+/* $Id: filter_multi.cpp,v 1.13 2006-02-02 10:25:13 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -279,7 +279,6 @@ void yf::Multi::FrontendSet::round_robin(int start, int number,
             min = (start-p) / no_left;
             p += no_left * min;
             
-            std::cout << "\nBREAK min=" << min << " no_left=" << no_left << "\n\n";
             // update positions in each set..
             std::list<int>::iterator psit = pos.begin();
             for (psit = pos.begin(); psit != pos.end(); psit++)

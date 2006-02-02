@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.33 2006-01-18 10:57:27 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.34 2006-02-02 10:25:13 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -210,7 +210,6 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
         {
             b->m_named_result_sets = true;
         }
-        std::cout << "GOT INIT res=" << *res->result << "\n";
         if (!*res->result)
         {
             yp2::util::get_init_diagnostics(res, error_code, addinfo);
