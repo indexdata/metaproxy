@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.47 2006-01-25 11:27:19 adam Exp $
+## $Id: Makefile.am,v 1.48 2006-02-02 10:25:36 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -12,26 +12,28 @@ lib_LTLIBRARIES = libyp2.la
 libyp2_la_LDFLAGS = -version-info 0:0:0 -export-dynamic
 
 libyp2_la_SOURCES = \
-	session.cpp session.hpp \
-	package.cpp package.hpp \
-	router.hpp router_chain.hpp router_chain.cpp \
-        router_flexml.hpp router_flexml.cpp \
-	thread_pool_observer.cpp thread_pool_observer.hpp \
-	filter.hpp filter.cpp factory_filter.cpp factory_filter.hpp \
+	factory_filter.cpp factory_filter.hpp \
+	factory_static.cpp factory_static.hpp \
+	filter.hpp filter.cpp \
 	filter_auth_simple.cpp filter_auth_simple.hpp \
+	filter_backend_test.cpp filter_backend_test.hpp \
 	filter_frontend_net.cpp filter_frontend_net.hpp \
+	filter_http_file.cpp filter_http_file.hpp \
 	filter_log.cpp filter_log.hpp \
 	filter_multi.cpp filter_multi.hpp \
 	filter_query_rewrite.cpp filter_query_rewrite.hpp \
-	filter_virt_db.cpp filter_virt_db.hpp \
-	filter_z3950_client.cpp filter_z3950_client.hpp \
-	filter_backend_test.cpp filter_backend_test.hpp \
 	filter_session_shared.cpp filter_session_shared.hpp \
 	filter_template.cpp filter_template.hpp \
-	filter_http_file.cpp filter_http_file.hpp \
-	factory_static.cpp factory_static.hpp \
+	filter_virt_db.cpp filter_virt_db.hpp \
+	filter_z3950_client.cpp filter_z3950_client.hpp \
+	package.cpp package.hpp \
 	pipe.cpp pipe.hpp \
-	util.cpp util.hpp plainfile.cpp \
+	plainfile.cpp \
+	router.hpp router_chain.hpp router_chain.cpp \
+        router_flexml.hpp router_flexml.cpp \
+	session.cpp session.hpp \
+	thread_pool_observer.cpp thread_pool_observer.hpp \
+	util.cpp util.hpp \
 	xmlutil.cpp xmlutil.hpp
 
 # Rules for programs..
