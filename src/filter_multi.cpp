@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.13 2006-02-02 10:25:13 adam Exp $
+/* $Id: filter_multi.cpp,v 1.14 2006-02-02 11:33:46 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -92,7 +92,7 @@ namespace yp2 {
         };
         class Multi::Rep {
             friend class Multi;
-            friend class Frontend;
+            friend struct Frontend;
             
             FrontendPtr get_frontend(Package &package);
             void release_frontend(Package &package);

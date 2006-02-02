@@ -1,4 +1,4 @@
-/* $Id: filter_http_file.hpp,v 1.2 2006-01-25 11:28:23 adam Exp $
+/* $Id: filter_http_file.hpp,v 1.3 2006-02-02 11:33:46 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -15,7 +15,7 @@ namespace yp2 {
     namespace filter {
         class HttpFile : public Base {
             class Rep;
-            class Area;
+            struct Area;
             class Mime;
             boost::scoped_ptr<Rep> m_p;
         public:

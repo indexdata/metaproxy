@@ -1,4 +1,4 @@
-/* $Id: filter_http_file.cpp,v 1.2 2006-01-25 11:28:23 adam Exp $
+/* $Id: filter_http_file.cpp,v 1.3 2006-02-02 11:33:46 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -115,27 +115,7 @@ void yf::HttpFile::Rep::fetch_file(yp2::Session &session,
                                    Z_HTTP_Request *req,
                                    std::string &fname, yp2::Package &package)
 {
-    struct stat sbuf;
     yp2::odr o;
-    
-    if (stat(fname.c_str(), &sbuf))
-    {
-        Z_GDU *gdu = o.create_HTTP_Response(session, req, 404);
-        package.response() = gdu;
-        return;
-    }
-    if ((sbuf.st_mode & S_IFMT) != S_IFREG)
-    {
-        Z_GDU *gdu = o.create_HTTP_Response(session, req, 404);
-        package.response() = gdu;
-        return;
-    }
-    if (sbuf.st_size > (off_t) 1000000)
-    {
-        Z_GDU *gdu = o.create_HTTP_Response(session, req, 404);
-        package.response() = gdu;
-        return;
-    }
     
     FILE *f = fopen(fname.c_str(), "rb");
     if (!f)
@@ -144,10 +124,27 @@ void yf::HttpFile::Rep::fetch_file(yp2::Session &session,
         package.response() = gdu;
         return;
     }
+    if (fseek(f, 0L, SEEK_END) == -1)
+    {
+        fclose(f);
+        Z_GDU *gdu = o.create_HTTP_Response(session, req, 404);
+        package.response() = gdu;
+        return;
+    }
+    long sz = ftell(f);
+    if (sz > 1000000L)
+    {
+        fclose(f);
+        Z_GDU *gdu = o.create_HTTP_Response(session, req, 404);
+        package.response() = gdu;
+        return;
+    }
+    rewind(f);
+
     Z_GDU *gdu = o.create_HTTP_Response(session, req, 200);
 
     Z_HTTP_Response *hres = gdu->u.HTTP_Response;
-    hres->content_len = sbuf.st_size;
+    hres->content_len = sz;
     hres->content_buf = (char*) odr_malloc(o, hres->content_len);
     fread(hres->content_buf, 1, hres->content_len, f);
 

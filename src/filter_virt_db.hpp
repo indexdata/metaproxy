@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.hpp,v 1.13 2006-01-16 15:51:56 adam Exp $
+/* $Id: filter_virt_db.hpp,v 1.14 2006-02-02 11:33:46 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -18,10 +18,10 @@ namespace yp2 {
     namespace filter {
         class Virt_db : public Base {
             class Rep;
-            class Frontend;
-            class Map;
-            class Set;
-            class Backend;
+            struct Frontend;
+            struct Map;
+            struct Set;
+            struct Backend;
             typedef boost::shared_ptr<Backend> BackendPtr;
             typedef boost::shared_ptr<Frontend> FrontendPtr;
         public:

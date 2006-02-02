@@ -1,4 +1,4 @@
-/* $Id: filter_multi.hpp,v 1.3 2006-01-18 14:10:47 adam Exp $
+/* $Id: filter_multi.hpp,v 1.4 2006-02-02 11:33:46 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -19,12 +19,12 @@ namespace yp2 {
     namespace filter {
         class Multi : public Base {
             class Rep;
-            class Frontend;
-            class Map;
-            class FrontendSet;
-            class Backend;
-            class BackendSet;
-            class ScanTermInfo;
+            struct Frontend;
+            struct Map;
+            struct FrontendSet;
+            struct Backend;
+            struct BackendSet;
+            struct ScanTermInfo;
             typedef std::list<ScanTermInfo> ScanTermInfoList;
             typedef boost::shared_ptr<Backend> BackendPtr;
             typedef boost::shared_ptr<Frontend> FrontendPtr;

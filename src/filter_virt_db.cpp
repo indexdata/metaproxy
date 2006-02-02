@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.34 2006-02-02 10:25:13 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.35 2006-02-02 11:33:46 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -81,7 +81,7 @@ namespace yp2 {
         };            
         class Virt_db::Rep {
             friend class Virt_db;
-            friend class Frontend;
+            friend struct Frontend;
             
             FrontendPtr get_frontend(Package &package);
             void release_frontend(Package &package);
@@ -336,9 +336,9 @@ void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
     std::list<std::string>::const_iterator t_it = b->m_targets.begin();
     if (t_it != b->m_targets.end())
     {
-        if (!yp2::util::set_databases_from_zurl(odr, *t_it,
+        yp2::util::set_databases_from_zurl(odr, *t_it,
                                                 &req->num_databaseNames,
-                                                &req->databaseNames));
+                                                &req->databaseNames);
     }
 
     *req->replaceIndicator = 1;
@@ -552,9 +552,9 @@ void yf::Virt_db::Frontend::scan(Package &package, Z_APDU *apdu_req)
     std::list<std::string>::const_iterator t_it = b->m_targets.begin();
     if (t_it != b->m_targets.end())
     {
-        if (!yp2::util::set_databases_from_zurl(odr, *t_it,
+        yp2::util::set_databases_from_zurl(odr, *t_it,
                                                 &req->num_databaseNames,
-                                                &req->databaseNames));
+                                                &req->databaseNames);
     }
     scan_package.request() = yazpp_1::GDU(apdu_req);
     
