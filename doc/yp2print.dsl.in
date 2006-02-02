@@ -1,0 +1,21 @@
+<!DOCTYPE style-sheet PUBLIC "-//James Clark//DTD DSSSL Style Sheet//EN" [
+<!ENTITY docbook.dsl SYSTEM "@DSSSL_DIR@/print/docbook.dsl"
+  CDATA DSSSL>
+]>
+<!--
+  $Id: yp2print.dsl.in,v 1.1 2006-02-02 18:22:47 mike Exp $
+-->
+<style-sheet>
+<style-specification use="docbook">
+<style-specification-body>
+
+</style-specification-body>
+</style-specification>
+<external-specification id="docbook" document="docbook.dsl">
+</style-sheet>
+
+<!--
+Local Variables:
+mode: scheme
+End:
+-->
