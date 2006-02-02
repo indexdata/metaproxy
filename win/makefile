@@ -1,6 +1,6 @@
 # Copyright (C) 2005, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.7 2006-02-02 10:26:06 adam Exp $
+# $Id: makefile,v 1.8 2006-02-02 11:34:15 adam Exp $
 
 # MS NMAKE makefile for yp2
 
@@ -27,7 +27,7 @@ default: all
 
 all: dirs config yaz yazpp libxslt dll progs
 
-progs: ex_filter_frontend_net test_pipe ex_router_flexml
+progs: ex_filter_frontend_net test_pipe yp2
 
 NSIS="c:\program files\nsis\makensis.exe"
 
@@ -56,13 +56,13 @@ TMP=$(TMPDIR)
 PROJECT_DLL=$(BINDIR)\yp2.dll
 PROJECT_IMPLIB=$(LIBDIR)\yp2.lib
 EX_FILTER_FRONTEND_NET=$(BINDIR)\ex_filter_frontend_net.exe
-EX_ROUTER_FLEXML=$(BINDIR)\ex_router_flexml.exe
+YP2_PROG=$(BINDIR)\yp2.exe
 TEST_PIPE=$(BINDIR)\test_pipe.exe
 
 # shortcut names defined here
 dll: $(PROJECT_DLL)
 ex_filter_frontend_net: $(EX_FILTER_FRONTEND_NET)
-ex_router_flexml: $(EX_ROUTER_FLEXML)
+yp2: $(YP2_PROG)
 test_pipe: $(TEST_PIPE)
 
 ###########################################################
@@ -204,9 +204,9 @@ PROJECT_DLL_OBJS = \
 	$(OBJDIR)\filter_auth_simple.obj \
         $(OBJDIR)\filter_backend_test.obj \
 	$(OBJDIR)\filter_frontend_net.obj \
+	$(OBJDIR)\filter_http_file.obj \
         $(OBJDIR)\filter_log.obj \
 	$(OBJDIR)\filter_multi.obj \
-        $(OBJDIR)\filter_query_rewrite.obj \
         $(OBJDIR)\filter_session_shared.obj \
         $(OBJDIR)\filter_template.obj \
         $(OBJDIR)\filter_virt_db.obj \
@@ -222,7 +222,7 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\xmlutil.obj 
 
 EX_FILTER_FRONTEND_NET_OBJS = $(OBJDIR)\ex_filter_frontend_net.obj
-EX_ROUTER_FLEXML_OBJS = $(OBJDIR)\ex_router_flexml.obj
+YP2_OBJS = $(OBJDIR)\yp2_prog.obj
 TEST_PIPE_OBJS = $(OBJDIR)\test_pipe.obj
 
 ###########################################################
@@ -269,9 +269,9 @@ $(EX_FILTER_FRONTEND_NET) : "$(BINDIR)" $(EX_FILTER_FRONTEND_NET_OBJS) $(PROJECT
 	@echo Linking $(EX_FILTER_FRONTEND_NET)
 	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_DLL_OBJS) $(EX_FILTER_FRONTEND_NET_OBJS) /out:$(EX_FILTER_FRONTEND_NET) 
 
-$(EX_ROUTER_FLEXML) : "$(BINDIR)" $(EX_ROUTER_FLEXML_OBJS) $(PROJECT_IMPLIB)
-	@echo Linking $(EX_ROUTER_FLEXML)
-	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_DLL_OBJS) $(EX_ROUTER_FLEXML_OBJS) /out:$(EX_ROUTER_FLEXML) 
+$(YP2_PROG) : "$(BINDIR)" $(YP2_OBJS) $(PROJECT_IMPLIB)
+	@echo Linking $(YP2_PROG)
+	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_DLL_OBJS) $(YP2_OBJS) /out:$(YP2_PROG) 
 
 $(TEST_PIPE) : "$(BINDIR)" $(TEST_PIPE_OBJS) $(PROJECT_IMPLIB)
 	@echo Linking $(TEST_PIPE)
