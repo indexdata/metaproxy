@@ -1,6 +1,6 @@
 # Copyright (C) 2005, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.6 2006-01-09 14:46:31 adam Exp $
+# $Id: makefile,v 1.7 2006-02-02 10:26:06 adam Exp $
 
 # MS NMAKE makefile for yp2
 
@@ -198,22 +198,26 @@ LNKOPT= $(COMMON_LNK_OPTIONS) $(RELEASE_LNK_OPTIONS)
 ###########################################################
 
 PROJECT_DLL_OBJS = \
-        $(OBJDIR)\session.obj \
-	$(OBJDIR)\package.obj \
-        $(OBJDIR)\router_chain.obj \
-        $(OBJDIR)\router_flexml.obj \
-	$(OBJDIR)\thread_pool_observer.obj \
-        $(OBJDIR)\filter.obj \
 	$(OBJDIR)\factory_filter.obj \
+	$(OBJDIR)\factory_static.obj \
+        $(OBJDIR)\filter.obj \
+	$(OBJDIR)\filter_auth_simple.obj \
+        $(OBJDIR)\filter_backend_test.obj \
 	$(OBJDIR)\filter_frontend_net.obj \
         $(OBJDIR)\filter_log.obj \
-        $(OBJDIR)\filter_virt_db.obj \
-        $(OBJDIR)\filter_z3950_client.obj \
-        $(OBJDIR)\filter_backend_test.obj \
+	$(OBJDIR)\filter_multi.obj \
+        $(OBJDIR)\filter_query_rewrite.obj \
         $(OBJDIR)\filter_session_shared.obj \
         $(OBJDIR)\filter_template.obj \
-	$(OBJDIR)\factory_static.obj \
+        $(OBJDIR)\filter_virt_db.obj \
+        $(OBJDIR)\filter_z3950_client.obj \
+	$(OBJDIR)\package.obj \
 	$(OBJDIR)\pipe.obj \
+	$(OBJDIR)\plainfile.obj \
+        $(OBJDIR)\router_chain.obj \
+        $(OBJDIR)\router_flexml.obj \
+        $(OBJDIR)\session.obj \
+	$(OBJDIR)\thread_pool_observer.obj \
         $(OBJDIR)\util.obj \
         $(OBJDIR)\xmlutil.obj 
 
