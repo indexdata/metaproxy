@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config3.xml,v 1.5 2006-01-18 16:28:18 adam Exp $ -->
+<!-- $Id: config3.xml,v 1.6 2006-02-02 11:32:22 adam Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <routes>
@@ -27,6 +27,10 @@
         <virtual>
           <database>marc</database>
           <target>indexdata.dk/marc</target>
+        </virtual>
+        <virtual>
+          <database>loc</database>
+	  <target>z3950.loc.gov:7090/voyager</target>
         </virtual>
         <virtual>
           <database>all</database>
