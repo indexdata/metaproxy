@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.48 2006-02-02 10:25:36 adam Exp $
+## $Id: Makefile.am,v 1.49 2006-02-02 13:08:22 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -69,7 +69,6 @@ check_PROGRAMS = \
 	test_filter_frontend_net \
 	test_filter_log \
 	test_filter_multi \
-	test_filter_query_rewrite \
 	test_filter_z3950_client \
 	test_filter_backend_test \
 	test_filter_virt_db \
