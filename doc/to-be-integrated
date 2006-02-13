@@ -1,0 +1,50 @@
+I am a bit torn on that subject.  The current filter API really is
+super-simple: it consist of almost exactly one entry-point, called
+process(), which is called with a package as its argument, and which
+has to Do Some Stuff.  That's all.  It doesn't even return a value,
+it's literally
+	void process(Package & package);
+
+Except, of course, that simplicity is very misleading.  It's simple in
+the way that a word-process program is simple if it consists only of
+the main function:
+
+	int main() {
+	    do_word_processing();
+	    return 0;
+	}
+
+The phrase "Do Some Stuff" conceals a whole world of hurt, in which
+the filters need to pick apart the Package objects and the PDUs that
+they contain, and do all sorts of clever things with state, and call
+downstram filters, and set members of the Package structure to
+indicate whether the processing was successful, and so on.
+
+On the plus side, this approach is _conceptually_ very simple, and
+immensely powerful since there is pretty much no limit to what
+process() might do.  Also, it means there's not too much work for
+Doxygen to do :-)  On the negative side, it makes it pretty hard to
+get into writing filters unless you're familiar with the Package class
+and all the APDU structures, and the utility methods and classes that
+Adam has added in on what I think is a fairly ad-hoc basis.
+
+This is in very stark contrast to the YAZ Classic frontend server API,
+with its bend_init() and suchlike.  That API makes simple things easy
+to do, but is restrictive when you want to do exotic things; whereas
+with the Metaproxy API, _nothing_ is easy but _everything_ is
+possible.  (Adam, do shout if you think I am mischaracterising
+anything here -- all of this is just my own impression.)
+
+So I don't think it's possible to add what you described as "an extra
+layer of general-ness" -- it's already as general as it can be.  But
+it _would_ be possible to add an "extra layer of specific-ness", and
+that might (might) be useful.  The obvious way to do it is as a filter
+that provides glue to the classic frontend server API: it would look
+at the APDUs in the packages it's passed, make the corresponding
+bend_*() calls, interpret the results and stick the relevant bits of
+status information back into the package.  This would actually be
+rather cute: as well as making it much easier to write new back-ends,
+it would provide a zero-pain way of integrating existing backend
+applications -- not least Zebra -- into Metaproxy.  It would also mean
+that, for every new filter that someone sets out to write, they could
+choose between doing it with the Filter or Backend API.
