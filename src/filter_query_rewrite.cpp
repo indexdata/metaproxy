@@ -1,4 +1,4 @@
-/* $Id: filter_query_rewrite.cpp,v 1.3 2006-01-22 00:05:51 marc Exp $
+/* $Id: filter_query_rewrite.cpp,v 1.4 2006-03-15 14:55:17 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -16,23 +16,38 @@
 #include "filter_query_rewrite.hpp"
 
 #include <yaz/zgdu.h>
+#include <yaz/xmlquery.h>
+#include <yaz/diagbib1.h>
+
+#include <libxslt/xsltutils.h>
+#include <libxslt/transform.h>
 
 namespace yf = yp2::filter;
 
 namespace yp2 {
     namespace filter {
         class QueryRewrite::Rep {
-            //friend class QueryRewrite;
         public:
+            Rep();
+            ~Rep();
             void process(yp2::Package &package) const;
             void configure(const xmlNode * ptr);
         private:
-            void rewriteRegex(Z_Query *query) const;
+            xsltStylesheetPtr m_stylesheet;
         };
     }
 }
 
-// Class QueryRewrite frowarding to class QueryRewrite::Rep
+yf::QueryRewrite::Rep::Rep()
+{
+    m_stylesheet = 0;
+}
+
+yf::QueryRewrite::Rep::~Rep()
+{
+    if (m_stylesheet)
+        xsltFreeStylesheet(m_stylesheet);
+}
 
 yf::QueryRewrite::QueryRewrite() : m_p(new Rep)
 {
@@ -52,165 +67,94 @@ void yp2::filter::QueryRewrite::configure(const xmlNode *ptr)
     m_p->configure(ptr);
 }
 
-
-// Class QueryRewrite::Rep implementation
-
 void yf::QueryRewrite::Rep::process(yp2::Package &package) const
 {
-    if (package.session().is_closed())
-    {
-        //std::cout << "Got Close.\n";
-    }
-    
     Z_GDU *gdu = package.request().get();
     
-    if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
-        Z_APDU_initRequest)
+    if (gdu && gdu->which == Z_GDU_Z3950)
     {
-        //std::cout << "Got Z3950 Init PDU\n";         
-        //Z_InitRequest *req = gdu->u.z3950->u.initRequest;
-        //package.request() = gdu;
-    } 
-    else if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
-             Z_APDU_searchRequest)
-    {
-        //std::cout << "Got Z3950 Search PDU\n";   
-        Z_SearchRequest *req = gdu->u.z3950->u.searchRequest;
-
-        // applying regex query rewriting
-        rewriteRegex(req->query);
+        Z_APDU *apdu_req = gdu->u.z3950;
+        if (apdu_req->which == Z_APDU_searchRequest)
+        {
+            int error_code = 0;
+            const char *addinfo = 0;
+            yp2::odr odr;
+            Z_SearchRequest *req = apdu_req->u.searchRequest;
             
-        // fold new query structure into gdu package ..       
-        // yp2::util::pqf(odr, gdu->u.z3950, query_out);
-        // question: which odr structure to use in this call ??
-        // memory alignment has to be correct, this is a little tricky ...
-        // I'd rather like to alter the gdu and pack it back using:
-        package.request() = gdu;
-    } 
-    else if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
-             Z_APDU_scanRequest)
-    {
-        std::cout << "Got Z3950 Scan PDU\n";   
-        //Z_ScanRequest *req = gdu->u.z3950->u.scanRequest;
-        //package.request() = gdu;
-    } 
+            xmlDocPtr doc_input = 0;
+            yaz_query2xml(req->query, &doc_input);
+            
+            if (!doc_input)
+            {
+                error_code = YAZ_BIB1_MALFORMED_QUERY;
+                addinfo = "converion from Query to XML failed";
+            }
+            else
+            {
+                if (m_stylesheet)
+                {
+                    xmlDocPtr doc_res = xsltApplyStylesheet(m_stylesheet,
+                                                            doc_input, 0);
+                    if (!doc_res)
+                    {
+                        error_code = YAZ_BIB1_MALFORMED_QUERY;
+                        addinfo = "XSLT transform failed for query";
+                    }
+                    else
+                    {
+                        const xmlNode *root_element = xmlDocGetRootElement(doc_res);
+                        yaz_xml2query(root_element, &req->query, odr,
+                                      &error_code, &addinfo);
+                        xmlFreeDoc(doc_res);
+                    }
+                }
+                xmlFreeDoc(doc_input);
+            }
+            package.request() = gdu;
+            if (error_code)
+            {
+                Z_APDU *f_apdu = 
+                    odr.create_searchResponse(apdu_req, error_code, addinfo);
+                package.response() = f_apdu;
+                return;
+            }
+        } 
+    }
     package.move();
 }
 
-
-void yf::QueryRewrite::Rep::rewriteRegex(Z_Query *query) const
+void yp2::filter::QueryRewrite::Rep::configure(const xmlNode *ptr)
 {
-    std::string query_in = yp2::util::zQueryToString(query);
-    //std::cout << "QUERY IN  '" << query_in << "'\n";
-
-    std::string query_out;
-    
-    boost::regex rgx;
-    try{
-        // make regular expression replacement here 
-        std::string expression("@attr 1=4");
-        std::string format("@attr 1=4 @attr 4=3");
-        //std::string expression("the");
-        //std::string format("else");
-        //std::string expression("(<)|(>)|\\r");
-        //std::string format("(?1&lt;)(?2&gt;)");
-
-        //std::cout << "EXPRESSION  '" << expression << "'\n";
-        //std::cout << "FORMAT      '" << format << "'\n";
-
-        rgx.assign(expression.c_str());
-
-        bool match(false);
-        bool search(false);
-
-        // other flags
-        // see http://www.boost.org/libs/regex/doc/match_flag_type.html
-        //boost::match_flag_type flags = boost::match_default;
-        // boost::format_default
-        // boost::format_perl
-        // boost::format_literal
-        // boost::format_all
-        // boost::format_no_copy
-        // boost::format_first_only
-
-        boost::match_flag_type flags 
-            = boost::match_default | boost::format_all;
-
-        match = regex_match(query_in, rgx, flags);
-        search = regex_search(query_in, rgx, flags);
-        query_out = boost::regex_replace(query_in, rgx, format, flags);
-        //std::cout << "MATCH  '" << match <<  "'\n";
-        //std::cout << "SEARCH '" << search <<  "'\n";
-        //std::cout << "QUERY OUT '" << query_out << "'\n";
-
-    }
-    catch(boost::regex_error &e)
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
-        std::cout << "REGEX Error code=" << e.code() 
-                  << " position=" << e.position() << "\n";
+        if (ptr->type != XML_ELEMENT_NODE)
+            continue;
+        if (!strcmp((const char *) ptr->name, "xslt"))
+        {
+            if (m_stylesheet)
+            {
+                throw yp2::filter::FilterException
+                    ("Only one xslt element allowed in query_rewrite filter");
+            }
+
+            std::string fname = yp2::xml::get_text(ptr);
+            m_stylesheet = xsltParseStylesheetFile(BAD_CAST fname.c_str());
+            if (!m_stylesheet)
+            {
+                throw yp2::filter::FilterException
+                    ("Failed to read stylesheet " 
+                     + fname
+                     + " in query_rewrite filter");
+            }
+        }
+        else
+        {
+            throw yp2::filter::FilterException
+                ("Bad element " 
+                 + std::string((const char *) ptr->name)
+                 + " in query_rewrite filter");
+        }
     }
-    
-    //std::cout << "QUERY OUT '" << query_out << "'\n";
-    // still need to fold this new rpn query string into Z_Query structure...
-}
-
-
-
-void yp2::filter::QueryRewrite::Rep::configure(const xmlNode *filter)
-{
-
-    //std::cout << "XML node '" << filter->name << "'\n";
-    yp2::xml::check_element_yp2(filter, "filter");
-
-    const xmlNode* regex 
-        = yp2::xml::jump_to_children(filter, XML_ELEMENT_NODE);
-    
-    while (regex){
-        //std::cout << "XML node '" << regex->name << "'\n";
-        yp2::xml::check_element_yp2(regex, "regex");
-
-        // parsing action
-//         const xmlNode* action 
-//             = yp2::xml::jump_to_children(regex, XML_ATTRIBUTE_NODE);
-//         if (action){
-//             std::cout << "XML node '" << action->name << "' '";
-//             std::cout << yp2::xml::get_text(action) << "'\n";
-//             //yp2::xml::check_element_yp2(expression, "expression");
-//         }
-
-        // parsing regex expression
-        std::string expr;
-        const xmlNode* expression 
-            = yp2::xml::jump_to_children(regex, XML_ELEMENT_NODE);
-        if (expression){
-            yp2::xml::check_element_yp2(expression, "expression");
-            expr = yp2::xml::get_text(expression);
-            //std::cout << "XML node '" << expression->name << "' '";
-            //std::cout << yp2::xml::get_text(expression) << "'\n";
-        }
-        
-        // parsing regex format
-        std::string form;
-        const xmlNode* format
-            =  yp2::xml::jump_to_next(expression, XML_ELEMENT_NODE);
-        if (format){
-            yp2::xml::check_element_yp2(format, "format");
-            form = yp2::xml::get_text(format);
-            //std::cout << "XML node '" << format->name << "' '";
-            //std::cout << yp2::xml::get_text(format) << "'\n";
-        }
-
-        // adding configuration
-        if (expr.size() && form.size()){
-            //std::cout << "adding regular expression\n";
-        }
-
-        // moving forward to next regex
-        regex = yp2::xml::jump_to_next(regex, XML_ELEMENT_NODE);
-    }
-    
-    // done parsing XML config
-    
 }
 
 static yp2::filter::Base* filter_creator()
@@ -225,11 +169,6 @@ extern "C" {
         filter_creator
     };
 }
-
-extern "C" {
-    extern struct yp2_filter_struct yp2_filter_query_rewrite;
-}
-
 
 /*
  * Local variables:

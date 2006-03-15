@@ -110,10 +110,7 @@ if test "$xsltdir" != "no"; then
                 [Define to 1 if you have libxslt installed])
 	else
 		AC_MSG_RESULT(Not found)
-                if test "$xsltdir" = "default"; then
-                        AC_MSG_WARN([Libxslt development libraries not found.])
-                else
-                        AC_MSG_ERROR([libxslt development libraries not found.])                fi
+		AC_MSG_ERROR([libxslt required.])
 	fi
 fi
 

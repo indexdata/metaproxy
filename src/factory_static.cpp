@@ -1,4 +1,4 @@
-/* $Id: factory_static.cpp,v 1.7 2006-01-19 21:43:51 adam Exp $
+/* $Id: factory_static.cpp,v 1.8 2006-03-15 14:55:17 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -21,6 +21,7 @@
 #include "filter_http_file.hpp"
 #include "filter_log.hpp"
 #include "filter_multi.hpp"
+#include "filter_query_rewrite.hpp"
 #include "filter_session_shared.hpp"
 #include "filter_template.hpp"
 #include "filter_virt_db.hpp"
@@ -35,6 +36,7 @@ yp2::FactoryStatic::FactoryStatic()
         &yp2_filter_http_file,
         &yp2_filter_log,
         &yp2_filter_multi,
+        &yp2_filter_query_rewrite,
         &yp2_filter_session_shared,
         &yp2_filter_template,
         &yp2_filter_virt_db,

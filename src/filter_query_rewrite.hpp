@@ -1,4 +1,4 @@
-/* $Id: filter_query_rewrite.hpp,v 1.2 2006-01-22 00:05:51 marc Exp $
+/* $Id: filter_query_rewrite.hpp,v 1.3 2006-03-15 14:55:17 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -27,7 +27,7 @@ namespace yp2 {
 }
 
 extern "C" {
-    extern struct yp2_filter_struct yp2_filter_queryRewrite;
+    extern struct yp2_filter_struct yp2_filter_query_rewrite;
 }
 
 #endif
