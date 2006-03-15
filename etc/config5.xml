@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<!-- $Id: config5.xml,v 1.1 2006-03-15 14:55:17 adam Exp $ -->
+<!-- $Id: config5.xml,v 1.2 2006-03-15 14:59:10 adam Exp $ -->
+<!-- Uses dummy backend + query rewrite filter.. -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <filters>
