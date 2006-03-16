@@ -3,9 +3,10 @@
                     "@DTD_DIR@/docbookx.dtd" [
      <!ENTITY oslash "&#x00F8;"> <!-- CIRCLED DIVISION SLASH -->
      <!ENTITY book SYSTEM "book.xml">
+     <!ENTITY manref SYSTEM "manref.xml">
      <!ENTITY version "@VERSION@">
 ]>
-<!-- $Id: metaproxy.xml.in,v 1.1 2006-03-16 12:03:39 adam Exp $ -->
+<!-- $Id: main.xml.in,v 1.1 2006-03-16 13:20:05 adam Exp $ -->
 <book id="metaproxy">
  &book;
 </book>

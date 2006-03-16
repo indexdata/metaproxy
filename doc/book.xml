@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.1 2006-03-16 12:03:39 adam Exp $ -->
+<!-- $Id: book.xml,v 1.2 2006-03-16 13:20:05 adam Exp $ -->
  <bookinfo>
  <title>Metaproxy - User's Guide and Reference</title>
  <author>
@@ -498,7 +498,13 @@
  </section>
  </chapter>
 
-
+ <chapter id="moduleref">
+  <title>Module Reference</title>
+  <para>
+   The material in this chapter includes the man pages material
+  </para>
+  &manref;
+ </chapter>
 
  <chapter id="classes">
  <title>Classes in the Metaproxy source code</title>

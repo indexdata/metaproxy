@@ -1,12 +1,14 @@
-## $Id: Makefile.am,v 1.2 2006-03-16 12:03:39 adam Exp $
+## $Id: Makefile.am,v 1.3 2006-03-16 13:20:04 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
-SUPPORTFILES = html.dsl print.dsl tkl.xsl xml.dcl
+SUPPORTFILES = html.dsl print.dsl tkl.xsl xml.dcl ref2dbinc.xsl
 
-XMLFILES = metaproxy.xml.in book.xml
-MAINXML = metaproxy.xml
-
+XMLFILES = main.xml.in book.xml manref.xml copyright.xml
+MAINXML = main.xml
 HTMLFILES = metaproxy.html 
+
+XMLMAN=auth_simple.xml metaproxy.xml
+MANFILES=auth_simple.3mp metaproxy.1
 
 PNGFILES=
 EPSFILES=
@@ -19,10 +21,16 @@ man_MANS = $(MANFILES)
 EXTRA_DIST = $(XMLFILES) $(SUPPORTFILES) $(REFFILES) \
 	$(doc_DATA) $(EPSFILES) $(man_MANS) $(REFFILES)
 
-$(HTMLFILES): $(XMLFILES)
+$(HTMLFILES): $(XMLFILES) manref.xml 
 	jade -E14 -D $(srcdir) -d html.dsl -t sgml $(srcdir)/xml.dcl $(MAINXML)
 
-metaproxy.pdf: $(XMLFILES)
+auth_simple.3mp: auth_simple.xml
+	docbook2man $<
+
+metaproxy.1: metaproxy.xml
+	docbook2man $<
+
+metaproxy.pdf: $(XMLFILES) manref.xml
 	for i in $(PNGFILES); do \
 		if test ! -f $$i; then ln -s $(srcdir)/$$i .; fi; \
 	done
@@ -31,8 +39,12 @@ metaproxy.pdf: $(XMLFILES)
 	pdfjadetex metaproxy.tex >/dev/null
 	pdfjadetex metaproxy.tex >/dev/null
 
-index.tkl: $(XMLFILES) tkl.xsl
+index.tkl: $(XMLFILES) tkl.xsl manref.xml
 	xsltproc tkl.xsl $(MAINXML)
+
+manref.xml: $(XMLMAN) ref2dbinc.xsl
+	rm -f manref.xml
+	for i in $(XMLMAN); do xsltproc ref2dbinc.xsl $$i >>manref.xml; done
 
 clean-data-hook:
 	rm -f [0-9]* *.bak

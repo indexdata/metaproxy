@@ -134,7 +134,7 @@ AC_CONFIG_FILES([
 	src/Makefile
 	src/Jamfile
 	doc/Makefile
-	doc/metaproxy.xml
+	doc/main.xml
 	doc/print.dsl
 	doc/html.dsl
 	doc/tkl.xsl
