@@ -1,4 +1,4 @@
-/* $Id: filter_query_rewrite.cpp,v 1.4 2006-03-15 14:55:17 adam Exp $
+/* $Id: filter_query_rewrite.cpp,v 1.5 2006-03-16 09:38:33 adam Exp $
    Copyright (c) 2005, Index Data.
 
 %LICENSE%
@@ -8,9 +8,6 @@
 #include "config.hpp"
 #include "filter.hpp"
 #include "package.hpp"
-
-//#include <boost/thread/mutex.hpp>
-#include <boost/regex.hpp>
 
 #include "util.hpp"
 #include "filter_query_rewrite.hpp"
