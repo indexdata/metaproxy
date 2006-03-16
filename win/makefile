@@ -1,8 +1,8 @@
-# Copyright (C) 2005, Index Data ApS
+# Copyright (C) 2005-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.9 2006-03-16 09:38:43 adam Exp $
+# $Id: makefile,v 1.10 2006-03-16 10:45:28 adam Exp $
 
-# MS NMAKE makefile for yp2
+# MS NMAKE makefile for metaproxy
 
 # Parameters that we customize often.
 DEBUG=0   # 0 for release, 1 for debug
@@ -27,12 +27,12 @@ default: all
 
 all: dirs config yaz yazpp libxslt dll progs
 
-progs: ex_filter_frontend_net test_pipe yp2
+progs: ex_filter_frontend_net test_pipe metaproxy
 
 NSIS="c:\program files\nsis\makensis.exe"
 
 nsis: all
-	$(NSIS) yp2.nsi
+	$(NSIS) metaproxy.nsi
 
 # Directories
 # The current directory is supposed to be something like
@@ -53,16 +53,16 @@ TMP=$(TMPDIR)
 ############### Targets - what to make
 ###########################################################
 
-PROJECT_DLL=$(BINDIR)\yp2.dll
-PROJECT_IMPLIB=$(LIBDIR)\yp2.lib
+PROJECT_DLL=$(BINDIR)\metaproxy.dll
+PROJECT_IMPLIB=$(LIBDIR)\metaproxy.lib
 EX_FILTER_FRONTEND_NET=$(BINDIR)\ex_filter_frontend_net.exe
-YP2_PROG=$(BINDIR)\yp2.exe
+METAPROXY_PROG=$(BINDIR)\metaproxy.exe
 TEST_PIPE=$(BINDIR)\test_pipe.exe
 
 # shortcut names defined here
 dll: $(PROJECT_DLL)
 ex_filter_frontend_net: $(EX_FILTER_FRONTEND_NET)
-yp2: $(YP2_PROG)
+metaproxy: $(METAPROXY_PROG)
 test_pipe: $(TEST_PIPE)
 
 ###########################################################
@@ -223,7 +223,7 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\xmlutil.obj 
 
 EX_FILTER_FRONTEND_NET_OBJS = $(OBJDIR)\ex_filter_frontend_net.obj
-YP2_OBJS = $(OBJDIR)\yp2_prog.obj
+METAPROXY_OBJS = $(OBJDIR)\metaproxy_prog.obj
 TEST_PIPE_OBJS = $(OBJDIR)\test_pipe.obj
 
 ###########################################################
@@ -246,8 +246,8 @@ COMMON_RC_OPTIONS= /l 0x406 /i"$(ROOTDIR)"
 DEBUG_RC_OPTIONS=/d "_DEBUG"
 RELEASE_RC_OPTIONS=/d "NDEBUG"
 
-PROJECT_RES=$(OBJDIR)\yp2.res
-PROJECT_RC=$(WINDIR)\yp2.rc
+PROJECT_RES=$(OBJDIR)\metaproxy.res
+PROJECT_RC=$(WINDIR)\metaproxy.rc
 
 !if $(DEBUG)
 RSOPT=/d_DEBUG
@@ -270,9 +270,9 @@ $(EX_FILTER_FRONTEND_NET) : "$(BINDIR)" $(EX_FILTER_FRONTEND_NET_OBJS) $(PROJECT
 	@echo Linking $(EX_FILTER_FRONTEND_NET)
 	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_DLL_OBJS) $(EX_FILTER_FRONTEND_NET_OBJS) /out:$(EX_FILTER_FRONTEND_NET) 
 
-$(YP2_PROG) : "$(BINDIR)" $(YP2_OBJS) $(PROJECT_IMPLIB)
-	@echo Linking $(YP2_PROG)
-	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_DLL_OBJS) $(YP2_OBJS) /out:$(YP2_PROG) 
+$(METAPROXY_PROG) : "$(BINDIR)" $(METAPROXY_OBJS) $(PROJECT_IMPLIB)
+	@echo Linking $(METAPROXY_PROG)
+	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_DLL_OBJS) $(METAPROXY_OBJS) /out:$(METAPROXY_PROG) 
 
 $(TEST_PIPE) : "$(BINDIR)" $(TEST_PIPE_OBJS) $(PROJECT_IMPLIB)
 	@echo Linking $(TEST_PIPE)
