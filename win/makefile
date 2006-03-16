@@ -1,6 +1,6 @@
 # Copyright (C) 2005, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.8 2006-02-02 11:34:15 adam Exp $
+# $Id: makefile,v 1.9 2006-03-16 09:38:43 adam Exp $
 
 # MS NMAKE makefile for yp2
 
@@ -207,6 +207,7 @@ PROJECT_DLL_OBJS = \
 	$(OBJDIR)\filter_http_file.obj \
         $(OBJDIR)\filter_log.obj \
 	$(OBJDIR)\filter_multi.obj \
+	$(OBJDIR)\filter_query_rewrite.obj \
         $(OBJDIR)\filter_session_shared.obj \
         $(OBJDIR)\filter_template.obj \
         $(OBJDIR)\filter_virt_db.obj \
