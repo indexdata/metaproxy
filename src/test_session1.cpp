@@ -1,5 +1,5 @@
-/* $Id: test_session1.cpp,v 1.9 2005-12-02 12:21:07 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: test_session1.cpp,v 1.10 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -12,21 +12,22 @@
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
+namespace mp = metaproxy_1;
 
 BOOST_AUTO_UNIT_TEST( testsession1 ) 
 {
 
     // test session 
     try {
-        yp2::Session session1;
-        yp2::Session session2;
-        yp2::Session session3;
-        yp2::Session session4;
-        yp2::Session session5;
+        mp::Session session1;
+        mp::Session session2;
+        mp::Session session3;
+        mp::Session session4;
+        mp::Session session5;
 
         BOOST_CHECK_EQUAL (session5.id(), (unsigned long) 5);
 
-        yp2::Session session = session3;
+        mp::Session session = session3;
 
         BOOST_CHECK_EQUAL (session.id(), (unsigned long) 3);
     }

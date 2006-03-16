@@ -1,5 +1,5 @@
-/* $Id: filter_query_rewrite.cpp,v 1.5 2006-03-16 09:38:33 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_query_rewrite.cpp,v 1.6 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -19,15 +19,16 @@
 #include <libxslt/xsltutils.h>
 #include <libxslt/transform.h>
 
-namespace yf = yp2::filter;
+namespace mp = metaproxy_1;
+namespace yf = mp::filter;
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
         class QueryRewrite::Rep {
         public:
             Rep();
             ~Rep();
-            void process(yp2::Package &package) const;
+            void process(mp::Package &package) const;
             void configure(const xmlNode * ptr);
         private:
             xsltStylesheetPtr m_stylesheet;
@@ -54,17 +55,17 @@ yf::QueryRewrite::~QueryRewrite()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
-void yf::QueryRewrite::process(yp2::Package &package) const
+void yf::QueryRewrite::process(mp::Package &package) const
 {
     m_p->process(package);
 }
 
-void yp2::filter::QueryRewrite::configure(const xmlNode *ptr)
+void mp::filter::QueryRewrite::configure(const xmlNode *ptr)
 {
     m_p->configure(ptr);
 }
 
-void yf::QueryRewrite::Rep::process(yp2::Package &package) const
+void yf::QueryRewrite::Rep::process(mp::Package &package) const
 {
     Z_GDU *gdu = package.request().get();
     
@@ -75,7 +76,7 @@ void yf::QueryRewrite::Rep::process(yp2::Package &package) const
         {
             int error_code = 0;
             const char *addinfo = 0;
-            yp2::odr odr;
+            mp::odr odr;
             Z_SearchRequest *req = apdu_req->u.searchRequest;
             
             xmlDocPtr doc_input = 0;
@@ -120,7 +121,7 @@ void yf::QueryRewrite::Rep::process(yp2::Package &package) const
     package.move();
 }
 
-void yp2::filter::QueryRewrite::Rep::configure(const xmlNode *ptr)
+void mp::filter::QueryRewrite::Rep::configure(const xmlNode *ptr)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
@@ -130,15 +131,15 @@ void yp2::filter::QueryRewrite::Rep::configure(const xmlNode *ptr)
         {
             if (m_stylesheet)
             {
-                throw yp2::filter::FilterException
+                throw mp::filter::FilterException
                     ("Only one xslt element allowed in query_rewrite filter");
             }
 
-            std::string fname = yp2::xml::get_text(ptr);
+            std::string fname = mp::xml::get_text(ptr);
             m_stylesheet = xsltParseStylesheetFile(BAD_CAST fname.c_str());
             if (!m_stylesheet)
             {
-                throw yp2::filter::FilterException
+                throw mp::filter::FilterException
                     ("Failed to read stylesheet " 
                      + fname
                      + " in query_rewrite filter");
@@ -146,7 +147,7 @@ void yp2::filter::QueryRewrite::Rep::configure(const xmlNode *ptr)
         }
         else
         {
-            throw yp2::filter::FilterException
+            throw mp::filter::FilterException
                 ("Bad element " 
                  + std::string((const char *) ptr->name)
                  + " in query_rewrite filter");
@@ -154,13 +155,13 @@ void yp2::filter::QueryRewrite::Rep::configure(const xmlNode *ptr)
     }
 }
 
-static yp2::filter::Base* filter_creator()
+static mp::filter::Base* filter_creator()
 {
-    return new yp2::filter::QueryRewrite;
+    return new mp::filter::QueryRewrite;
 }
 
 extern "C" {
-    struct yp2_filter_struct yp2_filter_query_rewrite = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_query_rewrite = {
         0,
         "query-rewrite",
         filter_creator

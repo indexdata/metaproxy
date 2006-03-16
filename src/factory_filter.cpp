@@ -1,5 +1,5 @@
-/* $Id: factory_filter.cpp,v 1.3 2006-01-19 09:41:01 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: factory_filter.cpp,v 1.4 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -16,7 +16,9 @@
 #include <string>
 #include <map>
 
-namespace yp2 {
+namespace mp = metaproxy_1;
+
+namespace metaproxy_1 {
     class FactoryFilter::Rep {
         typedef std::map<std::string, CreateFilterCallback> CallbackMap;
         typedef std::map<std::string, CreateFilterCallback>::iterator 
@@ -29,42 +31,42 @@ namespace yp2 {
     };
 }
 
-yp2::FactoryFilter::NotFound::NotFound(const std::string message)
+mp::FactoryFilter::NotFound::NotFound(const std::string message)
     : std::runtime_error(message)
 {
 }
 
-yp2::FactoryFilter::Rep::Rep()
+mp::FactoryFilter::Rep::Rep()
 {
 }
 
-yp2::FactoryFilter::Rep::~Rep()
+mp::FactoryFilter::Rep::~Rep()
 {
 }
 
-yp2::FactoryFilter::FactoryFilter() : m_p(new yp2::FactoryFilter::Rep)
-{
-
-}
-
-yp2::FactoryFilter::~FactoryFilter()
+mp::FactoryFilter::FactoryFilter() : m_p(new mp::FactoryFilter::Rep)
 {
 
 }
 
-bool yp2::FactoryFilter::add_creator(std::string fi,
+mp::FactoryFilter::~FactoryFilter()
+{
+
+}
+
+bool mp::FactoryFilter::add_creator(std::string fi,
                                      CreateFilterCallback cfc)
 {
     return m_p->m_fcm.insert(Rep::CallbackMap::value_type(fi, cfc)).second;
 }
 
 
-bool yp2::FactoryFilter::drop_creator(std::string fi)
+bool mp::FactoryFilter::drop_creator(std::string fi)
 {
     return m_p->m_fcm.erase(fi) == 1;
 }
 
-bool yp2::FactoryFilter::exist(std::string fi)
+bool mp::FactoryFilter::exist(std::string fi)
 {
     Rep::CallbackMap::const_iterator it = m_p->m_fcm.find(fi);
     
@@ -75,7 +77,7 @@ bool yp2::FactoryFilter::exist(std::string fi)
     return true;
 }
 
-yp2::filter::Base* yp2::FactoryFilter::create(std::string fi)
+mp::filter::Base* mp::FactoryFilter::create(std::string fi)
 {
     Rep::CallbackMap::const_iterator it = m_p->m_fcm.find(fi);
     
@@ -87,7 +89,7 @@ yp2::filter::Base* yp2::FactoryFilter::create(std::string fi)
     return (it->second());
 }
 
-bool yp2::FactoryFilter::have_dl_support()
+bool mp::FactoryFilter::have_dl_support()
 {
 #if HAVE_DLFCN_H
     return true;
@@ -96,7 +98,7 @@ bool yp2::FactoryFilter::have_dl_support()
 #endif
 }
 
-bool yp2::FactoryFilter::add_creator_dl(const std::string &fi,
+bool mp::FactoryFilter::add_creator_dl(const std::string &fi,
                                         const std::string &path)
 {
 #if HAVE_DLFCN_H
@@ -105,7 +107,7 @@ bool yp2::FactoryFilter::add_creator_dl(const std::string &fi,
         return true;
     }
 
-    std::string full_path = path + "/yp2_filter_" + fi + ".so";
+    std::string full_path = path + "/metaproxy_1_filter_" + fi + ".so";
     void *dl_handle = dlopen(full_path.c_str(), RTLD_GLOBAL|RTLD_NOW);
     if (!dl_handle)
     {
@@ -115,7 +117,7 @@ bool yp2::FactoryFilter::add_creator_dl(const std::string &fi,
         return false;
     }
 
-    std::string full_name = "yp2_filter_" + fi;
+    std::string full_name = "metaproxy_1_filter_" + fi;
     
     void *dlsym_ptr = dlsym(dl_handle, full_name.c_str());
     if (!dlsym_ptr)
@@ -123,7 +125,7 @@ bool yp2::FactoryFilter::add_creator_dl(const std::string &fi,
         std::cout << "dlsym " << full_name << " failed\n";
         return false;
     }
-    struct yp2_filter_struct *s = (struct yp2_filter_struct *) dlsym_ptr;
+    struct metaproxy_1_filter_struct *s = (struct metaproxy_1_filter_struct *) dlsym_ptr;
     return add_creator(fi, s->creator);
 #else
     return false;

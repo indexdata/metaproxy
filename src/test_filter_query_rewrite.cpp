@@ -1,5 +1,5 @@
-/* $Id: test_filter_query_rewrite.cpp,v 1.8 2006-01-23 08:23:37 mike Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: test_filter_query_rewrite.cpp,v 1.9 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -18,11 +18,13 @@
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
-using namespace yp2::util;
 
-class FilterBounceZ3950: public yp2::filter::Base {
+namespace mp = metaproxy_1;
+using namespace mp::util;
+
+class FilterBounceZ3950: public mp::filter::Base {
 public:
-    void process(yp2::Package & package) const {
+    void process(mp::Package & package) const {
         
         if (package.session().is_closed())
         {
@@ -61,14 +63,14 @@ public:
     };
 };
 
-void check_query_rewrite_init(yp2::RouterChain &router)
+void check_query_rewrite_init(mp::RouterChain &router)
 {
     //std::cout << "QUERY REWRITE INIT\n";
 
     // Create package with Z39.50 init request in it
-    yp2::Package pack;
+    mp::Package pack;
         
-    yp2::odr odr;
+    mp::odr odr;
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
     
     pack.request() = apdu;
@@ -91,7 +93,7 @@ void check_query_rewrite_init(yp2::RouterChain &router)
     }
 }
 
-void check_query_rewrite_search(yp2::RouterChain &router, 
+void check_query_rewrite_search(mp::RouterChain &router, 
                                 std::string query_in,
                                 std::string query_expect)
 {
@@ -99,13 +101,13 @@ void check_query_rewrite_search(yp2::RouterChain &router,
     //          << query_in << " " << query_expect << "\n";
     
     // Create package with Z39.50 search request in it
-    yp2::Package pack;
+    mp::Package pack;
         
-    yp2::odr odr;
+    mp::odr odr;
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchRequest);
 
     // create package PQF query here    
-    yp2::util::pqf(odr, apdu, query_in);
+    mp::util::pqf(odr, apdu, query_in);
 
     // create package PDF database info (needed!)
     apdu->u.searchRequest->num_databaseNames = 1;
@@ -143,7 +145,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite_1 )
 {
     try 
     {
-        yp2::filter::QueryRewrite f_query_rewrite;
+        mp::filter::QueryRewrite f_query_rewrite;
     }
     catch ( ... ) {
         BOOST_CHECK (false);
@@ -154,9 +156,9 @@ BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite2 )
 {
     try 
     {
-        yp2::RouterChain router;
+        mp::RouterChain router;
         
-        yp2::filter::QueryRewrite f_query_rewrite;
+        mp::filter::QueryRewrite f_query_rewrite;
         //FilterBounceZ3950 f_bounce_z3950;
         
         router.append(f_query_rewrite);
@@ -180,41 +182,13 @@ BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite3 )
 
     try 
     {
-        yp2::RouterChain router;
+        mp::RouterChain router;
         
 
         std::string xmlconf = 
             "<?xml version='1.0'?>\n"
             "<filter xmlns='http://indexdata.dk/yp2/config/1'\n"
             "        id='qrw1' type='query_rewrite'>\n"
-            "  <regex action='all'>\n"
-            "    <expression>@attrset XYZ</expression>\n"
-            "    <format>@attrset Bib-1</format>\n"
-            "  </regex>\n"
-            "  <regex action='search'>\n"
-            "    <expression>@attr 1=4</expression>\n"
-            "    <format>@attr 1=4 @attr 4=2</format>\n"
-            "  </regex>\n"
-            "  <regex action='search'>\n"
-            "    <expression>fish</expression>\n"
-            "    <format>cat</format>\n"
-            "  </regex>\n"
-            "  <regex action='scan'>\n"
-            "    <expression>@attr 1=4</expression>\n"
-            "    <format>@attr 1=5 @attr 4=1</format>\n"
-            "  </regex>\n"
-            "  <regex action='scan' stop='1'>\n"
-            "    <expression>fish</expression>\n"
-            "    <format>mouse</format>\n"
-            "  </regex>\n"
-            "  <regex action='all' when='finally'>\n"
-            "    <expression>^</expression>\n"
-            "    <format>@and @attr1=9999 vdb</format>\n"
-            "  </regex>\n"
-            "  <test action='scan'><!-- unit-test for configuration -->\n"
-            "     <in>@attr 1=4 foo</in>\n"
-            "     <out>@attr 1=1034 fish</out>\n"
-            "  </test>\n"
             "</filter>\n"
             ;
          
@@ -226,7 +200,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite3 )
         xmlNode *root_element = xmlDocGetRootElement(doc);
 
         // creating and configuring filter
-        yp2::filter::QueryRewrite f_query_rewrite;
+        mp::filter::QueryRewrite f_query_rewrite;
         f_query_rewrite.configure(root_element);
         
         // remeber to free XML DOM

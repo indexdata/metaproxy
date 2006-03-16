@@ -1,5 +1,5 @@
-/* $Id: plainfile.cpp,v 1.1 2006-01-25 11:27:19 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: plainfile.cpp,v 1.2 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -15,7 +15,9 @@
 
 #define PLAINFILE_MAX_LINE 256
 
-namespace yp2 {
+namespace mp = metaproxy_1;
+
+namespace metaproxy_1 {
     class PlainFile::Rep {
         friend class PlainFile;
         Rep();
@@ -25,28 +27,28 @@ namespace yp2 {
     };
 }
 
-yp2::PlainFile::Rep::Rep() : lineno(1)
+mp::PlainFile::Rep::Rep() : lineno(1)
 {
     fh = 0;
 }
 
-yp2::PlainFile::PlainFile() : m_p(new Rep)
+mp::PlainFile::PlainFile() : m_p(new Rep)
 {
 }
 
-void yp2::PlainFile::Rep::close()
+void mp::PlainFile::Rep::close()
 {
     delete fh;
     fh = 0;
     lineno = 0;
 }
 
-yp2::PlainFile::~PlainFile()
+mp::PlainFile::~PlainFile()
 {
     m_p->close();
 }
 
-bool yp2::PlainFile::open(const std::string &fname)
+bool mp::PlainFile::open(const std::string &fname)
 {
     m_p->close();
 
@@ -60,7 +62,7 @@ bool yp2::PlainFile::open(const std::string &fname)
     return true;
 }
 
-bool yp2::PlainFile::getline(std::vector<std::string> &args)
+bool mp::PlainFile::getline(std::vector<std::string> &args)
 {
     args.clear();
 

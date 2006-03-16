@@ -1,5 +1,5 @@
-/* $Id: factory_static.cpp,v 1.8 2006-03-15 14:55:17 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: factory_static.cpp,v 1.9 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
 */
@@ -27,20 +27,22 @@
 #include "filter_virt_db.hpp"
 #include "filter_z3950_client.hpp"
 
-yp2::FactoryStatic::FactoryStatic()
+namespace mp = metaproxy_1;
+
+mp::FactoryStatic::FactoryStatic()
 {
-    struct yp2_filter_struct *buildins[] = {
-        &yp2_filter_auth_simple,
-        &yp2_filter_backend_test,
-        &yp2_filter_frontend_net,        
-        &yp2_filter_http_file,
-        &yp2_filter_log,
-        &yp2_filter_multi,
-        &yp2_filter_query_rewrite,
-        &yp2_filter_session_shared,
-        &yp2_filter_template,
-        &yp2_filter_virt_db,
-        &yp2_filter_z3950_client,
+    struct metaproxy_1_filter_struct *buildins[] = {
+        &metaproxy_1_filter_auth_simple,
+        &metaproxy_1_filter_backend_test,
+        &metaproxy_1_filter_frontend_net,        
+        &metaproxy_1_filter_http_file,
+        &metaproxy_1_filter_log,
+        &metaproxy_1_filter_multi,
+        &metaproxy_1_filter_query_rewrite,
+        &metaproxy_1_filter_session_shared,
+        &metaproxy_1_filter_template,
+        &metaproxy_1_filter_virt_db,
+        &metaproxy_1_filter_z3950_client,
         0
     };
     int i;

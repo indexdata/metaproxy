@@ -1,5 +1,5 @@
-/* $Id: test_filter_multi.cpp,v 1.1 2006-01-15 20:03:14 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: test_filter_multi.cpp,v 1.2 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -18,10 +18,11 @@
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
+namespace mp = metaproxy_1;
 
-class FilterBounceInit: public yp2::filter::Base {
+class FilterBounceInit: public mp::filter::Base {
 public:
-    void process(yp2::Package & package) const {
+    void process(mp::Package & package) const {
         
         if (package.session().is_closed())
         {
@@ -32,7 +33,7 @@ public:
         if (gdu)
         {
             // std::cout << "Got PDU. Sending init response\n";
-            yp2::odr odr;
+            mp::odr odr;
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
             
             apdu->u.initResponse->implementationName = "YP2/YAZ";
@@ -48,7 +49,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_multi_1 )
 {
     try 
     {
-        yp2::filter::Multi lf;
+        mp::filter::Multi lf;
     }
     catch ( ... ) {
         BOOST_CHECK (false);
@@ -59,18 +60,18 @@ BOOST_AUTO_UNIT_TEST( test_filter_multi_2 )
 {
     try 
     {
-        yp2::RouterChain router;
+        mp::RouterChain router;
         
-        yp2::filter::Multi multi;
+        mp::filter::Multi multi;
         FilterBounceInit bounce;
         
         router.append(multi);
         router.append(bounce);
         
         // Create package with Z39.50 init request in it
-        yp2::Package pack;
+        mp::Package pack;
         
-        yp2::odr odr;
+        mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
         
         pack.request() = apdu;

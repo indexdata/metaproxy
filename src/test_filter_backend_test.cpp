@@ -1,5 +1,5 @@
-/* $Id: test_filter_backend_test.cpp,v 1.6 2005-12-02 12:21:07 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: test_filter_backend_test.cpp,v 1.7 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -24,11 +24,13 @@
 #include <boost/test/auto_unit_test.hpp>
 using namespace boost::unit_test;
 
+namespace mp = metaproxy_1;
+
 BOOST_AUTO_UNIT_TEST( test_filter_backend_test_1 )
 {
     try 
     {
-        yp2::filter::Backend_test btest;
+        mp::filter::Backend_test btest;
     }
     catch ( ... ) {
         BOOST_CHECK (false);
@@ -39,14 +41,14 @@ BOOST_AUTO_UNIT_TEST( test_filter_backend_test_2 )
 {
     try 
     {
-        yp2::RouterChain router;
+        mp::RouterChain router;
         
-        yp2::filter::Backend_test btest;
+        mp::filter::Backend_test btest;
         router.append(btest);
         
-        yp2::Package pack;
+        mp::Package pack;
         
-        yp2::odr odr;
+        mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
         
         BOOST_CHECK(apdu);
@@ -77,19 +79,19 @@ BOOST_AUTO_UNIT_TEST( test_filter_backend_test_3 )
 {
     try 
     {
-        yp2::RouterChain router;
+        mp::RouterChain router;
         
-        yp2::filter::Backend_test btest;
+        mp::filter::Backend_test btest;
         router.append(btest);
         
-        yp2::Package pack;
+        mp::Package pack;
         
         // send search request as first request.. That should fail with
         // a close from the backend
-        yp2::odr odr;
+        mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchRequest);
 
-        yp2::util::pqf(odr, apdu, "computer");
+        mp::util::pqf(odr, apdu, "computer");
         
         apdu->u.searchRequest->num_databaseNames = 1;
         apdu->u.searchRequest->databaseNames = (char**)
@@ -124,16 +126,16 @@ BOOST_AUTO_UNIT_TEST( test_filter_backend_test_4 )
 {
     try 
     {
-        yp2::RouterChain router;
+        mp::RouterChain router;
         
-        yp2::filter::Backend_test btest;
+        mp::filter::Backend_test btest;
         router.append(btest);
         
-        yp2::Package pack;
+        mp::Package pack;
         
         // send present request as first request.. That should fail with
         // a close from the backend
-        yp2::odr odr;
+        mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_presentRequest);
 
         BOOST_CHECK(apdu);

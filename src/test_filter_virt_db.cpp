@@ -1,5 +1,5 @@
-/* $Id: test_filter_virt_db.cpp,v 1.11 2006-01-16 17:02:55 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: test_filter_virt_db.cpp,v 1.12 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -25,12 +25,13 @@
 #include <yaz/otherinfo.h>
 using namespace boost::unit_test;
 
+namespace mp = metaproxy_1;
 
 BOOST_AUTO_UNIT_TEST( test_filter_virt_db_1 )
 {
     try 
     {
-        yp2::filter::Virt_db vdb;
+        mp::filter::Virt_db vdb;
     }
     catch ( ... ) {
         BOOST_CHECK (false);
@@ -41,18 +42,18 @@ BOOST_AUTO_UNIT_TEST( test_filter_virt_db_2 )
 {
     try 
     {
-        yp2::RouterChain router;
+        mp::RouterChain router;
         
-        yp2::filter::Virt_db vdb;
+        mp::filter::Virt_db vdb;
         
         router.append(vdb);
         
         // Create package with Z39.50 init request in it
         // Since there is not vhost given, the virt will make its
         // own init response (regardless of backend)
-        yp2::Package pack;
+        mp::Package pack;
         
-        yp2::odr odr;
+        mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
         
         BOOST_CHECK(apdu);
@@ -80,10 +81,10 @@ BOOST_AUTO_UNIT_TEST( test_filter_virt_db_2 )
 }
 
 
-static void init(yp2::Package &pack, yp2::Router &router)
+static void init(mp::Package &pack, mp::Router &router)
 {
     // Create package with Z39.50 init request in it
-    yp2::odr odr;
+    mp::odr odr;
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
     
     BOOST_CHECK(apdu);
@@ -108,16 +109,16 @@ static void init(yp2::Package &pack, yp2::Router &router)
     BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_initResponse);
 }
                  
-static void search(yp2::Package &pack, yp2::Router &router,
+static void search(mp::Package &pack, mp::Router &router,
                    const std::string &query, const char *db,
                    const char *setname)
 {
     // Create package with Z39.50 search request in it
             
-    yp2::odr odr;
+    mp::odr odr;
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchRequest);
 
-    yp2::util::pqf(odr, apdu, query);
+    mp::util::pqf(odr, apdu, query);
 
     apdu->u.searchRequest->resultSetName = odr_strdup(odr, setname);
     
@@ -151,13 +152,13 @@ static void search(yp2::Package &pack, yp2::Router &router,
     BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_searchResponse);
 }
 
-static void present(yp2::Package &pack, yp2::Router &router,
+static void present(mp::Package &pack, mp::Router &router,
                     int start, int number,
                     const char *setname)
 {
     // Create package with Z39.50 present request in it
             
-    yp2::odr odr;
+    mp::odr odr;
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_presentRequest);
     
     apdu->u.presentRequest->resultSetId  = odr_strdup(odr, setname);
@@ -193,43 +194,43 @@ BOOST_AUTO_UNIT_TEST( test_filter_virt_db_3 )
 {
     try 
     {
-        yp2::RouterChain router;
+        mp::RouterChain router;
 
-        yp2::filter::Log filter_log1("FRONT");
+        mp::filter::Log filter_log1("FRONT");
 #if 0
         router.append(filter_log1);
 #endif
    
-        yp2::filter::Virt_db vdb;        
+        mp::filter::Virt_db vdb;        
         router.append(vdb);
         vdb.add_map_db2target("Default", "localhost:210", "");
-        yp2::filter::Log filter_log2("BACK");
+        mp::filter::Log filter_log2("BACK");
 #if 0
         router.append(filter_log2);
 #endif
-        yp2::filter::Backend_test btest;
+        mp::filter::Backend_test btest;
         router.append(btest);
 
-        yp2::Session session1;
-        yp2::Origin origin1;
+        mp::Session session1;
+        mp::Origin origin1;
         
         {
-            yp2::Package pack(session1, origin1);
+            mp::Package pack(session1, origin1);
             init(pack, router);
         }
         {
             // search for database for which there is no map
-            yp2::Package pack(session1, origin1);
+            mp::Package pack(session1, origin1);
             search(pack, router, "computer", "bad_database", "default");
         }
         {
             // search for database for which there a map
-            yp2::Package pack(session1, origin1);
+            mp::Package pack(session1, origin1);
             search(pack, router, "other", "Default", "default");
         }
         {
             // present from last search
-            yp2::Package pack(session1, origin1);
+            mp::Package pack(session1, origin1);
             present(pack, router, 1, 2, "default");
         }
     }

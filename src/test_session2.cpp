@@ -1,5 +1,5 @@
-/* $Id: test_session2.cpp,v 1.6 2005-12-02 12:21:07 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: test_session2.cpp,v 1.7 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -16,6 +16,7 @@
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
+namespace mp = metaproxy_1;
 
 boost::mutex io_mutex;
 
@@ -28,7 +29,7 @@ class Worker
         void operator() (void) {
             for (int i=0; i < 100; ++i)
             {
-                yp2::Session session;
+                mp::Session session;
                 m_id = session.id();   
                 //print();
             }
@@ -66,7 +67,7 @@ BOOST_AUTO_UNIT_TEST( testsession2 )
         }
         thrds.join_all();
 
-        yp2::Session session;
+        mp::Session session;
         BOOST_CHECK (session.id() == 10001);
         
     }

@@ -1,5 +1,5 @@
-/* $Id: test_filter2.cpp,v 1.17 2006-01-09 13:43:59 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: test_filter2.cpp,v 1.18 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -19,11 +19,12 @@
 
 using namespace boost::unit_test;
 
+namespace mp = metaproxy_1;
 
-class FilterConstant: public yp2::filter::Base {
+class FilterConstant: public mp::filter::Base {
 public:
     FilterConstant() : m_constant(1234) { };
-    void process(yp2::Package & package) const {
+    void process(mp::Package & package) const {
 	package.data() = m_constant;
 	package.move();
     };
@@ -109,9 +110,9 @@ bool FilterConstant::parse_xml_text(const xmlNode *xml_ptr, std::string &val)
 
 // This filter dose not have a configure function
     
-class FilterDouble: public yp2::filter::Base {
+class FilterDouble: public mp::filter::Base {
 public:
-    void process(yp2::Package & package) const {
+    void process(mp::Package & package) const {
 	package.data() = package.data() * 2;
 	package.move();
     };
@@ -125,16 +126,16 @@ BOOST_AUTO_UNIT_TEST( testfilter2_1 )
 	FilterDouble fd;
 
 	{
-	    yp2::RouterChain router1;
+	    mp::RouterChain router1;
 	    
 	    // test filter set/get/exception
 	    router1.append(fc);
 	    
 	    router1.append(fd);
 
-            yp2::Session session;
-            yp2::Origin origin;
-	    yp2::Package pack(session, origin);
+            mp::Session session;
+            mp::Origin origin;
+	    mp::Package pack(session, origin);
 	    
 	    pack.router(router1).move(); 
 	    
@@ -143,14 +144,14 @@ BOOST_AUTO_UNIT_TEST( testfilter2_1 )
         }
         
         {
-	    yp2::RouterChain router2;
+	    mp::RouterChain router2;
 	    
 	    router2.append(fd);
 	    router2.append(fc);
 	    
-            yp2::Session session;
-            yp2::Origin origin;
-	    yp2::Package pack(session, origin);
+            mp::Session session;
+            mp::Origin origin;
+	    mp::Package pack(session, origin);
 	 
             pack.router(router2).move();
      
@@ -175,7 +176,7 @@ BOOST_AUTO_UNIT_TEST( testfilter2_2 )
 	FilterConstant fc;
         BOOST_CHECK_EQUAL(fc.get_constant(), 1234);
 
-        yp2::filter::Base *base = &fc;
+        mp::filter::Base *base = &fc;
 
         std::string some_xml = "<?xml version=\"1.0\"?>\n"
             "<filter type=\"constant\">\n"

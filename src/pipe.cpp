@@ -1,5 +1,5 @@
-/* $Id: pipe.cpp,v 1.5 2005-11-10 23:10:42 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: pipe.cpp,v 1.6 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -41,7 +41,9 @@
 
 #include "pipe.hpp"
 
-namespace yp2 {
+namespace mp = metaproxy_1;
+
+namespace metaproxy_1 {
     class Pipe::Rep : public boost::noncopyable {
         friend class Pipe;
         Rep();
@@ -52,7 +54,7 @@ namespace yp2 {
     };
 }
 
-using namespace yp2;
+using namespace mp;
 
 void Pipe::Rep::close(int &fd)
 {

@@ -1,5 +1,5 @@
-/* $Id: router_flexml.hpp,v 1.13 2006-01-11 11:51:50 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: router_flexml.hpp,v 1.14 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
    %LICENSE%
 */
@@ -15,16 +15,16 @@
 
 #include <boost/scoped_ptr.hpp>
 
-namespace yp2 
+namespace metaproxy_1 
 {
-    class RouterFleXML : public yp2::Router 
+    class RouterFleXML : public metaproxy_1::Router 
     {
         class Rep;
         class Route;
         class Pos;
     public:
-        RouterFleXML(std::string xmlconf, yp2::FactoryFilter &factory);
-        RouterFleXML(xmlDocPtr doc, yp2::FactoryFilter &factory);
+        RouterFleXML(std::string xmlconf, metaproxy_1::FactoryFilter &factory);
+        RouterFleXML(xmlDocPtr doc, metaproxy_1::FactoryFilter &factory);
         
         ~RouterFleXML();
 

@@ -1,5 +1,5 @@
-/* $Id: filter_backend_test.cpp,v 1.17 2006-01-17 17:55:40 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_backend_test.cpp,v 1.18 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -23,9 +23,11 @@
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
 
-namespace yf = yp2::filter;
+namespace mp = metaproxy_1;
+namespace yf = mp::filter;
+using namespace mp;
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
         class Session_info {
             int dummy;
@@ -45,7 +47,6 @@ namespace yp2 {
     }
 }
 
-using namespace yp2;
 
 static const int result_set_size = 42;
 
@@ -153,7 +154,7 @@ void yf::Backend_test::process(Package &package) const
     {
         Z_APDU *apdu_req = gdu->u.z3950;
         Z_APDU *apdu_res = 0;
-        yp2::odr odr;
+        mp::odr odr;
         
         if (apdu_req->which != Z_APDU_initRequest && 
             !m_p->m_sessions.exist(package.session()))
@@ -216,7 +217,7 @@ void yf::Backend_test::process(Package &package) const
                 std::string addinfo;
                 
                 int number = 0;
-                yp2::util::piggyback(*req->smallSetUpperBound,
+                mp::util::piggyback(*req->smallSetUpperBound,
                                      *req->largeSetLowerBound,
                                      *req->mediumSetPresentNumber,
                                      result_set_size,
@@ -295,13 +296,13 @@ void yf::Backend_test::process(Package &package) const
         m_p->m_sessions.release(package.session());
 }
 
-static yp2::filter::Base* filter_creator()
+static mp::filter::Base* filter_creator()
 {
-    return new yp2::filter::Backend_test;
+    return new mp::filter::Backend_test;
 }
 
 extern "C" {
-    struct yp2_filter_struct yp2_filter_backend_test = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_backend_test = {
         0,
         "backend_test",
         filter_creator

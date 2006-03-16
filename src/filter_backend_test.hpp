@@ -1,5 +1,5 @@
-/* $Id: filter_backend_test.hpp,v 1.7 2006-01-04 11:55:31 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_backend_test.hpp,v 1.8 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -11,14 +11,14 @@
 
 #include "filter.hpp"
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
         class Backend_test : public Base {
             class Rep;
         public:
             ~Backend_test();
             Backend_test();
-            void process(yp2::Package & package) const;
+            void process(metaproxy_1::Package & package) const;
         private:
             boost::scoped_ptr<Rep> m_p;
         };
@@ -26,7 +26,7 @@ namespace yp2 {
 }
 
 extern "C" {
-    extern struct yp2_filter_struct yp2_filter_backend_test;
+    extern struct metaproxy_1_filter_struct metaproxy_1_filter_backend_test;
 }
 
 #endif

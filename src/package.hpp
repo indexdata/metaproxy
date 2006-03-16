@@ -1,5 +1,5 @@
-/* $Id: package.hpp,v 1.14 2006-01-11 11:51:50 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: package.hpp,v 1.15 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -15,7 +15,7 @@
 #include "filter.hpp"
 #include "session.hpp"
 
-namespace yp2 {
+namespace metaproxy_1 {
     
     class Origin {
         enum origin_t {
@@ -35,7 +35,7 @@ namespace yp2 {
 
         ~Package();
         
-        Package(yp2::Session &session, yp2::Origin &origin);
+        Package(metaproxy_1::Session &session, metaproxy_1::Origin &origin);
 
         Package & copy_filter(const Package &p);
 
@@ -46,7 +46,7 @@ namespace yp2 {
         void move(std::string route);
         
         /// access session - left val in assignment
-        yp2::Session & session();
+        metaproxy_1::Session & session();
         
         /// get function - right val in assignment
         int data() const;

@@ -1,5 +1,5 @@
-/* $Id: filter.cpp,v 1.6 2006-01-11 14:58:28 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter.cpp,v 1.7 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -9,9 +9,11 @@
 #include "config.hpp"
 #include "filter.hpp"
 
-void yp2::filter::Base::configure(const xmlNode * ptr)
+namespace mp = metaproxy_1;
+
+void mp::filter::Base::configure(const xmlNode * ptr)
 {
-    yp2::xml::check_empty(ptr);
+    mp::xml::check_empty(ptr);
 }
 
 /*

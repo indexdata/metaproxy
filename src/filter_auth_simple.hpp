@@ -1,5 +1,5 @@
-/* $Id: filter_auth_simple.hpp,v 1.5 2006-01-18 13:32:46 mike Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_auth_simple.hpp,v 1.6 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -11,7 +11,7 @@
 
 #include "filter.hpp"
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
         class AuthSimple : public Base {
             class Rep;
@@ -20,20 +20,20 @@ namespace yp2 {
             AuthSimple();
             ~AuthSimple();
             void configure(const xmlNode * ptr);
-            void process(yp2::Package & package) const;
+            void process(metaproxy_1::Package & package) const;
         private:
             void config_userRegister(std::string filename);
             void config_targetRegister(std::string filename);
-            void process_init(yp2::Package & package) const;
-            void process_search(yp2::Package & package) const;
-            void process_scan(yp2::Package & package) const;
-            void check_targets(yp2::Package & package) const;
+            void process_init(metaproxy_1::Package & package) const;
+            void process_search(metaproxy_1::Package & package) const;
+            void process_scan(metaproxy_1::Package & package) const;
+            void check_targets(metaproxy_1::Package & package) const;
         };
     }
 }
 
 extern "C" {
-    extern struct yp2_filter_struct yp2_filter_auth_simple;
+    extern struct metaproxy_1_filter_struct metaproxy_1_filter_auth_simple;
 }
 
 #endif

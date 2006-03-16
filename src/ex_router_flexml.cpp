@@ -1,5 +1,5 @@
-/* $Id: ex_router_flexml.cpp,v 1.7 2006-01-16 11:22:56 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: ex_router_flexml.cpp,v 1.8 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -16,6 +16,8 @@ namespace po = boost::program_options;
 #include "package.hpp"
 #include "router_flexml.hpp"
 #include "factory_static.hpp"
+
+namespace mp = metaproxy_1;
 
 int main(int argc, char **argv)
 {
@@ -66,10 +68,10 @@ int main(int argc, char **argv)
         }
         if (doc)
         {
-            yp2::FactoryStatic factory;
-            yp2::RouterFleXML router(doc, factory);
+            mp::FactoryStatic factory;
+            mp::RouterFleXML router(doc, factory);
 
-	    yp2::Package pack;
+	    mp::Package pack;
 	 
             pack.router(router).move();
 

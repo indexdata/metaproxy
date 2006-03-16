@@ -1,5 +1,5 @@
-/* $Id: filter_virt_db.hpp,v 1.14 2006-02-02 11:33:46 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_virt_db.hpp,v 1.15 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -14,7 +14,7 @@
 
 #include "filter.hpp"
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
         class Virt_db : public Base {
             class Rep;
@@ -27,7 +27,7 @@ namespace yp2 {
         public:
             ~Virt_db();
             Virt_db();
-            void process(yp2::Package & package) const;
+            void process(metaproxy_1::Package & package) const;
             void configure(const xmlNode * ptr);
             void add_map_db2targets(std::string db,
                                     std::list<std::string> targets,
@@ -42,7 +42,7 @@ namespace yp2 {
 }
 
 extern "C" {
-    extern struct yp2_filter_struct yp2_filter_virt_db;
+    extern struct metaproxy_1_filter_struct metaproxy_1_filter_virt_db;
 }
 
 #endif

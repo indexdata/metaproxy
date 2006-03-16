@@ -1,5 +1,5 @@
-/* $Id: session.cpp,v 1.2 2005-10-15 14:09:09 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: session.cpp,v 1.3 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -11,9 +11,11 @@
 
 #include "config.hpp"
 
+namespace mp = metaproxy_1;
+
 // defining and initializing static members
-boost::mutex yp2::Session::m_mutex;
-unsigned long int yp2::Session::m_global_id = 0;
+boost::mutex mp::Session::m_mutex;
+unsigned long int mp::Session::m_global_id = 0;
 
 /*
  * Local variables:

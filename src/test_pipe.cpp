@@ -1,5 +1,5 @@
-/* $Id: test_pipe.cpp,v 1.4 2005-12-02 12:21:07 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: test_pipe.cpp,v 1.5 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -18,11 +18,12 @@
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
+namespace mp = metaproxy_1;
 
 class Timer : public yazpp_1::ISocketObserver {
 private:
     yazpp_1::ISocketObservable *m_obs;
-    yp2::Pipe m_pipe;
+    mp::Pipe m_pipe;
     bool m_timeout;
 public:
     Timer(yazpp_1::ISocketObservable *obs, int duration);

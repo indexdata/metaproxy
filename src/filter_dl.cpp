@@ -1,5 +1,5 @@
-/* $Id: filter_dl.cpp,v 1.4 2006-01-09 21:20:15 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_dl.cpp,v 1.5 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -9,27 +9,29 @@
 #include "filter.hpp"
 #include "package.hpp"
 
-namespace yp2 {
+namespace mp = metaproxy_1;
+
+namespace metaproxy_1 {
     namespace filter {
-        class Filter_dl: public yp2::filter::Base {
+        class Filter_dl: public mp::filter::Base {
         public:
-            void process(yp2::Package & package) const;
+            void process(mp::Package & package) const;
         };
     }
 }
 
-void yp2::filter::Filter_dl::process(yp2::Package & package) const
+void mp::filter::Filter_dl::process(mp::Package & package) const
 {
     package.data() = 42;   // magic checked in test_filter_factory
 }
 
-static yp2::filter::Base* filter_creator()
+static mp::filter::Base* filter_creator()
 {
-    return new yp2::filter::Filter_dl;
+    return new mp::filter::Filter_dl;
 }
 
 extern "C" {
-    struct yp2_filter_struct yp2_filter_dl = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_dl = {
         0,
         "dl",
         filter_creator

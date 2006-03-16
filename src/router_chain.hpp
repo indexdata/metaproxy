@@ -1,5 +1,5 @@
-/* $Id: router_chain.hpp,v 1.5 2006-01-09 13:53:13 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: router_chain.hpp,v 1.6 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -13,7 +13,7 @@
 #include <boost/scoped_ptr.hpp>
 #include <stdexcept>
 
-namespace yp2 {
+namespace metaproxy_1 {
     class RouterChain : public Router {
         class Rep;
         class Pos;

@@ -1,5 +1,5 @@
-/* $Id: util.hpp,v 1.12 2006-01-25 11:27:19 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: util.hpp,v 1.13 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -16,7 +16,7 @@
 #include <boost/scoped_ptr.hpp>
 #include "package.hpp"
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace util  {
 	bool pqf(ODR odr, Z_APDU *apdu, const std::string &q);
 
@@ -70,7 +70,7 @@ namespace yp2 {
         Z_APDU *create_scanResponse(Z_APDU *in_apdu,
                                     int error, const char *addinfo);
         Z_APDU *create_APDU(int type, Z_APDU *in_apdu);
-        Z_GDU *create_HTTP_Response(yp2::Session &session,
+        Z_GDU *create_HTTP_Response(metaproxy_1::Session &session,
                                     Z_HTTP_Request *req, int code);
     private:
         ODR m_odr;

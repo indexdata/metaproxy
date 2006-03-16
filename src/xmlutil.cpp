@@ -1,12 +1,14 @@
-/* $Id: xmlutil.cpp,v 1.4 2006-01-11 14:58:28 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: xmlutil.cpp,v 1.5 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
 
 #include "xmlutil.hpp"
 
-std::string yp2::xml::get_text(const xmlNode *ptr)
+namespace mp = metaproxy_1;
+
+std::string mp::xml::get_text(const xmlNode *ptr)
 {
     std::string c;
     for (ptr = ptr->children; ptr; ptr = ptr->next)
@@ -16,7 +18,7 @@ std::string yp2::xml::get_text(const xmlNode *ptr)
 }
 
 
-bool yp2::xml::is_element(const xmlNode *ptr, 
+bool mp::xml::is_element(const xmlNode *ptr, 
                           const std::string &ns,
                           const std::string &name)
 {
@@ -27,22 +29,22 @@ bool yp2::xml::is_element(const xmlNode *ptr,
     return false;
 }
 
-bool yp2::xml::is_element_yp2(const xmlNode *ptr, 
+bool mp::xml::is_element_yp2(const xmlNode *ptr, 
                               const std::string &name)
 {
-    return yp2::xml::is_element(ptr, "http://indexdata.dk/yp2/config/1", name);
+    return mp::xml::is_element(ptr, "http://indexdata.dk/yp2/config/1", name);
 }
 
 
-bool yp2::xml::check_element_yp2(const xmlNode *ptr, 
+bool mp::xml::check_element_yp2(const xmlNode *ptr, 
                                  const std::string &name)
 {
-    if (!yp2::xml::is_element_yp2(ptr, name))
-        throw yp2::XMLError("Expected element name " + name);
+    if (!mp::xml::is_element_yp2(ptr, name))
+        throw mp::XMLError("Expected element name " + name);
     return true;
 }
 
-std::string yp2::xml::get_route(const xmlNode *node)
+std::string mp::xml::get_route(const xmlNode *node)
 {
     std::string route_value;
     if (node)
@@ -68,7 +70,7 @@ std::string yp2::xml::get_route(const xmlNode *node)
 }
 
 
-const xmlNode* yp2::xml::jump_to_children(const xmlNode* node,
+const xmlNode* mp::xml::jump_to_children(const xmlNode* node,
                                           int xml_node_type)
 {
     node = node->children;
@@ -77,7 +79,7 @@ const xmlNode* yp2::xml::jump_to_children(const xmlNode* node,
     return node;
 }
 
-const xmlNode* yp2::xml::jump_to_next(const xmlNode* node,
+const xmlNode* mp::xml::jump_to_next(const xmlNode* node,
                                       int xml_node_type)
 {
     node = node->next;
@@ -86,7 +88,7 @@ const xmlNode* yp2::xml::jump_to_next(const xmlNode* node,
     return node;
 }
 
-const xmlNode* yp2::xml::jump_to(const xmlNode* node,
+const xmlNode* mp::xml::jump_to(const xmlNode* node,
                                  int xml_node_type)
 {
     for (; node && node->type != xml_node_type; node = node->next)
@@ -94,14 +96,14 @@ const xmlNode* yp2::xml::jump_to(const xmlNode* node,
     return node;
 }
 
-void yp2::xml::check_empty(const xmlNode *node)
+void mp::xml::check_empty(const xmlNode *node)
 {
     if (node)
     {
         const xmlNode *n;
         for (n = node->children; n; n = n->next)
             if (n->type == XML_ELEMENT_NODE)
-                throw yp2::XMLError("No child elements allowed inside element "
+                throw mp::XMLError("No child elements allowed inside element "
                                     + std::string((const char *) node->name));
     }
 }

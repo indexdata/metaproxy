@@ -1,5 +1,5 @@
-/* $Id: test_ses_map.cpp,v 1.2 2005-12-02 12:21:07 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: test_ses_map.cpp,v 1.3 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -24,8 +24,9 @@
 #include <yaz/otherinfo.h>
 using namespace boost::unit_test;
 
+namespace mp = metaproxy_1;
 
-namespace yp2 {
+namespace metaproxy_1 {
     class SesMap;
     
 
@@ -39,13 +40,13 @@ namespace yp2 {
     private:
         boost::mutex m_map_mutex;
     public:
-        void create(SesMap &sm, const yp2::Session &s, double &t) {
+        void create(SesMap &sm, const mp::Session &s, double &t) {
             boost::mutex::scoped_lock lock(m_map_mutex);
             
             boost::shared_ptr<Wrap> w_ptr(new Wrap(t));
             m_map_ptr[s] = w_ptr;
         }
-        std::map<yp2::Session,boost::shared_ptr<Wrap> >m_map_ptr;
+        std::map<mp::Session,boost::shared_ptr<Wrap> >m_map_ptr;
     };
 }
 
@@ -54,7 +55,7 @@ BOOST_AUTO_UNIT_TEST( test_ses_map_1 )
 {
     try 
     {
-        yp2::SesMap ses_map;
+        mp::SesMap ses_map;
     }
     catch ( ... ) {
         BOOST_CHECK (false);

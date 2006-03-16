@@ -1,5 +1,5 @@
-/* $Id: test_filter_frontend_net.cpp,v 1.14 2005-12-02 12:21:07 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: test_filter_frontend_net.cpp,v 1.15 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -19,10 +19,11 @@
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
+namespace mp = metaproxy_1;
 
-class FilterInit: public yp2::filter::Base {
+class FilterInit: public mp::filter::Base {
 public:
-    void process(yp2::Package & package) const {
+    void process(mp::Package & package) const {
         
         if (package.session().is_closed())
         {
@@ -33,7 +34,7 @@ public:
         if (gdu)
         {
             // std::cout << "Got PDU. Sending init response\n";
-            yp2::odr odr;
+            mp::odr odr;
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
             
             apdu->u.initResponse->implementationName = "YP2/YAZ";
@@ -50,7 +51,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_frontend_net_1 )
     try 
     {
         {
-            yp2::filter::FrontendNet nf;
+            mp::filter::FrontendNet nf;
         }
     }
     catch ( ... ) {
@@ -63,16 +64,16 @@ BOOST_AUTO_UNIT_TEST( test_filter_frontend_net_2 )
     try 
     {
         {
-	    yp2::RouterChain router;
+	    mp::RouterChain router;
 
             FilterInit tf;
 
 	    router.append(tf);
 
             // Create package with Z39.50 init request in it
-	    yp2::Package pack;
+	    mp::Package pack;
 
-            yp2::odr odr;
+            mp::odr odr;
             Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
             
             pack.request() = apdu;
@@ -102,10 +103,10 @@ BOOST_AUTO_UNIT_TEST( test_filter_frontend_net_3 )
     try 
     {
         {
-	    yp2::RouterChain router;
+	    mp::RouterChain router;
 
             // put in frontend first
-            yp2::filter::FrontendNet filter_front;
+            mp::filter::FrontendNet filter_front;
 
             std::vector <std::string> ports;
             ports.insert(ports.begin(), "unix:socket");
@@ -117,7 +118,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_frontend_net_3 )
             FilterInit filter_init;
 	    router.append(filter_init);
 
-	    yp2::Package pack;
+	    mp::Package pack;
 	    
 	    pack.router(router).move(); 
         }

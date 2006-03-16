@@ -1,5 +1,5 @@
-/* $Id: filter.hpp,v 1.15 2006-01-11 11:51:49 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter.hpp,v 1.16 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -12,7 +12,7 @@
 #include <libxml/tree.h>
 #include "xmlutil.hpp"
 
-namespace yp2 {
+namespace metaproxy_1 {
 
     class Package;
 
@@ -36,10 +36,10 @@ namespace yp2 {
     }
 }
 
-struct yp2_filter_struct {
+struct metaproxy_1_filter_struct {
     int ver;
     const char *type;
-    yp2::filter::Base* (*creator)();
+    metaproxy_1::filter::Base* (*creator)();
 };
 
 #endif

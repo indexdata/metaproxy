@@ -1,5 +1,5 @@
-/* $Id: filter_auth_simple.cpp,v 1.17 2006-01-18 15:07:09 mike Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_auth_simple.cpp,v 1.18 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -20,9 +20,10 @@
 #include <stdio.h>
 #include <errno.h>
 
-namespace yf = yp2::filter;
+namespace mp = metaproxy_1;
+namespace yf = mp::filter;
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
         class AuthSimple::Rep {
             friend class AuthSimple;
@@ -37,7 +38,7 @@ namespace yp2 {
             bool got_userRegister, got_targetRegister;
             std::map<std::string, PasswordAndDBs> userRegister;
             std::map<std::string, std::list<std::string> > targetsByUser;
-            std::map<yp2::Session, std::string> userBySession;
+            std::map<mp::Session, std::string> userBySession;
             bool discardUnauthorisedTargets;
             Rep() { got_userRegister = false;
                     got_targetRegister = false;
@@ -56,11 +57,11 @@ yf::AuthSimple::~AuthSimple()
 }
 
 
-static void die(std::string s) { throw yp2::filter::FilterException(s); }
+static void die(std::string s) { throw mp::filter::FilterException(s); }
 
 
 // Read XML config.. Put config info in m_p.
-void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
+void mp::filter::AuthSimple::configure(const xmlNode * ptr)
 {
     std::string userRegisterName;
     std::string targetRegisterName;
@@ -69,10 +70,10 @@ void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
         if (!strcmp((const char *) ptr->name, "userRegister")) {
-            userRegisterName = yp2::xml::get_text(ptr);
+            userRegisterName = mp::xml::get_text(ptr);
             m_p->got_userRegister = true;
         } else if (!strcmp((const char *) ptr->name, "targetRegister")) {
-            targetRegisterName = yp2::xml::get_text(ptr);
+            targetRegisterName = mp::xml::get_text(ptr);
             m_p->got_targetRegister = true;
         } else if (!strcmp((const char *) ptr->name,
                            "discardUnauthorisedTargets")) {
@@ -94,7 +95,7 @@ void yp2::filter::AuthSimple::configure(const xmlNode * ptr)
 }
 
 
-void yp2::filter::AuthSimple::config_userRegister(std::string filename)
+void mp::filter::AuthSimple::config_userRegister(std::string filename)
 {
     FILE *fp = fopen(filename.c_str(), "r");
     if (fp == 0)
@@ -134,7 +135,7 @@ void yp2::filter::AuthSimple::config_userRegister(std::string filename)
 // I feel a little bad about the duplication of code between this and
 // config_userRegister().  But not bad enough to refactor.
 //
-void yp2::filter::AuthSimple::config_targetRegister(std::string filename)
+void mp::filter::AuthSimple::config_targetRegister(std::string filename)
 {
     FILE *fp = fopen(filename.c_str(), "r");
     if (fp == 0)
@@ -166,7 +167,7 @@ void yp2::filter::AuthSimple::config_targetRegister(std::string filename)
 }
 
 
-void yf::AuthSimple::process(yp2::Package &package) const
+void yf::AuthSimple::process(mp::Package &package) const
 {
     Z_GDU *gdu = package.request().get();
 
@@ -203,10 +204,10 @@ void yf::AuthSimple::process(yp2::Package &package) const
 }
 
 
-static void reject_init(yp2::Package &package, int err, const char *addinfo);
+static void reject_init(mp::Package &package, int err, const char *addinfo);
 
 
-void yf::AuthSimple::process_init(yp2::Package &package) const
+void yf::AuthSimple::process_init(mp::Package &package) const
 {
     Z_IdAuthentication *auth =
         package.request().get()->u.z3950->u.initRequest->idAuthentication;
@@ -248,7 +249,7 @@ static bool contains(std::list<std::string> list, std::string thing) {
 }
 
 
-void yf::AuthSimple::process_search(yp2::Package &package) const
+void yf::AuthSimple::process_search(mp::Package &package) const
 {
     Z_SearchRequest *req =
         package.request().get()->u.z3950->u.searchRequest;
@@ -264,7 +265,7 @@ void yf::AuthSimple::process_search(yp2::Package &package) const
         if (!contains(pdb.dbs, req->databaseNames[i]) &&
             !contains(pdb.dbs, "*")) {
             // Make an Search rejection APDU
-            yp2::odr odr;
+            mp::odr odr;
             Z_APDU *apdu = odr.create_searchResponse(
                 package.request().get()->u.z3950, 
                 YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED,
@@ -280,7 +281,7 @@ void yf::AuthSimple::process_search(yp2::Package &package) const
 }
 
 
-void yf::AuthSimple::process_scan(yp2::Package &package) const
+void yf::AuthSimple::process_scan(mp::Package &package) const
 {
     Z_ScanRequest *req =
         package.request().get()->u.z3950->u.scanRequest;
@@ -296,7 +297,7 @@ void yf::AuthSimple::process_scan(yp2::Package &package) const
         if (!contains(pdb.dbs, req->databaseNames[i]) &&
             !contains(pdb.dbs, "*")) {
             // Make an Scan rejection APDU
-            yp2::odr odr;
+            mp::odr odr;
             Z_APDU *apdu = odr.create_scanResponse(
                 package.request().get()->u.z3950, 
                 YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED,
@@ -312,12 +313,12 @@ void yf::AuthSimple::process_scan(yp2::Package &package) const
 }
 
 
-static void reject_init(yp2::Package &package, int err, const char *addinfo) { 
+static void reject_init(mp::Package &package, int err, const char *addinfo) { 
     if (err == 0)
         err = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
     // Make an Init rejection APDU
     Z_GDU *gdu = package.request().get();
-    yp2::odr odr;
+    mp::odr odr;
     Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950, err, addinfo);
     apdu->u.initResponse->implementationName = "YP2/YAZ";
     *apdu->u.initResponse->result = 0; // reject
@@ -326,7 +327,7 @@ static void reject_init(yp2::Package &package, int err, const char *addinfo) {
 }
 
 
-void yf::AuthSimple::check_targets(yp2::Package & package) const
+void yf::AuthSimple::check_targets(mp::Package & package) const
 {
     Z_InitRequest *initReq = package.request().get()->u.z3950->u.initRequest;
 
@@ -341,7 +342,7 @@ void yf::AuthSimple::check_targets(yp2::Package & package) const
 
     std::list<std::string> targets;
     Z_OtherInformation *otherInfo = initReq->otherInfo;
-    yp2::util::get_vhost_otherinfo(&otherInfo, 1, targets);
+    mp::util::get_vhost_otherinfo(&otherInfo, 1, targets);
 
     // Check each of the targets specified in the otherInfo package
     std::list<std::string>::iterator i;
@@ -365,19 +366,19 @@ void yf::AuthSimple::check_targets(yp2::Package & package) const
                            // ### It would be better to use the Z-db name
                            "all databases");
 
-    yp2::odr odr;
-    yp2::util::set_vhost_otherinfo(&otherInfo, odr, targets);
+    mp::odr odr;
+    mp::util::set_vhost_otherinfo(&otherInfo, odr, targets);
     package.move();
 }
 
 
-static yp2::filter::Base* filter_creator()
+static mp::filter::Base* filter_creator()
 {
-    return new yp2::filter::AuthSimple;
+    return new mp::filter::AuthSimple;
 }
 
 extern "C" {
-    struct yp2_filter_struct yp2_filter_auth_simple = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_auth_simple = {
         0,
         "auth_simple",
         filter_creator

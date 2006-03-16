@@ -1,5 +1,5 @@
-/* $Id: test_filter_z3950_client.cpp,v 1.7 2005-12-02 12:21:07 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: test_filter_z3950_client.cpp,v 1.8 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -20,14 +20,15 @@
 
 #include <yaz/zgdu.h>
 #include <yaz/otherinfo.h>
-using namespace boost::unit_test;
 
+using namespace boost::unit_test;
+namespace mp = metaproxy_1;
 
 BOOST_AUTO_UNIT_TEST( test_filter_z3950_client_1 )
 {
     try 
     {
-        yp2::filter::Z3950Client zc; // can we construct OK?
+        mp::filter::Z3950Client zc; // can we construct OK?
     }
     catch ( ... ) {
         BOOST_CHECK (false);
@@ -38,16 +39,16 @@ BOOST_AUTO_UNIT_TEST( test_filter_z3950_client_2 )
 {
     try 
     {
-        yp2::RouterChain router;
+        mp::RouterChain router;
         
-        yp2::filter::Z3950Client zc;
+        mp::filter::Z3950Client zc;
         
         router.append(zc);
         
         // Create package with Z39.50 init request in it
-        yp2::Package pack;
+        mp::Package pack;
         
-        yp2::odr odr;
+        mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
         
         BOOST_CHECK(apdu);
@@ -79,16 +80,16 @@ BOOST_AUTO_UNIT_TEST( test_filter_z3950_client_3 )
 {
     try 
     {
-        yp2::RouterChain router;
+        mp::RouterChain router;
         
-        yp2::filter::Z3950Client zc;
+        mp::filter::Z3950Client zc;
 
         router.append(zc);
         
         // Create package with Z39.50 present request in it
-        yp2::Package pack;
+        mp::Package pack;
         
-        yp2::odr odr;
+        mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_presentRequest);
         
         BOOST_CHECK(apdu);
@@ -120,16 +121,16 @@ BOOST_AUTO_UNIT_TEST( test_filter_z3950_client_4 )
 {
     try 
     {
-        yp2::RouterChain router;
+        mp::RouterChain router;
         
-        yp2::filter::Z3950Client zc;
+        mp::filter::Z3950Client zc;
         
         router.append(zc);
         
         // Create package with Z39.50 init request in it
-        yp2::Package pack;
+        mp::Package pack;
         
-        yp2::odr odr;
+        mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
         
         const char *vhost = "localhost:9999";

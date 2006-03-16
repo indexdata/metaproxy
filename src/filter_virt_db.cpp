@@ -1,5 +1,5 @@
-/* $Id: filter_virt_db.cpp,v 1.35 2006-02-02 11:33:46 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_virt_db.cpp,v 1.36 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -23,9 +23,10 @@
 #include <map>
 #include <iostream>
 
-namespace yf = yp2::filter;
+namespace mp = metaproxy_1;
+namespace yf = mp::filter;
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
 
         struct Virt_db::Set {
@@ -43,7 +44,7 @@ namespace yp2 {
             std::string m_route;
         };
         struct Virt_db::Backend {
-            yp2::Session m_backend_session;
+            mp::Session m_backend_session;
             std::list<std::string> m_frontend_databases;
             std::list<std::string> m_targets;
             std::string m_route;
@@ -53,7 +54,7 @@ namespace yp2 {
         struct Virt_db::Frontend {
             Frontend(Rep *rep);
             ~Frontend();
-            yp2::Session m_session;
+            mp::Session m_session;
             bool m_is_virtual;
             bool m_in_use;
             yazpp_1::GDU m_init_gdu;
@@ -93,12 +94,12 @@ namespace yp2 {
 
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
-            std::map<yp2::Session, FrontendPtr> m_clients;
+            std::map<mp::Session, FrontendPtr> m_clients;
         };
     }
 }
 
-using namespace yp2;
+using namespace mp;
 
 yf::Virt_db::BackendPtr yf::Virt_db::Frontend::lookup_backend_from_databases(
     std::list<std::string> databases)
@@ -170,11 +171,11 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
     Package init_package(b->m_backend_session, package.origin());
     init_package.copy_filter(package);
 
-    yp2::odr odr;
+    mp::odr odr;
 
     Z_APDU *init_apdu = zget_APDU(odr, Z_APDU_initRequest);
 
-    yp2::util::set_vhost_otherinfo(&init_apdu->u.initRequest->otherInfo, odr,
+    mp::util::set_vhost_otherinfo(&init_apdu->u.initRequest->otherInfo, odr,
                                    b->m_targets);
     Z_InitRequest *req = init_apdu->u.initRequest;
 
@@ -212,7 +213,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
         }
         if (!*res->result)
         {
-            yp2::util::get_init_diagnostics(res, error_code, addinfo);
+            mp::util::get_init_diagnostics(res, error_code, addinfo);
             BackendPtr null;
             return null; 
         }
@@ -241,7 +242,7 @@ void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
     Z_SearchRequest *req = apdu_req->u.searchRequest;
     std::string vhost;
     std::string resultSetId = req->resultSetName;
-    yp2::odr odr;
+    mp::odr odr;
 
     std::list<std::string> databases;
     int i;
@@ -336,7 +337,7 @@ void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
     std::list<std::string>::const_iterator t_it = b->m_targets.begin();
     if (t_it != b->m_targets.end())
     {
-        yp2::util::set_databases_from_zurl(odr, *t_it,
+        mp::util::set_databases_from_zurl(odr, *t_it,
                                                 &req->num_databaseNames,
                                                 &req->databaseNames);
     }
@@ -388,7 +389,7 @@ yf::Virt_db::FrontendPtr yf::Virt_db::Rep::get_frontend(Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
 
-    std::map<yp2::Session,yf::Virt_db::FrontendPtr>::iterator it;
+    std::map<mp::Session,yf::Virt_db::FrontendPtr>::iterator it;
     
     while(true)
     {
@@ -412,7 +413,7 @@ yf::Virt_db::FrontendPtr yf::Virt_db::Rep::get_frontend(Package &package)
 void yf::Virt_db::Rep::release_frontend(Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
-    std::map<yp2::Session,yf::Virt_db::FrontendPtr>::iterator it;
+    std::map<mp::Session,yf::Virt_db::FrontendPtr>::iterator it;
     
     it = m_clients.find(package.session());
     if (it != m_clients.end())
@@ -465,7 +466,7 @@ void yf::Virt_db::Frontend::present(Package &package, Z_APDU *apdu_req)
 {
     Z_PresentRequest *req = apdu_req->u.presentRequest;
     std::string resultSetId = req->resultSetId;
-    yp2::odr odr;
+    mp::odr odr;
 
     Sets_it sets_it = m_sets.find(resultSetId);
     if (sets_it == m_sets.end())
@@ -479,7 +480,7 @@ void yf::Virt_db::Frontend::present(Package &package, Z_APDU *apdu_req)
         return;
     }
     Session *id =
-        new yp2::Session(sets_it->second.m_backend->m_backend_session);
+        new mp::Session(sets_it->second.m_backend->m_backend_session);
     
     // sending present to backend
     Package present_package(*id, package.origin());
@@ -508,7 +509,7 @@ void yf::Virt_db::Frontend::scan(Package &package, Z_APDU *apdu_req)
 {
     Z_ScanRequest *req = apdu_req->u.scanRequest;
     std::string vhost;
-    yp2::odr odr;
+    mp::odr odr;
 
     std::list<std::string> databases;
     int i;
@@ -552,7 +553,7 @@ void yf::Virt_db::Frontend::scan(Package &package, Z_APDU *apdu_req)
     std::list<std::string>::const_iterator t_it = b->m_targets.begin();
     if (t_it != b->m_targets.end())
     {
-        yp2::util::set_databases_from_zurl(odr, *t_it,
+        mp::util::set_databases_from_zurl(odr, *t_it,
                                                 &req->num_databaseNames,
                                                 &req->databaseNames);
     }
@@ -600,12 +601,12 @@ void yf::Virt_db::process(Package &package) const
         Z_InitRequest *req = gdu->u.z3950->u.initRequest;
         
         std::list<std::string> vhosts;
-        yp2::util::get_vhost_otherinfo(&req->otherInfo, false, vhosts);
+        mp::util::get_vhost_otherinfo(&req->otherInfo, false, vhosts);
         if (vhosts.size() == 0)
         {
             f->m_init_gdu = gdu;
             
-            yp2::odr odr;
+            mp::odr odr;
             Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950, 0, 0);
             Z_InitResponse *resp = apdu->u.initResponse;
             
@@ -646,7 +647,7 @@ void yf::Virt_db::process(Package &package) const
         Z_APDU *apdu = gdu->u.z3950;
         if (apdu->which == Z_APDU_initRequest)
         {
-            yp2::odr odr;
+            mp::odr odr;
             
             package.response() = odr.create_close(
                 apdu,
@@ -669,7 +670,7 @@ void yf::Virt_db::process(Package &package) const
         }
         else
         {
-            yp2::odr odr;
+            mp::odr odr;
             
             package.response() = odr.create_close(
                 apdu, Z_Close_protocolError,
@@ -682,7 +683,7 @@ void yf::Virt_db::process(Package &package) const
 }
 
 
-void yp2::filter::Virt_db::configure(const xmlNode * ptr)
+void mp::filter::Virt_db::configure(const xmlNode * ptr)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
@@ -698,23 +699,23 @@ void yp2::filter::Virt_db::configure(const xmlNode * ptr)
                 if (v_node->type != XML_ELEMENT_NODE)
                     continue;
                 
-                if (yp2::xml::is_element_yp2(v_node, "database"))
-                    database = yp2::xml::get_text(v_node);
-                else if (yp2::xml::is_element_yp2(v_node, "target"))
-                    targets.push_back(yp2::xml::get_text(v_node));
+                if (mp::xml::is_element_yp2(v_node, "database"))
+                    database = mp::xml::get_text(v_node);
+                else if (mp::xml::is_element_yp2(v_node, "target"))
+                    targets.push_back(mp::xml::get_text(v_node));
                 else
-                    throw yp2::filter::FilterException
+                    throw mp::filter::FilterException
                         ("Bad element " 
                          + std::string((const char *) v_node->name)
                          + " in virtual section"
                             );
             }
-            std::string route = yp2::xml::get_route(ptr);
+            std::string route = mp::xml::get_route(ptr);
             add_map_db2targets(database, targets, route);
         }
         else
         {
-            throw yp2::filter::FilterException
+            throw mp::filter::FilterException
                 ("Bad element " 
                  + std::string((const char *) ptr->name)
                  + " in virt_db filter");
@@ -722,13 +723,13 @@ void yp2::filter::Virt_db::configure(const xmlNode * ptr)
     }
 }
 
-static yp2::filter::Base* filter_creator()
+static mp::filter::Base* filter_creator()
 {
-    return new yp2::filter::Virt_db;
+    return new mp::filter::Virt_db;
 }
 
 extern "C" {
-    struct yp2_filter_struct yp2_filter_virt_db = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_virt_db = {
         0,
         "virt_db",
         filter_creator

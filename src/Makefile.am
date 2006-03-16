@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.49 2006-02-02 13:08:22 adam Exp $
+## $Id: Makefile.am,v 1.50 2006-03-16 10:40:59 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -8,10 +8,10 @@ EXTRA_DIST=Jamfile.in
 
 # Rules for the library..
 
-lib_LTLIBRARIES = libyp2.la
-libyp2_la_LDFLAGS = -version-info 0:0:0 -export-dynamic
+lib_LTLIBRARIES = libmetaproxy.la
+libmetaproxy_la_LDFLAGS = -version-info 1:0:0 -export-dynamic
 
-libyp2_la_SOURCES = \
+libmetaproxy_la_SOURCES = \
 	factory_filter.cpp factory_filter.hpp \
 	factory_static.cpp factory_static.hpp \
 	filter.hpp filter.cpp \
@@ -38,22 +38,22 @@ libyp2_la_SOURCES = \
 
 # Rules for programs..
 
-LDADD= libyp2.la $(YAZPPLALIB) $(XSLT_LIBS)
+LDADD= libmetaproxy.la $(YAZPPLALIB) $(XSLT_LIBS)
 
-bin_PROGRAMS = yp2
+bin_PROGRAMS = metaproxy
 noinst_PROGRAMS = ex_filter_frontend_net ex_router_flexml tstdl
 
 ex_filter_frontend_net_SOURCES = ex_filter_frontend_net.cpp
 ex_router_flexml_SOURCES =  ex_router_flexml.cpp
 tstdl_SOURCES = tstdl.cpp
-yp2_SOURCES = yp2_prog.cpp
+metaproxy_SOURCES = metaproxy_prog.cpp
 
 # Rules for dl programs
-pkglib_LTLIBRARIES = yp2_filter_dl.la
+pkglib_LTLIBRARIES = metaproxy_filter_dl.la
 
-yp2_filter_dl_la_SOURCES = filter_dl.cpp
-yp2_filter_dl_la_LDFLAGS = -rpath $(pkglibdir) -module -avoid-version
-yp2_filter_dl_la_LIBADD = libyp2.la
+metaproxy_filter_dl_la_SOURCES = filter_dl.cpp
+metaproxy_filter_dl_la_LDFLAGS = -rpath $(pkglibdir) -module -avoid-version
+metaproxy_filter_dl_la_LIBADD = libmetaproxy.la
 
 # Rules for test programs..
 
@@ -69,6 +69,7 @@ check_PROGRAMS = \
 	test_filter_frontend_net \
 	test_filter_log \
 	test_filter_multi \
+	test_filter_query_rewrite \
 	test_filter_z3950_client \
 	test_filter_backend_test \
 	test_filter_virt_db \

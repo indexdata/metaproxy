@@ -1,5 +1,5 @@
-/* $Id: router_chain.cpp,v 1.5 2006-01-11 11:51:50 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: router_chain.cpp,v 1.6 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
    
    %LICENSE%
 */
@@ -8,7 +8,9 @@
 
 #include <list>
 
-namespace yp2 
+namespace mp = metaproxy_1;
+
+namespace metaproxy_1
 {
     class ChainPos;
 
@@ -23,49 +25,49 @@ namespace yp2
         virtual RoutePos *clone();
         virtual ~Pos();
         std::list<const filter::Base *>::const_iterator it;
-        yp2::RouterChain::Rep *m_p;
+        mp::RouterChain::Rep *m_p;
     };
 }
 
-yp2::RouterChain::RouterChain() : m_p(new yp2::RouterChain::Rep)
+mp::RouterChain::RouterChain() : m_p(new mp::RouterChain::Rep)
 {
 }
 
-yp2::RouterChain::~RouterChain()
+mp::RouterChain::~RouterChain()
 {
 }
 
-const yp2::filter::Base *yp2::RouterChain::Pos::move(const char *route)
+const mp::filter::Base *mp::RouterChain::Pos::move(const char *route)
 {
     if (it == m_p->m_filter_list.end())
         return 0;
-    const yp2::filter::Base *f = *it;
+    const mp::filter::Base *f = *it;
     it++;
     return f;
 }
 
-yp2::RoutePos *yp2::RouterChain::createpos() const
+mp::RoutePos *mp::RouterChain::createpos() const
 {
-    yp2::RouterChain::Pos *p = new yp2::RouterChain::Pos;
+    mp::RouterChain::Pos *p = new mp::RouterChain::Pos;
     p->it = m_p->m_filter_list.begin();
     p->m_p = m_p.get();
     return p;
 }
 
-yp2::RoutePos *yp2::RouterChain::Pos::clone()
+mp::RoutePos *mp::RouterChain::Pos::clone()
 {
-    yp2::RouterChain::Pos *p = new yp2::RouterChain::Pos;
+    mp::RouterChain::Pos *p = new mp::RouterChain::Pos;
     p->it = it;
     p->m_p = m_p;
     return p;
 }
 
 
-yp2::RouterChain::Pos::~Pos()
+mp::RouterChain::Pos::~Pos()
 {
 }
 
-yp2::RouterChain & yp2::RouterChain::append(const filter::Base &filter)
+mp::RouterChain & mp::RouterChain::append(const filter::Base &filter)
 {
     m_p->m_filter_list.push_back(&filter);
     return *this;

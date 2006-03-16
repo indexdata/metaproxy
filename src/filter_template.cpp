@@ -1,5 +1,5 @@
-/* $Id: filter_template.cpp,v 1.6 2006-01-09 21:20:15 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_template.cpp,v 1.7 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -16,9 +16,10 @@
 
 #include <yaz/zgdu.h>
 
-namespace yf = yp2::filter;
+namespace mp = metaproxy_1;
+namespace yf = mp::filter;
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
         class Template::Rep {
             friend class Template;
@@ -36,19 +37,19 @@ yf::Template::~Template()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
-void yf::Template::process(yp2::Package &package) const
+void yf::Template::process(mp::Package &package) const
 {
     // Z_GDU *gdu = package.request().get();
     package.move();
 }
 
-static yp2::filter::Base* filter_creator()
+static mp::filter::Base* filter_creator()
 {
-    return new yp2::filter::Template;
+    return new mp::filter::Template;
 }
 
 extern "C" {
-    struct yp2_filter_struct yp2_filter_template = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_template = {
         0,
         "template",
         filter_creator

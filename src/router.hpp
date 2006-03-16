@@ -1,5 +1,5 @@
-/* $Id: router.hpp,v 1.10 2006-01-11 11:51:50 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: router.hpp,v 1.11 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -11,7 +11,7 @@
 #include <string>
 #include <stdexcept>
 
-namespace yp2 
+namespace metaproxy_1 
 {
     namespace filter {
         class Base;

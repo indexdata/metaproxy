@@ -1,5 +1,5 @@
-/* $Id: filter_multi.cpp,v 1.14 2006-02-02 11:33:46 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_multi.cpp,v 1.15 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -26,9 +26,10 @@
 #include <map>
 #include <iostream>
 
-namespace yf = yp2::filter;
+namespace mp = metaproxy_1;
+namespace yf = mp::filter;
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
 
         struct Multi::BackendSet {
@@ -102,12 +103,12 @@ namespace yp2 {
             std::map<std::string,std::string> m_target_route;
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
-            std::map<yp2::Session, FrontendPtr> m_clients;
+            std::map<mp::Session, FrontendPtr> m_clients;
         };
     }
 }
 
-using namespace yp2;
+using namespace mp;
 
 bool yf::Multi::BackendSet::operator < (const BackendSet &k) const
 {
@@ -128,7 +129,7 @@ yf::Multi::FrontendPtr yf::Multi::Rep::get_frontend(Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
 
-    std::map<yp2::Session,yf::Multi::FrontendPtr>::iterator it;
+    std::map<mp::Session,yf::Multi::FrontendPtr>::iterator it;
     
     while(true)
     {
@@ -152,7 +153,7 @@ yf::Multi::FrontendPtr yf::Multi::Rep::get_frontend(Package &package)
 void yf::Multi::Rep::release_frontend(Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
-    std::map<yp2::Session,yf::Multi::FrontendPtr>::iterator it;
+    std::map<mp::Session,yf::Multi::FrontendPtr>::iterator it;
     
     it = m_clients.find(package.session());
     if (it != m_clients.end())
@@ -339,7 +340,7 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
 
     std::list<std::string> targets;
 
-    yp2::util::get_vhost_otherinfo(&req->otherInfo, false, targets);
+    mp::util::get_vhost_otherinfo(&req->otherInfo, false, targets);
 
     if (targets.size() < 1)
     {
@@ -366,13 +367,13 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
     std::list<BackendPtr>::const_iterator bit;
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
-        yp2::odr odr;
+        mp::odr odr;
         BackendPtr b = *bit;
         Z_APDU *init_apdu = zget_APDU(odr, Z_APDU_initRequest);
         
         std::list<std::string>vhost_one;
         vhost_one.push_back(b->m_vhost);
-        yp2::util::set_vhost_otherinfo(&init_apdu->u.initRequest->otherInfo,
+        mp::util::set_vhost_otherinfo(&init_apdu->u.initRequest->otherInfo,
                                        odr, vhost_one);
 
         Z_InitRequest *req = init_apdu->u.initRequest;
@@ -393,7 +394,7 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
     multi_move(m_backend_list);
 
     // create the frontend init response based on each backend init response
-    yp2::odr odr;
+    mp::odr odr;
 
     Z_APDU *f_apdu = odr.create_initResponse(gdu->u.z3950, 0, 0);
     Z_InitResponse *f_resp = f_apdu->u.initResponse;
@@ -467,9 +468,9 @@ void yf::Multi::Frontend::search(Package &package, Z_APDU *apdu_req)
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
         PackagePtr p = (*bit)->m_package;
-        yp2::odr odr;
+        mp::odr odr;
     
-        if (!yp2::util::set_databases_from_zurl(odr, (*bit)->m_vhost,
+        if (!mp::util::set_databases_from_zurl(odr, (*bit)->m_vhost,
                                                 &req->num_databaseNames,
                                                 &req->databaseNames))
         {
@@ -522,7 +523,7 @@ void yf::Multi::Frontend::search(Package &package, Z_APDU *apdu_req)
         }
     }
 
-    yp2::odr odr;
+    mp::odr odr;
     Z_APDU *f_apdu = odr.create_searchResponse(apdu_req, 0, 0);
     Z_SearchResponse *f_resp = f_apdu->u.searchResponse;
 
@@ -538,7 +539,7 @@ void yf::Multi::Frontend::search(Package &package, Z_APDU *apdu_req)
     m_sets[resultSet.m_setname] = resultSet;
 
     int number;
-    yp2::util::piggyback(smallSetUpperBound,
+    mp::util::piggyback(smallSetUpperBound,
                          largeSetLowerBound,
                          mediumSetPresentNumber,
                          result_set_size,
@@ -588,7 +589,7 @@ void yf::Multi::Frontend::present(Package &package, Z_APDU *apdu_req)
     it = m_sets.find(std::string(req->resultSetId));
     if (it == m_sets.end())
     {
-        yp2::odr odr;
+        mp::odr odr;
         Z_APDU *apdu = 
             odr.create_presentResponse(
                 apdu_req,
@@ -671,7 +672,7 @@ void yf::Multi::Frontend::present(Package &package, Z_APDU *apdu_req)
         }
     }
 
-    yp2::odr odr;
+    mp::odr odr;
     Z_APDU *f_apdu = odr.create_presentResponse(apdu_req, 0, 0);
     Z_PresentResponse *f_resp = f_apdu->u.presentResponse;
 
@@ -716,7 +717,7 @@ void yf::Multi::Frontend::scan1(Package &package, Z_APDU *apdu_req)
 {
     if (m_backend_list.size() > 1)
     {
-        yp2::odr odr;
+        mp::odr odr;
         Z_APDU *f_apdu = 
             odr.create_scanResponse(
                 apdu_req, YAZ_BIB1_COMBI_OF_SPECIFIED_DATABASES_UNSUPP, 0);
@@ -732,9 +733,9 @@ void yf::Multi::Frontend::scan1(Package &package, Z_APDU *apdu_req)
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
         PackagePtr p = (*bit)->m_package;
-        yp2::odr odr;
+        mp::odr odr;
     
-        if (!yp2::util::set_databases_from_zurl(odr, (*bit)->m_vhost,
+        if (!mp::util::set_databases_from_zurl(odr, (*bit)->m_vhost,
                                                 &req->num_databaseNames,
                                                 &req->databaseNames))
         {
@@ -814,9 +815,9 @@ void yf::Multi::Frontend::scan2(Package &package, Z_APDU *apdu_req)
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
         PackagePtr p = (*bit)->m_package;
-        yp2::odr odr;
+        mp::odr odr;
     
-        if (!yp2::util::set_databases_from_zurl(odr, (*bit)->m_vhost,
+        if (!mp::util::set_databases_from_zurl(odr, (*bit)->m_vhost,
                                                 &req->num_databaseNames,
                                                 &req->databaseNames))
         {
@@ -849,7 +850,7 @@ void yf::Multi::Frontend::scan2(Package &package, Z_APDU *apdu_req)
             if (res->entries && res->entries->nonsurrogateDiagnostics)
             {
                 // failure
-                yp2::odr odr;
+                mp::odr odr;
                 Z_APDU *f_apdu = odr.create_scanResponse(apdu_req, 1, 0);
                 Z_ScanResponse *f_res = f_apdu->u.scanResponse;
 
@@ -981,13 +982,13 @@ void yf::Multi::Frontend::scan2(Package &package, Z_APDU *apdu_req)
 
     if (false)
     {
-        yp2::odr odr;
+        mp::odr odr;
         Z_APDU *f_apdu = odr.create_scanResponse(apdu_req, 1, "not implemented");
         package.response() = f_apdu;
     }
     else
     {
-        yp2::odr odr;
+        mp::odr odr;
         Z_APDU *f_apdu = odr.create_scanResponse(apdu_req, 0, 0);
         Z_ScanResponse *resp = f_apdu->u.scanResponse;
         
@@ -1049,7 +1050,7 @@ void yf::Multi::process(Package &package) const
         Z_APDU *apdu = gdu->u.z3950;
         if (apdu->which == Z_APDU_initRequest)
         {
-            yp2::odr odr;
+            mp::odr odr;
             
             package.response() = odr.create_close(
                 apdu,
@@ -1072,7 +1073,7 @@ void yf::Multi::process(Package &package) const
         }
         else
         {
-            yp2::odr odr;
+            mp::odr odr;
             
             package.response() = odr.create_close(
                 apdu, Z_Close_protocolError,
@@ -1084,7 +1085,7 @@ void yf::Multi::process(Package &package) const
     m_p->release_frontend(package);
 }
 
-void yp2::filter::Multi::configure(const xmlNode * ptr)
+void mp::filter::Multi::configure(const xmlNode * ptr)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
@@ -1092,8 +1093,8 @@ void yp2::filter::Multi::configure(const xmlNode * ptr)
             continue;
         if (!strcmp((const char *) ptr->name, "target"))
         {
-            std::string route = yp2::xml::get_route(ptr);
-            std::string target = yp2::xml::get_text(ptr);
+            std::string route = mp::xml::get_route(ptr);
+            std::string target = mp::xml::get_text(ptr);
             std::cout << "route=" << route << " target=" << target << "\n";
             m_p->m_target_route[target] = route;
         }
@@ -1107,18 +1108,18 @@ void yp2::filter::Multi::configure(const xmlNode * ptr)
                 if (v_node->type != XML_ELEMENT_NODE)
                     continue;
                 
-                if (yp2::xml::is_element_yp2(v_node, "vhost"))
-                    vhost = yp2::xml::get_text(v_node);
-                else if (yp2::xml::is_element_yp2(v_node, "target"))
-                    targets.push_back(yp2::xml::get_text(v_node));
+                if (mp::xml::is_element_yp2(v_node, "vhost"))
+                    vhost = mp::xml::get_text(v_node);
+                else if (mp::xml::is_element_yp2(v_node, "target"))
+                    targets.push_back(mp::xml::get_text(v_node));
                 else
-                    throw yp2::filter::FilterException
+                    throw mp::filter::FilterException
                         ("Bad element " 
                          + std::string((const char *) v_node->name)
                          + " in virtual section"
                             );
             }
-            std::string route = yp2::xml::get_route(ptr);
+            std::string route = mp::xml::get_route(ptr);
             add_map_host2hosts(vhost, targets, route);
             std::list<std::string>::const_iterator it;
             for (it = targets.begin(); it != targets.end(); it++)
@@ -1129,7 +1130,7 @@ void yp2::filter::Multi::configure(const xmlNode * ptr)
         }
         else
         {
-            throw yp2::filter::FilterException
+            throw mp::filter::FilterException
                 ("Bad element " 
                  + std::string((const char *) ptr->name)
                  + " in virt_db filter");
@@ -1137,13 +1138,13 @@ void yp2::filter::Multi::configure(const xmlNode * ptr)
     }
 }
 
-static yp2::filter::Base* filter_creator()
+static mp::filter::Base* filter_creator()
 {
-    return new yp2::filter::Multi;
+    return new mp::filter::Multi;
 }
 
 extern "C" {
-    struct yp2_filter_struct yp2_filter_multi = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_multi = {
         0,
         "multi",
         filter_creator

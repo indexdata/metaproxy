@@ -1,5 +1,5 @@
-/* $Id: filter_session_shared.cpp,v 1.6 2006-01-13 15:09:35 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_session_shared.cpp,v 1.7 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -23,9 +23,10 @@
 #include <map>
 #include <iostream>
 
-namespace yf = yp2::filter;
+namespace mp = metaproxy_1;
+namespace yf = mp::filter;
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
         class SessionShared::Rep {
             friend class SessionShared;
@@ -61,8 +62,7 @@ namespace yp2 {
     
 }
 
-
-using namespace yp2;
+using namespace mp;
 
 bool yf::SessionShared::InitKey::operator < (const SessionShared::InitKey
                                               &k) const 
@@ -112,7 +112,7 @@ void yf::SessionShared::Rep::handle_search(Z_APDU *apdu_req,
     SessionListMap::iterator it = m_session_list_map.find(package.session());
     if (it == m_session_list_map.end())
     {
-        yp2::odr odr;
+        mp::odr odr;
         package.response() =
             odr.create_close(apdu_req,
                              Z_Close_protocolError,
@@ -237,7 +237,7 @@ void yf::SessionShared::process(Package &package) const
             m_p->handle_search(apdu, package);
             break;
         default:
-            yp2::odr odr;
+            mp::odr odr;
             package.response() =
                 odr.create_close(apdu, Z_Close_protocolError,
                                  "cannot handle a package of this type");
@@ -253,13 +253,13 @@ void yf::SessionShared::process(Package &package) const
         package.move();  // Not Z39.50 or not Init
 }
 
-static yp2::filter::Base* filter_creator()
+static mp::filter::Base* filter_creator()
 {
-    return new yp2::filter::SessionShared;
+    return new mp::filter::SessionShared;
 }
 
 extern "C" {
-    struct yp2_filter_struct yp2_filter_session_shared = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_session_shared = {
         0,
         "session_shared",
         filter_creator

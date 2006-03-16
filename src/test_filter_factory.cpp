@@ -1,5 +1,5 @@
-/* $Id: test_filter_factory.cpp,v 1.11 2006-01-19 09:41:01 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: test_filter_factory.cpp,v 1.12 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
 */
@@ -17,34 +17,35 @@
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
+namespace mp = metaproxy_1;
 
 // XFilter
-class XFilter: public yp2::filter::Base {
+class XFilter: public mp::filter::Base {
 public:
-    void process(yp2::Package & package) const;
+    void process(mp::Package & package) const;
 };
 
-void XFilter::process(yp2::Package & package) const
+void XFilter::process(mp::Package & package) const
 {
     package.data() = 1;
 }
 
-static yp2::filter::Base* xfilter_creator(){
+static mp::filter::Base* xfilter_creator(){
     return new XFilter;
 }
 
 // YFilter ...
-class YFilter: public yp2::filter::Base {
+class YFilter: public mp::filter::Base {
 public:
-    void process(yp2::Package & package) const;
+    void process(mp::Package & package) const;
 };
 
-void YFilter::process(yp2::Package & package) const
+void YFilter::process(mp::Package & package) const
 {
     package.data() = 2;
 }
 
-static yp2::filter::Base* yfilter_creator(){
+static mp::filter::Base* yfilter_creator(){
     return new YFilter;
 }
 
@@ -52,7 +53,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_factory_1 )
 {
     try {
         
-        yp2::FactoryFilter  ffactory;
+        mp::FactoryFilter  ffactory;
         
         XFilter xf;
         YFilter yf;
@@ -65,15 +66,15 @@ BOOST_AUTO_UNIT_TEST( test_filter_factory_1 )
         BOOST_CHECK(ffactory.add_creator(xfid, xfilter_creator));
         BOOST_CHECK(ffactory.add_creator(yfid, yfilter_creator));
         
-        yp2::filter::Base* xfilter = 0;
+        mp::filter::Base* xfilter = 0;
         xfilter = ffactory.create(xfid);
-        yp2::filter::Base* yfilter = 0;
+        mp::filter::Base* yfilter = 0;
         yfilter = ffactory.create(yfid);
 
         BOOST_CHECK(0 != xfilter);
         BOOST_CHECK(0 != yfilter);
 
-        yp2::Package pack;
+        mp::Package pack;
         xfilter->process(pack);
         BOOST_CHECK_EQUAL(pack.data(), 1);
 
@@ -91,7 +92,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_factory_1 )
 BOOST_AUTO_UNIT_TEST( test_filter_factory_2 )
 {
     try {        
-        yp2::FactoryFilter  ffactory;
+        mp::FactoryFilter  ffactory;
         
         const std::string id = "dl";
         
@@ -101,12 +102,12 @@ BOOST_AUTO_UNIT_TEST( test_filter_factory_2 )
         // test double load
         BOOST_CHECK(ffactory.add_creator_dl(id, ".libs"));
                 
-        yp2::filter::Base* filter = 0;
+        mp::filter::Base* filter = 0;
         filter = ffactory.create(id);
 
         BOOST_CHECK(0 != filter);
 
-        yp2::Package pack;
+        mp::Package pack;
         filter->process(pack);
         BOOST_CHECK_EQUAL(pack.data(), 42); // magic from filter_dl ..
     }

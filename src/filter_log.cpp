@@ -1,5 +1,5 @@
-/* $Id: filter_log.cpp,v 1.16 2006-01-17 15:08:02 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_log.cpp,v 1.17 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -17,9 +17,10 @@
 
 #include <yaz/zgdu.h>
 
-namespace yf = yp2::filter;
+namespace mp = metaproxy_1;
+namespace yf = mp::filter;
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
         class Log::Rep {
             friend class Log;
@@ -40,7 +41,7 @@ yf::Log::Log() : m_p(new Rep)
 
 yf::Log::~Log() {}
 
-void yf::Log::process(yp2::Package &package) const
+void yf::Log::process(mp::Package &package) const
 {
     Z_GDU *gdu;
 
@@ -59,7 +60,7 @@ void yf::Log::process(yp2::Package &package) const
         gdu = package.request().get();
         if (gdu)
         {
-            yp2::odr odr(ODR_PRINT);
+            mp::odr odr(ODR_PRINT);
             z_GDU(odr, &gdu, 0, 0);
         }
     }
@@ -88,7 +89,7 @@ void yf::Log::process(yp2::Package &package) const
         gdu = package.response().get();
         if (gdu)
         {
-            yp2::odr odr(ODR_PRINT);
+            mp::odr odr(ODR_PRINT);
             z_GDU(odr, &gdu, 0, 0);
         }
     }
@@ -101,23 +102,23 @@ void yf::Log::configure(const xmlNode *ptr)
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
         if (!strcmp((const char *) ptr->name, "message"))
-            m_p->m_msg = yp2::xml::get_text(ptr);
+            m_p->m_msg = mp::xml::get_text(ptr);
         else
         {
-            throw yp2::filter::FilterException("Bad element " 
+            throw mp::filter::FilterException("Bad element " 
                                                + std::string((const char *)
                                                              ptr->name));
         }
     }
 }
 
-static yp2::filter::Base* filter_creator()
+static mp::filter::Base* filter_creator()
 {
-    return new yp2::filter::Log;
+    return new mp::filter::Log;
 }
 
 extern "C" {
-    struct yp2_filter_struct yp2_filter_log = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_log = {
         0,
         "log",
         filter_creator

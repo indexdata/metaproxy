@@ -1,5 +1,5 @@
-/* $Id: xmlutil.hpp,v 1.4 2006-01-11 14:58:28 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: xmlutil.hpp,v 1.5 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <libxml/tree.h>
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace xml {
         std::string get_text(const xmlNode *ptr);
         bool is_element(const xmlNode *ptr, 

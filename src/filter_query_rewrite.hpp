@@ -1,5 +1,5 @@
-/* $Id: filter_query_rewrite.hpp,v 1.3 2006-03-15 14:55:17 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_query_rewrite.hpp,v 1.4 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -12,7 +12,7 @@
 
 #include "filter.hpp"
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
         class QueryRewrite : public Base {
             class Rep;
@@ -20,14 +20,14 @@ namespace yp2 {
         public:
             QueryRewrite();
             ~QueryRewrite();
-            void process(yp2::Package & package) const;
+            void process(metaproxy_1::Package & package) const;
             void configure(const xmlNode * ptr);
         };
     }
 }
 
 extern "C" {
-    extern struct yp2_filter_struct yp2_filter_query_rewrite;
+    extern struct metaproxy_1_filter_struct metaproxy_1_filter_query_rewrite;
 }
 
 #endif

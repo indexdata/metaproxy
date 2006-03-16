@@ -1,10 +1,10 @@
-/* $Id: test_thread_pool_observer.cpp,v 1.8 2005-12-02 12:21:07 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: test_thread_pool_observer.cpp,v 1.9 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
-/* $Id: test_thread_pool_observer.cpp,v 1.8 2005-12-02 12:21:07 adam Exp $
-   Copyright (c) 1998-2005, Index Data.
+/* $Id: test_thread_pool_observer.cpp,v 1.9 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 1998-2005-2006, Index Data.
 
 This file is part of the yaz-proxy.
 
@@ -39,12 +39,13 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 using namespace boost::unit_test;
 using namespace yazpp_1;
+namespace mp = metaproxy_1;
 
 class My_Timer_Thread;
 
-class My_Msg : public yp2::IThreadPoolMsg {
+class My_Msg : public mp::IThreadPoolMsg {
 public:
-    yp2::IThreadPoolMsg *handle();
+    mp::IThreadPoolMsg *handle();
     void result();
     int m_val;
     My_Timer_Thread *m_timer;
@@ -53,18 +54,18 @@ public:
 class My_Timer_Thread : public ISocketObserver {
 private:
     ISocketObservable *m_obs;
-    yp2::Pipe m_pipe;
-    yp2::ThreadPoolSocketObserver *m_t;
+    mp::Pipe m_pipe;
+    mp::ThreadPoolSocketObserver *m_t;
 public:
     int m_sum;
     int m_requests;
     int m_responses;
-    My_Timer_Thread(ISocketObservable *obs, yp2::ThreadPoolSocketObserver *t);
+    My_Timer_Thread(ISocketObservable *obs, mp::ThreadPoolSocketObserver *t);
     void socketNotify(int event);
 };
 
 
-yp2::IThreadPoolMsg *My_Msg::handle()
+mp::IThreadPoolMsg *My_Msg::handle()
 {
     My_Msg *res = new My_Msg;
 
@@ -83,7 +84,7 @@ void My_Msg::result()
 }
 
 My_Timer_Thread::My_Timer_Thread(ISocketObservable *obs,
-                                 yp2::ThreadPoolSocketObserver *t) : 
+                                 mp::ThreadPoolSocketObserver *t) : 
     m_obs(obs), m_pipe(9123) 
 {
     m_t = t;
@@ -107,7 +108,7 @@ BOOST_AUTO_UNIT_TEST( thread_pool_observer1 )
 {
     SocketManager mySocketManager;
 
-    yp2::ThreadPoolSocketObserver m(&mySocketManager, 3);
+    mp::ThreadPoolSocketObserver m(&mySocketManager, 3);
     My_Timer_Thread t(&mySocketManager, &m) ;
     while (t.m_responses < 30 && mySocketManager.processEvent() > 0)
         ;

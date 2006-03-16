@@ -1,5 +1,5 @@
-/* $Id: filter_http_file.cpp,v 1.3 2006-02-02 11:33:46 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_http_file.cpp,v 1.4 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -27,9 +27,10 @@
 #include <sys/stat.h>
 #endif
 
-namespace yf = yp2::filter;
+namespace mp = metaproxy_1;
+namespace yf = mp::filter;
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
         struct HttpFile::Area {
             std::string m_url_path_prefix;
@@ -50,11 +51,11 @@ namespace yp2 {
 
             MimeMap m_ext_to_map;
             AreaList m_area_list;
-            void fetch_uri(yp2::Session &session,
-                           Z_HTTP_Request *req, yp2::Package &package);
-            void fetch_file(yp2::Session &session,
+            void fetch_uri(mp::Session &session,
+                           Z_HTTP_Request *req, mp::Package &package);
+            void fetch_file(mp::Session &session,
                             Z_HTTP_Request *req,
-                            std::string &fname, yp2::Package &package);
+                            std::string &fname, mp::Package &package);
             std::string get_mime_type(std::string &fname);
         };
     }
@@ -111,11 +112,11 @@ std::string yf::HttpFile::Rep::get_mime_type(std::string &fname)
     return content_type;
 }
 
-void yf::HttpFile::Rep::fetch_file(yp2::Session &session,
+void yf::HttpFile::Rep::fetch_file(mp::Session &session,
                                    Z_HTTP_Request *req,
-                                   std::string &fname, yp2::Package &package)
+                                   std::string &fname, mp::Package &package)
 {
-    yp2::odr o;
+    mp::odr o;
     
     FILE *f = fopen(fname.c_str(), "rb");
     if (!f)
@@ -157,8 +158,8 @@ void yf::HttpFile::Rep::fetch_file(yp2::Session &session,
     package.response() = gdu;
 }
 
-void yf::HttpFile::Rep::fetch_uri(yp2::Session &session,
-                                  Z_HTTP_Request *req, yp2::Package &package)
+void yf::HttpFile::Rep::fetch_uri(mp::Session &session,
+                                  Z_HTTP_Request *req, mp::Package &package)
 {
     bool sane = true;
     std::string path = req->path;
@@ -186,12 +187,12 @@ void yf::HttpFile::Rep::fetch_uri(yp2::Session &session,
             }
         }
     }
-    yp2::odr o;
+    mp::odr o;
     Z_GDU *gdu = o.create_HTTP_Response(session, req, 404);
     package.response() = gdu;
 }
                          
-void yf::HttpFile::process(yp2::Package &package) const
+void yf::HttpFile::process(mp::Package &package) const
 {
     Z_GDU *gdu = package.request().get();
     if (gdu && gdu->which == Z_GDU_HTTP_Request)
@@ -200,7 +201,7 @@ void yf::HttpFile::process(yp2::Package &package) const
         package.move();
 }
 
-void yp2::filter::HttpFile::configure(const xmlNode * ptr)
+void mp::filter::HttpFile::configure(const xmlNode * ptr)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
@@ -208,13 +209,13 @@ void yp2::filter::HttpFile::configure(const xmlNode * ptr)
             continue;
         if (!strcmp((const char *) ptr->name, "mimetypes"))
         {
-            std::string fname = yp2::xml::get_text(ptr);
+            std::string fname = mp::xml::get_text(ptr);
 
-            yp2::PlainFile f;
+            mp::PlainFile f;
 
             if (!f.open(fname))
             {
-                throw yp2::filter::FilterException
+                throw mp::filter::FilterException
                     ("Can not open mime types file " + fname);
             }
             
@@ -235,12 +236,12 @@ void yp2::filter::HttpFile::configure(const xmlNode * ptr)
                 if (a_node->type != XML_ELEMENT_NODE)
                     continue;
                 
-                if (yp2::xml::is_element_yp2(a_node, "documentroot"))
-                    a.m_file_root = yp2::xml::get_text(a_node);
-                else if (yp2::xml::is_element_yp2(a_node, "prefix"))
-                    a.m_url_path_prefix = yp2::xml::get_text(a_node);
+                if (mp::xml::is_element_yp2(a_node, "documentroot"))
+                    a.m_file_root = mp::xml::get_text(a_node);
+                else if (mp::xml::is_element_yp2(a_node, "prefix"))
+                    a.m_url_path_prefix = mp::xml::get_text(a_node);
                 else
-                    throw yp2::filter::FilterException
+                    throw mp::filter::FilterException
                         ("Bad element " 
                          + std::string((const char *) a_node->name)
                          + " in area section"
@@ -253,7 +254,7 @@ void yp2::filter::HttpFile::configure(const xmlNode * ptr)
         }
         else
         {
-            throw yp2::filter::FilterException
+            throw mp::filter::FilterException
                 ("Bad element " 
                  + std::string((const char *) ptr->name)
                  + " in virt_db filter");
@@ -261,13 +262,13 @@ void yp2::filter::HttpFile::configure(const xmlNode * ptr)
     }
 }
 
-static yp2::filter::Base* filter_creator()
+static mp::filter::Base* filter_creator()
 {
-    return new yp2::filter::HttpFile;
+    return new mp::filter::HttpFile;
 }
 
 extern "C" {
-    struct yp2_filter_struct yp2_filter_http_file = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_http_file = {
         0,
         "http_file",
         filter_creator

@@ -1,5 +1,5 @@
-/* $Id: session.hpp,v 1.11 2005-10-26 18:53:49 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: session.hpp,v 1.12 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -11,7 +11,7 @@
 #include <map>
 #include <boost/thread/mutex.hpp>
 
-namespace yp2 {
+namespace metaproxy_1 {
     
     class Session
     {
@@ -73,20 +73,20 @@ namespace yp2 {
 
     template <class T> class session_map {
     public:
-        void create(T &t, const yp2::Session &s) { 
+        void create(T &t, const metaproxy_1::Session &s) { 
             boost::mutex::scoped_lock lock(m_map_mutex);
             m_map[s] = SessionItem(t);
         };
-        void release(const yp2::Session &s) {
+        void release(const metaproxy_1::Session &s) {
             boost::mutex::scoped_lock lock(m_map_mutex);
 
             m_map.erase(s);
         };
 #if 0
-        T &get_session_data(const yp2::Session &s) {
+        T &get_session_data(const metaproxy_1::Session &s) {
             boost::mutex::scoped_lock lock(m_map_mutex);
 
-            typename std::map<yp2::Session,SessionItem>::const_iterator it;
+            typename std::map<metaproxy_1::Session,SessionItem>::const_iterator it;
             it = m_map.find(s);
             if (it == m_map.end())
                 return 0;
@@ -94,8 +94,8 @@ namespace yp2 {
                 new boost::mutex::scoped_lock(it->second->m_item_mutex);
         };
 #endif
-        bool exist(const yp2::Session &s) {
-            typename std::map<yp2::Session,SessionItem>::const_iterator it;
+        bool exist(const metaproxy_1::Session &s) {
+            typename std::map<metaproxy_1::Session,SessionItem>::const_iterator it;
             it = m_map.find(s);
             return it == m_map.end() ? false : true;
         }
@@ -118,7 +118,7 @@ namespace yp2 {
         };
     private:
         boost::mutex m_map_mutex;
-        std::map<yp2::Session,SessionItem>m_map;
+        std::map<metaproxy_1::Session,SessionItem>m_map;
     };
     
 }

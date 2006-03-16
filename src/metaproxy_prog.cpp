@@ -1,5 +1,5 @@
-/* $Id: yp2_prog.cpp,v 1.2 2006-01-19 09:32:08 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: metaproxy_prog.cpp,v 1.1 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -16,6 +16,8 @@ namespace po = boost::program_options;
 #include "package.hpp"
 #include "router_flexml.hpp"
 #include "factory_static.hpp"
+
+namespace mp = metaproxy_1;
 
 int main(int argc, char **argv)
 {
@@ -67,9 +69,9 @@ int main(int argc, char **argv)
         if (doc)
         {
             try {
-                yp2::FactoryStatic factory;
-                yp2::RouterFleXML router(doc, factory);
-                yp2::Package pack;
+                mp::FactoryStatic factory;
+                mp::RouterFleXML router(doc, factory);
+                mp::Package pack;
                 pack.router(router).move();
             }
             catch (std::runtime_error &e) {

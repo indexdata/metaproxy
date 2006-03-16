@@ -1,5 +1,5 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.25 2006-01-16 15:51:56 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: ex_filter_frontend_net.cpp,v 1.26 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -25,9 +25,11 @@ namespace po = boost::program_options;
 #include "session.hpp"
 #include "package.hpp"
 
-class HTTPFilter: public yp2::filter::Base {
+namespace mp = metaproxy_1;
+
+class HTTPFilter: public mp::filter::Base {
 public:
-    void process(yp2::Package & package) const {
+    void process(mp::Package & package) const {
         if (package.session().is_closed())
         {
             // std::cout << "Got Close.\n";
@@ -36,7 +38,7 @@ public:
         Z_GDU *gdu = package.request().get();
         if (gdu && gdu->which == Z_GDU_HTTP_Request)
         {
-            yp2::odr odr;
+            mp::odr odr;
             Z_GDU *gdu = z_get_HTTP_Response(odr, 200);
             Z_HTTP_Response *http_res = gdu->u.HTTP_Response;
             
@@ -86,10 +88,10 @@ int main(int argc, char **argv)
             for (size_t i = 0; i<ports.size(); i++)
                 std::cout << "port " << i << " " << ports[i] << "\n";
 
-	    yp2::RouterChain router;
+	    mp::RouterChain router;
 
             // put frontend filter in router
-            yp2::filter::FrontendNet filter_front;
+            mp::filter::FrontendNet filter_front;
             filter_front.ports() = ports;
 
             // 0=no time, >0 timeout in seconds
@@ -99,11 +101,11 @@ int main(int argc, char **argv)
 	    router.append(filter_front);
 
             // put log filter in router
-            yp2::filter::Log filter_log_front("FRONT");
+            mp::filter::Log filter_log_front("FRONT");
             router.append(filter_log_front);
 
             // put Virt db filter in router
-            yp2::filter::Virt_db filter_virt_db;
+            mp::filter::Virt_db filter_virt_db;
             filter_virt_db.add_map_db2target("gils", "indexdata.dk/gils",
                                             "");
             filter_virt_db.add_map_db2target("Default", "localhost:9999/Default",
@@ -111,10 +113,10 @@ int main(int argc, char **argv)
             filter_virt_db.add_map_db2target("2", "localhost:9999/Slow", "");
 	    router.append(filter_virt_db);
 
-            yp2::filter::SessionShared filter_session_shared;
+            mp::filter::SessionShared filter_session_shared;
             //router.append(filter_session_shared);
 
-            yp2::filter::Log filter_log_back("BACK");
+            mp::filter::Log filter_log_back("BACK");
             router.append(filter_log_back);
 
             // put HTTP backend filter in router
@@ -122,12 +124,12 @@ int main(int argc, char **argv)
 	    router.append(filter_init);
 
             // put Z39.50 backend filter in router
-            yp2::filter::Z3950Client z3950_client;
+            mp::filter::Z3950Client z3950_client;
 	    router.append(z3950_client);
 
-            yp2::Session session;
-            yp2::Origin origin;
-	    yp2::Package pack(session, origin);
+            mp::Session session;
+            mp::Origin origin;
+	    mp::Package pack(session, origin);
 	    
 	    pack.router(router).move(); 
         }

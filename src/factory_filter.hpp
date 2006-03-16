@@ -1,5 +1,5 @@
-/* $Id: factory_filter.hpp,v 1.3 2006-01-19 09:41:01 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: factory_filter.hpp,v 1.4 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -17,10 +17,10 @@
 
 #include "filter.hpp"
 
-namespace yp2 {
+namespace metaproxy_1 {
     class FactoryFilter : public boost::noncopyable
     {
-        typedef yp2::filter::Base* (*CreateFilterCallback)();
+        typedef metaproxy_1::filter::Base* (*CreateFilterCallback)();
 
         class Rep;
     public:
@@ -33,7 +33,7 @@ namespace yp2 {
         
         bool drop_creator(std::string fi);
         
-        yp2::filter::Base* create(std::string fi);
+        metaproxy_1::filter::Base* create(std::string fi);
         bool exist(std::string fi);
     
         bool add_creator_dl(const std::string &fi, const std::string &path);

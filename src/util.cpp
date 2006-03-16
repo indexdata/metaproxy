@@ -1,5 +1,5 @@
-/* $Id: util.cpp,v 1.13 2006-01-20 22:38:12 marc Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: util.cpp,v 1.14 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -14,7 +14,9 @@
 
 //#include <iostream>
 
-void yp2::util::piggyback(int smallSetUpperBound,
+namespace mp = metaproxy_1;
+
+void mp::util::piggyback(int smallSetUpperBound,
                           int largeSetLowerBound,
                           int mediumSetPresentNumber,
                           int result_set_size,
@@ -42,7 +44,7 @@ void yp2::util::piggyback(int smallSetUpperBound,
 }
 
 
-bool yp2::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
+bool mp::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
     YAZ_PQF_Parser pqf_parser = yaz_pqf_create();
     
     Z_RPNQuery *rpn = yaz_pqf_parse(pqf_parser, odr, q.c_str());
@@ -61,7 +63,7 @@ bool yp2::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
 }
 
 
-std::string yp2::util::zQueryToString(Z_Query *query)
+std::string mp::util::zQueryToString(Z_Query *query)
 {
     std::string query_str = "";
 
@@ -103,7 +105,7 @@ std::string yp2::util::zQueryToString(Z_Query *query)
     return query_str;
 }
 
-void yp2::util::get_default_diag(Z_DefaultDiagFormat *r,
+void mp::util::get_default_diag(Z_DefaultDiagFormat *r,
                                  int &error_code, std::string &addinfo)
 {
     error_code = *r->condition;
@@ -118,7 +120,7 @@ void yp2::util::get_default_diag(Z_DefaultDiagFormat *r,
     }
 }
 
-void yp2::util::get_init_diagnostics(Z_InitResponse *initrs,
+void mp::util::get_init_diagnostics(Z_InitResponse *initrs,
                                      int &error_code, std::string &addinfo)
 {
     Z_External *uif = initrs->userInformationField;
@@ -142,7 +144,7 @@ void yp2::util::get_init_diagnostics(Z_InitResponse *initrs,
                 {
                     Z_DiagnosticFormat_s *ds = diag->elements[0];
                     if (ds->which == Z_DiagnosticFormat_s_defaultDiagRec)
-                        yp2::util::get_default_diag(ds->u.defaultDiagRec,
+                        mp::util::get_default_diag(ds->u.defaultDiagRec,
                                                     error_code, addinfo);
                 }
             } 
@@ -150,7 +152,7 @@ void yp2::util::get_init_diagnostics(Z_InitResponse *initrs,
     }
 }
 
-int yp2::util::get_vhost_otherinfo(Z_OtherInformation **otherInformation,
+int mp::util::get_vhost_otherinfo(Z_OtherInformation **otherInformation,
                                    bool remove_flag,
                                    std::list<std::string> &vhosts)
 {
@@ -171,7 +173,7 @@ int yp2::util::get_vhost_otherinfo(Z_OtherInformation **otherInformation,
     return cat;
 }
 
-void yp2::util::set_vhost_otherinfo(Z_OtherInformation **otherInformation,
+void mp::util::set_vhost_otherinfo(Z_OtherInformation **otherInformation,
                                     ODR odr,
                                     const std::list<std::string> &vhosts)
 {
@@ -184,7 +186,7 @@ void yp2::util::set_vhost_otherinfo(Z_OtherInformation **otherInformation,
     }
 }
 
-void yp2::util::split_zurl(std::string zurl, std::string &host,
+void mp::util::split_zurl(std::string zurl, std::string &host,
                            std::list<std::string> &db)
 {
     const char *zurl_cstr = zurl.c_str();
@@ -214,7 +216,7 @@ void yp2::util::split_zurl(std::string zurl, std::string &host,
     }
 }
 
-bool yp2::util::set_databases_from_zurl(ODR odr, std::string zurl,
+bool mp::util::set_databases_from_zurl(ODR odr, std::string zurl,
                                         int *db_num, char ***db_strings)
 {
     std::string host;
@@ -233,27 +235,27 @@ bool yp2::util::set_databases_from_zurl(ODR odr, std::string zurl,
     return true;
 }
 
-yp2::odr::odr(int type)
+mp::odr::odr(int type)
 {
     m_odr = odr_createmem(type);
 }
 
-yp2::odr::odr()
+mp::odr::odr()
 {
     m_odr = odr_createmem(ODR_ENCODE);
 }
 
-yp2::odr::~odr()
+mp::odr::~odr()
 {
     odr_destroy(m_odr);
 }
 
-yp2::odr::operator ODR() const
+mp::odr::operator ODR() const
 {
     return m_odr;
 }
 
-Z_APDU *yp2::odr::create_close(Z_APDU *in_apdu,
+Z_APDU *mp::odr::create_close(Z_APDU *in_apdu,
                                int reason, const char *addinfo)
 {
     Z_APDU *apdu = create_APDU(Z_APDU_close, in_apdu);
@@ -264,20 +266,20 @@ Z_APDU *yp2::odr::create_close(Z_APDU *in_apdu,
     return apdu;
 }
 
-Z_APDU *yp2::odr::create_APDU(int type, Z_APDU *in_apdu)
+Z_APDU *mp::odr::create_APDU(int type, Z_APDU *in_apdu)
 {
-    return yp2::util::create_APDU(m_odr, type, in_apdu);
+    return mp::util::create_APDU(m_odr, type, in_apdu);
 }
 
-Z_APDU *yp2::util::create_APDU(ODR odr, int type, Z_APDU *in_apdu)
+Z_APDU *mp::util::create_APDU(ODR odr, int type, Z_APDU *in_apdu)
 {
     Z_APDU *out_apdu = zget_APDU(odr, type);
 
-    Z_ReferenceId **id_to = yp2::util::get_referenceId(out_apdu);
+    Z_ReferenceId **id_to = mp::util::get_referenceId(out_apdu);
     *id_to = 0;
     if (in_apdu)
     {
-        Z_ReferenceId **id_from = yp2::util::get_referenceId(in_apdu);
+        Z_ReferenceId **id_from = mp::util::get_referenceId(in_apdu);
         if (id_from && *id_from && id_to)
         {
             *id_to = (Z_ReferenceId*) odr_malloc (odr, sizeof(**id_to));
@@ -291,7 +293,7 @@ Z_APDU *yp2::util::create_APDU(ODR odr, int type, Z_APDU *in_apdu)
     return out_apdu;
 }
 
-Z_APDU *yp2::odr::create_initResponse(Z_APDU *in_apdu,
+Z_APDU *mp::odr::create_initResponse(Z_APDU *in_apdu,
                                       int error, const char *addinfo)
 {
     Z_APDU *apdu = create_APDU(Z_APDU_initResponse, in_apdu);
@@ -304,7 +306,7 @@ Z_APDU *yp2::odr::create_initResponse(Z_APDU *in_apdu,
     return apdu;
 }
 
-Z_APDU *yp2::odr::create_searchResponse(Z_APDU *in_apdu,
+Z_APDU *mp::odr::create_searchResponse(Z_APDU *in_apdu,
                                         int error, const char *addinfo)
 {
     Z_APDU *apdu = create_APDU(Z_APDU_searchResponse, in_apdu);
@@ -321,7 +323,7 @@ Z_APDU *yp2::odr::create_searchResponse(Z_APDU *in_apdu,
     return apdu;
 }
 
-Z_APDU *yp2::odr::create_presentResponse(Z_APDU *in_apdu,
+Z_APDU *mp::odr::create_presentResponse(Z_APDU *in_apdu,
                                          int error, const char *addinfo)
 {
     Z_APDU *apdu = create_APDU(Z_APDU_presentResponse, in_apdu);
@@ -338,7 +340,7 @@ Z_APDU *yp2::odr::create_presentResponse(Z_APDU *in_apdu,
     return apdu;
 }
 
-Z_APDU *yp2::odr::create_scanResponse(Z_APDU *in_apdu,
+Z_APDU *mp::odr::create_scanResponse(Z_APDU *in_apdu,
                                       int error, const char *addinfo)
 {
     Z_APDU *apdu = create_APDU(Z_APDU_scanResponse, in_apdu);
@@ -365,7 +367,7 @@ Z_APDU *yp2::odr::create_scanResponse(Z_APDU *in_apdu,
     return apdu;
 }
 
-Z_GDU *yp2::odr::create_HTTP_Response(yp2::Session &session,
+Z_GDU *mp::odr::create_HTTP_Response(mp::Session &session,
                                       Z_HTTP_Request *hreq, int code)
 {
     const char *response_version = "1.0";
@@ -398,7 +400,7 @@ Z_GDU *yp2::odr::create_HTTP_Response(yp2::Session &session,
     return gdu;
 }
 
-Z_ReferenceId **yp2::util::get_referenceId(Z_APDU *apdu)
+Z_ReferenceId **mp::util::get_referenceId(Z_APDU *apdu)
 {
     switch (apdu->which)
     {

@@ -1,5 +1,5 @@
-/* $Id: filter_frontend_net.cpp,v 1.15 2006-01-11 11:51:49 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_frontend_net.cpp,v 1.16 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -18,7 +18,9 @@
 
 #include <iostream>
 
-namespace yp2 {
+namespace mp = metaproxy_1;
+
+namespace metaproxy_1 {
     namespace filter {
         class FrontendNet::Rep {
             friend class FrontendNet;
@@ -41,8 +43,8 @@ namespace yp2 {
     public:
         ~ZAssocChild();
         ZAssocChild(yazpp_1::IPDU_Observable *the_PDU_Observable,
-                          yp2::ThreadPoolSocketObserver *m_thread_pool_observer,
-                          const yp2::Package *package);
+                          mp::ThreadPoolSocketObserver *m_thread_pool_observer,
+                          const mp::Package *package);
         int m_no_requests;
     private:
         yazpp_1::IPDU_Observer* sessionNotify(
@@ -54,31 +56,31 @@ namespace yp2 {
         void timeoutNotify();
         void connectNotify();
     private:
-        yp2::ThreadPoolSocketObserver *m_thread_pool_observer;
-        yp2::Session m_session;
-        yp2::Origin m_origin;
+        mp::ThreadPoolSocketObserver *m_thread_pool_observer;
+        mp::Session m_session;
+        mp::Origin m_origin;
         bool m_delete_flag;
-        const yp2::Package *m_package;
+        const mp::Package *m_package;
     };
-    class ThreadPoolPackage : public yp2::IThreadPoolMsg {
+    class ThreadPoolPackage : public mp::IThreadPoolMsg {
     public:
-        ThreadPoolPackage(yp2::Package *package, yp2::ZAssocChild *ses) :
+        ThreadPoolPackage(mp::Package *package, mp::ZAssocChild *ses) :
             m_session(ses), m_package(package) { };
         ~ThreadPoolPackage();
         IThreadPoolMsg *handle();
         void result();
         
     private:
-        yp2::ZAssocChild *m_session;
-        yp2::Package *m_package;
+        mp::ZAssocChild *m_session;
+        mp::Package *m_package;
         
     };
     class ZAssocServer : public yazpp_1::Z_Assoc {
     public:
         ~ZAssocServer();
         ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable,
-                     yp2::ThreadPoolSocketObserver *m_thread_pool_observer,
-                     const yp2::Package *package);
+                     mp::ThreadPoolSocketObserver *m_thread_pool_observer,
+                     const mp::Package *package);
     private:
         yazpp_1::IPDU_Observer* sessionNotify(
             yazpp_1::IPDU_Observable *the_PDU_Observable,
@@ -89,17 +91,17 @@ namespace yp2 {
         void timeoutNotify();
     void connectNotify();
     private:
-        yp2::ThreadPoolSocketObserver *m_thread_pool_observer;
-        const yp2::Package *m_package;
+        mp::ThreadPoolSocketObserver *m_thread_pool_observer;
+        const mp::Package *m_package;
     };
 }
 
-yp2::ThreadPoolPackage::~ThreadPoolPackage()
+mp::ThreadPoolPackage::~ThreadPoolPackage()
 {
     delete m_package;
 }
 
-void yp2::ThreadPoolPackage::result()
+void mp::ThreadPoolPackage::result()
 {
     m_session->m_no_requests--;
 
@@ -114,16 +116,16 @@ void yp2::ThreadPoolPackage::result()
     delete this;
 }
 
-yp2::IThreadPoolMsg *yp2::ThreadPoolPackage::handle() 
+mp::IThreadPoolMsg *mp::ThreadPoolPackage::handle() 
 {
     m_package->move();
     return this;
 }
 
 
-yp2::ZAssocChild::ZAssocChild(yazpp_1::IPDU_Observable *PDU_Observable,
-				     yp2::ThreadPoolSocketObserver *my_thread_pool,
-				     const yp2::Package *package)
+mp::ZAssocChild::ZAssocChild(yazpp_1::IPDU_Observable *PDU_Observable,
+				     mp::ThreadPoolSocketObserver *my_thread_pool,
+				     const mp::Package *package)
     :  Z_Assoc(PDU_Observable)
 {
     m_thread_pool_observer = my_thread_pool;
@@ -133,29 +135,29 @@ yp2::ZAssocChild::ZAssocChild(yazpp_1::IPDU_Observable *PDU_Observable,
 }
 
 
-yazpp_1::IPDU_Observer *yp2::ZAssocChild::sessionNotify(yazpp_1::IPDU_Observable
+yazpp_1::IPDU_Observer *mp::ZAssocChild::sessionNotify(yazpp_1::IPDU_Observable
 						  *the_PDU_Observable, int fd)
 {
     return 0;
 }
 
-yp2::ZAssocChild::~ZAssocChild()
+mp::ZAssocChild::~ZAssocChild()
 {
 }
 
-void yp2::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
+void mp::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
 {
     m_no_requests++;
 
-    yp2::Package *p = new yp2::Package(m_session, m_origin);
+    mp::Package *p = new mp::Package(m_session, m_origin);
 
-    yp2::ThreadPoolPackage *tp = new yp2::ThreadPoolPackage(p, this);
+    mp::ThreadPoolPackage *tp = new mp::ThreadPoolPackage(p, this);
     p->copy_filter(*m_package);
     p->request() = yazpp_1::GDU(z_pdu);
     m_thread_pool_observer->put(tp);  
 }
 
-void yp2::ZAssocChild::failNotify()
+void mp::ZAssocChild::failNotify()
 {
     // TODO: send Package to signal "close"
     if (m_session.is_closed())
@@ -164,26 +166,26 @@ void yp2::ZAssocChild::failNotify()
 
     m_session.close();
 
-    yp2::Package *p = new yp2::Package(m_session, m_origin);
+    mp::Package *p = new mp::Package(m_session, m_origin);
 
-    yp2::ThreadPoolPackage *tp = new yp2::ThreadPoolPackage(p, this);
+    mp::ThreadPoolPackage *tp = new mp::ThreadPoolPackage(p, this);
     p->copy_filter(*m_package);
     m_thread_pool_observer->put(tp);  
 }
 
-void yp2::ZAssocChild::timeoutNotify()
+void mp::ZAssocChild::timeoutNotify()
 {
     failNotify();
 }
 
-void yp2::ZAssocChild::connectNotify()
+void mp::ZAssocChild::connectNotify()
 {
 
 }
 
-yp2::ZAssocServer::ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable,
-			   yp2::ThreadPoolSocketObserver *thread_pool_observer,
-			   const yp2::Package *package)
+mp::ZAssocServer::ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable,
+			   mp::ThreadPoolSocketObserver *thread_pool_observer,
+			   const mp::Package *package)
     :  Z_Assoc(PDU_Observable)
 {
     m_thread_pool_observer = thread_pool_observer;
@@ -191,51 +193,51 @@ yp2::ZAssocServer::ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable,
 
 }
 
-yazpp_1::IPDU_Observer *yp2::ZAssocServer::sessionNotify(yazpp_1::IPDU_Observable
+yazpp_1::IPDU_Observer *mp::ZAssocServer::sessionNotify(yazpp_1::IPDU_Observable
 						 *the_PDU_Observable, int fd)
 {
-    yp2::ZAssocChild *my =
-	new yp2::ZAssocChild(the_PDU_Observable, m_thread_pool_observer,
+    mp::ZAssocChild *my =
+	new mp::ZAssocChild(the_PDU_Observable, m_thread_pool_observer,
                              m_package);
     return my;
 }
 
-yp2::ZAssocServer::~ZAssocServer()
+mp::ZAssocServer::~ZAssocServer()
 {
 }
 
-void yp2::ZAssocServer::recv_GDU(Z_GDU *apdu, int len)
+void mp::ZAssocServer::recv_GDU(Z_GDU *apdu, int len)
 {
 }
 
-void yp2::ZAssocServer::failNotify()
+void mp::ZAssocServer::failNotify()
 {
 }
 
-void yp2::ZAssocServer::timeoutNotify()
+void mp::ZAssocServer::timeoutNotify()
 {
 }
 
-void yp2::ZAssocServer::connectNotify()
+void mp::ZAssocServer::connectNotify()
 {
 }
 
-yp2::filter::FrontendNet::FrontendNet() : m_p(new Rep)
+mp::filter::FrontendNet::FrontendNet() : m_p(new Rep)
 {
     m_p->m_no_threads = 5;
     m_p->m_listen_duration = 0;
 }
 
-yp2::filter::FrontendNet::~FrontendNet()
+mp::filter::FrontendNet::~FrontendNet()
 {
 }
 
-bool yp2::My_Timer_Thread::timeout()
+bool mp::My_Timer_Thread::timeout()
 {
     return m_timeout;
 }
 
-yp2::My_Timer_Thread::My_Timer_Thread(yazpp_1::ISocketObservable *obs,
+mp::My_Timer_Thread::My_Timer_Thread(yazpp_1::ISocketObservable *obs,
 				 int duration) : 
     m_obs(obs), m_pipe(9123), m_timeout(false)
 {
@@ -244,13 +246,13 @@ yp2::My_Timer_Thread::My_Timer_Thread(yazpp_1::ISocketObservable *obs,
     obs->timeoutObserver(this, duration);
 }
 
-void yp2::My_Timer_Thread::socketNotify(int event)
+void mp::My_Timer_Thread::socketNotify(int event)
 {
     m_timeout = true;
     m_obs->deleteObserver(this);
 }
 
-void yp2::filter::FrontendNet::process(Package &package) const
+void mp::filter::FrontendNet::process(Package &package) const
 {
     if (m_p->m_ports.size() == 0)
         return;
@@ -263,17 +265,17 @@ void yp2::filter::FrontendNet::process(Package &package) const
 
     ThreadPoolSocketObserver threadPool(&mySocketManager, m_p->m_no_threads);
 
-    yp2::ZAssocServer **az = new yp2::ZAssocServer *[m_p->m_ports.size()];
+    mp::ZAssocServer **az = new mp::ZAssocServer *[m_p->m_ports.size()];
 
-    // Create yp2::ZAssocServer for each port
+    // Create mp::ZAssocServer for each port
     size_t i;
     for (i = 0; i<m_p->m_ports.size(); i++)
     {
-	// create a PDU assoc object (one per yp2::ZAssocServer)
+	// create a PDU assoc object (one per mp::ZAssocServer)
 	yazpp_1::PDU_Assoc *as = new yazpp_1::PDU_Assoc(&mySocketManager);
 
 	// create ZAssoc with PDU Assoc
-	az[i] = new yp2::ZAssocServer(as, &threadPool, &package);
+	az[i] = new mp::ZAssocServer(as, &threadPool, &package);
 	az[i]->server(m_p->m_ports[i].c_str());
     }
     while (mySocketManager.processEvent() > 0)
@@ -288,11 +290,11 @@ void yp2::filter::FrontendNet::process(Package &package) const
     delete tt;
 }
 
-void yp2::filter::FrontendNet::configure(const xmlNode * ptr)
+void mp::filter::FrontendNet::configure(const xmlNode * ptr)
 {
     if (!ptr || !ptr->children)
     {
-        throw yp2::filter::FilterException("No ports for Frontend");
+        throw mp::filter::FilterException("No ports for Frontend");
     }
     std::vector<std::string> ports;
     for (ptr = ptr->children; ptr; ptr = ptr->next)
@@ -301,22 +303,22 @@ void yp2::filter::FrontendNet::configure(const xmlNode * ptr)
             continue;
         if (!strcmp((const char *) ptr->name, "port"))
         {
-            std::string port = yp2::xml::get_text(ptr);
+            std::string port = mp::xml::get_text(ptr);
             ports.push_back(port);
             
         }
         else if (!strcmp((const char *) ptr->name, "threads"))
         {
-            std::string threads_str = yp2::xml::get_text(ptr);
+            std::string threads_str = mp::xml::get_text(ptr);
             int threads = atoi(threads_str.c_str());
             if (threads < 1)
-                throw yp2::filter::FilterException("Bad value for threads: " 
+                throw mp::filter::FilterException("Bad value for threads: " 
                                                    + threads_str);
             m_p->m_no_threads = threads;
         }
         else
         {
-            throw yp2::filter::FilterException("Bad element " 
+            throw mp::filter::FilterException("Bad element " 
                                                + std::string((const char *)
                                                              ptr->name));
         }
@@ -324,23 +326,23 @@ void yp2::filter::FrontendNet::configure(const xmlNode * ptr)
     m_p->m_ports = ports;
 }
 
-std::vector<std::string> &yp2::filter::FrontendNet::ports()
+std::vector<std::string> &mp::filter::FrontendNet::ports()
 {
     return m_p->m_ports;
 }
 
-int &yp2::filter::FrontendNet::listen_duration()
+int &mp::filter::FrontendNet::listen_duration()
 {
     return m_p->m_listen_duration;
 }
 
-static yp2::filter::Base* filter_creator()
+static mp::filter::Base* filter_creator()
 {
-    return new yp2::filter::FrontendNet;
+    return new mp::filter::FrontendNet;
 }
 
 extern "C" {
-    struct yp2_filter_struct yp2_filter_frontend_net = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_frontend_net = {
         0,
         "frontend_net",
         filter_creator

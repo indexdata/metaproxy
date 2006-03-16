@@ -1,5 +1,5 @@
-/* $Id: filter_z3950_client.cpp,v 1.23 2006-01-17 17:55:18 adam Exp $
-   Copyright (c) 2005, Index Data.
+/* $Id: filter_z3950_client.cpp,v 1.24 2006-03-16 10:40:59 adam Exp $
+   Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
  */
@@ -28,9 +28,10 @@
 #include <yaz++/pdu-assoc.h>
 #include <yaz++/z-assoc.h>
 
-namespace yf = yp2::filter;
+namespace mp = metaproxy_1;
+namespace yf = mp::filter;
 
-namespace yp2 {
+namespace metaproxy_1 {
     namespace filter {
         class Z3950Client::Assoc : public yazpp_1::Z_Assoc{
             friend class Rep;
@@ -64,7 +65,7 @@ namespace yp2 {
             int m_timeout_sec;
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
-            std::map<yp2::Session,Z3950Client::Assoc *> m_clients;
+            std::map<mp::Session,Z3950Client::Assoc *> m_clients;
             Z3950Client::Assoc *get_assoc(Package &package);
             void send_and_receive(Package &package,
                                   yf::Z3950Client::Assoc *c);
@@ -73,7 +74,7 @@ namespace yp2 {
     }
 }
 
-using namespace yp2;
+using namespace mp;
 
 yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
                               yazpp_1::IPDU_Observable *PDU_Observable,
@@ -104,7 +105,7 @@ void yf::Z3950Client::Assoc::failNotify()
 {
     m_waiting = false;
 
-    yp2::odr odr;
+    mp::odr odr;
 
     if (m_package)
     {
@@ -125,7 +126,7 @@ void yf::Z3950Client::Assoc::timeoutNotify()
     {
         m_waiting = false;
 
-        yp2::odr odr;
+        mp::odr odr;
         
         if (m_package)
         {
@@ -175,7 +176,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     // only one thread messes with the clients list at a time
     boost::mutex::scoped_lock lock(m_mutex);
 
-    std::map<yp2::Session,yf::Z3950Client::Assoc *>::iterator it;
+    std::map<mp::Session,yf::Z3950Client::Assoc *>::iterator it;
     
     Z_GDU *gdu = package.request().get();
     // only deal with Z39.50
@@ -214,7 +215,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     // check that it is init. If not, close
     if (apdu->which != Z_APDU_initRequest)
     {
-        yp2::odr odr;
+        mp::odr odr;
         
         package.response() = odr.create_close(apdu,
                                               Z_Close_protocolError,
@@ -224,12 +225,12 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         return 0;
     }
     std::list<std::string> vhosts;
-    yp2::util::get_vhost_otherinfo(&apdu->u.initRequest->otherInfo,
+    mp::util::get_vhost_otherinfo(&apdu->u.initRequest->otherInfo,
                                    true, vhosts);
     size_t no_vhosts = vhosts.size();
     if (no_vhosts == 0)
     {
-        yp2::odr odr;
+        mp::odr odr;
         package.response() = odr.create_initResponse(
             apdu,
             YAZ_BIB1_INIT_NEGOTIATION_OPTION_REQUIRED,
@@ -240,7 +241,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     }
     if (no_vhosts > 1)
     {
-        yp2::odr odr;
+        mp::odr odr;
         package.response() = odr.create_initResponse(
             apdu,
             YAZ_BIB1_COMBI_OF_SPECIFIED_DATABASES_UNSUPP,
@@ -251,7 +252,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     std::list<std::string>::const_iterator v_it = vhosts.begin();
     std::list<std::string> dblist;
     std::string host;
-    yp2::util::split_zurl(*v_it, host, dblist);
+    mp::util::split_zurl(*v_it, host, dblist);
     
     if (dblist.size())
     {
@@ -320,7 +321,7 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
 void yf::Z3950Client::Rep::release_assoc(Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
-    std::map<yp2::Session,yf::Z3950Client::Assoc *>::iterator it;
+    std::map<mp::Session,yf::Z3950Client::Assoc *>::iterator it;
     
     it = m_clients.find(package.session());
     if (it != m_clients.end())
@@ -370,29 +371,29 @@ void yf::Z3950Client::configure(const xmlNode *ptr)
             continue;
         if (!strcmp((const char *) ptr->name, "timeout"))
         {
-            std::string timeout_str = yp2::xml::get_text(ptr);
+            std::string timeout_str = mp::xml::get_text(ptr);
             int timeout_sec = atoi(timeout_str.c_str());
             if (timeout_sec < 2)
-                throw yp2::filter::FilterException("Bad timeout value " 
+                throw mp::filter::FilterException("Bad timeout value " 
                                                    + timeout_str);
             m_p->m_timeout_sec = timeout_sec;
         }
         else
         {
-            throw yp2::filter::FilterException("Bad element " 
+            throw mp::filter::FilterException("Bad element " 
                                                + std::string((const char *)
                                                              ptr->name));
         }
     }
 }
 
-static yp2::filter::Base* filter_creator()
+static mp::filter::Base* filter_creator()
 {
-    return new yp2::filter::Z3950Client;
+    return new mp::filter::Z3950Client;
 }
 
 extern "C" {
-    struct yp2_filter_struct yp2_filter_z3950_client = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_z3950_client = {
         0,
         "z3950_client",
         filter_creator
