@@ -49,11 +49,6 @@ AC_CHECK_LIB(boost_program_options, main, [],[
 	AC_MSG_ERROR([Install libboost-program-options-dev (or similar)])
 ])
 
-AC_CHECK_LIB(boost_regex, main, [],[
-	AC_MSG_NOTICE([boost regex library not found.])
-	AC_MSG_ERROR([Install libboost-regex-dev (or similar)])
-])
-
 AC_CHECK_HEADER(boost/test/auto_unit_test.hpp,,[
 	AC_MSG_NOTICE([boost test unit header not found.])
 	AC_MSG_ERROR([Install libboost-test-dev (or similar)])
@@ -85,7 +80,7 @@ YAZPP_INIT(threads,1.0)
 if test -z "$YAZPPLIB"; then
 	AC_MSG_ERROR([YAZ++ development libraries missing])
 fi
-##YAZ_DOC
+YAZ_DOC
 
 ## libxslt checks
 AC_SUBST(XSLT_LIBS)
@@ -138,6 +133,11 @@ AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
 	src/Jamfile
+	doc/Makefile
+	doc/metaproxy.xml
+	doc/print.dsl
+	doc/html.dsl
+	doc/tkl.xsl
 ])
 
 AC_OUTPUT

@@ -3,7 +3,7 @@
   CDATA DSSSL>
 ]>
 <!--
-  $Id: yp2html.dsl.in,v 1.1 2006-02-02 18:22:47 mike Exp $
+  $Id: html.dsl.in,v 1.1 2006-03-16 12:03:39 adam Exp $
 -->
 <style-sheet>
 <style-specification use="docbook">
