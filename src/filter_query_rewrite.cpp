@@ -1,4 +1,4 @@
-/* $Id: filter_query_rewrite.cpp,v 1.6 2006-03-16 10:40:59 adam Exp $
+/* $Id: filter_query_rewrite.cpp,v 1.7 2006-03-27 12:53:05 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -163,7 +163,7 @@ static mp::filter::Base* filter_creator()
 extern "C" {
     struct metaproxy_1_filter_struct metaproxy_1_filter_query_rewrite = {
         0,
-        "query-rewrite",
+        "query_rewrite",
         filter_creator
     };
 }
