@@ -1,10 +1,7 @@
 How to add a new manpage.
-For new man page x.xml that you want in x.s (s=section) you have to add:
+For new man page x.xml that you want in x.s (s=man section) you have to add:
 Add to XMLMAN: x.xml 
 Add to MANFILES: x.s
-Add new Rule:
-x.s: x.xml
-	docbook2man $<
 
 Use auth_simple.xml or metaproxy.xml as starting points.
   

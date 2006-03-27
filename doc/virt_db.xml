@@ -2,30 +2,23 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: auth_simple.xml,v 1.2 2006-03-27 13:41:40 adam Exp $ -->
+<!-- $Id: virt_db.xml,v 1.1 2006-03-27 13:41:40 adam Exp $ -->
 <refentry>
  <refmeta>
-  <refentrytitle>auth_simple</refentrytitle>
+  <refentrytitle>virt_db</refentrytitle>
   <manvolnum>3mp</manvolnum>
-  <refmiscinfo>Metaproxy Module</refmiscinfo>
- </refmeta>
+   <refmiscinfo>Metaproxy Module</refmiscinfo>
+</refmeta>
  
  <refnamediv>
-  <refname>auth_simple</refname>
-  <refpurpose>simple authentication and authorisation.</refpurpose>
+  <refname>virt_db</refname>
+  <refpurpose>virtual database(s)</refpurpose>
  </refnamediv>
  
  <refsect1><title>DESCRIPTION</title>
   <para>
-   Simple authentication and authorisation.  The configuration
-   specifies the name of a file that is the user register, which
-   lists <varname>username</varname>:<varname>password</varname>
-   pairs, one per line, colon separated. When a session begins, it
-   is rejected unless username and passsword are supplied, and match
-   a pair in the register.
-  </para>
-  <para>
-   ### discuss authorisation phase
+   This filter allows one Z39.50 database to be me mapped to
+   another target; or even multiple targets..
   </para>
  </refsect1>
  
@@ -33,13 +26,23 @@
   <para>
    A typical configuration looks as likes:
    <screen><![CDATA[
-    <filter type="auth_simple">
-    <targetRegister>example.target-auth</targetRegister>
-    <discardUnauthorisedTargets/>
-   </filter>
+    <filter type="virt_db">
+      <virtual>
+        <database>db1</database>
+        <target>localhost:9999/Default</target>
+      </virtual>
+      <virtual>
+        <database>db2</database>
+        <target>indexdata.dk/gils</target>
+      </virtual>
+      <virtual>
+        <database>combined</database>
+        <target>indexdata.dk/gils</target>
+        <target>localhost:9999/Default</target>
+      </virtual>
+    </filter>
 ]]>
    </screen>
-   ### Show and describe examle.target-auth here ###
   </para>
  </refsect1> 
  
@@ -48,6 +51,12 @@
    <citerefentry>
     <refentrytitle>metaproxy</refentrytitle>
     <manvolnum>1</manvolnum>
+   </citerefentry>
+  </para>
+  <para>
+   <citerefentry>
+    <refentrytitle>multi</refentrytitle>
+    <manvolnum>3mp</manvolnum>
    </citerefentry>
   </para>
  </refsect1>

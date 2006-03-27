@@ -2,30 +2,22 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: auth_simple.xml,v 1.2 2006-03-27 13:41:40 adam Exp $ -->
+<!-- $Id: log.xml,v 1.1 2006-03-27 13:41:40 adam Exp $ -->
 <refentry>
  <refmeta>
-  <refentrytitle>auth_simple</refentrytitle>
+  <refentrytitle>log</refentrytitle>
   <manvolnum>3mp</manvolnum>
-  <refmiscinfo>Metaproxy Module</refmiscinfo>
- </refmeta>
+   <refmiscinfo>Metaproxy Module</refmiscinfo>
+</refmeta>
  
  <refnamediv>
-  <refname>auth_simple</refname>
-  <refpurpose>simple authentication and authorisation.</refpurpose>
+  <refname>log</refname>
+  <refpurpose>logs packages</refpurpose>
  </refnamediv>
  
  <refsect1><title>DESCRIPTION</title>
   <para>
-   Simple authentication and authorisation.  The configuration
-   specifies the name of a file that is the user register, which
-   lists <varname>username</varname>:<varname>password</varname>
-   pairs, one per line, colon separated. When a session begins, it
-   is rejected unless username and passsword are supplied, and match
-   a pair in the register.
-  </para>
-  <para>
-   ### discuss authorisation phase
+   This filter logs packages sent - and received . 
   </para>
  </refsect1>
  
@@ -33,13 +25,11 @@
   <para>
    A typical configuration looks as likes:
    <screen><![CDATA[
-    <filter type="auth_simple">
-    <targetRegister>example.target-auth</targetRegister>
-    <discardUnauthorisedTargets/>
-   </filter>
+    <filter type="log">
+     <message>B</message>
+    </filter>
 ]]>
    </screen>
-   ### Show and describe examle.target-auth here ###
   </para>
  </refsect1> 
  

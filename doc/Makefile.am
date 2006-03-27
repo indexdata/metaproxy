@@ -1,5 +1,7 @@
-## $Id: Makefile.am,v 1.3 2006-03-16 13:20:04 adam Exp $
+## $Id: Makefile.am,v 1.4 2006-03-27 13:41:40 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
+
+SUFFIXES=.3mp .1
 
 SUPPORTFILES = html.dsl print.dsl tkl.xsl xml.dcl ref2dbinc.xsl
 
@@ -7,8 +9,10 @@ XMLFILES = main.xml.in book.xml manref.xml copyright.xml
 MAINXML = main.xml
 HTMLFILES = metaproxy.html 
 
-XMLMAN=auth_simple.xml metaproxy.xml
-MANFILES=auth_simple.3mp metaproxy.1
+XMLMAN=auth_simple.xml backend_test.xml frontend_net.xml http_file.xml \
+ log.xml metaproxy.xml multi.xml virt_db.xml z3950_client.xml
+MANFILES=auth_simple.3mp backend_test.3mp frontend_net.3mp http_file.3mp \
+ log.3mp metaproxy.1 multi.3mp virt_db.3mp z3950_client.3mp
 
 PNGFILES=
 EPSFILES=
@@ -24,10 +28,10 @@ EXTRA_DIST = $(XMLFILES) $(SUPPORTFILES) $(REFFILES) \
 $(HTMLFILES): $(XMLFILES) manref.xml 
 	jade -E14 -D $(srcdir) -d html.dsl -t sgml $(srcdir)/xml.dcl $(MAINXML)
 
-auth_simple.3mp: auth_simple.xml
+.xml.3mp:
 	docbook2man $<
 
-metaproxy.1: metaproxy.xml
+.xml.1:
 	docbook2man $<
 
 metaproxy.pdf: $(XMLFILES) manref.xml
@@ -35,6 +39,8 @@ metaproxy.pdf: $(XMLFILES) manref.xml
 		if test ! -f $$i; then ln -s $(srcdir)/$$i .; fi; \
 	done
 	jade -E14 -D $(srcdir) -d print.dsl -t tex $(srcdir)/xml.dcl $(MAINXML)
+	rm -f metaproxy.tex;
+	mv main.tex metaproxy.tex
 	pdfjadetex metaproxy.tex >/dev/null
 	pdfjadetex metaproxy.tex >/dev/null
 	pdfjadetex metaproxy.tex >/dev/null
