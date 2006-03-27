@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: auth_simple.xml,v 1.2 2006-03-27 13:41:40 adam Exp $ -->
+<!-- $Id: auth_simple.xml,v 1.3 2006-03-27 13:44:07 adam Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>auth_simple</refentrytitle>
@@ -34,9 +34,9 @@
    A typical configuration looks as likes:
    <screen><![CDATA[
     <filter type="auth_simple">
-    <targetRegister>example.target-auth</targetRegister>
-    <discardUnauthorisedTargets/>
-   </filter>
+     <targetRegister>example.target-auth</targetRegister>
+     <discardUnauthorisedTargets/>
+    </filter>
 ]]>
    </screen>
    ### Show and describe examle.target-auth here ###
