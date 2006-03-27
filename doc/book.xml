@@ -1,501 +1,501 @@
-<!-- $Id: book.xml,v 1.2 2006-03-16 13:20:05 adam Exp $ -->
+<!-- $Id: book.xml,v 1.3 2006-03-27 14:18:23 adam Exp $ -->
  <bookinfo>
- <title>Metaproxy - User's Guide and Reference</title>
+  <title>Metaproxy - User's Guide and Reference</title>
+  <author>
+   <firstname>Mike</firstname><surname>Taylor</surname>
+  </author>
  <author>
-  <firstname>Mike</firstname><surname>Taylor</surname>
+  <firstname>Adam</firstname><surname>Dickmeiss</surname>
  </author>
  <copyright>
   <year>2006</year>
   <holder>Index Data</holder>
  </copyright>
- <abstract>
-  <simpara>
-   ###
-   Metaproxy is ... in need of description :-)
-  </simpara>
- </abstract>
+  <abstract>
+   <simpara>
+    Metaproxy - mangler of Z39.50/SRU operations.
+   </simpara>
+  </abstract>
  </bookinfo>
+ 
+ <chapter id="introduction">
+  <title>Introduction</title>
+  
+  
+  <section>
+   <title>Overview</title>
+   <para>
+    <ulink url="http://indexdata.dk/metaproxy/">Metaproxy</ulink>
+    is ..
+   </para>
+   <para>
+    ### We should probably consider saying a little more by way of
+    introduction.
+   </para>
+  </section>
+ </chapter>
  
 
 
- <chapter id="introduction">
- <title>Introduction</title>
-
-
- <section>
-  <title>Overview</title>
-  <para>
-   <ulink url="http://indexdata.dk/metaproxy/">Metaproxy</ulink>
-   is ..
-  </para>
-  <para>
-   ### We should probably consider saying a little more by way of
-   introduction.
-  </para>
- </section>
- </chapter>
-
-
-
  <chapter id="filters">
- <title>Filters</title>
-
-
- <section>
-  <title>Introductory notes</title>
-  <para>
-   It's useful to think of Metaproxy as an interpreter providing a small
-   number of primitives and operations, but operating on a very
-   complex data type, namely the ``package''.
-  </para>
-  <para>
-   A package represents a Z39.50 or SRW/U request (whether for Init,
-   Search, Scan, etc.)  together with information about where it came
-   from.  Packages are created by front-end filters such as
-   <literal>frontend_net</literal> (see below), which reads them from
-   the network; other front-end filters are possible.  They then pass
-   along a route consisting of a sequence of filters, each of which
-   transforms the package and may also have side-effects such as
-   generating logging.  Eventually, the route will yield a response,
-   which is sent back to the origin.
-  </para>
-  <para>
-   There are many kinds of filter: some that are defined statically
-   as part of Metaproxy, and other that may be provided by third parties
-   and dynamically loaded.  They all conform to the same simple API
-   of essentially two methods: <function>configure()</function> is
-   called at startup time, and is passed a DOM tree representing that
-   part of the configuration file that pertains to this filter
-   instance: it is expected to walk that tree extracting relevant
-   information; and <function>process()</function> is called every
-   time the filter has to processes a package.
-  </para>
-  <para>
-   While all filters provide the same API, there are different modes
-   of functionality.  Some filters are sources: they create
-   packages
-   (<literal>frontend_net</literal>);
-   others are sinks: they consume packages and return a result
-   (<literal>z3950_client</literal>,
-   <literal>backend_test</literal>,
-   <literal>http_file</literal>);
-   the others are true filters, that read, process and pass on the
-   packages they are fed
-   (<literal>auth_simple</literal>,
-   <literal>log</literal>,
-   <literal>multi</literal>,
-   <literal>session_shared</literal>,
-   <literal>template</literal>,
-   <literal>virt_db</literal>).
-  </para>
+  <title>Filters</title>
+  
+  
+  <section>
+   <title>Introductory notes</title>
+   <para>
+    It's useful to think of Metaproxy as an interpreter providing a small
+    number of primitives and operations, but operating on a very
+    complex data type, namely the ``package''.
+   </para>
+   <para>
+    A package represents a Z39.50 or SRW/U request (whether for Init,
+    Search, Scan, etc.)  together with information about where it came
+    from.  Packages are created by front-end filters such as
+    <literal>frontend_net</literal> (see below), which reads them from
+    the network; other front-end filters are possible.  They then pass
+    along a route consisting of a sequence of filters, each of which
+    transforms the package and may also have side-effects such as
+    generating logging.  Eventually, the route will yield a response,
+    which is sent back to the origin.
+   </para>
+   <para>
+    There are many kinds of filter: some that are defined statically
+    as part of Metaproxy, and other that may be provided by third parties
+    and dynamically loaded.  They all conform to the same simple API
+    of essentially two methods: <function>configure()</function> is
+    called at startup time, and is passed a DOM tree representing that
+    part of the configuration file that pertains to this filter
+    instance: it is expected to walk that tree extracting relevant
+    information; and <function>process()</function> is called every
+    time the filter has to processes a package.
+   </para>
+   <para>
+    While all filters provide the same API, there are different modes
+    of functionality.  Some filters are sources: they create
+    packages
+    (<literal>frontend_net</literal>);
+    others are sinks: they consume packages and return a result
+    (<literal>z3950_client</literal>,
+    <literal>backend_test</literal>,
+    <literal>http_file</literal>);
+    the others are true filters, that read, process and pass on the
+    packages they are fed
+    (<literal>auth_simple</literal>,
+    <literal>log</literal>,
+    <literal>multi</literal>,
+    <literal>session_shared</literal>,
+    <literal>template</literal>,
+    <literal>virt_db</literal>).
+   </para>
  </section>
-
-
- <section>
-  <title>Individual filters</title>
-  <para>
-   The filters are here named by the string that is used as the
-   <literal>type</literal> attribute of a
-   <literal>&lt;filter&gt;</literal> element in the configuration
-   file to request them, with the name of the class that implements
-   them in parentheses.
-  </para>
-
+  
+  
   <section>
-   <title><literal>auth_simple</literal>
-    (mp::filter::AuthSimple)</title>
+   <title>Individual filters</title>
    <para>
-    Simple authentication and authorisation.  The configuration
-    specifies the name of a file that is the user register, which
-    lists <varname>username</varname>:<varname>password</varname>
-    pairs, one per line, colon separated. When a session begins, it
-    is rejected unless username and passsword are supplied, and match
-    a pair in the register.
+    The filters are here named by the string that is used as the
+    <literal>type</literal> attribute of a
+    <literal>&lt;filter&gt;</literal> element in the configuration
+    file to request them, with the name of the class that implements
+    them in parentheses.
    </para>
-   <para>
-    ### discuss authorisation phase
-   </para>
-  </section>
-
-  <section>
-   <title><literal>backend_test</literal>
+   
+   <section>
+    <title><literal>auth_simple</literal>
+     (mp::filter::AuthSimple)</title>
+    <para>
+     Simple authentication and authorisation.  The configuration
+     specifies the name of a file that is the user register, which
+     lists <varname>username</varname>:<varname>password</varname>
+     pairs, one per line, colon separated. When a session begins, it
+     is rejected unless username and passsword are supplied, and match
+     a pair in the register.
+    </para>
+    <para>
+     ### discuss authorisation phase
+    </para>
+   </section>
+   
+   <section>
+    <title><literal>backend_test</literal>
     (mp::filter::Backend_test)</title>
-   <para>
-    A sink that provides dummy responses in the manner of the
-    <literal>yaz-ztest</literal> Z39.50 server.  This is useful only
-    for testing.
-   </para>
-  </section>
+    <para>
+     A sink that provides dummy responses in the manner of the
+     <literal>yaz-ztest</literal> Z39.50 server.  This is useful only
+     for testing.
+    </para>
+   </section>
+   
+   <section>
+    <title><literal>frontend_net</literal>
+     (mp::filter::FrontendNet)</title>
+    <para>
+     A source that accepts Z39.50 and SRW connections from a port
+     specified in the configuration, reads protocol units, and
+     feeds them into the next filter, eventually returning the
+     result to the origin.
+    </para>
+   </section>
 
-  <section>
-   <title><literal>frontend_net</literal>
-    (mp::filter::FrontendNet)</title>
-   <para>
-    A source that accepts Z39.50 and SRW connections from a port
-    specified in the configuration, reads protocol units, and
-    feeds them into the next filter, eventually returning the
-    result to the origin.
+   <section>
+    <title><literal>http_file</literal>
+     (mp::filter::HttpFile)</title>
+    <para>
+     A sink that returns the contents of files from the local
+     filesystem in response to HTTP requests.  (Yes, Virginia, this
+     does mean that Metaproxy is also a Web-server in its spare time.  So
+     far it does not contain either an email-reader or a Lisp
+     interpreter, but that day is surely coming.)
+    </para>
+   </section>
+   
+   <section>
+    <title><literal>log</literal>
+     (mp::filter::Log)</title>
+    <para>
+     Writes logging information to standard output, and passes on
+     the package unchanged.
    </para>
-  </section>
-
-  <section>
-   <title><literal>http_file</literal>
-    (mp::filter::HttpFile)</title>
-   <para>
-    A sink that returns the contents of files from the local
-    filesystem in response to HTTP requests.  (Yes, Virginia, this
-    does mean that Metaproxy is also a Web-server in its spare time.  So
-    far it does not contain either an email-reader or a Lisp
-    interpreter, but that day is surely coming.)
-   </para>
-  </section>
-
-  <section>
-   <title><literal>log</literal>
-    (mp::filter::Log)</title>
-   <para>
-    Writes logging information to standard output, and passes on
-    the package unchanged.
-   </para>
-  </section>
-
-  <section>
+   </section>
+   
+   <section>
    <title><literal>multi</literal>
-    (mp::filter::Multi)</title>
-   <para>
-    Performs multicast searching.  See the extended discussion of
-    multi-database searching below.
-   </para>
+     (mp::filter::Multi)</title>
+    <para>
+     Performs multicast searching.  See the extended discussion of
+     multi-database searching below.
+    </para>
+   </section>
+   
+   <section>
+    <title><literal>session_shared</literal>
+     (mp::filter::SessionShared)</title>
+    <para>
+     When this is finished, it will implement global sharing of
+     result sets (i.e. between threads and therefore between
+     clients), but it's not yet done.
+    </para>
+   </section>
+   
+   <section>
+    <title><literal>template</literal>
+     (mp::filter::Template)</title>
+    <para>
+     Does nothing at all, merely passing the packet on.  (Maybe it
+     should be called <literal>nop</literal> or
+     <literal>passthrough</literal>?)  This exists not to be used, but
+     to be copied - to become the skeleton of new filters as they are
+     written.
+    </para>
+   </section>
+   
+   <section>
+    <title><literal>virt_db</literal>
+     (mp::filter::Virt_db)</title>
+    <para>
+     Performs virtual database selection.  See the extended discussion
+     of virtual databases below.
+    </para>
+   </section>
+   
+   <section>
+    <title><literal>z3950_client</literal>
+     (mp::filter::Z3950Client)</title>
+    <para>
+     Performs Z39.50 searching and retrieval by proxying the
+     packages that are passed to it.  Init requests are sent to the
+     address specified in the <literal>VAL_PROXY</literal> otherInfo
+     attached to the request: this may have been specified by client,
+     or generated by a <literal>virt_db</literal> filter earlier in
+     the route.  Subsequent requests are sent to the same address,
+     which is remembered at Init time in a Session object.
+    </para>
   </section>
-
+  </section>
+  
+  
   <section>
-   <title><literal>session_shared</literal>
-    (mp::filter::SessionShared)</title>
-   <para>
-    When this is finished, it will implement global sharing of
-    result sets (i.e. between threads and therefore between
-    clients), but it's not yet done.
-   </para>
-  </section>
-
-  <section>
-   <title><literal>template</literal>
-    (mp::filter::Template)</title>
-   <para>
-    Does nothing at all, merely passing the packet on.  (Maybe it
-    should be called <literal>nop</literal> or
-    <literal>passthrough</literal>?)  This exists not to be used, but
-    to be copied - to become the skeleton of new filters as they are
-    written.
-   </para>
-  </section>
-
-  <section>
-   <title><literal>virt_db</literal>
-    (mp::filter::Virt_db)</title>
-   <para>
-    Performs virtual database selection.  See the extended discussion
-    of virtual databases below.
-   </para>
-  </section>
-
-  <section>
-   <title><literal>z3950_client</literal>
-    (mp::filter::Z3950Client)</title>
-   <para>
-    Performs Z39.50 searching and retrieval by proxying the
-    packages that are passed to it.  Init requests are sent to the
-    address specified in the <literal>VAL_PROXY</literal> otherInfo
-    attached to the request: this may have been specified by client,
-    or generated by a <literal>virt_db</literal> filter earlier in
-    the route.  Subsequent requests are sent to the same address,
-    which is remembered at Init time in a Session object.
-   </para>
-  </section>
- </section>
-
-
- <section>
-  <title>Future directions</title>
+   <title>Future directions</title>
   <para>
-   Some other filters that do not yet exist, but which would be
-   useful, are briefly described.  These may be added in future
-   releases.
-  </para>
+    Some other filters that do not yet exist, but which would be
+    useful, are briefly described.  These may be added in future
+    releases.
+   </para>
 
-  <variablelist>
-   <varlistentry>
-    <term><literal>frontend_cli</literal> (source)</term>
+   <variablelist>
+    <varlistentry>
+     <term><literal>frontend_cli</literal> (source)</term>
     <listitem>
-     <para>
-      Command-line interface for generating requests.
+      <para>
+       Command-line interface for generating requests.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>srw2z3950</literal> (filter)</term>
+     <listitem>
+      <para>
+       Translate SRW requests into Z39.50 requests.
      </para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><literal>srw2z3950</literal> (filter)</term>
-    <listitem>
-     <para>
-      Translate SRW requests into Z39.50 requests.
-     </para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><literal>srw_client</literal> (sink)</term>
-    <listitem>
-     <para>
-      SRW searching and retrieval.
-     </para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><literal>sru_client</literal> (sink)</term>
-    <listitem>
-     <para>
-      SRU searching and retrieval.
-     </para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><literal>opensearch_client</literal> (sink)</term>
-    <listitem>
-     <para>
-      A9 OpenSearch searching and retrieval.
-     </para>
-    </listitem>
-   </varlistentry>
-  </variablelist>
- </section>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>srw_client</literal> (sink)</term>
+     <listitem>
+      <para>
+       SRW searching and retrieval.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>sru_client</literal> (sink)</term>
+     <listitem>
+      <para>
+       SRU searching and retrieval.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>opensearch_client</literal> (sink)</term>
+     <listitem>
+      <para>
+       A9 OpenSearch searching and retrieval.
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </section>
  </chapter>
-
-
-
+ 
+ 
+ 
  <chapter id="configuration">
- <title>Configuration: the Metaproxy configuration file format</title>
-
-
- <section>
-  <title>Introductory notes</title>
-  <para>
-   If Metaproxy is an interpreter providing operations on packages, then
-   its configuration file can be thought of as a program for that
-   interpreter.  Configuration is by means of a single file, the name
-   of which is supplied as the sole command-line argument to the
-   <command>yp2</command> program.
-  </para>
-  <para>
-   The configuration files are written in XML.  (But that's just an
-   implementation detail - they could just as well have been written
-   in YAML or Lisp-like S-expressions, or in a custom syntax.)
-  </para>
-  <para>
-   Since XML has been chosen, an XML schema,
-   <filename>config.xsd</filename>, is provided for validating
-   configuration files.  This file is supplied in the
-   <filename>etc</filename> directory of the Metaproxy distribution.  It
-   can be used by (among other tools) the <command>xmllint</command>
-   program supplied as part of the <literal>libxml2</literal>
-   distribution:
-  </para>
-  <screen>
-   xmllint --noout --schema etc/config.xsd my-config-file.xml
-  </screen>
-  <para>
-   (A recent version of <literal>libxml2</literal> is required, as
-   support for XML Schemas is a relatively recent addition.)
-  </para>
- </section>
-
- <section>
-  <title>Overview of XML structure</title>
-  <para>
-   All elements and attributes are in the namespace
-   <ulink url="http://indexdata.dk/yp2/config/1"/>.
-    This is most easily achieved by setting the default namespace on
-    the top-level element, as here:
-  </para>
-  <screen>
-   &lt;yp2 xmlns="http://indexdata.dk/yp2/config/1"&gt;
-  </screen>
-  <para>
-   The top-level element is &lt;yp2&gt;.  This contains a
-   &lt;start&gt; element, a &lt;filters&gt; element and a
-   &lt;routes&gt; element, in that order.  &lt;filters&gt; is
-   optional; the other two are mandatory.  All three are
-   non-repeatable.
-  </para>
-  <para>
-   The &lt;start&gt; element is empty, but carries a
-   <literal>route</literal> attribute, whose value is the name of
-   route at which to start running - analogouse to the name of the
-   start production in a formal grammar.
-  </para>
-  <para>
-   If present, &lt;filters&gt; contains zero or more &lt;filter&gt;
-   elements; filters carry a <literal>type</literal> attribute and
-   contain various elements that provide suitable configuration for
-   filters of that type.  The filter-specific elements are described
-   below.  Filters defined in this part of the file must carry an
-   <literal>id</literal> attribute so that they can be referenced
-   from elsewhere.
-  </para>
-  <para>
-   &lt;routes&gt; contains one or more &lt;route&gt; elements, each
-   of which must carry an <literal>id</literal> element.  One of the
-   routes must have the ID value that was specified as the start
-   route in the &lt;start&gt; element's <literal>route</literal>
-   attribute.  Each route contains zero or more &lt;filter&gt;
-   elements.  These are of two types.  They may be empty, but carry a
-   <literal>refid</literal> attribute whose value is the same as the
-   <literal>id</literal> of a filter previously defined in the
-   &lt;filters&gt; section.  Alternatively, a route within a filter
-   may omit the <literal>refid</literal> attribute, but contain
-   configuration elements similar to those used for filters defined
-   in the &lt;filters&gt; section.
-  </para>
- </section>
-
-
- <section>
-  <title>Filter configuration</title>
-  <para>
-   All &lt;filter&gt; elements have in common that they must carry a
-   <literal>type</literal> attribute whose value is one of the
-   supported ones, listed in the schema file and discussed below.  In
-   additional, &lt;filters&gt;s occurring the &lt;filters&gt; section
-   must have an <literal>id</literal> attribute, and those occurring
-   within a route must have either a <literal>refid</literal>
-   attribute referencing a previously defined filter or contain its
-   own configuration information.
-  </para>
-  <para>
-   In general, each filter recognises different configuration
-   elements within its element, as each filter has different
-   functionality.  These are as follows:
-  </para>
-
+  <title>Configuration: the Metaproxy configuration file format</title>
+  
+  
   <section>
-   <title><literal>auth_simple</literal></title>
+   <title>Introductory notes</title>
+   <para>
+    If Metaproxy is an interpreter providing operations on packages, then
+    its configuration file can be thought of as a program for that
+    interpreter.  Configuration is by means of a single file, the name
+    of which is supplied as the sole command-line argument to the
+    <command>yp2</command> program.
+   </para>
+   <para>
+    The configuration files are written in XML.  (But that's just an
+    implementation detail - they could just as well have been written
+    in YAML or Lisp-like S-expressions, or in a custom syntax.)
+   </para>
+   <para>
+    Since XML has been chosen, an XML schema,
+    <filename>config.xsd</filename>, is provided for validating
+    configuration files.  This file is supplied in the
+    <filename>etc</filename> directory of the Metaproxy distribution.  It
+    can be used by (among other tools) the <command>xmllint</command>
+    program supplied as part of the <literal>libxml2</literal>
+    distribution:
+   </para>
    <screen>
-    &lt;filter type="auth_simple"&gt;
-    &lt;userRegister&gt;../etc/example.simple-auth&lt;/userRegister&gt;
-    &lt;/filter&gt;
+    xmllint --noout --schema etc/config.xsd my-config-file.xml
    </screen>
+   <para>
+    (A recent version of <literal>libxml2</literal> is required, as
+    support for XML Schemas is a relatively recent addition.)
+   </para>
+  </section>
+  
+  <section>
+   <title>Overview of XML structure</title>
+   <para>
+    All elements and attributes are in the namespace
+    <ulink url="http://indexdata.dk/yp2/config/1"/>.
+     This is most easily achieved by setting the default namespace on
+     the top-level element, as here:
+   </para>
+   <screen>
+    &lt;yp2 xmlns="http://indexdata.dk/yp2/config/1"&gt;
+   </screen>
+   <para>
+    The top-level element is &lt;yp2&gt;.  This contains a
+    &lt;start&gt; element, a &lt;filters&gt; element and a
+    &lt;routes&gt; element, in that order.  &lt;filters&gt; is
+    optional; the other two are mandatory.  All three are
+    non-repeatable.
+   </para>
+  <para>
+    The &lt;start&gt; element is empty, but carries a
+    <literal>route</literal> attribute, whose value is the name of
+    route at which to start running - analogouse to the name of the
+    start production in a formal grammar.
+   </para>
+  <para>
+    If present, &lt;filters&gt; contains zero or more &lt;filter&gt;
+    elements; filters carry a <literal>type</literal> attribute and
+    contain various elements that provide suitable configuration for
+    filters of that type.  The filter-specific elements are described
+    below.  Filters defined in this part of the file must carry an
+    <literal>id</literal> attribute so that they can be referenced
+    from elsewhere.
+   </para>
+   <para>
+    &lt;routes&gt; contains one or more &lt;route&gt; elements, each
+    of which must carry an <literal>id</literal> element.  One of the
+    routes must have the ID value that was specified as the start
+    route in the &lt;start&gt; element's <literal>route</literal>
+    attribute.  Each route contains zero or more &lt;filter&gt;
+    elements.  These are of two types.  They may be empty, but carry a
+    <literal>refid</literal> attribute whose value is the same as the
+    <literal>id</literal> of a filter previously defined in the
+    &lt;filters&gt; section.  Alternatively, a route within a filter
+    may omit the <literal>refid</literal> attribute, but contain
+    configuration elements similar to those used for filters defined
+    in the &lt;filters&gt; section.
+   </para>
   </section>
 
-  <section>
-   <title><literal>backend_test</literal></title>
-   <screen>
-    &lt;filter type="backend_test"/&gt;
-   </screen>
-  </section>
 
   <section>
-   <title><literal>frontend_net</literal></title>
-   <screen>
-    &lt;filter type="frontend_net"&gt;
-    &lt;threads&gt;10&lt;/threads&gt;
-    &lt;port&gt;@:9000&lt;/port&gt;
-    &lt;/filter&gt;
-   </screen>
-  </section>
+   <title>Filter configuration</title>
+   <para>
+    All &lt;filter&gt; elements have in common that they must carry a
+    <literal>type</literal> attribute whose value is one of the
+    supported ones, listed in the schema file and discussed below.  In
+    additional, &lt;filters&gt;s occurring the &lt;filters&gt; section
+    must have an <literal>id</literal> attribute, and those occurring
+    within a route must have either a <literal>refid</literal>
+    attribute referencing a previously defined filter or contain its
+    own configuration information.
+   </para>
+   <para>
+    In general, each filter recognises different configuration
+    elements within its element, as each filter has different
+    functionality.  These are as follows:
+   </para>
 
-  <section>
-   <title><literal>http_file</literal></title>
-   <screen>
-    &lt;filter type="http_file"&gt;
-    &lt;mimetypes&gt;/etc/mime.types&lt;/mimetypes&gt;
-    &lt;area&gt;
-    &lt;documentroot&gt;.&lt;/documentroot&gt;
-    &lt;prefix&gt;/etc&lt;/prefix&gt;
-    &lt;/area&gt;
-    &lt;/filter&gt;
-   </screen>
-  </section>
+   <section>
+    <title><literal>auth_simple</literal></title>
+    <screen>
+     &lt;filter type="auth_simple"&gt;
+     &lt;userRegister&gt;../etc/example.simple-auth&lt;/userRegister&gt;
+     &lt;/filter&gt;
+    </screen>
+   </section>
 
-  <section>
-   <title><literal>log</literal></title>
-   <screen>
-    &lt;filter type="log"&gt;
-    &lt;message&gt;B&lt;/message&gt;
-    &lt;/filter&gt;
-   </screen>
-  </section>
+   <section>
+    <title><literal>backend_test</literal></title>
+    <screen>
+     &lt;filter type="backend_test"/&gt;
+    </screen>
+   </section>
 
-  <section>
-   <title><literal>multi</literal></title>
-   <screen>
-    &lt;filter type="multi"/&gt;
-   </screen>
-  </section>
+   <section>
+    <title><literal>frontend_net</literal></title>
+    <screen>
+     &lt;filter type="frontend_net"&gt;
+     &lt;threads&gt;10&lt;/threads&gt;
+     &lt;port&gt;@:9000&lt;/port&gt;
+     &lt;/filter&gt;
+    </screen>
+   </section>
 
-  <section>
-   <title><literal>session_shared</literal></title>
-   <screen>
-    &lt;filter type="session_shared"&gt;
-    ### Not yet defined
-    &lt;/filter&gt;
-   </screen>
-  </section>
+   <section>
+    <title><literal>http_file</literal></title>
+    <screen>
+     &lt;filter type="http_file"&gt;
+     &lt;mimetypes&gt;/etc/mime.types&lt;/mimetypes&gt;
+     &lt;area&gt;
+     &lt;documentroot&gt;.&lt;/documentroot&gt;
+     &lt;prefix&gt;/etc&lt;/prefix&gt;
+     &lt;/area&gt;
+     &lt;/filter&gt;
+    </screen>
+   </section>
 
-  <section>
-   <title><literal>template</literal></title>
-   <screen>
-    &lt;filter type="template"/&gt;
-   </screen>
-  </section>
+   <section>
+    <title><literal>log</literal></title>
+    <screen>
+     &lt;filter type="log"&gt;
+     &lt;message&gt;B&lt;/message&gt;
+     &lt;/filter&gt;
+    </screen>
+   </section>
 
-  <section>
-   <title><literal>virt_db</literal></title>
-   <screen>
-    &lt;filter type="virt_db"&gt;
-    &lt;virtual&gt;
-    &lt;database&gt;loc&lt;/database&gt;
-    &lt;target&gt;z3950.loc.gov:7090/voyager&lt;/target&gt;
-    &lt;/virtual&gt;
-    &lt;virtual&gt;
-    &lt;database&gt;idgils&lt;/database&gt;
-    &lt;target&gt;indexdata.dk/gils&lt;/target&gt;
-    &lt;/virtual&gt;
-    &lt;/filter&gt;
-   </screen>
-  </section>
+   <section>
+    <title><literal>multi</literal></title>
+    <screen>
+     &lt;filter type="multi"/&gt;
+    </screen>
+   </section>
 
-  <section>
-   <title><literal>z3950_client</literal></title>
-   <screen>
-    &lt;filter type="z3950_client"&gt;
-    &lt;timeout&gt;30&lt;/timeout&gt;
-    &lt;/filter&gt;
-   </screen>
+   <section>
+    <title><literal>session_shared</literal></title>
+    <screen>
+     &lt;filter type="session_shared"&gt;
+     ### Not yet defined
+     &lt;/filter&gt;
+    </screen>
+   </section>
+
+   <section>
+    <title><literal>template</literal></title>
+    <screen>
+     &lt;filter type="template"/&gt;
+    </screen>
+   </section>
+
+   <section>
+    <title><literal>virt_db</literal></title>
+    <screen>
+     &lt;filter type="virt_db"&gt;
+     &lt;virtual&gt;
+     &lt;database&gt;loc&lt;/database&gt;
+     &lt;target&gt;z3950.loc.gov:7090/voyager&lt;/target&gt;
+     &lt;/virtual&gt;
+     &lt;virtual&gt;
+     &lt;database&gt;idgils&lt;/database&gt;
+     &lt;target&gt;indexdata.dk/gils&lt;/target&gt;
+     &lt;/virtual&gt;
+     &lt;/filter&gt;
+    </screen>
+   </section>
+
+   <section>
+    <title><literal>z3950_client</literal></title>
+    <screen>
+     &lt;filter type="z3950_client"&gt;
+     &lt;timeout&gt;30&lt;/timeout&gt;
+     &lt;/filter&gt;
+    </screen>
+   </section>
   </section>
- </section>
  </chapter>
 
 
 
  <chapter id="multidb">
- <title>Virtual database as multi-database searching</title>
+  <title>Virtual database as multi-database searching</title>
 
 
- <section>
-  <title>Introductory notes</title>
-  <para>
-   Two of Metaproxy's filters are concerned with multiple-database
-   operations.  Of these, <literal>virt_db</literal> can work alone
-   to control the routing of searches to one of a number of servers,
-   while <literal>multi</literal> can work with the output of
-   <literal>virt_db</literal> to perform multicast searching, merging
-   the results into a unified result-set.  The interaction between
-   these two filters is necessarily complex, reflecting the real
-   complexity of multicast searching in a protocol such as Z39.50
-   that separates initialisation from searching, with the database to
-   search known only during the latter operation.
-  </para>
-  <para>
-   ### Much, much more to say!
-  </para>
- </section>
+  <section>
+   <title>Introductory notes</title>
+   <para>
+    Two of Metaproxy's filters are concerned with multiple-database
+    operations.  Of these, <literal>virt_db</literal> can work alone
+    to control the routing of searches to one of a number of servers,
+    while <literal>multi</literal> can work with the output of
+    <literal>virt_db</literal> to perform multicast searching, merging
+    the results into a unified result-set.  The interaction between
+    these two filters is necessarily complex, reflecting the real
+    complexity of multicast searching in a protocol such as Z39.50
+    that separates initialisation from searching, with the database to
+    search known only during the latter operation.
+   </para>
+   <para>
+    ### Much, much more to say!
+   </para>
+  </section>
  </chapter>
 
  <chapter id="moduleref">
@@ -507,281 +507,281 @@
  </chapter>
 
  <chapter id="classes">
- <title>Classes in the Metaproxy source code</title>
+  <title>Classes in the Metaproxy source code</title>
 
-
- <section>
-  <title>Introductory notes</title>
-  <para>
-   <emphasis>Stop!  Do not read this!</emphasis>
-   You won't enjoy it at all.
-  </para>
-  <para>
-   This chapter contains documentation of the Metaproxy source code, and is
-   of interest only to maintainers and developers.  If you need to
-   change Metaproxy's behaviour or write a new filter, then you will most
-   likely find this chapter helpful.  Otherwise it's a waste of your
-   good time.  Seriously: go and watch a film or something.
-   <citetitle>This is Spinal Tap</citetitle> is particularly good.
-  </para>
-  <para>
-   Still here?  OK, let's continue.
-  </para>
-  <para>
-   In general, classes seem to be named big-endianly, so that
-   <literal>FactoryFilter</literal> is not a filter that filters
-   factories, but a factory that produces filters; and
-   <literal>FactoryStatic</literal> is a factory for the statically
-   registered filters (as opposed to those that are dynamically
-   loaded).
-  </para>
- </section>
-
- <section>
-  <title>Individual classes</title>
-  <para>
-   The classes making up the Metaproxy application are here listed by
-   class-name, with the names of the source files that define them in
-   parentheses.
-  </para>
 
   <section>
-   <title><literal>mp::FactoryFilter</literal>
-    (<filename>factory_filter.cpp</filename>)</title>
+   <title>Introductory notes</title>
    <para>
-    A factory class that exists primarily to provide the
-    <literal>create()</literal> method, which takes the name of a
-    filter class as its argument and returns a new filter of that
-    type.  To enable this, the factory must first be populated by
-    calling <literal>add_creator()</literal> for static filters (this
-    is done by the <literal>FactoryStatic</literal> class, see below)
-    and <literal>add_creator_dyn()</literal> for filters loaded
-    dynamically.
+    <emphasis>Stop!  Do not read this!</emphasis>
+    You won't enjoy it at all.
+   </para>
+   <para>
+    This chapter contains documentation of the Metaproxy source code, and is
+    of interest only to maintainers and developers.  If you need to
+    change Metaproxy's behaviour or write a new filter, then you will most
+    likely find this chapter helpful.  Otherwise it's a waste of your
+    good time.  Seriously: go and watch a film or something.
+    <citetitle>This is Spinal Tap</citetitle> is particularly good.
+   </para>
+   <para>
+    Still here?  OK, let's continue.
+   </para>
+   <para>
+    In general, classes seem to be named big-endianly, so that
+    <literal>FactoryFilter</literal> is not a filter that filters
+    factories, but a factory that produces filters; and
+    <literal>FactoryStatic</literal> is a factory for the statically
+    registered filters (as opposed to those that are dynamically
+    loaded).
    </para>
   </section>
 
   <section>
-   <title><literal>mp::FactoryStatic</literal>
-    (<filename>factory_static.cpp</filename>)</title>
+   <title>Individual classes</title>
    <para>
-    A subclass of <literal>FactoryFilter</literal> which is
-    responsible for registering all the statically defined filter
-    types.  It does this by knowing about all those filters'
-    structures, which are listed in its constructor.  Merely
-    instantiating this class registers all the static classes.  It is
-    for the benefit of this class that <literal>struct
-     yp2_filter_struct</literal> exists, and that all the filter
-    classes provide a static object of that type.
+    The classes making up the Metaproxy application are here listed by
+    class-name, with the names of the source files that define them in
+    parentheses.
    </para>
+
+   <section>
+    <title><literal>mp::FactoryFilter</literal>
+     (<filename>factory_filter.cpp</filename>)</title>
+    <para>
+     A factory class that exists primarily to provide the
+     <literal>create()</literal> method, which takes the name of a
+     filter class as its argument and returns a new filter of that
+     type.  To enable this, the factory must first be populated by
+     calling <literal>add_creator()</literal> for static filters (this
+     is done by the <literal>FactoryStatic</literal> class, see below)
+     and <literal>add_creator_dyn()</literal> for filters loaded
+     dynamically.
+    </para>
+   </section>
+
+   <section>
+    <title><literal>mp::FactoryStatic</literal>
+     (<filename>factory_static.cpp</filename>)</title>
+    <para>
+     A subclass of <literal>FactoryFilter</literal> which is
+     responsible for registering all the statically defined filter
+     types.  It does this by knowing about all those filters'
+     structures, which are listed in its constructor.  Merely
+     instantiating this class registers all the static classes.  It is
+     for the benefit of this class that <literal>struct
+      yp2_filter_struct</literal> exists, and that all the filter
+     classes provide a static object of that type.
+    </para>
+   </section>
+
+   <section>
+    <title><literal>mp::filter::Base</literal>
+     (<filename>filter.cpp</filename>)</title>
+    <para>
+     The virtual base class of all filters.  The filter API is, on the
+     surface at least, extremely simple: two methods.
+     <literal>configure()</literal> is passed a DOM tree representing
+     that part of the configuration file that pertains to this filter
+     instance, and is expected to walk that tree extracting relevant
+     information.  And <literal>process()</literal> processes a
+     package (see below).  That surface simplicitly is a bit
+     misleading, as <literal>process()</literal> needs to know a lot
+     about the <literal>Package</literal> class in order to do
+     anything useful.
+    </para>
+   </section>
+
+   <section>
+    <title><literal>mp::filter::AuthSimple</literal>,
+     <literal>Backend_test</literal>, etc.
+     (<filename>filter_auth_simple.cpp</filename>,
+     <filename>filter_backend_test.cpp</filename>, etc.)</title>
+    <para>
+     Individual filters.  Each of these is implemented by a header and
+     a source file, named <filename>filter_*.hpp</filename> and
+     <filename>filter_*.cpp</filename> respectively.  All the header
+     files should be pretty much identical, in that they declare the
+     class, including a private <literal>Rep</literal> class and a
+     member pointer to it, and the two public methods.  The only extra
+     information in any filter header is additional private types and
+     members (which should really all be in the <literal>Rep</literal>
+     anyway) and private methods (which should also remain known only
+     to the source file, but C++'s brain-damaged design requires this
+     dirty laundry to be exhibited in public.  Thanks, Bjarne!)
+    </para>
+    <para>
+     The source file for each filter needs to supply:
+    </para>
+    <itemizedlist>
+     <listitem>
+      <para>
+       A definition of the private <literal>Rep</literal> class.
+      </para>
+     </listitem>
+     <listitem>
+      <para>
+       Some boilerplate constructors and destructors.
+      </para>
+     </listitem>
+     <listitem>
+      <para>
+       A <literal>configure()</literal> method that uses the
+       appropriate XML fragment.
+      </para>
+     </listitem>
+     <listitem>
+      <para>
+       Most important, the <literal>process()</literal> method that
+       does all the actual work.
+      </para>
+     </listitem>
+    </itemizedlist>
+   </section>
+
+   <section>
+    <title><literal>mp::Package</literal>
+     (<filename>package.cpp</filename>)</title>
+    <para>
+     Represents a package on its way through the series of filters
+     that make up a route.  This is essentially a Z39.50 or SRU APDU
+     together with information about where it came from, which is
+     modified as it passes through the various filters.
+    </para>
+   </section>
+
+   <section>
+    <title><literal>mp::Pipe</literal>
+     (<filename>pipe.cpp</filename>)</title>
+    <para>
+     This class provides a compatibility layer so that we have an IPC
+     mechanism that works the same under Unix and Windows.  It's not
+     particularly exciting.
+    </para>
+   </section>
+
+   <section>
+    <title><literal>mp::RouterChain</literal>
+     (<filename>router_chain.cpp</filename>)</title>
+    <para>
+     ###
+    </para>
+   </section>
+
+   <section>
+    <title><literal>mp::RouterFleXML</literal>
+     (<filename>router_flexml.cpp</filename>)</title>
+    <para>
+     ###
+    </para>
+   </section>
+
+   <section>
+    <title><literal>mp::Session</literal>
+     (<filename>session.cpp</filename>)</title>
+    <para>
+     ###
+    </para>
+   </section>
+
+   <section>
+    <title><literal>mp::ThreadPoolSocketObserver</literal>
+     (<filename>thread_pool_observer.cpp</filename>)</title>
+    <para>
+     ###
+    </para>
+   </section>
+
+   <section>
+    <title><literal>mp::util</literal>
+     (<filename>util.cpp</filename>)</title>
+    <para>
+     A namespace of various small utility functions and classes,
+     collected together for convenience.  Most importantly, includes
+     the <literal>mp::util::odr</literal> class, a wrapper for YAZ's
+     ODR facilities.
+    </para>
+   </section>
+
+   <section>
+    <title><literal>mp::xml</literal>
+     (<filename>xmlutil.cpp</filename>)</title>
+    <para>
+     A namespace of various XML utility functions and classes,
+     collected together for convenience.
+    </para>
+   </section>
   </section>
+
 
   <section>
-   <title><literal>mp::filter::Base</literal>
-    (<filename>filter.cpp</filename>)</title>
+   <title>Other Source Files</title>
    <para>
-    The virtual base class of all filters.  The filter API is, on the
-    surface at least, extremely simple: two methods.
-    <literal>configure()</literal> is passed a DOM tree representing
-    that part of the configuration file that pertains to this filter
-    instance, and is expected to walk that tree extracting relevant
-    information.  And <literal>process()</literal> processes a
-    package (see below).  That surface simplicitly is a bit
-    misleading, as <literal>process()</literal> needs to know a lot
-    about the <literal>Package</literal> class in order to do
-    anything useful.
+    In addition to the Metaproxy source files that define the classes
+    described above, there are a few additional files which are
+    briefly described here:
    </para>
-  </section>
-
-  <section>
-   <title><literal>mp::filter::AuthSimple</literal>,
-    <literal>Backend_test</literal>, etc.
-    (<filename>filter_auth_simple.cpp</filename>,
-    <filename>filter_backend_test.cpp</filename>, etc.)</title>
+   <variablelist>
+    <varlistentry>
+     <term><literal>metaproxy_prog.cpp</literal></term>
+     <listitem>
+      <para>
+       The main function of the <command>yp2</command> program.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>ex_router_flexml.cpp</literal></term>
+     <listitem>
+      <para>
+       Identical to <literal>metaproxy_prog.cpp</literal>: it's not clear why.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>test_*.cpp</literal></term>
+     <listitem>
+      <para>
+       Unit-tests for various modules.
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
    <para>
-    Individual filters.  Each of these is implemented by a header and
-    a source file, named <filename>filter_*.hpp</filename> and
-    <filename>filter_*.cpp</filename> respectively.  All the header
-    files should be pretty much identical, in that they declare the
-    class, including a private <literal>Rep</literal> class and a
-    member pointer to it, and the two public methods.  The only extra
-    information in any filter header is additional private types and
-    members (which should really all be in the <literal>Rep</literal>
-    anyway) and private methods (which should also remain known only
-    to the source file, but C++'s brain-damaged design requires this
-    dirty laundry to be exhibited in public.  Thanks, Bjarne!)
+    ### Still to be described:
+    <literal>ex_filter_frontend_net.cpp</literal>,
+    <literal>filter_dl.cpp</literal>,
+    <literal>plainfile.cpp</literal>,
+    <literal>tstdl.cpp</literal>.
    </para>
-   <para>
-    The source file for each filter needs to supply:
-   </para>
-   <itemizedlist>
-    <listitem>
-     <para>
-      A definition of the private <literal>Rep</literal> class.
-     </para>
-    </listitem>
-    <listitem>
-     <para>
-      Some boilerplate constructors and destructors.
-     </para>
-    </listitem>
-    <listitem>
-     <para>
-      A <literal>configure()</literal> method that uses the
-      appropriate XML fragment.
-     </para>
-    </listitem>
-    <listitem>
-     <para>
-      Most important, the <literal>process()</literal> method that
-      does all the actual work.
-     </para>
-    </listitem>
-   </itemizedlist>
-  </section>
-
-  <section>
-   <title><literal>mp::Package</literal>
-    (<filename>package.cpp</filename>)</title>
-   <para>
-    Represents a package on its way through the series of filters
-    that make up a route.  This is essentially a Z39.50 or SRU APDU
-    together with information about where it came from, which is
-    modified as it passes through the various filters.
-   </para>
-  </section>
-
-  <section>
-   <title><literal>mp::Pipe</literal>
-    (<filename>pipe.cpp</filename>)</title>
-   <para>
-    This class provides a compatibility layer so that we have an IPC
-    mechanism that works the same under Unix and Windows.  It's not
-    particularly exciting.
-   </para>
-  </section>
-
-  <section>
-   <title><literal>mp::RouterChain</literal>
-    (<filename>router_chain.cpp</filename>)</title>
-   <para>
-    ###
-   </para>
-  </section>
-
-  <section>
-   <title><literal>mp::RouterFleXML</literal>
-    (<filename>router_flexml.cpp</filename>)</title>
-   <para>
-    ###
-   </para>
-  </section>
-
-  <section>
-   <title><literal>mp::Session</literal>
-    (<filename>session.cpp</filename>)</title>
-   <para>
-    ###
-   </para>
-  </section>
-
-  <section>
-   <title><literal>mp::ThreadPoolSocketObserver</literal>
-    (<filename>thread_pool_observer.cpp</filename>)</title>
-   <para>
-    ###
-   </para>
-  </section>
-
-  <section>
-   <title><literal>mp::util</literal>
-    (<filename>util.cpp</filename>)</title>
-   <para>
-    A namespace of various small utility functions and classes,
-    collected together for convenience.  Most importantly, includes
-    the <literal>mp::util::odr</literal> class, a wrapper for YAZ's
-    ODR facilities.
-   </para>
-  </section>
-
-  <section>
-   <title><literal>mp::xml</literal>
-    (<filename>xmlutil.cpp</filename>)</title>
-   <para>
-    A namespace of various XML utility functions and classes,
-    collected together for convenience.
-   </para>
-  </section>
- </section>
-
-
- <section>
-  <title>Other Source Files</title>
-  <para>
-   In addition to the Metaproxy source files that define the classes
-   described above, there are a few additional files which are
-   briefly described here:
-  </para>
-  <variablelist>
-   <varlistentry>
-    <term><literal>metaproxy_prog.cpp</literal></term>
-    <listitem>
-     <para>
-      The main function of the <command>yp2</command> program.
-     </para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><literal>ex_router_flexml.cpp</literal></term>
-    <listitem>
-     <para>
-      Identical to <literal>metaproxy_prog.cpp</literal>: it's not clear why.
-     </para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><literal>test_*.cpp</literal></term>
-    <listitem>
-     <para>
-      Unit-tests for various modules.
-     </para>
-    </listitem>
-   </varlistentry>
-  </variablelist>
-  <para>
-   ### Still to be described:
-   <literal>ex_filter_frontend_net.cpp</literal>,
-   <literal>filter_dl.cpp</literal>,
-   <literal>plainfile.cpp</literal>,
-   <literal>tstdl.cpp</literal>.
-  </para>
-  
-  
-  <!-- Epilogue -->
-  <para>
-   --
-  </para>
-  <screen>
-   <!-- This is just a lame way to get some vertical whitespace at
-   the end of the document -->
    
    
-   
-   
-  </screen>
- </section>
+   <!-- Epilogue -->
+   <para>
+    --
+   </para>
+   <screen>
+    <!-- This is just a lame way to get some vertical whitespace at
+    the end of the document -->
+    
+    
+    
+    
+   </screen>
+  </section>
  </chapter>
 
-<!-- Keep this comment at the end of the file
-Local variables:
-mode: sgml
-sgml-omittag:t
-sgml-shorttag:t
-sgml-minimize-attributes:nil
-sgml-always-quote-attributes:t
-sgml-indent-step:1
-sgml-indent-data:t
-sgml-parent-document:yp2.xml
-sgml-local-catalogs: nil
-sgml-namecase-general:t
-End:
--->
+ <!-- Keep this comment at the end of the file
+ Local variables:
+ mode: sgml
+ sgml-omittag:t
+ sgml-shorttag:t
+ sgml-minimize-attributes:nil
+ sgml-always-quote-attributes:t
+ sgml-indent-step:1
+ sgml-indent-data:t
+ sgml-parent-document: "main.xml"
+ sgml-local-catalogs: nil
+ sgml-namecase-general:t
+ End:
+ -->
