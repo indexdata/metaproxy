@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: buildconf.sh,v 1.5 2005-10-25 15:17:47 adam Exp $
+# $Id: buildconf.sh,v 1.6 2006-03-28 16:56:33 adam Exp $
 
 if automake --version|head -1 |grep '1\.[4-7]'; then
     echo "automake 1.4-1.7 is active. You should use automake 1.8 or later"
@@ -11,7 +11,9 @@ if automake --version|head -1 |grep '1\.[4-7]'; then
 fi
 
 set -x
-aclocal -I m4
+
+# I am tired of underquoted warnings for Tcl macros
+aclocal -I m4 2>&1 | grep -v aclocal/tcl.m4
 autoheader
 libtoolize --automake --force 
 automake --add-missing 
