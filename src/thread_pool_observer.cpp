@@ -1,5 +1,5 @@
 
-/* $Id: thread_pool_observer.cpp,v 1.14 2006-03-16 10:40:59 adam Exp $
+/* $Id: thread_pool_observer.cpp,v 1.15 2006-03-29 13:44:45 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -26,7 +26,7 @@
 
 #include <deque>
 
-#include <yaz++/socket-observer.h>
+#include <yazpp/socket-observer.h>
 #include <yaz/log.h>
 
 #include "thread_pool_observer.hpp"

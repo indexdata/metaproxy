@@ -1,4 +1,4 @@
-/* $Id: pipe.cpp,v 1.6 2006-03-16 10:40:59 adam Exp $
+/* $Id: pipe.cpp,v 1.7 2006-03-29 13:44:45 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -36,7 +36,7 @@
 
 #include <deque>
 
-#include <yaz++/socket-observer.h>
+#include <yazpp/socket-observer.h>
 #include <yaz/log.h>
 
 #include "pipe.hpp"

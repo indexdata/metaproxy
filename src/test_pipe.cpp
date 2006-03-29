@@ -1,4 +1,4 @@
-/* $Id: test_pipe.cpp,v 1.5 2006-03-16 10:40:59 adam Exp $
+/* $Id: test_pipe.cpp,v 1.6 2006-03-29 13:44:45 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -6,7 +6,7 @@
 
 #include "config.hpp"
 
-#include <yaz++/socket-manager.h>
+#include <yazpp/socket-manager.h>
 
 #include <iostream>
 #include <stdexcept>

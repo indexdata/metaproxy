@@ -1,4 +1,4 @@
-/* $Id: package.hpp,v 1.15 2006-03-16 10:40:59 adam Exp $
+/* $Id: package.hpp,v 1.16 2006-03-29 13:44:45 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -9,7 +9,7 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <yaz++/gdu.h>
+#include <yazpp/gdu.h>
 
 #include "router.hpp"
 #include "filter.hpp"

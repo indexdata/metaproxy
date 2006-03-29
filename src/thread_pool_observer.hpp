@@ -1,4 +1,4 @@
-/* $Id: thread_pool_observer.hpp,v 1.8 2006-03-16 10:40:59 adam Exp $
+/* $Id: thread_pool_observer.hpp,v 1.9 2006-03-29 13:44:45 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -9,7 +9,7 @@
 
 #include <boost/scoped_ptr.hpp>
 
-#include <yaz++/socket-observer.h>
+#include <yazpp/socket-observer.h>
 #include <yaz/yconfig.h>
 
 namespace metaproxy_1 {

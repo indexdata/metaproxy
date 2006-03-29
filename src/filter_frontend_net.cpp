@@ -1,4 +1,4 @@
-/* $Id: filter_frontend_net.cpp,v 1.16 2006-03-16 10:40:59 adam Exp $
+/* $Id: filter_frontend_net.cpp,v 1.17 2006-03-29 13:44:45 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -11,9 +11,9 @@
 #include "package.hpp"
 #include "thread_pool_observer.hpp"
 #include "filter_frontend_net.hpp"
-#include <yaz++/z-assoc.h>
-#include <yaz++/pdu-assoc.h>
-#include <yaz++/socket-manager.h>
+#include <yazpp/z-assoc.h>
+#include <yazpp/pdu-assoc.h>
+#include <yazpp/socket-manager.h>
 #include <yaz/log.h>
 
 #include <iostream>

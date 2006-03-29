@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.24 2006-03-16 10:40:59 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.25 2006-03-29 13:44:45 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -24,9 +24,9 @@
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
 
-#include <yaz++/socket-manager.h>
-#include <yaz++/pdu-assoc.h>
-#include <yaz++/z-assoc.h>
+#include <yazpp/socket-manager.h>
+#include <yazpp/pdu-assoc.h>
+#include <yazpp/z-assoc.h>
 
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
