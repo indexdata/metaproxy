@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: config.xsd,v 1.15 2006-03-30 11:21:18 mike Exp $ -->
+<!-- $Id: config.xsd,v 1.16 2006-03-30 11:43:59 mike Exp $ -->
 <!--
 	This Schema prescribes the format of YP2 configuration files.
 	Invoke it like this:
@@ -94,7 +94,7 @@
 	  </xs:element>
         </xs:sequence>
 
-	<!-- type="http_file" -->
+	<!-- type="query_rewrite" -->
 	<xs:element ref="config:xslt"/>
 
       </xs:choice>
