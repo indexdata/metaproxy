@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: config.xsd,v 1.13 2006-02-02 18:20:41 mike Exp $ -->
+<!-- $Id: config.xsd,v 1.14 2006-03-30 11:16:17 mike Exp $ -->
 <!--
 	This Schema prescribes the format of YP2 configuration files.
 	Invoke it like this:
@@ -81,6 +81,19 @@
 	<!-- type="template" -->
 	<!-- No example configuration to deduce from yet -->
 
+	<!-- type="http_file" -->
+        <xs:sequence>
+	  <xs:element ref="config:mimetypes"/>
+	  <xs:element name="area">
+	    <xs:complexType>
+	      <xs:sequence>
+		<xs:element ref="config:documentroot"/>
+		<xs:element ref="config:prefix"/>
+	      </xs:sequence>
+	    </xs:complexType>
+	  </xs:element>
+        </xs:sequence>
+
       </xs:choice>
       <xs:attribute name="id" type="xs:NCName"/>
       <xs:attribute name="refid" type="xs:NCName"/>
@@ -96,6 +109,7 @@
             <xs:enumeration value="multi"/>
             <xs:enumeration value="session_shared"/>
             <xs:enumeration value="template"/>
+            <xs:enumeration value="http_file"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
@@ -109,6 +123,9 @@
   <xs:element name="userRegister" type="xs:string"/>
   <xs:element name="targetRegister" type="xs:string"/>
   <xs:element name="discardUnauthorisedTargets" type="xs:string"/>
+  <xs:element name="mimetypes" type="xs:string"/>
+  <xs:element name="documentroot" type="xs:string"/>
+  <xs:element name="prefix" type="xs:string"/>
 
   <!-- ### This is used differently depending on whether it occurs
        within a "virt_db" or "multi" filter: for the former, it
