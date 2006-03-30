@@ -1,4 +1,4 @@
-How to add a new manpage.
+To add a new manpage, edit Makefile.am.
 For new man page x.xml that you want in x.s (s=man section) you have to add:
 Add to XMLMAN: x.xml 
 Add to MANFILES: x.s
