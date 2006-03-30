@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.4 2006-03-27 13:41:40 adam Exp $
+## $Id: Makefile.am,v 1.5 2006-03-30 13:10:59 mike Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUFFIXES=.3mp .1
@@ -10,9 +10,9 @@ MAINXML = main.xml
 HTMLFILES = metaproxy.html 
 
 XMLMAN=auth_simple.xml backend_test.xml frontend_net.xml http_file.xml \
- log.xml metaproxy.xml multi.xml virt_db.xml z3950_client.xml
+ log.xml metaproxy.xml multi.xml query_rewrite.xml virt_db.xml z3950_client.xml
 MANFILES=auth_simple.3mp backend_test.3mp frontend_net.3mp http_file.3mp \
- log.3mp metaproxy.1 multi.3mp virt_db.3mp z3950_client.3mp
+ log.3mp metaproxy.1   multi.3mp query_rewrite.3mp virt_db.3mp z3950_client.3mp
 
 PNGFILES=
 EPSFILES=
