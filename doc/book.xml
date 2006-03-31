@@ -1,23 +1,23 @@
-<!-- $Id: book.xml,v 1.4 2006-03-27 14:34:45 adam Exp $ -->
+<!-- $Id: book.xml,v 1.5 2006-03-31 16:05:27 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
    <firstname>Mike</firstname><surname>Taylor</surname>
   </author>
- <author>
-  <firstname>Adam</firstname><surname>Dickmeiss</surname>
- </author>
- <copyright>
-  <year>2006</year>
-  <holder>Index Data</holder>
- </copyright>
+  <author>
+   <firstname>Adam</firstname><surname>Dickmeiss</surname>
+  </author>
+  <copyright>
+   <year>2006</year>
+   <holder>Index Data</holder>
+  </copyright>
   <abstract>
    <simpara>
-    Metaproxy - Generic Z39.50/SRU router/proxy.
+    Metaproxy - universal Z39.50/SRU router, proxy and encapsulated metasearcher
    </simpara>
   </abstract>
  </bookinfo>
- 
+
  <chapter id="introduction">
   <title>Introduction</title>
   
@@ -26,15 +26,143 @@
    <title>Overview</title>
    <para>
     <ulink url="http://indexdata.dk/metaproxy/">Metaproxy</ulink>
-    is ..
+    is a standalone program that acts as a universal router, proxy and
+    encapsulated metasearcher for information retrieval protocols such
+    as Z39.50 and SRU/SRW.  To clients, it acts as a server of these
+    protocols: it can be searched, records can be retrieved from it,
+    etc.  To servers, it acts as a client: it searches in them,
+    retrieves records from them, etc.  it satisfies its clients'
+    requests by transforming them, multiplexing them, forwarding them
+    on to zero or more servers, merging the results, transforming
+    them, and delivering them back to the client.
    </para>
    <para>
-    ### We should probably consider saying a little more by way of
-    introduction.
+    Metaproxy is a more capable alternative to
+    <ulink url="http://indexdata.dk/yazproxy/">YAZ Proxy</ulink>,
+    being more powerful, flexible, configurable and extensible.  Among
+    its many advantages over the older, more pedestrian work are
+    support for multiplexing (encapsulated metasearching), routing by
+    database name, authentication and authorisation and serving local
+    files via HTTP.  Equally significant, its modular architecture
+    facilitites the creation of pluggable modules implementing further
+    functionality.
    </para>
   </section>
  </chapter>
- 
+
+
+
+ <chapter id="licence">
+  <title>The Metaproxy Licence</title>
+  <para>
+   <emphasis role="strong">
+     No decision has yet been made on the terms under which
+     Metaproxy will be distributed.
+   </emphasis>
+   It is possible that, unlike
+   other Index Data products, metaproxy may not be released under a
+   free-software licence such as the GNU GPL.  Until a decision is
+   made and a public statement made, then, and unless it has been
+   delivered to you other specific terms, please treat Metaproxy as
+   though it were proprietary software.
+  </para>
+ </chapter>
+
+
+
+ <chapter id="architecture">
+  <title>The Metaproxy Architecture</title>
+  <para>
+   The Metaproxy architecture is based on three concepts:
+   the <emphasis>package</emphasis>,
+   the <emphasis>route</emphasis>
+   and the <emphasis>filter</emphasis>.
+  </para>
+  <variablelist>
+   <varlistentry>
+    <term>Packages</term>
+    <listitem>
+     <para>
+      A package is request or response, encoded in some protocol,
+      issued by a client, making its way through Metaproxy, send to or
+      received from a server, or sent back to the client.
+     </para>
+     <para>
+      The core of a package is the protocol unit - for example, a
+      Z39.50 Init Request or Search Response, or an SRU searchRetrieve
+      URL or Explain Response.  In addition to this core, a package
+      also carries some extra information added and used by Metaproxy
+      itself.
+     </para>
+     <para>
+      In general, packages are doctored as they pass through
+      Metaproxy.  For example, when the proxy performs authentication
+      and authorisation on a Z39.50 Init request, it removes the
+      authentication credentials from the package so that they are not
+      passed onto the back-end server; and when search-response
+      packages are obtained from multiple servers, they are merged
+      into a single unified package that makes its way back to the
+      client.
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Routes</term>
+    <listitem>
+     <para>
+      Packages make their way through routes, which can be thought of
+      as programs that operate on the package data-type.  Each
+      incoming package initially makes its way through a default
+      route, but may be switched to a different route based on various
+      considerations.  Routes are made up of sequences of filters (see
+      below).
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>Filters</term>
+    <listitem>
+     <para>
+      Filters provide the individual instructions within a route, and
+      effect the necessary transformations on packages.  A particular
+      configuration of Metaproxy is essentially a set of filters,
+      described by configuration details and arranged in order in one
+      or more routes.  There are many kinds of filter - about a dozen
+      at the time of writing with more appearing all the time - each
+      performing a specific function and configured by different
+      information.
+     </para>
+     <para>
+      The word ``filter'' is sometimes used rather loosely, in two
+      different ways: it may be used to mean a particular
+      <emphasis>type</emphasis> of filter, as when we speak of ``the
+      auth_simplefilter'' or ``the multi filter''; or it may be used
+      to be a specific instance of a filter within a Metaproxy
+      configuration.  For example, a single configuration will often
+      contain multiple instances of the z3950_client filter.  In
+      operational terms, of these is a separate filter.  In practice,
+      context always make it clear which sense of the word ``filter''
+      is being used.
+     </para>
+     <para>
+      Extensibility of Metaproxy is primarily through the creation of
+      plugins that provide new filters.  The filter API is small and
+      conceptually simple, but there are many details to master.  See
+      the section below on
+      <link linkend="extensions">extensions</link>.
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  <para>
+   Since packages are created and handled by the system itself, and
+   routes are conceptually simple, most of the remainder of this
+   document concentrates on filters.  After a brief overview of the
+   filter types follows, along with some thoughts on possible future
+   directions.
+  </para>
+ </chapter>
+
 
 
  <chapter id="filters">
@@ -84,6 +212,7 @@
     (<literal>auth_simple</literal>,
     <literal>log</literal>,
     <literal>multi</literal>,
+    <literal>query_rewrite</literal>,
     <literal>session_shared</literal>,
     <literal>template</literal>,
     <literal>virt_db</literal>).
@@ -506,6 +635,11 @@
   &manref;
  </chapter>
 
+ <chapter id="extensions">
+  <title>Writing extensions for Metaproxy</title>
+  <para>###</para>
+ </chapter>
+
  <chapter id="classes">
   <title>Classes in the Metaproxy source code</title>
 
@@ -783,5 +917,6 @@
  sgml-parent-document: "main.xml"
  sgml-local-catalogs: nil
  sgml-namecase-general:t
+ nxml-child-indent: 1
  End:
  -->
