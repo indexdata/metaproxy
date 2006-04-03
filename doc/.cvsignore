@@ -1,11 +1,10 @@
 Makefile
 Makefile.in
-zebra.xml
-zebra.tex
-zebra.out
-zebra.log
-zebra.aux
-zebra.pdf
+metaproxy.tex
+metaproxy.out
+metaproxy.log
+metaproxy.aux
+metaproxy.pdf
 manpage.links
 manpage.refs
 tkl.xsl
@@ -16,3 +15,5 @@ tkl.xsl
 *.dsl
 *.php
 *.3mp
+main.xml
+manref.xml
