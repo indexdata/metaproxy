@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.6 2006-04-19 15:43:40 mike Exp $ -->
+<!-- $Id: book.xml,v 1.7 2006-04-19 16:01:41 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -13,10 +13,11 @@
   </copyright>
   <abstract>
    <simpara>
-    Metaproxy is a universal Z39.50/SRU router, proxy and encapsulated
-    metasearcher.  It accepts, processes, interprets and redirects
-    requests from IR clients using standard protocols such as
-    ANSI/NISO Z39.50, SRU and SRW, as well as functioning as a limited
+    Metaproxy is a universal router, proxy and encapsulated
+    metasearcher for information retrieval protocols.  It accepts,
+    processes, interprets and redirects requests from IR clients using
+    standard protocols such as ANSI/NISO Z39.50 (and in the future SRU
+    and SRW), as well as functioning as a limited
     HTTP server.  Metaproxy is configured by an XML file which
     specifies how the software should function in terms of routes that
     the request packets can take through the proxy, each step on a
@@ -43,7 +44,8 @@
     <ulink url="http://indexdata.dk/metaproxy/">Metaproxy</ulink>
     is a standalone program that acts as a universal router, proxy and
     encapsulated metasearcher for information retrieval protocols such
-    as Z39.50 and SRU/SRW.  To clients, it acts as a server of these
+    as Z39.50, and in the future SRU and SRW.  To clients, it acts as a
+    server of these
     protocols: it can be searched, records can be retrieved from it,
     etc.  To servers, it acts as a client: it searches in them,
     retrieves records from them, etc.  it satisfies its clients'
@@ -203,7 +205,7 @@
     complex data type, namely the ``package''.
    </para>
    <para>
-    A package represents a Z39.50 or SRW/U request (whether for Init,
+    A package represents a Z39.50 or SRU/W request (whether for Init,
     Search, Scan, etc.)  together with information about where it came
     from.  Packages are created by front-end filters such as
     <literal>frontend_net</literal> (see below), which reads them from
@@ -302,7 +304,7 @@
     <title><literal>frontend_net</literal>
      (mp::filter::FrontendNet)</title>
     <para>
-     A source that accepts Z39.50 and SRW connections from a port
+     A source that accepts Z39.50 connections from a port
      specified in the configuration, reads protocol units, and
      feeds them into the next filter in the route.  When the result is
      revceived, it is returned to the original origin.
@@ -435,19 +437,19 @@
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>srw2z3950</literal> (filter)</term>
+     <term><literal>frontend_sru</literal> (source)</term>
      <listitem>
       <para>
-       Translate SRW requests into Z39.50 requests.
+       Receive SRU (and perhaps SRW) requests.
      </para>
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>srw_client</literal> (sink)</term>
+     <term><literal>sru2z3950</literal> (filter)</term>
      <listitem>
       <para>
-       SRW searching and retrieval.
-      </para>
+       Translate SRU requests into Z39.50 requests.
+     </para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -455,6 +457,14 @@
      <listitem>
       <para>
        SRU searching and retrieval.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>srw_client</literal> (sink)</term>
+     <listitem>
+      <para>
+       SRW searching and retrieval.
       </para>
      </listitem>
     </varlistentry>
