@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.5 2006-03-31 16:05:27 mike Exp $ -->
+<!-- $Id: book.xml,v 1.6 2006-04-19 15:43:40 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -13,7 +13,24 @@
   </copyright>
   <abstract>
    <simpara>
-    Metaproxy - universal Z39.50/SRU router, proxy and encapsulated metasearcher
+    Metaproxy is a universal Z39.50/SRU router, proxy and encapsulated
+    metasearcher.  It accepts, processes, interprets and redirects
+    requests from IR clients using standard protocols such as
+    ANSI/NISO Z39.50, SRU and SRW, as well as functioning as a limited
+    HTTP server.  Metaproxy is configured by an XML file which
+    specifies how the software should function in terms of routes that
+    the request packets can take through the proxy, each step on a
+    route being an instantiation of a filter.  Filters come in many
+    types, one for each operation: accepting Z39.50 packets, logging,
+    query transformation, multiplexing, etc.  Further filter-types can
+    be added as loadable modules to extend Metaproxy functionality,
+    using the filter API.
+   </simpara>
+   <simpara>
+    The terms under which Metaproxy will be distributed have yet to be
+    established, but it will not necessarily be open source; so users
+    should not at this stage redistribute the code without explicit
+    written permission from the copyright holders, Index Data ApS.
    </simpara>
   </abstract>
  </bookinfo>
@@ -22,8 +39,6 @@
   <title>Introduction</title>
   
   
-  <section>
-   <title>Overview</title>
    <para>
     <ulink url="http://indexdata.dk/metaproxy/">Metaproxy</ulink>
     is a standalone program that acts as a universal router, proxy and
@@ -34,8 +49,17 @@
     retrieves records from them, etc.  it satisfies its clients'
     requests by transforming them, multiplexing them, forwarding them
     on to zero or more servers, merging the results, transforming
-    them, and delivering them back to the client.
+    them, and delivering them back to the client.  In addition, it
+    acts as a simple HTTP server; support for further protocols can be
+    added in a module fashion, through the creation of new filters.
    </para>
+   <screen>
+    Anything goes in!
+    Anything goes out!
+    Cold bananas, fish, pyjamas,
+    Mutton, beef and trout!
+	- attributed to Cole Porter.
+   </screen>
    <para>
     Metaproxy is a more capable alternative to
     <ulink url="http://indexdata.dk/yazproxy/">YAZ Proxy</ulink>,
@@ -47,7 +71,6 @@
     facilitites the creation of pluggable modules implementing further
     functionality.
    </para>
-  </section>
  </chapter>
 
 
@@ -65,6 +88,8 @@
    made and a public statement made, then, and unless it has been
    delivered to you other specific terms, please treat Metaproxy as
    though it were proprietary software.
+   The code should not be redistributed without explicit
+   written permission from the copyright holders, Index Data ApS.
   </para>
  </chapter>
 
@@ -137,9 +162,10 @@
       different ways: it may be used to mean a particular
       <emphasis>type</emphasis> of filter, as when we speak of ``the
       auth_simplefilter'' or ``the multi filter''; or it may be used
-      to be a specific instance of a filter within a Metaproxy
-      configuration.  For example, a single configuration will often
-      contain multiple instances of the z3950_client filter.  In
+      to be a specific <emphasis>instance</emphasis> of a filter
+      within a Metaproxy configuration.  For example, a single
+      configuration will often contain multiple instances of the
+      <literal>z3950_client</literal> filter.  In
       operational terms, of these is a separate filter.  In practice,
       context always make it clear which sense of the word ``filter''
       is being used.
@@ -189,7 +215,7 @@
    </para>
    <para>
     There are many kinds of filter: some that are defined statically
-    as part of Metaproxy, and other that may be provided by third parties
+    as part of Metaproxy, and others may be provided by third parties
     and dynamically loaded.  They all conform to the same simple API
     of essentially two methods: <function>configure()</function> is
     called at startup time, and is passed a DOM tree representing that
@@ -221,13 +247,25 @@
   
   
   <section>
-   <title>Individual filters</title>
+   <title>Overview of filter types</title>
+   <para>
+    We now briefly consider each of the types of filter supported by
+    the core Metaproxy binary.  This overview is intended to give a
+    flavour of the available functionality; more detailed information
+    about each type of filter is included below in the Module
+    Reference.
+   </para>
    <para>
     The filters are here named by the string that is used as the
     <literal>type</literal> attribute of a
     <literal>&lt;filter&gt;</literal> element in the configuration
     file to request them, with the name of the class that implements
-    them in parentheses.
+    them in parentheses.  (The classname is not needed for normal
+    configuration and use of Metaproxy; it is useful only to
+    developers.)
+   </para>
+   <para>
+    The filters are here listed in alphabetical order:
    </para>
    
    <section>
@@ -239,10 +277,13 @@
      lists <varname>username</varname>:<varname>password</varname>
      pairs, one per line, colon separated. When a session begins, it
      is rejected unless username and passsword are supplied, and match
-     a pair in the register.
-    </para>
-    <para>
-     ### discuss authorisation phase
+     a pair in the register.  The configuration file may also specific
+     the name of another file that is the target register: this lists
+     lists <varname>username</varname>:<varname>dbname</varname>,<varname>dbname</varname>...
+     sets, one per line, with multiple database names separated by
+     commas.  When a search is processed, it is rejected unless the
+     database to be searched is one of those listed as available to
+     the user.
     </para>
    </section>
    
@@ -252,7 +293,8 @@
     <para>
      A sink that provides dummy responses in the manner of the
      <literal>yaz-ztest</literal> Z39.50 server.  This is useful only
-     for testing.
+     for testing.  Seriously, you don't need this.  Pretend you didn't
+     even read this section.
     </para>
    </section>
    
@@ -262,8 +304,8 @@
     <para>
      A source that accepts Z39.50 and SRW connections from a port
      specified in the configuration, reads protocol units, and
-     feeds them into the next filter, eventually returning the
-     result to the origin.
+     feeds them into the next filter in the route.  When the result is
+     revceived, it is returned to the original origin.
     </para>
    </section>
 
@@ -292,8 +334,23 @@
    <title><literal>multi</literal>
      (mp::filter::Multi)</title>
     <para>
-     Performs multicast searching.  See the extended discussion of
-     multi-database searching below.
+     Performs multicast searching.
+     See
+     <link linkend="multidb">the extended discussion</link>
+     of virtual databases and multi-database searching below.
+    </para>
+   </section>
+   
+   <section>
+   <title><literal>query_rewrite</literal>
+     (mp::filter::QueryRewrite)</title>
+    <para>
+     Rewrites Z39.50 Type-1 and Type-101 (``RPN'') queries by a
+     three-step process: the query is transliterated from Z39.50
+     packet structures into an XML representation; that XML
+     representation is transformed by an XSLT stylesheet; and the
+     resulting XML is transliterated back into the Z39.50 packet
+     structure.
     </para>
    </section>
    
@@ -303,8 +360,16 @@
     <para>
      When this is finished, it will implement global sharing of
      result sets (i.e. between threads and therefore between
-     clients), but it's not yet done.
+     clients), yielding performance improvements especially when
+     incoming requests are from a stateless environment such as a
+     web-server, in which the client process representing a session
+     might be any one of many.  However:
     </para>
+    <warning>
+     <para>
+      This filter is not yet completed.
+     </para>
+    </warning>
    </section>
    
    <section>
@@ -315,7 +380,8 @@
      should be called <literal>nop</literal> or
      <literal>passthrough</literal>?)  This exists not to be used, but
      to be copied - to become the skeleton of new filters as they are
-     written.
+     written.  As with <literal>backend_test</literal>, this is not
+     intended for civilians.
     </para>
    </section>
    
@@ -323,8 +389,14 @@
     <title><literal>virt_db</literal>
      (mp::filter::Virt_db)</title>
     <para>
-     Performs virtual database selection.  See the extended discussion
-     of virtual databases below.
+     Performs virtual database selection: based on the name of the
+     database in the search request, a server is selected, and its
+     address added to the request in a <literal>VAL_PROXY</literal>
+     otherInfo packet.  It will subsequently be used by a
+     <literal>z3950_client</literal> filter.
+     See
+     <link linkend="multidb">the extended discussion</link>
+     of virtual databases and multi-database searching below.
     </para>
    </section>
    
@@ -349,7 +421,8 @@
   <para>
     Some other filters that do not yet exist, but which would be
     useful, are briefly described.  These may be added in future
-    releases.
+    releases (or may be created by third parties, as loadable
+    modules).
    </para>
 
    <variablelist>
@@ -399,6 +472,32 @@
  
  
  
+ <chapter id="multidb">
+  <title>Virtual databases and multi-database searching</title>
+
+
+  <section>
+   <title>Introductory notes</title>
+   <para>
+    Two of Metaproxy's filters are concerned with multiple-database
+    operations.  Of these, <literal>virt_db</literal> can work alone
+    to control the routing of searches to one of a number of servers,
+    while <literal>multi</literal> can work with the output of
+    <literal>virt_db</literal> to perform multicast searching, merging
+    the results into a unified result-set.  The interaction between
+    these two filters is necessarily complex, reflecting the real
+    complexity of multicast searching in a protocol such as Z39.50
+    that separates initialisation from searching, with the database to
+    search known only during the latter operation.
+   </para>
+   <para>
+    ### Much, much more to say!
+   </para>
+  </section>
+ </chapter>
+
+
+
  <chapter id="configuration">
   <title>Configuration: the Metaproxy configuration file format</title>
   
@@ -559,6 +658,15 @@
    </section>
 
    <section>
+    <title><literal>query_rewrite</literal></title>
+    <screen>
+     &lt;filter type="query_rewrite"&gt;
+     &lt;xslt&gt;pqf2pqf.xsl&lt;/xslt&gt;
+     &lt;/filter&gt;
+    </screen>
+   </section>
+
+   <section>
     <title><literal>session_shared</literal></title>
     <screen>
      &lt;filter type="session_shared"&gt;
@@ -602,30 +710,6 @@
  </chapter>
 
 
-
- <chapter id="multidb">
-  <title>Virtual database as multi-database searching</title>
-
-
-  <section>
-   <title>Introductory notes</title>
-   <para>
-    Two of Metaproxy's filters are concerned with multiple-database
-    operations.  Of these, <literal>virt_db</literal> can work alone
-    to control the routing of searches to one of a number of servers,
-    while <literal>multi</literal> can work with the output of
-    <literal>virt_db</literal> to perform multicast searching, merging
-    the results into a unified result-set.  The interaction between
-    these two filters is necessarily complex, reflecting the real
-    complexity of multicast searching in a protocol such as Z39.50
-    that separates initialisation from searching, with the database to
-    search known only during the latter operation.
-   </para>
-   <para>
-    ### Much, much more to say!
-   </para>
-  </section>
- </chapter>
 
  <chapter id="moduleref">
   <title>Module Reference</title>
