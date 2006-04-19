@@ -1,0 +1,51 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" 
+    "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
+ <!ENTITY copyright SYSTEM "copyright.xml">
+]>
+<!-- $Id: template.xml,v 1.1 2006-04-19 15:42:06 mike Exp $ -->
+<refentry>
+ <refmeta>
+  <refentrytitle>template</refentrytitle>
+  <manvolnum>3mp</manvolnum>
+  <refmiscinfo>Metaproxy Module</refmiscinfo>
+ </refmeta>
+ 
+ <refnamediv>
+  <refname>template</refname>
+  <refpurpose>Template module that does nothing</refpurpose>
+ </refnamediv>
+ 
+ <refsect1><title>DESCRIPTION</title>
+  <para>
+   This module does nothing at all, simply passing packages through
+   untouched.  It exists not to be instantiated, but to be copied by
+   programmers creating new filters.
+  </para>
+ </refsect1>
+
+  <refsect1><title>SEE ALSO</title>
+  <para>
+   <citerefentry>
+    <refentrytitle>metaproxy</refentrytitle>
+    <manvolnum>1</manvolnum>
+   </citerefentry>
+  </para>
+ </refsect1>
+ 
+ &copyright;
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:1
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-local-catalogs: nil
+sgml-namecase-general:t
+End:
+-->
