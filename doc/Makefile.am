@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.5 2006-03-30 13:10:59 mike Exp $
+## $Id: Makefile.am,v 1.6 2006-04-19 15:43:27 mike Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUFFIXES=.3mp .1
@@ -9,10 +9,13 @@ XMLFILES = main.xml.in book.xml manref.xml copyright.xml
 MAINXML = main.xml
 HTMLFILES = metaproxy.html 
 
-XMLMAN=auth_simple.xml backend_test.xml frontend_net.xml http_file.xml \
- log.xml metaproxy.xml multi.xml query_rewrite.xml virt_db.xml z3950_client.xml
-MANFILES=auth_simple.3mp backend_test.3mp frontend_net.3mp http_file.3mp \
- log.3mp metaproxy.1   multi.3mp query_rewrite.3mp virt_db.3mp z3950_client.3mp
+XMLMAN   = auth_simple.xml backend_test.xml frontend_net.xml \
+	http_file.xml log.xml multi.xml query_rewrite.xml \
+	session_shared.xml template.xml virt_db.xml z3950_client.xml
+MANFILES = auth_simple.3mp backend_test.3mp frontend_net.3mp \
+	http_file.3mp log.3mp multi.3mp query_rewrite.3mp \
+	session_shared.3mp template.3mp virt_db.3mp z3950_client.3mp \
+	metaproxy.1
 
 PNGFILES=
 EPSFILES=
@@ -50,7 +53,9 @@ index.tkl: $(XMLFILES) tkl.xsl manref.xml
 
 manref.xml: $(XMLMAN) ref2dbinc.xsl
 	rm -f manref.xml
-	for i in $(XMLMAN); do xsltproc ref2dbinc.xsl $$i >>manref.xml; done
+	for i in $(XMLMAN); do \
+		xsltproc ref2dbinc.xsl $$i | sed 1d >> manref.xml; \
+	done
 
 clean-data-hook:
 	rm -f [0-9]* *.bak
