@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.9 2006-04-20 11:11:41 mike Exp $ -->
+<!-- $Id: book.xml,v 1.10 2006-04-20 12:42:47 adam Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -248,7 +248,7 @@
  </section>
   
   
-  <section>
+  <section id="overview.filter.types">
    <title>Overview of filter types</title>
    <para>
     We now briefly consider each of the types of filter supported by
@@ -419,7 +419,7 @@
   </section>
   
   
-  <section>
+  <section id="future.directions">
    <title>Future directions</title>
   <para>
     Some other filters that do not yet exist, but which would be
@@ -521,7 +521,7 @@
    </para>
   </section>
   
-  <section>
+  <section id="overview.xml.structure">
    <title>Overview of XML structure</title>
    <para>
     All elements and attributes are in the namespace
@@ -577,7 +577,7 @@
   </section>
 
 
-  <section>
+  <section id="example.configuration">
    <title>An example configuration</title>
    <para>
     The following is a small, but complete, Metaproxy configuration
@@ -710,7 +710,7 @@
    </para>
   </section>
 
-  <section>
+  <section id="individual.classes">
    <title>Individual classes</title>
    <para>
     The classes making up the Metaproxy application are here listed by
@@ -887,7 +887,7 @@
   </section>
 
 
-  <section>
+  <section id="other.source.files">
    <title>Other Source Files</title>
    <para>
     In addition to the Metaproxy source files that define the classes
