@@ -135,9 +135,11 @@ AC_CONFIG_FILES([
 	src/Jamfile
 	doc/Makefile
 	doc/main.xml
-	doc/print.dsl
-	doc/html.dsl
-	doc/tkl.xsl
+        doc/common/Makefile
+        doc/common/html.dsl
+        doc/common/html.xsl
+        doc/common/print.dsl
+        doc/common/tkl.xsl
 ])
 
 AC_OUTPUT
