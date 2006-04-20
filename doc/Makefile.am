@@ -1,11 +1,11 @@
-## $Id: Makefile.am,v 1.6 2006-04-19 15:43:27 mike Exp $
+## $Id: Makefile.am,v 1.7 2006-04-20 09:28:24 mike Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUFFIXES=.3mp .1
 
 SUPPORTFILES = html.dsl print.dsl tkl.xsl xml.dcl ref2dbinc.xsl
 
-XMLFILES = main.xml.in book.xml manref.xml copyright.xml
+XMLFILES = main.xml.in book.xml manref.xml progref.xml copyright.xml
 MAINXML = main.xml
 HTMLFILES = metaproxy.html 
 
@@ -28,7 +28,7 @@ man_MANS = $(MANFILES)
 EXTRA_DIST = $(XMLFILES) $(SUPPORTFILES) $(REFFILES) \
 	$(doc_DATA) $(EPSFILES) $(man_MANS) $(REFFILES)
 
-$(HTMLFILES): $(XMLFILES) manref.xml 
+$(HTMLFILES): $(XMLFILES)
 	jade -E14 -D $(srcdir) -d html.dsl -t sgml $(srcdir)/xml.dcl $(MAINXML)
 
 .xml.3mp:
@@ -37,7 +37,7 @@ $(HTMLFILES): $(XMLFILES) manref.xml
 .xml.1:
 	docbook2man $<
 
-metaproxy.pdf: $(XMLFILES) manref.xml
+metaproxy.pdf: $(XMLFILES)
 	for i in $(PNGFILES); do \
 		if test ! -f $$i; then ln -s $(srcdir)/$$i .; fi; \
 	done
@@ -48,7 +48,7 @@ metaproxy.pdf: $(XMLFILES) manref.xml
 	pdfjadetex metaproxy.tex >/dev/null
 	pdfjadetex metaproxy.tex >/dev/null
 
-index.tkl: $(XMLFILES) tkl.xsl manref.xml
+index.tkl: $(XMLFILES) tkl.xsl
 	xsltproc tkl.xsl $(MAINXML)
 
 manref.xml: $(XMLMAN) ref2dbinc.xsl
@@ -56,6 +56,10 @@ manref.xml: $(XMLMAN) ref2dbinc.xsl
 	for i in $(XMLMAN); do \
 		xsltproc ref2dbinc.xsl $$i | sed 1d >> manref.xml; \
 	done
+
+progref.xml: metaproxy.xml
+	rm -f $@
+	xsltproc ref2dbinc.xsl $? | sed 1d >> $@
 
 clean-data-hook:
 	rm -f [0-9]* *.bak
