@@ -4,9 +4,10 @@
      <!ENTITY oslash "&#x00F8;"> <!-- CIRCLED DIVISION SLASH -->
      <!ENTITY book SYSTEM "book.xml">
      <!ENTITY manref SYSTEM "manref.xml">
+     <!ENTITY progref SYSTEM "progref.xml">
      <!ENTITY version "@VERSION@">
 ]>
-<!-- $Id: main.xml.in,v 1.1 2006-03-16 13:20:05 adam Exp $ -->
+<!-- $Id: main.xml.in,v 1.2 2006-04-20 09:27:39 mike Exp $ -->
 <book id="metaproxy">
  &book;
 </book>
