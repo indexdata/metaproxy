@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: query_rewrite.xml,v 1.1 2006-03-30 13:11:11 mike Exp $ -->
+<!-- $Id: query_rewrite.xml,v 1.2 2006-04-20 11:12:32 mike Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>query_rewrite</refentrytitle>
@@ -37,7 +37,7 @@
  
  <refsect1><title>EXAMPLES</title>
   <para>
-   A typical configuration looks as likes:
+   A typical configuration looks like this:
    <screen><![CDATA[
    <filter type="query_rewrite">
     <xslt>pqf2pqf.xsl</xslt>

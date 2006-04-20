@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: template.xml,v 1.1 2006-04-19 15:42:06 mike Exp $ -->
+<!-- $Id: template.xml,v 1.2 2006-04-20 11:12:32 mike Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>template</refentrytitle>
@@ -23,6 +23,16 @@
   </para>
  </refsect1>
 
+ <refsect1><title>EXAMPLES</title>
+  <para>
+   A typical configuration looks like this:
+   <screen><![CDATA[
+    <filter type="template"/>
+]]>
+   </screen>
+  </para>
+ </refsect1> 
+ 
   <refsect1><title>SEE ALSO</title>
   <para>
    <citerefentry>

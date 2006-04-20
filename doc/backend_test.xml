@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: backend_test.xml,v 1.1 2006-03-27 13:41:40 adam Exp $ -->
+<!-- $Id: backend_test.xml,v 1.2 2006-04-20 11:12:32 mike Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>backend_test</refentrytitle>
@@ -17,12 +17,22 @@
  
  <refsect1><title>DESCRIPTION</title>
   <para>
-   A pseudo Z39.50 server for test purposes.. Similar to
-   yaz-ztest.
+   A pseudo Z39.50 server for test purposes.
+   Similar to yaz-ztest.
   </para>
  </refsect1>
 
-  <refsect1><title>SEE ALSO</title>
+ <refsect1><title>EXAMPLES</title>
+  <para>
+   A typical configuration looks like this:
+   <screen><![CDATA[
+    <filter type="backend_test"/>
+]]>
+   </screen>
+  </para>
+ </refsect1> 
+ 
+ <refsect1><title>SEE ALSO</title>
   <para>
    <citerefentry>
     <refentrytitle>metaproxy</refentrytitle>
