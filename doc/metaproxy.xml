@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: metaproxy.xml,v 1.1 2006-03-16 13:20:05 adam Exp $ -->
+<!-- $Id: metaproxy.xml,v 1.2 2006-04-20 11:09:22 mike Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>metaproxy</refentrytitle>
@@ -71,6 +71,46 @@
     <refentrytitle>auth_simple</refentrytitle>
     <manvolnum>3mp</manvolnum>
    </citerefentry>,
+   <citerefentry>
+    <refentrytitle>backend_test</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>,
+   <citerefentry>
+    <refentrytitle>frontend_net</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>,
+   <citerefentry>
+    <refentrytitle>http_file</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>,
+   <citerefentry>
+    <refentrytitle>log</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>,
+   <citerefentry>
+    <refentrytitle>multi</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>,
+   <citerefentry>
+    <refentrytitle>query_rewrite</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>,
+   <citerefentry>
+    <refentrytitle>session_shared</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>,
+   <citerefentry>
+    <refentrytitle>template</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>,
+   <citerefentry>
+    <refentrytitle>virt_db</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>,
+   <citerefentry>
+    <refentrytitle>z3950_client</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>.
   </para>
   <para>
    The Metaproxy
