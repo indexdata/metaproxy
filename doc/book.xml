@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.8 2006-04-20 09:29:35 mike Exp $ -->
+<!-- $Id: book.xml,v 1.9 2006-04-20 11:11:41 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -41,7 +41,7 @@
   
   
    <para>
-    <ulink url="http://indexdata.dk/metaproxy/">Metaproxy</ulink>
+    <ulink url="http://www.indexdata.com/metaproxy/">Metaproxy</ulink>
     is a standalone program that acts as a universal router, proxy and
     encapsulated metasearcher for information retrieval protocols such
     as Z39.50, and in the future SRU and SRW.  To clients, it acts as a
@@ -53,7 +53,7 @@
     on to zero or more servers, merging the results, transforming
     them, and delivering them back to the client.  In addition, it
     acts as a simple HTTP server; support for further protocols can be
-    added in a module fashion, through the creation of new filters.
+    added in a modular fashion, through the creation of new filters.
    </para>
    <screen>
     Anything goes in!
@@ -64,7 +64,7 @@
    </screen>
    <para>
     Metaproxy is a more capable alternative to
-    <ulink url="http://indexdata.dk/yazproxy/">YAZ Proxy</ulink>,
+    <ulink url="http://www.indexdata.com/yazproxy/">YAZ Proxy</ulink>,
     being more powerful, flexible, configurable and extensible.  Among
     its many advantages over the older, more pedestrian work are
     support for multiplexing (encapsulated metasearching), routing by
@@ -254,8 +254,9 @@
     We now briefly consider each of the types of filter supported by
     the core Metaproxy binary.  This overview is intended to give a
     flavour of the available functionality; more detailed information
-    about each type of filter is included below in the Module
-    Reference.
+    about each type of filter is included below in
+    <link linkend="filterref"
+	  >the reference guide to Metaproxy filters</link>.
    </para>
    <para>
     The filters are here named by the string that is used as the
@@ -482,32 +483,6 @@
  
  
  
- <chapter id="multidb">
-  <title>Virtual databases and multi-database searching</title>
-
-
-  <section>
-   <title>Introductory notes</title>
-   <para>
-    Two of Metaproxy's filters are concerned with multiple-database
-    operations.  Of these, <literal>virt_db</literal> can work alone
-    to control the routing of searches to one of a number of servers,
-    while <literal>multi</literal> can work with the output of
-    <literal>virt_db</literal> to perform multicast searching, merging
-    the results into a unified result-set.  The interaction between
-    these two filters is necessarily complex, reflecting the real
-    complexity of multicast searching in a protocol such as Z39.50
-    that separates initialisation from searching, with the database to
-    search known only during the latter operation.
-   </para>
-   <para>
-    ### Much, much more to say!
-   </para>
-  </section>
- </chapter>
-
-
-
  <chapter id="configuration">
   <title>Configuration: the Metaproxy configuration file format</title>
   
@@ -519,7 +494,9 @@
     its configuration file can be thought of as a program for that
     interpreter.  Configuration is by means of a single file, the name
     of which is supplied as the sole command-line argument to the
-    <command>yp2</command> program.
+    <command>metaproxy</command> program.  (See
+    <link linkend="progref">the reference guide</link>
+    below for more information on invoking Metaproxy.)
    </para>
    <para>
     The configuration files are written in XML.  (But that's just an
@@ -565,15 +542,19 @@
   <para>
     The &lt;start&gt; element is empty, but carries a
     <literal>route</literal> attribute, whose value is the name of
-    route at which to start running - analogouse to the name of the
+    route at which to start running - analogous to the name of the
     start production in a formal grammar.
    </para>
   <para>
     If present, &lt;filters&gt; contains zero or more &lt;filter&gt;
-    elements; filters carry a <literal>type</literal> attribute and
-    contain various elements that provide suitable configuration for
-    filters of that type.  The filter-specific elements are described
-    below.  Filters defined in this part of the file must carry an
+    elements.  Each filter carries a <literal>type</literal> attribute
+    which specifies what kind of filter is being defined
+    (<literal>frontend_net</literal>, <literal>log</literal>, etc.)
+    and contain various elements that provide suitable configuration
+    for a filter of its type.  The filter-specific elements are
+    described in
+    <link linkend="filterref">the reference guide below</link>.
+    Filters defined in this part of the file must carry an
     <literal>id</literal> attribute so that they can be referenced
     from elsewhere.
    </para>
@@ -589,158 +570,103 @@
     &lt;filters&gt; section.  Alternatively, a route within a filter
     may omit the <literal>refid</literal> attribute, but contain
     configuration elements similar to those used for filters defined
-    in the &lt;filters&gt; section.
+    in the &lt;filters&gt; section.  (In other words, each filter in a
+    route may be included either by reference or by physical
+    inclusion.)
    </para>
   </section>
 
 
   <section>
-   <title>Filter configuration</title>
+   <title>An example configuration</title>
    <para>
-    All &lt;filter&gt; elements have in common that they must carry a
-    <literal>type</literal> attribute whose value is one of the
-    supported ones, listed in the schema file and discussed below.  In
-    additional, &lt;filters&gt;s occurring the &lt;filters&gt; section
-    must have an <literal>id</literal> attribute, and those occurring
-    within a route must have either a <literal>refid</literal>
-    attribute referencing a previously defined filter or contain its
-    own configuration information.
+    The following is a small, but complete, Metaproxy configuration
+    file (included in the distribution as
+    <literal>metaproxy/etc/config0.xml</literal>).
+    This file defines a very simple configuration that simply proxies
+    to whatever backend server the client requests, but logs each
+    request and response.  This can be useful for debugging complex
+    client-server dialogues.
+   </para>
+   <screen><![CDATA[
+<?xml version="1.0"?>
+<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+  <start route="start"/>
+  <filters>
+    <filter id="frontend" type="frontend_net">
+      <port>@:9000</port>
+    </filter>
+    <filter id="backend" type="z3950_client">
+    </filter>
+  </filters>
+  <routes>  
+    <route id="start">
+      <filter refid="frontend"/>
+      <filter type="log"/>
+      <filter refid="backend"/>
+    </route>
+  </routes>
+</yp2>
+]]></screen>
+   <para>
+    It works by defining a single route, called
+    <literal>start</literal>, which consists of a sequence of three
+    filters.  The first and last of these are included by reference:
+    their <literal>&lt;filter&gt;</literal> elements have
+    <literal>refid</literal> attributes that refer to filters defined
+    within the prior <literal>&lt;filters&gt;</literal> section.  The
+    middle filter is included inline in the route.
    </para>
    <para>
-    In general, each filter recognises different configuration
-    elements within its element, as each filter has different
-    functionality.  These are as follows:
+    The three filters in the route are as follows: first, a
+    <literal>frontend_net</literal> filter accepts Z39.50 requests
+    from any host on port 9000; then these requests are passed through
+    a <literal>log</literal> filter that emits a message for each
+    request; they are then fed into a <literal>z3950_client</literal>
+    filter, which forwards the requests to the client-specified
+    backend Z39.509 server.  When the response arrives, it is handed
+    back to the <literal>log</literal> filter, which emits another
+    message; and then to the front-end filter, which returns the
+    response to the client.
    </para>
-
-   <section>
-    <title><literal>auth_simple</literal></title>
-    <screen>
-     &lt;filter type="auth_simple"&gt;
-     &lt;userRegister&gt;../etc/example.simple-auth&lt;/userRegister&gt;
-     &lt;/filter&gt;
-    </screen>
-   </section>
-
-   <section>
-    <title><literal>backend_test</literal></title>
-    <screen>
-     &lt;filter type="backend_test"/&gt;
-    </screen>
-   </section>
-
-   <section>
-    <title><literal>frontend_net</literal></title>
-    <screen>
-     &lt;filter type="frontend_net"&gt;
-     &lt;threads&gt;10&lt;/threads&gt;
-     &lt;port&gt;@:9000&lt;/port&gt;
-     &lt;/filter&gt;
-    </screen>
-   </section>
-
-   <section>
-    <title><literal>http_file</literal></title>
-    <screen>
-     &lt;filter type="http_file"&gt;
-     &lt;mimetypes&gt;/etc/mime.types&lt;/mimetypes&gt;
-     &lt;area&gt;
-     &lt;documentroot&gt;.&lt;/documentroot&gt;
-     &lt;prefix&gt;/etc&lt;/prefix&gt;
-     &lt;/area&gt;
-     &lt;/filter&gt;
-    </screen>
-   </section>
-
-   <section>
-    <title><literal>log</literal></title>
-    <screen>
-     &lt;filter type="log"&gt;
-     &lt;message&gt;B&lt;/message&gt;
-     &lt;/filter&gt;
-    </screen>
-   </section>
-
-   <section>
-    <title><literal>multi</literal></title>
-    <screen>
-     &lt;filter type="multi"/&gt;
-    </screen>
-   </section>
-
-   <section>
-    <title><literal>query_rewrite</literal></title>
-    <screen>
-     &lt;filter type="query_rewrite"&gt;
-     &lt;xslt&gt;pqf2pqf.xsl&lt;/xslt&gt;
-     &lt;/filter&gt;
-    </screen>
-   </section>
-
-   <section>
-    <title><literal>session_shared</literal></title>
-    <screen>
-     &lt;filter type="session_shared"&gt;
-     ### Not yet defined
-     &lt;/filter&gt;
-    </screen>
-   </section>
-
-   <section>
-    <title><literal>template</literal></title>
-    <screen>
-     &lt;filter type="template"/&gt;
-    </screen>
-   </section>
-
-   <section>
-    <title><literal>virt_db</literal></title>
-    <screen>
-     &lt;filter type="virt_db"&gt;
-     &lt;virtual&gt;
-     &lt;database&gt;loc&lt;/database&gt;
-     &lt;target&gt;z3950.loc.gov:7090/voyager&lt;/target&gt;
-     &lt;/virtual&gt;
-     &lt;virtual&gt;
-     &lt;database&gt;idgils&lt;/database&gt;
-     &lt;target&gt;indexdata.dk/gils&lt;/target&gt;
-     &lt;/virtual&gt;
-     &lt;/filter&gt;
-    </screen>
-   </section>
-
-   <section>
-    <title><literal>z3950_client</literal></title>
-    <screen>
-     &lt;filter type="z3950_client"&gt;
-     &lt;timeout&gt;30&lt;/timeout&gt;
-     &lt;/filter&gt;
-    </screen>
-   </section>
   </section>
  </chapter>
 
 
 
- <chapter id="progref">
-  <title>Metaproxy invocation</title>
-  <para>
-   The material in this chapter includes the man pages material.
-  </para>
-  &progref;
+ <chapter id="multidb">
+  <title>Virtual databases and multi-database searching</title>
+
+
+  <section>
+   <title>Introductory notes</title>
+   <para>
+    Two of Metaproxy's filters are concerned with multiple-database
+    operations.  Of these, <literal>virt_db</literal> can work alone
+    to control the routing of searches to one of a number of servers,
+    while <literal>multi</literal> can work with the output of
+    <literal>virt_db</literal> to perform multicast searching, merging
+    the results into a unified result-set.  The interaction between
+    these two filters is necessarily complex, reflecting the real
+    complexity of multicast searching in a protocol such as Z39.50
+    that separates initialisation from searching, with the database to
+    search known only during the latter operation.
+   </para>
+   <para>
+    ### Much, much more to say!
+   </para>
+  </section>
  </chapter>
 
- <chapter id="moduleref">
-  <title>Reference guide to Metaproxy filters</title>
-  <para>
-   The material in this chapter includes the man pages material.
-  </para>
-  &manref;
- </chapter>
+
 
  <chapter id="extensions">
   <title>Writing extensions for Metaproxy</title>
-  <para>###</para>
+  <para>### To be written</para>
  </chapter>
+
+
+
 
  <chapter id="classes">
   <title>Classes in the Metaproxy source code</title>
@@ -750,7 +676,18 @@
    <title>Introductory notes</title>
    <para>
     <emphasis>Stop!  Do not read this!</emphasis>
-    You won't enjoy it at all.
+    You won't enjoy it at all.  You should just skip ahead to
+    <link linkend="refguide">the reference guide</link>,
+    which tells
+    <!-- The remainder of this paragraph is lifted verbatim from
+    Douglas Adams' _Hitch Hiker's Guide to the Galaxy_, chapter 8 -->
+    you things you really need to know, like the fact that the
+    fabulously beautiful planet Bethselamin is now so worried about
+    the cumulative erosion by ten billion visiting tourists a year
+    that any net imbalance between the amount you eat and the amount
+    you excrete whilst on the planet is surgically removed from your
+    bodyweight when you leave: so every time you go to the lavatory it
+    is vitally important to get a receipt.
    </para>
    <para>
     This chapter contains documentation of the Metaproxy source code, and is
@@ -806,7 +743,7 @@
      structures, which are listed in its constructor.  Merely
      instantiating this class registers all the static classes.  It is
      for the benefit of this class that <literal>struct
-      yp2_filter_struct</literal> exists, and that all the filter
+      metaproxy_1_filter_struct</literal> exists, and that all the filter
      classes provide a static object of that type.
     </para>
    </section>
@@ -900,7 +837,7 @@
     <title><literal>mp::RouterChain</literal>
      (<filename>router_chain.cpp</filename>)</title>
     <para>
-     ###
+     ### to be written
     </para>
    </section>
 
@@ -908,7 +845,7 @@
     <title><literal>mp::RouterFleXML</literal>
      (<filename>router_flexml.cpp</filename>)</title>
     <para>
-     ###
+     ### to be written
     </para>
    </section>
 
@@ -916,7 +853,7 @@
     <title><literal>mp::Session</literal>
      (<filename>session.cpp</filename>)</title>
     <para>
-     ###
+     ### to be written
     </para>
    </section>
 
@@ -924,7 +861,7 @@
     <title><literal>mp::ThreadPoolSocketObserver</literal>
      (<filename>thread_pool_observer.cpp</filename>)</title>
     <para>
-     ###
+     ### to be written
     </para>
    </section>
 
@@ -962,7 +899,7 @@
      <term><literal>metaproxy_prog.cpp</literal></term>
      <listitem>
       <para>
-       The main function of the <command>yp2</command> program.
+       The main function of the <command>metaproxy</command> program.
       </para>
      </listitem>
     </varlistentry>
@@ -990,22 +927,35 @@
     <literal>plainfile.cpp</literal>,
     <literal>tstdl.cpp</literal>.
    </para>
-   
-   
-   <!-- Epilogue -->
-   <para>
-    --
-   </para>
-   <screen>
-    <!-- This is just a lame way to get some vertical whitespace at
-    the end of the document -->
-    
-    
-    
-    
-   </screen>
   </section>
  </chapter>
+
+
+
+ <chapter id="refguide">
+  <title>Reference guide</title>
+  <para>
+   The material in this chapter is drawn directly from the individual
+   manual entries.  In particular, the Metaproxy invocation section is
+   available using <command>man metaproxy</command>, and the section
+   on each individual filter is available using the name of the filter
+   as the argument to the <command>man</command> command.
+  </para>
+
+
+  <section id="progref">
+   <title>Metaproxy invocation</title>
+   &progref;
+  </section>
+
+
+  <section id="filterref">
+   <title>Reference guide to Metaproxy filters</title>
+   &manref;
+  </section>
+ </chapter>
+
+
 
  <!-- Keep this comment at the end of the file
  Local variables:
