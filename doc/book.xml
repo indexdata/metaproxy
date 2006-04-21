@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.11 2006-04-21 17:08:12 mike Exp $ -->
+<!-- $Id: book.xml,v 1.12 2006-04-21 21:35:24 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -72,6 +72,20 @@
     files via HTTP.  Equally significant, its modular architecture
     facilitites the creation of pluggable modules implementing further
     functionality.
+   </para>
+   <para>
+    This manual will briefly describe Metaproxy's licensing situation
+    before giving an overview of its architecture, then discussing the
+    key concept of a filter in some depth and giving an overview of
+    the various filter types, then discussing the configuration file
+    format.  After this come several optional chapters which may be
+    freely skipped: a detailed discussion of virtual databases and
+    multi-database searching, some notes on writing extensions
+    (additional filter types) and a high-level description of the
+    source code.  Finally comes the reference guide, which contains
+    instructions for invoking the <command>metaproxy</command>
+    program, and detailed information on each type of filter,
+    including examples.
    </para>
  </chapter>
 
@@ -640,6 +654,16 @@
 
   <section>
    <title>Introductory notes</title>
+   <warning>
+    <title>Lark's vomit</title>
+    <para>
+     This chapter goes into a level of technical detail that is
+     probably not necessary in order to configure and use Metaproxy.
+     It is provided only for those who like to know how things work.
+     You should feel free to skip on to the next section if this one
+     doesn't seem like fun.
+    </para>
+   </warning>
    <para>
     Two of Metaproxy's filters are concerned with multiple-database
     operations.  Of these, <literal>virt_db</literal> can work alone
@@ -647,17 +671,21 @@
     while <literal>multi</literal> can work with the output of
     <literal>virt_db</literal> to perform multicast searching, merging
     the results into a unified result-set.  The interaction between
-    these two filters is necessarily complex, reflecting the real
-    complexity of multicast searching in a protocol such as Z39.50
-    that separates initialisation from searching, with the database to
-    search known only during the latter operation.
+    these two filters is necessarily complex: it reflecting the real,
+    irreducible complexity of multicast searching in a protocol such
+    as Z39.50 that separates initialisation from searching, and in
+    which the database to be searched is not known at initialisation
+    time.
+   </para>
+   <para>
+    Hold on tight - this may get a little hairy.
    </para>
    <para>
     In the general course of things, a Z39.50 Init request may carry
     with it an otherInfo packet of type <literal>VAL_PROXY</literal>,
     whose value indicates the address of a Z39.50 server to which the
     ultimate connection is to be made.  (This otherInfo packet is
-    supported by YAZ-based Z39.50 servers and clients, but has not yet
+    supported by YAZ-based Z39.50 clients and servers, but has not yet
     been ratified by the Maintenance Agency and so is not widely used
     in non-Index Data software.  We're working on it.)
     The <literal>VAL_PROXY</literal> packet functions
@@ -669,6 +697,56 @@
     section of
     <ulink url="http://www.w3.org/Protocols/rfc2616/rfc2616.html"
 	   >the HTTP 1.1 specification</ulink>.
+   </para>
+   <para>
+    The role of the <literal>virt_db</literal> filter is to rewrite
+    this otherInfo packet dependent on the virtual database that the
+    client wants to search.  For example, a <literal>virt_db</literal>
+    filter could be set up so that searches in the virtual database
+    ``lc'' are forwarded to the Library of Congress server, and
+    searches in the virtual database ``id'' are forwarded to the toy
+    GILS database that Index Data hosts for testing purposes.  A
+    <literal>virt_db</literal> configuration to make this switch would
+    look like this:
+   </para>
+   <screen><![CDATA[
+    <filter type="virt_db">
+      <virtual>
+        <database>lc</database>
+        <target>z3950.loc.gov:7090/Voyager</target>
+      </virtual>
+      <virtual>
+        <database>id</database>
+        <target>indexdata.dk/gils</target>
+      </virtual>
+    </filter>]]></screen>
+   <para>
+    When Metaproxy receives a Z39.50 Init request from a client, it
+    doesn't immediately forward that request to the back-end server.
+    Why not?  Because it doesn't know <emphasis>which</emphasis>
+    back-end server to forward it to until the client sends a search
+    request that specifies the database that it wants to search in.
+    Instead, it just treasures the Init request up in its heart; and,
+    later, the first time the client does a search on one of the
+    specified virtual databases, a connection is forged to the
+    appropriate server and the Init request is forwarded to it.  If,
+    later in the session, the same client searches in a different
+    virtual database, then a connection is forged to the server that
+    hosts it, and the same cached Init request is forwarded there,
+    too.
+   </para>
+   <para>
+    All of this clever Init-delaying is done by the
+    <literal>frontend_net</literal> filter.  The
+    <literal>virt_db</literal> filter knows nothing about it; in
+    fact, because the Init request that is received from the client
+    doesn't get forwarded until a Search reqeust is received, the
+    <literal>virt_db</literal> filter (and the
+    <literal>z3950_client</literal> filter behind it) doesn't even get
+    invoked at Init time.  The <emphasis>only</emphasis> thing that a
+    <literal>virt_db</literal> filter ever does is rewrite the
+    <literal>VAL_PROXY</literal> otherInfo in the requests that pass
+    through it.
    </para>
   </section>
  </chapter>
