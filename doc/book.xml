@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.10 2006-04-20 12:42:47 adam Exp $ -->
+<!-- $Id: book.xml,v 1.11 2006-04-21 17:08:12 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -653,7 +653,22 @@
     search known only during the latter operation.
    </para>
    <para>
-    ### Much, much more to say!
+    In the general course of things, a Z39.50 Init request may carry
+    with it an otherInfo packet of type <literal>VAL_PROXY</literal>,
+    whose value indicates the address of a Z39.50 server to which the
+    ultimate connection is to be made.  (This otherInfo packet is
+    supported by YAZ-based Z39.50 servers and clients, but has not yet
+    been ratified by the Maintenance Agency and so is not widely used
+    in non-Index Data software.  We're working on it.)
+    The <literal>VAL_PROXY</literal> packet functions
+    analogously to the absoluteURI-style Request-URI used with the GET
+    method when a web browser asks a proxy to forward its request: see
+    the
+    <ulink url="http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2"
+	   >Request-URI</ulink>
+    section of
+    <ulink url="http://www.w3.org/Protocols/rfc2616/rfc2616.html"
+	   >the HTTP 1.1 specification</ulink>.
    </para>
   </section>
  </chapter>
