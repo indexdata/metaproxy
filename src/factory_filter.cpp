@@ -1,4 +1,4 @@
-/* $Id: factory_filter.cpp,v 1.4 2006-03-16 10:40:59 adam Exp $
+/* $Id: factory_filter.cpp,v 1.5 2006-04-22 13:18:58 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -107,7 +107,7 @@ bool mp::FactoryFilter::add_creator_dl(const std::string &fi,
         return true;
     }
 
-    std::string full_path = path + "/metaproxy_1_filter_" + fi + ".so";
+    std::string full_path = path + "/metaproxy_filter_" + fi + ".so";
     void *dl_handle = dlopen(full_path.c_str(), RTLD_GLOBAL|RTLD_NOW);
     if (!dl_handle)
     {
