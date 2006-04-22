@@ -19,6 +19,7 @@ test_filter2
 test_filter_frontend_net
 test_filter_log
 test_filter_multi
+test_filter_query_rewrite
 test_package1
 test_pipe
 test_thread_pool_observer
