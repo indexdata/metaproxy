@@ -1,13 +1,14 @@
-## $Id: Makefile.am,v 1.8 2006-04-20 12:20:56 adam Exp $
+## $Id: Makefile.am,v 1.9 2006-04-22 13:29:37 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
 
 SUFFIXES=.3mp .1
 
-XMLFILES = main.xml.in book.xml manref.xml progref.xml copyright.xml
+XMLFILES = main.xml.in book.xml manref.xml progref.xml copyright.xml \
+	metaproxy.xml
+
 MAINXML = main.xml
-HTMLFILES = metaproxy.html 
 
 XMLMAN   = auth_simple.xml backend_test.xml frontend_net.xml \
 	http_file.xml log.xml multi.xml query_rewrite.xml \
@@ -17,16 +18,31 @@ MANFILES = auth_simple.3mp backend_test.3mp frontend_net.3mp \
 	session_shared.3mp template.3mp virt_db.3mp z3950_client.3mp \
 	metaproxy.1
 
+HTMLFILES = architecture.html \
+	classes.html \
+	configuration.html \
+	example.configuration.html \
+	extensions.html \
+	filterref.html \
+	filters.html \
+	future.directions.html \
+	individual.classes.html \
+	introduction.html \
+	licence.html \
+	metaproxy.html \
+	multidb.html \
+	other.source.files.html \
+	overview.filter.types.html \
+	overview.xml.structure.html \
+	refguide.html
+
 PNGFILES=
 EPSFILES=
-
-REFFILES= 
 
 doc_DATA = $(HTMLFILES) metaproxy.pdf $(PNGFILES)
 man_MANS = $(MANFILES)
 
-EXTRA_DIST = $(XMLFILES) $(REFFILES) \
-	$(doc_DATA) $(EPSFILES) $(man_MANS) $(REFFILES)
+EXTRA_DIST = $(XMLFILES) $(XMLMAN) $(doc_DATA) $(EPSFILES) $(man_MANS)
 
 $(HTMLFILES): $(XMLFILES)
 	jade -E14 -D $(srcdir) -d common/html.dsl -t sgml $(srcdir)/common/xml.dcl $(MAINXML)
