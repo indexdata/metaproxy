@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.12 2006-04-21 21:35:24 mike Exp $ -->
+<!-- $Id: book.xml,v 1.13 2006-04-22 13:28:05 adam Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -9,7 +9,7 @@
   </author>
   <copyright>
    <year>2006</year>
-   <holder>Index Data</holder>
+   <holder>Index Data ApS</holder>
   </copyright>
   <abstract>
    <simpara>
