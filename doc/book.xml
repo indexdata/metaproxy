@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.13 2006-04-22 13:28:05 adam Exp $ -->
+<!-- $Id: book.xml,v 1.14 2006-04-23 19:08:56 adam Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -16,9 +16,13 @@
     Metaproxy is a universal router, proxy and encapsulated
     metasearcher for information retrieval protocols.  It accepts,
     processes, interprets and redirects requests from IR clients using
-    standard protocols such as ANSI/NISO Z39.50 (and in the future SRU
-    and SRW), as well as functioning as a limited
-    HTTP server.  Metaproxy is configured by an XML file which
+    standard protocols such as
+    <ulink url="&url.z39.50;">ANSI/NISO Z39.50</ulink>
+    (and in the future <ulink url="&url.sru;">SRU</ulink>
+    and <ulink url="&url.srw;">SRW</ulink>), as
+    well as functioning as a limited
+    <ulink url="&url.http;">HTTP</ulink> server. 
+    Metaproxy is configured by an XML file which
     specifies how the software should function in terms of routes that
     the request packets can take through the proxy, each step on a
     route being an instantiation of a filter.  Filters come in many
@@ -33,6 +37,16 @@
     should not at this stage redistribute the code without explicit
     written permission from the copyright holders, Index Data ApS.
    </simpara>
+   <simpara>
+    <inlinemediaobject>
+     <imageobject>
+      <imagedata fileref="common/id.png" format="PNG"/>
+     </imageobject>
+     <imageobject>
+      <imagedata fileref="common/id.eps" format="EPS"/>
+     </imageobject>
+    </inlinemediaobject>
+   </simpara>
   </abstract>
  </bookinfo>
 
@@ -40,53 +54,55 @@
   <title>Introduction</title>
   
   
-   <para>
-    <ulink url="http://www.indexdata.com/metaproxy/">Metaproxy</ulink>
-    is a standalone program that acts as a universal router, proxy and
-    encapsulated metasearcher for information retrieval protocols such
-    as Z39.50, and in the future SRU and SRW.  To clients, it acts as a
-    server of these
-    protocols: it can be searched, records can be retrieved from it,
-    etc.  To servers, it acts as a client: it searches in them,
-    retrieves records from them, etc.  it satisfies its clients'
-    requests by transforming them, multiplexing them, forwarding them
-    on to zero or more servers, merging the results, transforming
-    them, and delivering them back to the client.  In addition, it
-    acts as a simple HTTP server; support for further protocols can be
-    added in a modular fashion, through the creation of new filters.
-   </para>
-   <screen>
-    Anything goes in!
-    Anything goes out!
-    Cold bananas, fish, pyjamas,
-    Mutton, beef and trout!
+  <para>
+   <ulink url="&url.metaproxy;">Metaproxy</ulink>
+   is a standalone program that acts as a universal router, proxy and
+   encapsulated metasearcher for information retrieval protocols such
+   as <ulink url="&url.z39.50;">Z39.50</ulink>, and in the future
+   <ulink url="&url.sru;">SRU</ulink> and <ulink url="&url.srw;">SRW</ulink>.
+   To clients, it acts as a server of these protocols: it can be searched,
+   records can be retrieved from it, etc. 
+   To servers, it acts as a client: it searches in them,
+   retrieves records from them, etc.  it satisfies its clients'
+   requests by transforming them, multiplexing them, forwarding them
+   on to zero or more servers, merging the results, transforming
+   them, and delivering them back to the client.  In addition, it
+   acts as a simple <ulink url="&url.http;">HTTP</ulink> server; support
+   for further protocols can be added in a modular fashion, through the
+   creation of new filters.
+  </para>
+  <screen>
+   Anything goes in!
+   Anything goes out!
+   Cold bananas, fish, pyjamas,
+   Mutton, beef and trout!
 	- attributed to Cole Porter.
-   </screen>
-   <para>
-    Metaproxy is a more capable alternative to
-    <ulink url="http://www.indexdata.com/yazproxy/">YAZ Proxy</ulink>,
-    being more powerful, flexible, configurable and extensible.  Among
-    its many advantages over the older, more pedestrian work are
-    support for multiplexing (encapsulated metasearching), routing by
-    database name, authentication and authorisation and serving local
-    files via HTTP.  Equally significant, its modular architecture
-    facilitites the creation of pluggable modules implementing further
-    functionality.
-   </para>
-   <para>
-    This manual will briefly describe Metaproxy's licensing situation
-    before giving an overview of its architecture, then discussing the
-    key concept of a filter in some depth and giving an overview of
-    the various filter types, then discussing the configuration file
-    format.  After this come several optional chapters which may be
-    freely skipped: a detailed discussion of virtual databases and
-    multi-database searching, some notes on writing extensions
-    (additional filter types) and a high-level description of the
-    source code.  Finally comes the reference guide, which contains
-    instructions for invoking the <command>metaproxy</command>
-    program, and detailed information on each type of filter,
-    including examples.
-   </para>
+  </screen>
+  <para>
+   Metaproxy is a more capable alternative to
+   <ulink url="&url.yazproxy;">YAZ Proxy</ulink>,
+   being more powerful, flexible, configurable and extensible.  Among
+   its many advantages over the older, more pedestrian work are
+   support for multiplexing (encapsulated metasearching), routing by
+   database name, authentication and authorisation and serving local
+   files via HTTP.  Equally significant, its modular architecture
+   facilitites the creation of pluggable modules implementing further
+   functionality.
+  </para>
+  <para>
+   This manual will briefly describe Metaproxy's licensing situation
+   before giving an overview of its architecture, then discussing the
+   key concept of a filter in some depth and giving an overview of
+   the various filter types, then discussing the configuration file
+   format.  After this come several optional chapters which may be
+   freely skipped: a detailed discussion of virtual databases and
+   multi-database searching, some notes on writing extensions
+   (additional filter types) and a high-level description of the
+   source code.  Finally comes the reference guide, which contains
+   instructions for invoking the <command>metaproxy</command>
+   program, and detailed information on each type of filter,
+   including examples.
+  </para>
  </chapter>
 
 
@@ -95,8 +111,8 @@
   <title>The Metaproxy Licence</title>
   <para>
    <emphasis role="strong">
-     No decision has yet been made on the terms under which
-     Metaproxy will be distributed.
+    No decision has yet been made on the terms under which
+    Metaproxy will be distributed.
    </emphasis>
    It is possible that, unlike
    other Index Data products, metaproxy may not be released under a

@@ -6,8 +6,10 @@
      <!ENTITY manref SYSTEM "manref.xml">
      <!ENTITY progref SYSTEM "progref.xml">
      <!ENTITY version "@VERSION@">
+     <!ENTITY % entities SYSTEM "common/common.ent">
+     %entities;
 ]>
-<!-- $Id: main.xml.in,v 1.2 2006-04-20 09:27:39 mike Exp $ -->
+<!-- $Id: main.xml.in,v 1.3 2006-04-23 19:08:56 adam Exp $ -->
 <book id="metaproxy">
  &book;
 </book>
