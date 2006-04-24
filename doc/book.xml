@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.14 2006-04-23 19:08:56 adam Exp $ -->
+<!-- $Id: book.xml,v 1.15 2006-04-24 06:40:50 adam Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -125,8 +125,134 @@
   </para>
  </chapter>
 
+ <chapter id="installation">
+  <title>Installation</title>
+  <para>
+   Metaproxy depends on the folloing tools/libraries:
+   <variablelist>
+    <varlistentry><term><ulink url="&url.yazplusplus;">YAZ++</ulink></term>
+     <listitem>
+      <para>
+       This is a C++ library based on <ulink url="&url.yaz;">YAZ</ulink>.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term><ulink url="&url.libxslt;">Libxslt</ulink></term>
+     <listitem>
+      <para>This is an XSLT processor - based on 
+       <ulink url="&url.libxml2;">Libxml2</ulink>. Both Libxml2 and
+       Libxslt must be installed with the development components.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term><ulink url="&url.boost;">Boost</ulink></term>
+     <listitem>
+      <para>
+       The popular C++ library.
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </para>
+  <para>
+   In order to compile Metaproxy a modern C++ compiler is
+   required. Boost, in particular, requires the C++ compiler
+   to facilitate the newest features. Refer to Boost
+   <ulink url="&url.boost.compilers.status;">Compiler Status</ulink>
+   for more information.
+  </para>
+  <para>
+   We have succesfully used Metaproxy with Boost using the compilers
+   <ulink url="&url.gcc;">GCC</ulink> version 4.0 and
+   <ulink url="&url.vstudio;">Microsoft Visual Studio</ulink> 2003/2005.
+  </para>
 
+  <section id="installation.unix">
+   <title>Installation on Unix (from Source)</title>
+   <para>
+    Here is a quick step-by-step guide on how to compile all the
+    tools that Metaproxy uses. Only few systems have none of the required
+    tools binary packages. If, for example, Libxml2/libxslt are already
+    installed as development packages use those (and omit compilation).
+   </para>
+   
+   <para>
+    Libxml2/libxslt:
+   </para>
+   <screen>
+    gunzip -c libxml2-version.tar.gz|tar xf -
+    cd libxml2-version
+    ./configure
+    make
+    su
+    make install
+   </screen>
+   <screen>
+    gunzip -c libxslt-version.tar.gz|tar xf -
+    cd libxslt-version
+    ./configure
+    make
+    su
+    make install
+   </screen>
+   <para>
+    YAZ/YAZ++:
+   </para>
+   <screen>
+    gunzip -c yaz-version.tar.gz|tar xf -
+    cd yaz-version
+    ./configure
+    make
+    su
+    make install
+   </screen>
+   <screen>
+    gunzip -c yazpp-version.tar.gz|tar xf -
+    cd yazpp-version
+    ./configure
+    make
+    su
+    make install
+   </screen>
+   <para>
+    Boost:
+   </para>
+   <screen>
+    gunzip -c boost-version.tar.gz|tar xf -
+    cd boost-version
+    ./configure
+    make
+    su
+    make install
+   </screen>
+   <para>
+    Metaproxy:
+   </para>
+   <screen>
+    gunzip -c metaproxy-version.tar.gz|tar xf -
+    cd metaproxy-version
+    ./configure
+    make
+    su
+    make install
+   </screen>
+  </section>
 
+  <section id="installation.debian">
+   <title>Installation on Debian</title>
+   <para>
+    ### To be written
+   </para>
+   </section>
+
+  <section id="installation.windows">
+   <title>Installation on Windows</title>
+   <para>
+    ### To be written
+   </para>
+   </section>
+ </chapter>
+ 
  <chapter id="architecture">
   <title>The Metaproxy Architecture</title>
   <para>
