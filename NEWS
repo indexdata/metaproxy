@@ -1,4 +1,7 @@
 
+--- 1.0.0 2006/04/24
+
+More documentation.
 
 Filters functional: auth_simple, backend_test, frontend_net, http_file,
  log, multi, query_rewrite, template, virt_db, z3950_client.
