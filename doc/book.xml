@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.18 2006-04-26 15:32:22 mike Exp $ -->
+<!-- $Id: book.xml,v 1.19 2006-04-26 17:04:30 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -908,6 +908,19 @@
      <imageobject>
       <imagedata fileref="multi.eps" format="EPS"/>
      </imageobject>
+     <textobject>
+      <!-- Fall back if none of the images can be used -->
+      <phrase>
+       Diagram showing the progress of packages through the filters
+       during a simple virtual-database search and a multi-database
+       search.
+      </phrase>
+     </textobject>
+<!-- ### This used to work with an older version of DocBook
+     <caption>
+      <para>Caption: progress of packages through filters.</para>
+     </caption>
+-->
     </inlinemediaobject>
    </simpara>
   </section>
