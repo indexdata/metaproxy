@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.10 2006-04-24 06:40:50 adam Exp $
+## $Id: Makefile.am,v 1.11 2006-04-26 15:31:10 mike Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -39,15 +39,15 @@ HTMLFILES = architecture.html \
 	overview.xml.structure.html \
 	refguide.html
 
-PNGFILES=
-EPSFILES=
+PNGFILES=multi.png
+EPSFILES=multi.eps
 
 doc_DATA = $(HTMLFILES) metaproxy.pdf $(PNGFILES)
 man_MANS = $(MANFILES)
 
 EXTRA_DIST = $(XMLFILES) $(XMLMAN) $(doc_DATA) $(EPSFILES) $(man_MANS)
 
-$(HTMLFILES): $(XMLFILES)
+$(HTMLFILES): $(XMLFILES) multi.png
 	jade -E14 -D $(srcdir) -d common/html.dsl -t sgml $(srcdir)/common/xml.dcl $(MAINXML)
 
 .xml.3mp:
@@ -56,7 +56,7 @@ $(HTMLFILES): $(XMLFILES)
 .xml.1:
 	docbook2man $<
 
-metaproxy.pdf: $(XMLFILES)
+metaproxy.pdf: $(XMLFILES) multi.eps
 	for i in $(PNGFILES) $(EPSFILES); do \
 		if test ! -f $$i; then ln -s $(srcdir)/$$i .; fi; \
 	done
@@ -79,6 +79,12 @@ manref.xml: $(XMLMAN) $(srcdir)/common/ref2dbinc.xsl
 progref.xml: metaproxy.xml
 	rm -f $@
 	xsltproc $(srcdir)/common/ref2dbinc.xsl $? | sed 1d >> $@
+
+multi.png: multi.svg
+	inkscape --export-png=$@ --export-width=800 --export-area-drawing $?
+
+multi.eps: multi.svg
+	inkscape --export-eps=$@ --export-text-to-path $?
 
 clean-data-hook:
 	rm -f [0-9]* *.bak
