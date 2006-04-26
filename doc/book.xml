@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.17 2006-04-25 12:48:52 marc Exp $ -->
+<!-- $Id: book.xml,v 1.18 2006-04-26 15:32:22 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -74,7 +74,7 @@
   <screen>
    Anything goes in!
    Anything goes out!
-   Cold bananas, fish, pyjamas,
+   Fish, bananas, cold pyjamas,
    Mutton, beef and trout!
 	- attributed to Cole Porter.
   </screen>
@@ -128,7 +128,7 @@
  <chapter id="installation">
   <title>Installation</title>
   <para>
-   Metaproxy depends on the folloing tools/libraries:
+   Metaproxy depends on the following tools/libraries:
    <variablelist>
     <varlistentry><term><ulink url="&url.yazplusplus;">YAZ++</ulink></term>
      <listitem>
@@ -141,7 +141,8 @@
      <listitem>
       <para>This is an XSLT processor - based on 
        <ulink url="&url.libxml2;">Libxml2</ulink>. Both Libxml2 and
-       Libxslt must be installed with the development components.
+       Libxslt must be installed with the development components
+       (header files, etc.) as well as the run-time libraries.
       </para>
      </listitem>
     </varlistentry>
@@ -822,6 +823,11 @@
    <para>
     Hold on tight - this may get a little hairy.
    </para>
+  </section>
+
+
+  <section>
+   <title>Virtual databases with the <literal>virt_db</literal> filter</title>
    <para>
     In the general course of things, a Z39.50 Init request may carry
     with it an otherInfo packet of type <literal>VAL_PROXY</literal>,
@@ -890,6 +896,20 @@
     <literal>VAL_PROXY</literal> otherInfo in the requests that pass
     through it.
    </para>
+  </section>
+
+  <section>
+   <title>A picture is worth a thousand words (but only five hundred on 64-bit architectures)</title>
+   <simpara>
+    <inlinemediaobject>
+     <imageobject>
+      <imagedata fileref="multi.png" format="PNG"/>
+     </imageobject>
+     <imageobject>
+      <imagedata fileref="multi.eps" format="EPS"/>
+     </imageobject>
+    </inlinemediaobject>
+   </simpara>
   </section>
  </chapter>
 
