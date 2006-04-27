@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.21 2006-04-27 09:50:00 adam Exp $ -->
+<!-- $Id: book.xml,v 1.22 2006-04-27 12:26:26 adam Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -252,7 +252,7 @@
    <para>
     Compilation of Metaproxy can be done using
     Microsoft <ulink url="&url.vstudio;">Visual Studio</ulink>.
-    We know Version 2003 works. We expect Version 2005 should to
+    We know Version 2003 works. We expect Version 2005 to
     work as well.
    </para>
    <section id="installation.windows.boost">
