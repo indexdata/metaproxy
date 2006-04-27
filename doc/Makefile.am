@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.12 2006-04-27 08:51:19 adam Exp $
+## $Id: Makefile.am,v 1.13 2006-04-27 13:29:40 mike Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -58,7 +58,7 @@ $(HTMLFILES): $(XMLFILES) multi.png
 .xml.1:
 	docbook2man $<
 
-metaproxy.pdf: $(XMLFILES) multi.eps
+metaproxy.pdf: $(XMLFILES) multi.pdf
 	for i in $(PNGFILES) $(EPSFILES); do \
 		if test ! -f $$i; then ln -s $(srcdir)/$$i .; fi; \
 	done
@@ -86,7 +86,10 @@ multi.png: multi.svg
 	inkscape --export-png=$@ --export-width=800 --export-area-drawing $?
 
 multi.eps: multi.svg
-	inkscape --export-eps=$@ --export-text-to-path $?
+	inkscape --export-eps=$@ $?
+
+%.pdf: %.eps
+	epstodf $?
 
 clean-data-hook:
 	rm -f [0-9]* *.bak
