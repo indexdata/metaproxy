@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.22 2006-04-27 12:26:26 adam Exp $ -->
+<!-- $Id: book.xml,v 1.23 2006-04-27 13:39:49 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -987,17 +987,20 @@
    <simpara>
     <inlinemediaobject>
      <imageobject>
-      <imagedata fileref="multi.png" format="PNG"/>
+      <imagedata fileref="multi.pdf" format="PDF"/>
      </imageobject>
      <imageobject>
-      <imagedata fileref="multi.eps" format="EPS"/>
+      <imagedata fileref="multi.png" format="PNG"/>
      </imageobject>
      <textobject>
       <!-- Fall back if none of the images can be used -->
       <phrase>
-       Diagram showing the progress of packages through the filters
-       during a simple virtual-database search and a multi-database
-       search.
+       [Here there should be a diagram showing the progress of
+       packages through the filters during a simple virtual-database
+       search and a multi-database search, but is seems that your
+       toolchain has not been able to include the diagram in this
+       document.  This is because of LaTeX suckage.  Time to move to
+       OpenOffice.  Yes, really.]
       </phrase>
      </textobject>
 <!-- ### This used to work with an older version of DocBook
