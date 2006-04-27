@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.20 2006-04-27 08:51:19 adam Exp $ -->
+<!-- $Id: book.xml,v 1.21 2006-04-27 09:50:00 adam Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -149,7 +149,8 @@
     <varlistentry><term><ulink url="&url.boost;">Boost</ulink></term>
      <listitem>
       <para>
-       The popular C++ library.
+       The popular C++ library. Initial versions of Metaproxy
+       was built with 1.33.0. Version 1.33.1 works too.
       </para>
      </listitem>
     </varlistentry>
@@ -249,9 +250,92 @@
   <section id="installation.windows">
    <title>Installation on Windows</title>
    <para>
-    ### To be written
+    Compilation of Metaproxy can be done using
+    Microsoft <ulink url="&url.vstudio;">Visual Studio</ulink>.
+    We know Version 2003 works. We expect Version 2005 should to
+    work as well.
    </para>
+   <section id="installation.windows.boost">
+    <title>Boost</title>
+    <para>
+     Get Boost from its <ulink url="&url.boost;">home page</ulink>.
+     You also need Boost Jam (an alternative to make).
+     That's also available from this
+     home page. The files download are called something like:
+     <literal>boost_1_33-1.exe</literal>
+     and
+     <literal>boost-jam-3.1.12-1-ntx86.zip</literal>.
+     Unpack Boost Jam first. Put <literal>bjam.exe</literal>
+     in your system path. Make a command prompt and ensure
+     it can be found automatically. If not check the PATH.
+     The Boost .exe is a self-extracting exe with
+     complete source for Boost. Compile that source with
+     Boost Jam (An alternative to Make).
+     The compilation takes a while.
+     By default, the Boost build process puts the resulting
+     libraries + header files in
+     <literal>\boost\lib</literal>, <literal>\boost\include</literal>.
+    </para>
+    <para>
+     For more informatation about installing Boost refer to the
+     <ulink url="&url.boost.getting.started;">getting started</ulink>
+     pages.
+    </para>
    </section>
+
+   <section id="installation.windows.libxslt">
+    <title>Libxslt</title>
+    <para>
+     <ulink url="&url.libxslt;">Libxslt</ulink> can be downloaded
+     for Windows from
+     <ulink url="&url.libxml2.download.win32;">here</ulink>.
+    </para>
+    <para>
+     Libxslt has other dependencies, but thes can all be downloaded
+     from the same site. Get the following:
+     iconv, zlib, libxml2, libxslt.
+    </para>
+   </section>
+
+   <section id="installation.windows.yaz">
+    <title>YAZ</title>
+    <para>
+     <ulink url="&url.yaz;">YAZ</ulink> can be downloaded
+     for Windows from
+     <ulink url="&url.yaz.download.win32;">here</ulink>.
+    </para>
+   </section>
+
+   <section id="installation.windows.yazplusplus">
+    <title>YAZ++</title>
+    <para>
+     Get <ulink url="&url.yazplusplus;">YAZ++</ulink> as well.
+     Version 1.0 or later is required. For now get it from
+     Index Data's
+     <ulink url="&url.snapshot.download;">Snapshot area</ulink>.
+    </para>
+    <para>
+     YAZ++ includes NMAKE makefiles, similar to those found in the
+     YAZ package.
+    </para>
+   </section>
+
+   <section id="installation.windows.metaproxy">
+    <title>Metaproxy</title>
+    <para>
+     Metaproxy is shipped with NMAKE makfiles as well - similar
+     to those found in the YAZ++/YAZ packages. Adjust this Makefile
+     to point to the proper locations of Boost, Libxslt, Libxml2,
+     zlib, iconv, yaz and yazpp.
+    </para>
+    <para>
+     After succesful compilation you'll find
+     <literal>metaproxy.exe</literal> in the
+     <literal>bin</literal> directory.
+    </para>
+   </section>
+
+  </section>
  </chapter>
  
  <chapter id="architecture">
