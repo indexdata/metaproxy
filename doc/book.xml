@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.26 2006-04-27 16:38:13 adam Exp $ -->
+<!-- $Id: book.xml,v 1.27 2006-04-27 19:49:35 adam Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -164,7 +164,7 @@
    for more information.
   </para>
   <para>
-   We have succesfully used Metaproxy with Boost using the compilers
+   We have succesfully built Metaproxy using the compilers
    <ulink url="&url.gcc;">GCC</ulink> version 4.0 and
    <ulink url="&url.vstudio;">Microsoft Visual Studio</ulink> 2003/2005.
   </para>
@@ -241,15 +241,40 @@
   </section>
 
   <section id="installation.debian">
-   <title>Installation on Debian</title>
+   <title>Installation on Debian GNU/Linux</title>
    <para>
-    ### To be written
+    All dependencies for Metaproxy are available as 
+    <ulink url="&url.debian;">Debian</ulink>
+    packages for the sarge (stable in 2005) and etch (testing in 2005)
+    distributions.
    </para>
    <para>
-    (Of course, since Debian is a Unix system, the instructions in the
-    previous section can be used.)
+    The procedures for Debian based systems, such as
+    <ulink url="&url.ubuntu;">Ubuntu</ulink> is probably similar
    </para>
-   </section>
+   <para>
+    There is currently no official Debian package for YAZ++.
+    And the Debian package for YAZ is probably too old.
+    Update the <filename>/etc/apt/sources.list</filename>
+    to include the Index Data repository.
+    See YAZ' <ulink url="&url.yaz.download.debian;">Download Debian</ulink>
+    for more information.
+   </para>
+   <screen>
+    apt-get install libxslt1-dev
+    apt-get install libyazpp-dev
+    apt-get install libboost-dev
+    apt-get install libboost-thread-dev
+    apt-get install libboost-date-time-dev
+    apt-get install libboost-program-options-dev
+    apt-get install libboost-test-dev
+   </screen>
+   <para>
+    With these packages installed, the usual configure + make
+    procedure can be used for Metaproxy as outlined in
+    <xref linkend="installation.unix"/>.
+   </para>
+  </section>
 
   <section id="installation.windows">
    <title>Installation on Windows</title>
@@ -264,12 +289,12 @@
     <para>
      Get Boost from its <ulink url="&url.boost;">home page</ulink>.
      You also need Boost Jam (an alternative to make).
-     That's also available from this
-     home page. The files download are called something like:
-     <literal>boost_1_33-1.exe</literal>
+     That's also available from the Boost home page.
+     The files to be downloaded are called something like:
+     <filename>boost_1_33-1.exe</filename>
      and
-     <literal>boost-jam-3.1.12-1-ntx86.zip</literal>.
-     Unpack Boost Jam first. Put <literal>bjam.exe</literal>
+     <filename>boost-jam-3.1.12-1-ntx86.zip</filename>.
+     Unpack Boost Jam first. Put <filename>bjam.exe</filename>
      in your system path. Make a command prompt and ensure
      it can be found automatically. If not check the PATH.
      The Boost .exe is a self-extracting exe with
