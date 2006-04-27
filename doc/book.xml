@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.25 2006-04-27 16:17:16 mike Exp $ -->
+<!-- $Id: book.xml,v 1.26 2006-04-27 16:38:13 adam Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -1173,7 +1173,7 @@ Z>
    <simpara>
     <inlinemediaobject>
      <imageobject>
-      <imagedata fileref="multi.pdf" format="PDF"/>
+      <imagedata fileref="multi.pdf" format="PDF" scale="50"/>
      </imageobject>
      <imageobject>
       <imagedata fileref="multi.png" format="PNG"/>

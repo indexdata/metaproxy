@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.13 2006-04-27 13:29:40 mike Exp $
+## $Id: Makefile.am,v 1.14 2006-04-27 16:38:13 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -42,12 +42,11 @@ HTMLFILES = architecture.html \
 	refguide.html
 
 PNGFILES=multi.png
-EPSFILES=multi.eps
 
 doc_DATA = $(HTMLFILES) metaproxy.pdf $(PNGFILES)
 man_MANS = $(MANFILES)
 
-EXTRA_DIST = $(XMLFILES) $(XMLMAN) $(doc_DATA) $(EPSFILES) $(man_MANS)
+EXTRA_DIST = $(XMLFILES) $(XMLMAN) $(doc_DATA) $(man_MANS) multi.svg
 
 $(HTMLFILES): $(XMLFILES) multi.png
 	jade -E14 -D $(srcdir) -d common/html.dsl -t sgml $(srcdir)/common/xml.dcl $(MAINXML)
@@ -59,7 +58,7 @@ $(HTMLFILES): $(XMLFILES) multi.png
 	docbook2man $<
 
 metaproxy.pdf: $(XMLFILES) multi.pdf
-	for i in $(PNGFILES) $(EPSFILES); do \
+	for i in $(PNGFILES) multi.pdf; do \
 		if test ! -f $$i; then ln -s $(srcdir)/$$i .; fi; \
 	done
 	jade -E14 -D $(srcdir) -d common/print.dsl -t tex $(srcdir)/common/xml.dcl $(MAINXML)
@@ -86,10 +85,10 @@ multi.png: multi.svg
 	inkscape --export-png=$@ --export-width=800 --export-area-drawing $?
 
 multi.eps: multi.svg
-	inkscape --export-eps=$@ $?
+	inkscape --export-eps=$@ --export-bbox-page $?
 
 %.pdf: %.eps
-	epstodf $?
+	epstopdf -hires $?
 
 clean-data-hook:
 	rm -f [0-9]* *.bak
