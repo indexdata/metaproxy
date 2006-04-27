@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.23 2006-04-27 13:39:49 mike Exp $ -->
+<!-- $Id: book.xml,v 1.24 2006-04-27 16:16:28 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -578,7 +578,7 @@
    <title><literal>multi</literal>
      (mp::filter::Multi)</title>
     <para>
-     Performs multicast searching.
+     Performs multi-database searching.
      See
      <link linkend="multidb">the extended discussion</link>
      of virtual databases and multi-database searching below.
@@ -825,12 +825,11 @@
     file (included in the distribution as
     <literal>metaproxy/etc/config0.xml</literal>).
     This file defines a very simple configuration that simply proxies
-    to whatever backend server the client requests, but logs each
+    to whatever back-end server the client requests, but logs each
     request and response.  This can be useful for debugging complex
     client-server dialogues.
    </para>
-   <screen><![CDATA[
-<?xml version="1.0"?>
+   <screen><![CDATA[<?xml version="1.0"?>
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <filters>
@@ -865,7 +864,7 @@
     a <literal>log</literal> filter that emits a message for each
     request; they are then fed into a <literal>z3950_client</literal>
     filter, which forwards the requests to the client-specified
-    backend Z39.509 server.  When the response arrives, it is handed
+    back-end Z39.509 server.  When the response arrives, it is handed
     back to the <literal>log</literal> filter, which emits another
     message; and then to the front-end filter, which returns the
     response to the client.
@@ -881,10 +880,222 @@
 
   <section>
    <title>Introductory notes</title>
+   <para>
+    Two of Metaproxy's filters are concerned with multiple-database
+    operations.  Of these, <literal>virt_db</literal> can work alone
+    to control the routing of searches to one of a number of servers,
+    while <literal>multi</literal> can work together with
+    <literal>virt_db</literal> to perform multi-database searching, merging
+    the results into a unified result-set - ``metasearch in a box''.
+   </para>
+   <para>
+    The interaction between
+    these two filters is necessarily complex: it reflects the real,
+    irreducible complexity of multi-database searching in a protocol such
+    as Z39.50 that separates initialisation from searching, and in
+    which the database to be searched is not known at initialisation
+    time.
+   </para>
+   <para>
+    It's possible to use these filters without understanding the
+    details of their functioning and the interaction between them; the
+    next two sections of this chapter are ``HOWTO'' guides for doing
+    just that.  However, debugging complex configurations will require
+    a deeper understanding, which the last two sections of this
+    chapters attempt to provide.
+   </para>
+  </section>
+
+
+  <section id="multidb.virt_db">
+   <title>Virtual databases with the <literal>virt_db</literal> filter</title>
+   <para>
+    Working alone, the purpose of the
+    <literal>virt_db</literal>
+    filter is to route search requests to one of a selection of
+    back-end databases.  In this way, a single Z39.50 endpoint
+    (running Metaproxy) can provide access to several different
+    underlying services, including those that would otherwise be
+    inaccessible due to firewalls.  In many useful configurations, the
+    back-end databases are local to the Metaproxy installation, but
+    the software does not enforce this, and any valid Z39.50 servers
+    may be used as back-ends.
+   </para>
+   <para>
+    For example, a <literal>virt_db</literal>
+    filter could be set up so that searches in the virtual database
+    ``lc'' are forwarded to the Library of Congress bibliographic
+    catalogue server, and searches in the virtual database ``marc''
+    are forwarded to the toy database of MARC records that Index Data
+    hosts for testing purposes.  A <literal>virt_db</literal>
+    configuration to make this switch would look like this:
+   </para>
+   <screen><![CDATA[<filter type="virt_db">
+  <virtual>
+    <database>lc</database>
+    <target>z3950.loc.gov:7090/voyager</target>
+  </virtual>
+  <virtual>
+    <database>marc</database>
+    <target>indexdata.dk/marc</target>
+  </virtual>
+</filter>]]></screen>
+   <para>
+    As well as being useful in it own right, this filter also provides
+    the foundation for multi-database searching.
+   </para>
+  </section>
+
+
+  <section id="multidb.multi">
+   <title>Multi-database search with the <literal>multi</literal> filter</title>
+   <para>
+    To arrange for Metaproxy to broadcast searches to multiple back-end
+    servers, the configuration needs to include two components: a
+    <literal>virt_db</literal>
+    filter that specifies multiple
+    <literal>&lt;target&gt;</literal>
+    elements, and a subsequent
+    <literal>multi</literal>
+    filter.  Here, for example, is a complete configuration that
+    broadcasts searches to both the Library of Congress catalogue and
+    Index Data's tiny testing database of MARC records:
+   </para>
+   <screen><![CDATA[<?xml version="1.0"?>
+<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+  <start route="start"/>
+  <routes>
+    <route id="start">
+      <filter type="frontend_net">
+        <threads>10</threads>
+        <port>@:9000</port>
+      </filter>
+      <filter type="virt_db">
+        <virtual>
+          <database>lc</database>
+          <target>z3950.loc.gov:7090/voyager</target>
+        </virtual>
+        <virtual>
+          <database>marc</database>
+          <target>indexdata.dk/marc</target>
+        </virtual>
+        <virtual>
+          <database>all</database>
+          <target>z3950.loc.gov:7090/voyager</target>
+          <target>indexdata.dk/marc</target>
+        </virtual>
+      </filter>
+      <filter type="multi"/>
+      <filter type="z3950_client">
+        <timeout>30</timeout>
+      </filter>
+    </route>
+  </routes>
+</yp2>]]></screen>
+   <para>
+    (Using a
+    <literal>virt_db</literal>
+    filter that specifies multiple
+    <literal>&lt;target&gt;</literal>
+    elements but without a subsequent
+    <literal>multi</literal>
+    filter yields surprising and undesirable results, as will be
+    described below.  Don't do that.)
+   </para>
+   <para>
+    Metaproxy can be invoked with this configuration as follows:
+   </para>
+   <screen>../src/metaproxy --config config-simple-multi.xml</screen>
+   <para>
+    And thereafter, Z39.50 clients can connect to the running server
+    (on port 9000, as specified in the configuration) and search in
+    any of the databases
+    <literal>lc</literal> (the Library of Congress catalogue),
+    <literal>marc</literal> (Index Data's test database of MARC records)
+    or
+    <literal>all</literal> (both of these).  As an example, a session
+    using the YAZ command-line client <literal>yaz-client</literal> is
+    here included (edited for brevity and clarity):
+   </para>
+   <screen><![CDATA[$ yaz-client @:9000
+Connecting...OK.
+Z> base lc
+Z> find computer
+Search was a success.
+Number of hits: 10000, setno 1
+Elapsed: 5.521070
+Z> base marc
+Z> find computer
+Search was a success.
+Number of hits: 10, setno 3
+Elapsed: 0.060187
+Z> base all
+Z> find computer
+Search was a success.
+Number of hits: 10010, setno 4
+Elapsed: 2.237648
+Z> show 1
+[marc]Record type: USmarc
+001    11224466
+003 DLC
+005 00000000000000.0
+008 910710c19910701nju           00010 eng
+010    $a 11224466
+040    $a DLC $c DLC
+050 00 $a 123-xyz
+100 10 $a Jack Collins
+245 10 $a How to program a computer
+260 1  $a Penguin
+263    $a 8710
+300    $a p. cm.
+Elapsed: 0.119612
+Z> show 2
+[VOYAGER]Record type: USmarc
+001 13339105
+005 20041229102447.0
+008 030910s2004    caua          000 0 eng
+035    $a (DLC)  2003112666
+906    $a 7 $b cbc $c orignew $d 4 $e epcn $f 20 $g y-gencatlg
+925 0  $a acquire $b 1 shelf copy $x policy default
+955    $a pc10 2003-09-10 $a pv12 2004-06-23 to SSCD; $h sj05 2004-11-30 $e sj05 2004-11-30 to Shelf.
+010    $a   2003112666
+020    $a 0761542892
+040    $a DLC $c DLC $d DLC
+050 00 $a MLCM 2004/03312 (G)
+245 10 $a 007, everything or nothing : $b Prima's official strategy guide / $c created by Kaizen Media Group.
+246 3  $a Double-O-seven, everything or nothing
+246 30 $a Prima's official strategy guide
+260    $a Roseville, CA : $b Prima Games, $c c2004.
+300    $a 161 p. : $b col. ill. ; $c 28 cm.
+500    $a "Platforms: Nintendo GameCube, Macintosh, PC, PlayStation 2 computer entertainment system, Xbox"--P. [4] of cover.
+650  0 $a Video games.
+710 2  $a Kaizen Media Group.
+856 42 $3 Publisher description $u http://www.loc.gov/catdir/description/random052/2003112666.html
+Elapsed: 0.150623
+Z>
+]]></screen>
+   <para>
+    As can be seen, the first record in the result set is from the
+    Index Data test database, and the second from the Library of
+    Congress database.  The result-set continues alternating records
+    round-robin style until the point where one of the databases'
+    records are exhausted.
+   </para>
+   <para>
+    This example uses only two back-end databases; more may be used.
+    There is no limitation imposed on the number of databases that may
+    be metasearched in this way: issues of resource usage and
+    administrative complexity dictate the practical limits.
+   </para>
+  </section>
+
+
+  <section id="multidb.what">
+   <title>What's going on?</title>
    <warning>
     <title>Lark's vomit</title>
     <para>
-     This chapter goes into a level of technical detail that is
+     This section goes into a level of technical detail that is
      probably not necessary in order to configure and use Metaproxy.
      It is provided only for those who like to know how things work.
      You should feel free to skip on to the next section if this one
@@ -892,26 +1103,8 @@
     </para>
    </warning>
    <para>
-    Two of Metaproxy's filters are concerned with multiple-database
-    operations.  Of these, <literal>virt_db</literal> can work alone
-    to control the routing of searches to one of a number of servers,
-    while <literal>multi</literal> can work with the output of
-    <literal>virt_db</literal> to perform multicast searching, merging
-    the results into a unified result-set.  The interaction between
-    these two filters is necessarily complex: it reflecting the real,
-    irreducible complexity of multicast searching in a protocol such
-    as Z39.50 that separates initialisation from searching, and in
-    which the database to be searched is not known at initialisation
-    time.
-   </para>
-   <para>
     Hold on tight - this may get a little hairy.
    </para>
-  </section>
-
-
-  <section id="multidb.virt_db">
-   <title>Virtual databases with the <literal>virt_db</literal> filter</title>
    <para>
     In the general course of things, a Z39.50 Init request may carry
     with it an otherInfo packet of type <literal>VAL_PROXY</literal>,
@@ -933,25 +1126,8 @@
    <para>
     The role of the <literal>virt_db</literal> filter is to rewrite
     this otherInfo packet dependent on the virtual database that the
-    client wants to search.  For example, a <literal>virt_db</literal>
-    filter could be set up so that searches in the virtual database
-    ``lc'' are forwarded to the Library of Congress server, and
-    searches in the virtual database ``id'' are forwarded to the toy
-    GILS database that Index Data hosts for testing purposes.  A
-    <literal>virt_db</literal> configuration to make this switch would
-    look like this:
+    client wants to search.  
    </para>
-   <screen><![CDATA[
-    <filter type="virt_db">
-      <virtual>
-        <database>lc</database>
-        <target>z3950.loc.gov:7090/Voyager</target>
-      </virtual>
-      <virtual>
-        <database>id</database>
-        <target>indexdata.dk/gils</target>
-      </virtual>
-    </filter>]]></screen>
    <para>
     When Metaproxy receives a Z39.50 Init request from a client, it
     doesn't immediately forward that request to the back-end server.
@@ -972,7 +1148,7 @@
     <literal>frontend_net</literal> filter.  The
     <literal>virt_db</literal> filter knows nothing about it; in
     fact, because the Init request that is received from the client
-    doesn't get forwarded until a Search reqeust is received, the
+    doesn't get forwarded until a Search request is received, the
     <literal>virt_db</literal> filter (and the
     <literal>z3950_client</literal> filter behind it) doesn't even get
     invoked at Init time.  The <emphasis>only</emphasis> thing that a
@@ -980,7 +1156,13 @@
     <literal>VAL_PROXY</literal> otherInfo in the requests that pass
     through it.
    </para>
+   <para>
+    ### Describe the use of multiple <literal>VAL_PROXY</literal>
+    otherInfos, added by <literal>virt_db</literal> and used by
+    <literal>multi</literal>.
+   </para>
   </section>
+
 
   <section id="multidb.picture">
    <title>A picture is worth a thousand words (but only five hundred on 64-bit architectures)</title>
