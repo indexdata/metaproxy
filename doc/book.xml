@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.24 2006-04-27 16:16:28 mike Exp $ -->
+<!-- $Id: book.xml,v 1.25 2006-04-27 16:17:16 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -244,6 +244,10 @@
    <title>Installation on Debian</title>
    <para>
     ### To be written
+   </para>
+   <para>
+    (Of course, since Debian is a Unix system, the instructions in the
+    previous section can be used.)
    </para>
    </section>
 
