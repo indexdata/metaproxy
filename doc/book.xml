@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.19 2006-04-26 17:04:30 mike Exp $ -->
+<!-- $Id: book.xml,v 1.20 2006-04-27 08:51:19 adam Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -826,7 +826,7 @@
   </section>
 
 
-  <section>
+  <section id="multidb.virt_db">
    <title>Virtual databases with the <literal>virt_db</literal> filter</title>
    <para>
     In the general course of things, a Z39.50 Init request may carry
@@ -898,7 +898,7 @@
    </para>
   </section>
 
-  <section>
+  <section id="multidb.picture">
    <title>A picture is worth a thousand words (but only five hundred on 64-bit architectures)</title>
    <simpara>
     <inlinemediaobject>
