@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+  <start route="start"/>
+  <routes>
+    <route id="start">
+      <filter type="frontend_net">
+        <threads>10</threads>
+        <port>@:9000</port>
+      </filter>
+      <filter type="virt_db">
+        <virtual>
+          <database>lc</database>
+	  <target>z3950.loc.gov:7090/voyager</target>
+        </virtual>
+        <virtual>
+          <database>marc</database>
+          <target>indexdata.dk/marc</target>
+        </virtual>
+        <virtual>
+          <database>all</database>
+	  <target>z3950.loc.gov:7090/voyager</target>
+          <target>indexdata.dk/marc</target>
+        </virtual>
+      </filter>
+      <filter type="multi"/>
+      <filter type="z3950_client">
+        <timeout>30</timeout>
+      </filter>
+    </route>
+  </routes>
+</yp2>
