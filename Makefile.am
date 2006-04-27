@@ -1,8 +1,8 @@
 ## This file is part of Metaproxy
 ## Copyright (C) 2005-2006, Index Data ApS
-## $Id: Makefile.am,v 1.12 2006-04-27 08:51:31 adam Exp $
+## $Id: Makefile.am,v 1.13 2006-04-27 17:01:00 adam Exp $
 
-SUBDIRS = src doc
+SUBDIRS = src doc etc
 
 ACLOCAL_AMFLAGS = -I m4
 

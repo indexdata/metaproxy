@@ -140,6 +140,7 @@ AC_CONFIG_FILES([
         doc/common/html.xsl
         doc/common/print.dsl
         doc/common/tkl.xsl
+	etc/Makefile
 ])
 
 AC_OUTPUT

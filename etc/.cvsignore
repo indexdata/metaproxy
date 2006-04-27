@@ -1,1 +1,3 @@
 tmp*.xml
+Makefile
+Makefile.in
