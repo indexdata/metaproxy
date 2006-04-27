@@ -7,9 +7,18 @@
      <!ENTITY progref SYSTEM "progref.xml">
      <!ENTITY version "@VERSION@">
      <!ENTITY % entities SYSTEM "common/common.ent">
+     <!-- Next line allows imagedata/@format="PDF" and is taken from 
+http://lists.oasis-open.org/archives/docbook/200303/msg00163.html
+     -->
+     <!ENTITY % local.notation.class "| PDF">
+     <!-- Next line is necessary for some XML parsers, for reasons I
+          don't understand.  I got this from
+http://lists.oasis-open.org/archives/docbook/200303/msg00180.html
+     -->
+     <!NOTATION PDF SYSTEM "PDF">
      %entities;
 ]>
-<!-- $Id: main.xml.in,v 1.5 2006-04-25 12:48:52 marc Exp $ -->
+<!-- $Id: main.xml.in,v 1.6 2006-04-27 13:28:46 mike Exp $ -->
 <book id="metaproxy">
  &book;
 </book>
