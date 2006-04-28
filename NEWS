@@ -1,6 +1,11 @@
---- 1.0.0 2006/04/27
+--- 1.0.2 2006/04/28
 
-Build instructions for Windows. NMake makefile part of dist.
+More information about virtual hosts. The 'etc' directory is part of the
+distribution tar.
+
+--- 1.0.1 2006/04/27
+
+Build instructions for Windows. NMake makefile part of distribution tar.
 
 --- 1.0.0 2006/04/24
 
