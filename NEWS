@@ -1,3 +1,8 @@
+
+Fixed bug #569: Some options throws unknown exception.
+
+Fixed bug #567: Fix up database name in Name-Plus-Record.
+
 --- 1.0.2 2006/04/28
 
 More information about virtual hosts. The 'etc' directory is part of the
