@@ -1,4 +1,4 @@
-/* $Id: metaproxy_prog.cpp,v 1.3 2006-04-29 08:47:40 adam Exp $
+/* $Id: metaproxy_prog.cpp,v 1.4 2006-04-29 08:51:00 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -26,6 +26,7 @@ int main(int argc, char **argv)
         po::options_description desc("Allowed options");
         desc.add_options()
             ("help,h", "produce help message")
+            ("version,V", "show version")
             ("config", po::value< std::vector<std::string> >(), "xml config")
             ;
         
@@ -41,7 +42,10 @@ int main(int argc, char **argv)
             std::cout << desc << "\n";
             return 1;
         }
-        
+        if (vm.count("version")) {
+            std::cout << "Metaproxy " VERSION "\n";
+            return 0;
+        }
         xmlDocPtr doc = 0;
         if (vm.count("config"))
         {
