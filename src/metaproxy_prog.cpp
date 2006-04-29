@@ -1,4 +1,4 @@
-/* $Id: metaproxy_prog.cpp,v 1.1 2006-03-16 10:40:59 adam Exp $
+/* $Id: metaproxy_prog.cpp,v 1.2 2006-04-29 08:44:58 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -25,7 +25,7 @@ int main(int argc, char **argv)
     {
         po::options_description desc("Allowed options");
         desc.add_options()
-            ("help", "produce help message")
+            ("help,h", "produce help message")
             ("config", po::value< std::vector<std::string> >(), "xml config")
             ;
         
@@ -76,10 +76,22 @@ int main(int argc, char **argv)
             }
             catch (std::runtime_error &e) {
                 std::cout << "std::runtime error: " << e.what() << "\n";
-                exit(1);
+                std::exit(1);
             }
             xmlFreeDoc(doc);
         }
+    }
+    catch (po::unknown_option &e) {
+        std::cerr << e.what() << "; use --help for list of options\n";
+        std::exit(1);
+    }
+    catch (std::logic_error &e) {
+        std::cerr << "std::logic error: " << e.what() << "\n";
+        std::exit(1);
+    }
+    catch (std::runtime_error &e) {
+        std::cout << "std::runtime error: " << e.what() << "\n";
+        std::exit(1);
     }
     catch ( ... ) {
         std::cerr << "Unknown Exception" << std::endl;
