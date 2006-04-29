@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.36 2006-03-16 10:40:59 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.37 2006-04-29 08:09:13 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -67,6 +67,11 @@ namespace metaproxy_1 {
 
             void close(Package &package);
             typedef std::map<std::string,Virt_db::Set>::iterator Sets_it;
+
+            void fixup_npr(Package &p, BackendPtr b);
+
+            void fixup_npr(Z_Records *records, std::string database,
+                           ODR odr);
 
             BackendPtr lookup_backend_from_databases(
                 std::list<std::string> databases);
@@ -354,11 +359,11 @@ void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
         package.session().close();
         return;
     }
-    package.response() = search_package.response();
-
     b->m_number_of_sets++;
 
     m_sets[resultSetId] = Virt_db::Set(b, backend_setname);
+    fixup_npr(search_package, b);
+    package.response() = search_package.response();
 }
 
 yf::Virt_db::Frontend::Frontend(Rep *rep)
@@ -462,6 +467,47 @@ yf::Virt_db::Virt_db() : m_p(new Virt_db::Rep)
 yf::Virt_db::~Virt_db() {
 }
 
+
+void yf::Virt_db::Frontend::fixup_npr(Z_Records *records, std::string database,
+                                      ODR odr)
+{
+    if (records && records->which == Z_Records_DBOSD)
+    {
+        Z_NamePlusRecordList *nprlist = records->u.databaseOrSurDiagnostics;
+        int i;
+        for (i = 0; i < nprlist->num_records; i++)
+        {
+            Z_NamePlusRecord *npr = nprlist->records[i];
+            npr->databaseName = odr_strdup(odr, database.c_str());
+        }
+    }
+}
+
+void yf::Virt_db::Frontend::fixup_npr(Package &p, BackendPtr b)
+{
+    Z_GDU *gdu = p.response().get();
+    mp::odr odr;
+    std::string database = "dummy";
+    std::list<std::string>::const_iterator db_it =
+        b->m_frontend_databases.begin();
+    if (db_it != b->m_frontend_databases.end())
+        database = *db_it;
+
+    if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
+        Z_APDU_presentResponse)
+    {
+        fixup_npr(gdu->u.z3950->u.presentResponse->records, database, odr);
+        p.response() = gdu;
+    }
+    if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
+        Z_APDU_searchResponse)
+    {
+        fixup_npr(gdu->u.z3950->u.searchResponse->records, database, odr);
+        p.response() = gdu;
+    }
+
+}
+
 void yf::Virt_db::Frontend::present(Package &package, Z_APDU *apdu_req)
 {
     Z_PresentRequest *req = apdu_req->u.presentRequest;
@@ -491,6 +537,8 @@ void yf::Virt_db::Frontend::present(Package &package, Z_APDU *apdu_req)
     present_package.request() = yazpp_1::GDU(apdu_req);
 
     present_package.move(sets_it->second.m_backend->m_route);
+
+    fixup_npr(present_package, sets_it->second.m_backend);
 
     if (present_package.session().is_closed())
     {
