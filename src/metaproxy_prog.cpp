@@ -1,4 +1,4 @@
-/* $Id: metaproxy_prog.cpp,v 1.4 2006-04-29 08:51:00 adam Exp $
+/* $Id: metaproxy_prog.cpp,v 1.5 2006-04-29 08:51:54 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
                 pack.router(router).move();
             }
             catch (std::runtime_error &e) {
-                std::cout << "std::runtime error: " << e.what() << "\n";
+                std::cerr << "std::runtime error: " << e.what() << "\n";
                 std::exit(1);
             }
             xmlFreeDoc(doc);
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
         std::exit(1);
     }
     catch (std::runtime_error &e) {
-        std::cout << "std::runtime error: " << e.what() << "\n";
+        std::cerr << "std::runtime error: " << e.what() << "\n";
         std::exit(1);
     }
     catch ( ... ) {
