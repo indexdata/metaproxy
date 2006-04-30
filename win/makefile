@@ -1,11 +1,11 @@
 # Copyright (C) 2005-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.12 2006-04-30 06:51:49 adam Exp $
+# $Id: makefile,v 1.13 2006-04-30 07:46:42 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
 # Parameters that we customize often.
-DEBUG=0   # 0 for release, 1 for debug
+DEBUG=1   # 0 for release, 1 for debug
 
 # Metaproxy version
 VERSION=1.0.2
@@ -18,7 +18,7 @@ YAZPP_DIR=..\..\yazpp
 BOOST=\boost
 BOOST_VERSION=1_33_1
 BOOST_TOOLSET=vc80 # vc80 for VS 2005, vc71 for 2003
-BOOST_LIB_SUFFIX=$(BOOST_TOOLSET)-mt-$(BOOST_VERSION).lib
+BOOST_MODEL=mt
 
 # libxml2 + libxslt + associates
 ZLIB_DIR=\zlib-1.2.3.win32
@@ -54,6 +54,7 @@ SRCDIR=$(ROOTDIR)\src       # for the case we move them under src
 TMPDIR=$(ROOTDIR)\win\tmp
 TMP=$(TMPDIR)
 
+
 ##########################################################
 ############### Targets - what to make
 ###########################################################
@@ -74,23 +75,31 @@ test_pipe: $(TEST_PIPE)
 ############### Compiler and linker options 
 ###########################################################
 
+!if $(DEBUG)
+YAZD=yazd
+YAZPPD=yazppd
+!else
+YAZD=yaz
+YAZPP=yazpp
+!endif
+
 # YAZ includes & libs
-YAZ_LIB="$(YAZ_DIR)\lib\yaz.lib"
+YAZ_LIB="$(YAZ_DIR)\lib\$(YAZD).lib"
 YAZ_DEF=/DYAZ_USE_NEW_LOG=1 /I"$(YAZ_DIR)\include"
 
 # Copy yaz.dll to our bin
-yaz: $(BINDIR)\yaz.dll
-$(BINDIR)\yaz.dll: $(YAZ_DIR)\bin\yaz.dll
-  copy "$(YAZ_DIR)\bin\yaz.dll" $(BINDIR)
+yaz: $(BINDIR)\$(YAZD).dll
+$(BINDIR)\$(YAZD).dll: $(YAZ_DIR)\bin\$(YAZD).dll
+  copy "$(YAZ_DIR)\bin\$(YAZD).dll" $(BINDIR)
 
 # YAZ++ includes & libs
-YAZPP_LIB="$(YAZPP_DIR)\lib\yazpp.lib"
+YAZPP_LIB="$(YAZPP_DIR)\lib\$(YAZPPD).lib"
 YAZPP_DEF=/I"$(YAZPP_DIR)\include"
 
 # Copy yazpp.dll to our bin
-yazpp: $(BINDIR)\yazpp.dll
-$(BINDIR)\yazpp.dll: $(YAZPP_DIR)\bin\yazpp.dll
-  copy "$(YAZPP_DIR)\bin\yazpp.dll" $(BINDIR)
+yazpp: $(BINDIR)\$(YAZPPD).dll
+$(BINDIR)\$(YAZPPD).dll: $(YAZPP_DIR)\bin\$(YAZPPD).dll
+  copy "$(YAZPP_DIR)\bin\$(YAZPPD).dll" $(BINDIR)
 
 # Copy libxslt and associates to our bin directory
 libxslt: $(BINDIR)\libxslt.dll
@@ -108,6 +117,12 @@ $(SRCDIR)\config.hpp:
 
 # Boost 
 #
+!if $(DEBUG)
+BOOST_LIB_SUFFIX=$(BOOST_TOOLSET)-$(BOOST_MODEL)-gd-$(BOOST_VERSION).lib
+!else
+BOOST_LIB_SUFFIX=$(BOOST_TOOLSET)-$(BOOST_MODEL)-$(BOOST_VERSION).lib
+!endif
+
 BOOST_DEF = /I"$(BOOST)\include\boost-$(BOOST_VERSION)"
 BOOST_LIB = \
     "$(BOOST)\lib\libboost_date_time-$(BOOST_LIB_SUFFIX)" \
@@ -127,7 +142,7 @@ LIBXSLT_LIB = \
     "$(LIBXSLT_DIR)\lib\libxslt.lib"
 
 COMMON_C_OPTIONS=          \
-  /nologo /W3 /EHsc /FD /c   \
+  /nologo /W3 /EHsc /FD /c \
   $(YAZ_DEF)               \
   $(YAZPP_DEF)             \
   $(BOOST_DEF)             \
@@ -142,7 +157,7 @@ COMMON_C_OPTIONS=          \
 
 DEBUG_C_OPTIONS=  \
   /D "_DEBUG"      \
-  /MDd  /Od /YX /Zi /Gm
+  /MDd  /Od /Zi /Gm
 
 RELEASE_C_OPTIONS=  \
   /D "NDEBUG"        \
@@ -159,7 +174,6 @@ RELEASE_C_OPTIONS=  \
 # /MDd = Runtime library: Multithread DLL (debug)
 # /Od  = Disable optimising (debug)
 # /O2  = Optimize for speed
-# /YX  = Automatic use of precomipled headers
 # /Gm  = Minimal rebuild (some cpp class stuff)
 # /Zi  = Program database for debuggers
 # /ZI  = Pgm database with special "edit&continue" stuff - not available in C5
