@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.27 2006-04-27 19:49:35 adam Exp $ -->
+<!-- $Id: book.xml,v 1.28 2006-04-30 07:07:12 adam Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -279,10 +279,9 @@
   <section id="installation.windows">
    <title>Installation on Windows</title>
    <para>
-    Compilation of Metaproxy can be done using
-    Microsoft <ulink url="&url.vstudio;">Visual Studio</ulink>.
-    We know Version 2003 works. We expect Version 2005 to
-    work as well.
+    Metaproxy can be compiled with Microsoft
+    <ulink url="&url.vstudio;">Visual Studio</ulink>.
+    Version 2003 (C 7.1) and 2005 (C 8.0) is known to work.
    </para>
    <section id="installation.windows.boost">
     <title>Boost</title>
@@ -301,7 +300,23 @@
      complete source for Boost. Compile that source with
      Boost Jam (An alternative to Make).
      The compilation takes a while.
-     By default, the Boost build process puts the resulting
+     For Visual Studio 2003, use
+     <screen>
+      bjam "-sTOOLS=vc-7_1"
+     </screen>
+     Here <literal>vc-7_1</literal> refers to a "Toolset" (compiler system).
+     For Visual Studio 2005, use
+     <screen>
+      bjam "-sTOOLS=vc-8_0"
+     </screen>
+     To install the libraries in a common place, use
+     <screen>
+      bjam "-sTOOLS=vc-7_1" install
+     </screen>
+     (or vc-8_0 for VS 2005).
+    </para>
+    <para>
+     By default, the Boost build process installs the resulting
      libraries + header files in
      <literal>\boost\lib</literal>, <literal>\boost\include</literal>.
     </para>
@@ -357,12 +372,65 @@
      to point to the proper locations of Boost, Libxslt, Libxml2,
      zlib, iconv, yaz and yazpp.
     </para>
+
+    <variablelist>
+     <varlistentry><term><literal>DEBUG</literal></term>
+      <listitem><para>
+	If set to 1, the software is
+	compiled with debugging libraries (code generation is
+	multi-threaded debug DLL).
+	If set to 0, the software is compiled with release libraries
+	(code generation is multi-threaded DLL).
+       </para></listitem>
+     </varlistentry>
+
+     <varlistentry>
+      <term><literal>BOOST</literal></term>
+      <listitem>
+       <para>
+	Boost install location
+       </para>
+      </listitem>
+     </varlistentry>
+
+     <varlistentry>
+      <term><literal>BOOST_VERSION</literal></term>
+      <listitem>
+       <para>
+	Boost version (replace . with _).
+       </para>
+      </listitem>
+     </varlistentry>
+
+     <varlistentry>
+      <term><literal>BOOST_TOOLSET</literal></term>
+      <listitem>
+       <para>
+	Boost toolset.
+       </para>
+      </listitem>
+     </varlistentry>
+
+     <varlistentry>
+      <term><literal>LIBXSLT_DIR</literal>,
+       <literal>LIBXML2_DIR</literal> ..</term>
+      <listitem>
+       <para>
+	Specify the locations of Libxslt, libiconv, libxml2 and
+	libxslt.
+       </para>
+      </listitem>
+     </varlistentry>
+      
+    </variablelist>
+    
     <para>
      After succesful compilation you'll find
      <literal>metaproxy.exe</literal> in the
      <literal>bin</literal> directory.
     </para>
    </section>
+
 
   </section>
  </chapter>
