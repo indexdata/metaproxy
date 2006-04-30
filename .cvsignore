@@ -9,3 +9,5 @@ libtool
 autom4te.cache
 Doxyfile
 dox
+lib
+bin
