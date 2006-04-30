@@ -1,11 +1,14 @@
 # Copyright (C) 2005-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.11 2006-03-30 12:52:33 adam Exp $
+# $Id: makefile,v 1.12 2006-04-30 06:51:49 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
 # Parameters that we customize often.
 DEBUG=0   # 0 for release, 1 for debug
+
+# Metaproxy version
+VERSION=1.0.2
 
 # YAZ and YAZ++ directories
 YAZ_DIR=..\..\yaz
@@ -13,7 +16,9 @@ YAZPP_DIR=..\..\yazpp
 
 # Boost
 BOOST=\boost
-BOOSTVER=1_33
+BOOST_VERSION=1_33_1
+BOOST_TOOLSET=vc80 # vc80 for VS 2005, vc71 for 2003
+BOOST_LIB_SUFFIX=$(BOOST_TOOLSET)-mt-$(BOOST_VERSION).lib
 
 # libxml2 + libxslt + associates
 ZLIB_DIR=\zlib-1.2.3.win32
@@ -92,6 +97,7 @@ libxslt: $(BINDIR)\libxslt.dll
 
 $(BINDIR)\libxslt.dll: $(LIBXSLT_DIR)\bin\libxslt.dll
 	copy $(ICONV_DIR)\bin\iconv.dll $(BINDIR)
+	copy $(ZLIB_DIR)\bin\zlib1.dll $(BINDIR)
 	copy $(LIBXML2_DIR)\bin\libxml2.dll $(BINDIR)
 	copy $(LIBXSLT_DIR)\bin\libxslt.dll $(BINDIR)
 
@@ -102,12 +108,12 @@ $(SRCDIR)\config.hpp:
 
 # Boost 
 #
-BOOST_DEF = /I"$(BOOST)\include\boost-$(BOOSTVER)"
+BOOST_DEF = /I"$(BOOST)\include\boost-$(BOOST_VERSION)"
 BOOST_LIB = \
-    "$(BOOST)\lib\libboost_date_time-vc71-mt-$(BOOSTVER).lib" \
-    "$(BOOST)\lib\libboost_program_options-vc71-mt-$(BOOSTVER).lib" \
-    "$(BOOST)\lib\libboost_thread-vc71-mt-$(BOOSTVER).lib" \
-    "$(BOOST)\lib\libboost_unit_test_framework-vc71-mt-$(BOOSTVER).lib" 
+    "$(BOOST)\lib\libboost_date_time-$(BOOST_LIB_SUFFIX)" \
+    "$(BOOST)\lib\libboost_program_options-$(BOOST_LIB_SUFFIX)" \
+    "$(BOOST)\lib\libboost_thread-$(BOOST_LIB_SUFFIX)" \
+    "$(BOOST)\lib\libboost_unit_test_framework-$(BOOST_LIB_SUFFIX)"
 
 
 LIBXSLT_DEF = \
@@ -121,14 +127,14 @@ LIBXSLT_LIB = \
     "$(LIBXSLT_DIR)\lib\libxslt.lib"
 
 COMMON_C_OPTIONS=          \
-  /nologo /W3 /GX /FD /c   \
+  /nologo /W3 /EHsc /FD /c   \
   $(YAZ_DEF)               \
   $(YAZPP_DEF)             \
   $(BOOST_DEF)             \
   $(LIBXSLT_DEF)	   \
+  /D VERSION=\"$(VERSION)\" \
   /D "_WINDOWS"            \
   /D "WIN32"               \
-  /EHsc \
   /FR"$(OBJDIR)\\"         \
   /Fo"$(OBJDIR)\\"         \
   /Fd"$(OBJDIR)\\" 	   \
