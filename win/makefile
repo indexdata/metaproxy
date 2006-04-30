@@ -1,11 +1,11 @@
 # Copyright (C) 2005-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.13 2006-04-30 07:46:42 adam Exp $
+# $Id: makefile,v 1.14 2006-04-30 08:59:44 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
 # Parameters that we customize often.
-DEBUG=1   # 0 for release, 1 for debug
+DEBUG=0   # 0 for release, 1 for debug
 
 # Metaproxy version
 VERSION=1.0.2
@@ -80,7 +80,7 @@ YAZD=yazd
 YAZPPD=yazppd
 !else
 YAZD=yaz
-YAZPP=yazpp
+YAZPPD=yazpp
 !endif
 
 # YAZ includes & libs
