@@ -1,6 +1,6 @@
 # Copyright (C) 2005-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.15 2006-04-30 13:10:12 adam Exp $
+# $Id: makefile,v 1.16 2006-04-30 14:09:01 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
@@ -48,8 +48,13 @@ INCLDIR=$(ROOTDIR)\include  # our includes
 LIBDIR=$(ROOTDIR)\lib       # We produce .lib, .exp etc there
 BINDIR=$(ROOTDIR)\bin       # We produce exes and dlls there
 WINDIR=$(ROOTDIR)\win       # all these Win make things
-OBJDIR=$(WINDIR)\obj        # where we store intermediate files
 SRCDIR=$(ROOTDIR)\src       # for the case we move them under src
+
+!if $(DEBUG)
+OBJDIR=$(WINDIR)\dobj       # where we store intermediate files
+!else
+OBJDIR=$(WINDIR)\obj        # where we store intermediate files
+!endif
 
 TMPDIR=$(ROOTDIR)\win\tmp
 TMP=$(TMPDIR)
@@ -143,6 +148,7 @@ LIBXSLT_LIB = \
 
 COMMON_C_OPTIONS=          \
   /nologo /W3 /EHsc /FD /c \
+  /D "_CRT_SECURE_NO_DEPRECATE" \
   $(YAZ_DEF)               \
   $(YAZPP_DEF)             \
   $(BOOST_DEF)             \
@@ -182,12 +188,11 @@ RELEASE_C_OPTIONS=  \
 ### Linker options
 LINK=link.exe
 
-LINK_LIBS= kernel32.lib user32.lib   gdi32.lib   \
-           advapi32.lib uuid.lib \
-           wsock32.lib  advapi32.lib \
-	   $(BOOST_LIB) \
-           $(YAZ_LIB) $(YAZPP_LIB) $(ICONV_LIB) $(LIBXSLT_LIB) \
-	   $(BOOST_LIB) 
+LINK_LIBS=kernel32.lib user32.lib gdi32.lib advapi32.lib uuid.lib \
+          wsock32.lib  advapi32.lib \
+	  $(BOOST_LIB) \
+          $(YAZ_LIB) $(YAZPP_LIB) $(ICONV_LIB) $(LIBXSLT_LIB) \
+	  $(BOOST_LIB) 
 
 COMMON_LNK_OPTIONS= /nologo \
                   /subsystem:windows \
@@ -283,20 +288,40 @@ $(PROJECT_RES): $(PROJECT_RC)
 ###########################################################
 
 $(PROJECT_DLL) $(PROJECT_IMPLIB): "$(BINDIR)" $(PROJECT_DLL_OBJS)
-	@echo Linking $(PROJECT_DLL)
-	$(LINK) $(LNKOPT) $(LINK_LIBS) $(DLL_LINK_OPTIONS) $(PROJECT_DLL_OBJS) /out:"$(PROJECT_DLL)" /implib:"$(PROJECT_IMPLIB)"
+	$(LINK) \
+		$(LNKOPT) \
+		$(LINK_LIBS) \
+		$(DLL_LINK_OPTIONS) \
+		$(PROJECT_DLL_OBJS) \
+		/out:"$(PROJECT_DLL)" \
+		/implib:"$(PROJECT_IMPLIB)"
 
 $(EX_FILTER_FRONTEND_NET) : "$(BINDIR)" $(EX_FILTER_FRONTEND_NET_OBJS) $(PROJECT_IMPLIB)
-	@echo Linking $(EX_FILTER_FRONTEND_NET)
-	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_DLL_OBJS) $(EX_FILTER_FRONTEND_NET_OBJS) /out:$(EX_FILTER_FRONTEND_NET) 
+	$(LINK) \
+		$(LNKOPT) \
+		$(PROG_LINK_OPTIONS) \
+		$(LINK_LIBS) \
+		$(PROJECT_DLL_OBJS) \
+		$(EX_FILTER_FRONTEND_NET_OBJS) \
+		/out:$(EX_FILTER_FRONTEND_NET) 
 
 $(METAPROXY_PROG) : "$(BINDIR)" $(METAPROXY_OBJS) $(PROJECT_IMPLIB)
-	@echo Linking $(METAPROXY_PROG)
-	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(PROJECT_DLL_OBJS) $(METAPROXY_OBJS) /out:$(METAPROXY_PROG) 
+	$(LINK) \
+		$(LNKOPT) \
+		$(PROG_LINK_OPTIONS) \
+		$(LINK_LIBS) \
+		$(PROJECT_DLL_OBJS) \
+		$(METAPROXY_OBJS) \
+		/out:$(METAPROXY_PROG) 
 
 $(TEST_PIPE) : "$(BINDIR)" $(TEST_PIPE_OBJS) $(PROJECT_IMPLIB)
-	@echo Linking $(TEST_PIPE)
-	$(LINK) $(LNKOPT) $(PROG_LINK_OPTIONS) $(LINK_LIBS) $(TEST_PIPE_OBJS) $(PROJECT_DLL_OBJS) /out:$(TEST_PIPE)
+	$(LINK) \
+		$(LNKOPT) \
+		$(PROG_LINK_OPTIONS) \
+		$(LINK_LIBS) \
+		$(TEST_PIPE_OBJS) \
+		$(PROJECT_DLL_OBJS) \
+		/out:$(TEST_PIPE)
 
 ############## clean
 clean:
@@ -306,9 +331,6 @@ clean:
 	-del $(LIBDIR)\*.MAP
 	-del $(LIBDIR)\*.LIB
 	-del $(OBJDIR)\*.OBJ
-
-realclean: clean
-	-del $(ZOOMDIR)\zoom.h
 
 dirs: $(OBJDIR) $(WINDIR) $(LIBDIR) $(BINDIR) $(TMPDIR)
 
