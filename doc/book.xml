@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.28 2006-04-30 07:07:12 adam Exp $ -->
+<!-- $Id: book.xml,v 1.29 2006-05-03 13:33:22 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -1254,9 +1254,37 @@ Z>
     through it.
    </para>
    <para>
-    ### Describe the use of multiple <literal>VAL_PROXY</literal>
-    otherInfos, added by <literal>virt_db</literal> and used by
-    <literal>multi</literal>.
+    It is possible for a <literal>virt_db</literal> filter to contain
+    multiple
+    <literal>&lt;target&gt;</literal>
+    elements.  What does this mean?  Only that the filter will add
+    multiple <literal>VAL_PROXY</literal> otherInfo packets to the
+    search requests that pass through it.  That's because the virtual
+    DB filter is dumb, and does exactly what it's told - no more, no
+    less.
+   </para>
+   <para>
+    If a search request with multiple <literal>VAL_PROXY</literal>
+    otherInfo packets reaches a <literal>z3950_client</literal>
+    filter, this is an error.  That filter doesn't know how to deal
+    with multiple targets, so it will either just pick one and search
+    in it, or (better) fail with an error message.
+   </para>
+   <para>
+    The <literal>multi</literal> filter comes to the rescue!  This is
+    the only filter that knows how to deal with multiple
+    <literal>VAL_PROXY</literal> otherInfo packets, and it does so by
+    making multiple copies of the entire search-request: one for each
+    <literal>VAL_PROXY</literal>.  Each of these new copies is then
+    passed down through the remaining filters in the route, instead of
+    the original one.  (The copies are handled in parallel though the
+    spawning of new threads.)  Since the copies each have ony one
+    <literal>VAL_PROXY</literal> otherInfo, they can be handled by the
+    <literal>z3950_client</literal> filter, which happily deals with
+    each one individually.  When the results of the individual
+    searches come back up to the <literal>multi</literal> filter, it
+    merges them into a single search-response, which is what
+    eventually makes it back to the client.
    </para>
   </section>
 
