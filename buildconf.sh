@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: buildconf.sh,v 1.8 2006-05-03 11:27:48 mike Exp $
+# $Id: buildconf.sh,v 1.9 2006-05-03 12:03:35 mike Exp $
 
 if automake --version|head -1 |grep '1\.[4-7]'; then
     echo "automake 1.4-1.7 is active. You should use automake 1.8 or later"
@@ -77,6 +77,8 @@ When building from a CVS checkout, you need these Debian tools:
   docbook-dsssl, jade, jadetex, libxslt1-dev, libyazpp1-dev,
   libboost-thread-dev, libboost-date-time-dev,
   libboost-program-options-dev, libboost-test-dev
+and for the image-processing needed to build the documentation:
+  inkscape
 
 EOF
 fi
