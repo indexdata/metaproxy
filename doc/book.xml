@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.29 2006-05-03 13:33:22 mike Exp $ -->
+<!-- $Id: book.xml,v 1.30 2006-05-03 14:56:07 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -1221,15 +1221,18 @@ Z>
 	   >the HTTP 1.1 specification</ulink>.
    </para>
    <para>
-    The role of the <literal>virt_db</literal> filter is to rewrite
-    this otherInfo packet dependent on the virtual database that the
-    client wants to search.  
+    Within Metaproxy, Search requests that are part of the same
+    session as an Init request that carries a
+    <literal>VAL_PROXY</literal> otherInfo are also annotated with the
+    same information.  The role of the <literal>virt_db</literal>
+    filter is to rewrite this otherInfo packet dependent on the
+    virtual database that the client wants to search.
    </para>
    <para>
     When Metaproxy receives a Z39.50 Init request from a client, it
     doesn't immediately forward that request to the back-end server.
     Why not?  Because it doesn't know <emphasis>which</emphasis>
-    back-end server to forward it to until the client sends a search
+    back-end server to forward it to until the client sends a Search
     request that specifies the database that it wants to search in.
     Instead, it just treasures the Init request up in its heart; and,
     later, the first time the client does a search on one of the
@@ -1259,12 +1262,10 @@ Z>
     <literal>&lt;target&gt;</literal>
     elements.  What does this mean?  Only that the filter will add
     multiple <literal>VAL_PROXY</literal> otherInfo packets to the
-    search requests that pass through it.  That's because the virtual
+    Search requests that pass through it.  That's because the virtual
     DB filter is dumb, and does exactly what it's told - no more, no
     less.
-   </para>
-   <para>
-    If a search request with multiple <literal>VAL_PROXY</literal>
+    If a Search request with multiple <literal>VAL_PROXY</literal>
     otherInfo packets reaches a <literal>z3950_client</literal>
     filter, this is an error.  That filter doesn't know how to deal
     with multiple targets, so it will either just pick one and search
@@ -1274,16 +1275,16 @@ Z>
     The <literal>multi</literal> filter comes to the rescue!  This is
     the only filter that knows how to deal with multiple
     <literal>VAL_PROXY</literal> otherInfo packets, and it does so by
-    making multiple copies of the entire search-request: one for each
+    making multiple copies of the entire Search request: one for each
     <literal>VAL_PROXY</literal>.  Each of these new copies is then
-    passed down through the remaining filters in the route, instead of
-    the original one.  (The copies are handled in parallel though the
-    spawning of new threads.)  Since the copies each have ony one
+    passed down through the remaining filters in the route.  (The
+    copies are handled in parallel though the
+    spawning of new threads.)  Since the copies each have only one
     <literal>VAL_PROXY</literal> otherInfo, they can be handled by the
     <literal>z3950_client</literal> filter, which happily deals with
     each one individually.  When the results of the individual
     searches come back up to the <literal>multi</literal> filter, it
-    merges them into a single search-response, which is what
+    merges them into a single Search response, which is what
     eventually makes it back to the client.
    </para>
   </section>
