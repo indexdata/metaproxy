@@ -1,5 +1,7 @@
 --- 1.0.3 [in progress]
 
+Fixed bug #574: Database names are recognised case-sensitively.
+
 Fixed bug #567: Fix up database name in Name-Plus-Record.
 
 Fixed bug #568: Update win/makefile for VS 2005.

@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.13 2006-03-16 10:40:59 adam Exp $
+/* $Id: util.hpp,v 1.14 2006-05-15 11:43:01 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -18,6 +18,8 @@
 
 namespace metaproxy_1 {
     namespace util  {
+        std::string database_name_normalize(const std::string &s);
+
 	bool pqf(ODR odr, Z_APDU *apdu, const std::string &q);
 
         std::string zQueryToString(Z_Query *query);

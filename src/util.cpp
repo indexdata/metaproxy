@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.14 2006-03-16 10:40:59 adam Exp $
+/* $Id: util.cpp,v 1.15 2006-05-15 11:43:01 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -15,6 +15,20 @@
 //#include <iostream>
 
 namespace mp = metaproxy_1;
+
+std::string mp::util::database_name_normalize(const std::string &s)
+{
+    std::string r = s;
+    size_t i;
+    for (i = 0; i < r.length(); i++)
+    {
+        int ch = r[i];
+        if (ch >= 'A' && ch <= 'Z')
+            r[i] = ch + 'a' - 'A';
+    }
+    return r;
+
+}
 
 void mp::util::piggyback(int smallSetUpperBound,
                           int largeSetLowerBound,

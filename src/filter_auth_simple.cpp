@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.18 2006-03-16 10:40:59 adam Exp $
+/* $Id: filter_auth_simple.cpp,v 1.19 2006-05-15 11:43:01 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -242,9 +242,10 @@ void yf::AuthSimple::process_init(mp::Package &package) const
 static bool contains(std::list<std::string> list, std::string thing) {
     std::list<std::string>::const_iterator i;
     for (i = list.begin(); i != list.end(); i++)
-        if (*i == thing)
+        if (mp::util::database_name_normalize(*i) == 
+            mp::util::database_name_normalize(thing))
             return true;
-
+    
     return false;
 }
 

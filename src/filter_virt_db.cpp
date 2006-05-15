@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.37 2006-04-29 08:09:13 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.38 2006-05-15 11:43:01 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -92,19 +92,14 @@ namespace metaproxy_1 {
             FrontendPtr get_frontend(Package &package);
             void release_frontend(Package &package);
         private:
-            boost::mutex m_sessions_mutex;
             std::map<std::string, Virt_db::Map>m_maps;
-
             typedef std::map<std::string,Virt_db::Set>::iterator Sets_it;
-
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
         };
     }
 }
-
-using namespace mp;
 
 yf::Virt_db::BackendPtr yf::Virt_db::Frontend::lookup_backend_from_databases(
     std::list<std::string> databases)
@@ -134,7 +129,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::create_backend_from_databases(
     for (; db_it != databases.end(); db_it++)
     {
         std::map<std::string, Virt_db::Map>::iterator map_it;
-        map_it = m_p->m_maps.find(*db_it);
+        map_it = m_p->m_maps.find(mp::util::database_name_normalize(*db_it));
         if (map_it == m_p->m_maps.end())  // database not found
         {
             error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
@@ -623,7 +618,8 @@ void yf::Virt_db::add_map_db2targets(std::string db,
                                      std::list<std::string> targets,
                                      std::string route)
 {
-    m_p->m_maps[db] = Virt_db::Map(targets, route);
+    m_p->m_maps[mp::util::database_name_normalize(db)] 
+        = Virt_db::Map(targets, route);
 }
 
 
@@ -634,7 +630,8 @@ void yf::Virt_db::add_map_db2target(std::string db,
     std::list<std::string> targets;
     targets.push_back(target);
 
-    m_p->m_maps[db] = Virt_db::Map(targets, route);
+    m_p->m_maps[mp::util::database_name_normalize(db)]
+        = Virt_db::Map(targets, route);
 }
 
 void yf::Virt_db::process(Package &package) const
