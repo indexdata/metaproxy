@@ -1,5 +1,9 @@
 --- 1.0.3 [in progress]
 
+Fixed bug #573: Hide errors for individual servers. If the element
+'hideunavailable' is given in the configuration, individual servers
+being unavailable are hidden (unless all are unavailable). 
+
 Fixed bug #574: Database names are recognised case-sensitively.
 
 Fixed bug #567: Fix up database name in Name-Plus-Record.
