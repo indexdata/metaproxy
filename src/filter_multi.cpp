@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.15 2006-03-16 10:40:59 adam Exp $
+/* $Id: filter_multi.cpp,v 1.16 2006-05-15 11:40:26 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -98,7 +98,6 @@ namespace metaproxy_1 {
             FrontendPtr get_frontend(Package &package);
             void release_frontend(Package &package);
         private:
-            boost::mutex m_sessions_mutex;
             std::map<std::string, Multi::Map>m_maps;
             std::map<std::string,std::string> m_target_route;
             boost::mutex m_mutex;
@@ -107,8 +106,6 @@ namespace metaproxy_1 {
         };
     }
 }
-
-using namespace mp;
 
 bool yf::Multi::BackendSet::operator < (const BackendSet &k) const
 {
