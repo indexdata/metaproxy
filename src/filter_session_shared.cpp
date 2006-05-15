@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.cpp,v 1.7 2006-03-16 10:40:59 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.8 2006-05-15 10:34:40 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -10,6 +10,7 @@
 #include "package.hpp"
 
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/condition.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include "util.hpp"
@@ -27,230 +28,242 @@ namespace mp = metaproxy_1;
 namespace yf = mp::filter;
 
 namespace metaproxy_1 {
+
     namespace filter {
-        class SessionShared::Rep {
-            friend class SessionShared;
-            void handle_init(Z_InitRequest *req, Package &package);
-            void handle_search(Z_APDU *req, Package &package);
-        public:
-            typedef boost::shared_ptr<SessionShared::List> SharedList;
+        int memcmp2(const void *buf1, int len1, const void *buf2, int len2);
 
-            typedef std::map<SessionShared::InitKey,SharedList> InitListMap;
-            InitListMap m_init_list_map;
-
-            typedef std::map<Session,SharedList> SessionListMap;
-            SessionListMap m_session_list_map;
-
-        };
         class SessionShared::InitKey {
-            friend class SessionShared;
-            friend class SessionShared::Rep;
-            std::string m_vhost;
-            std::string m_open;
-            std::string m_user;
-            std::string m_group;
-            std::string m_password;
         public:
             bool operator < (const SessionShared::InitKey &k) const;
+            InitKey(Z_InitRequest *req);
+        private:
+            char *m_idAuthentication_buf;
+            int m_idAuthentication_size;
+            char *m_otherInfo_buf;
+            int m_otherInfo_size;
+            mp::odr m_odr;
+
+            std::list<std::string> m_targets;
         };
-        class SessionShared::List {
-        public:
-            yazpp_1::GDU m_init_response;  // init response for backend 
-            Session m_session;             // session for backend
+        class SessionShared::BackendClass {
+            yazpp_1::GDU m_init_response;
+        };
+        struct SessionShared::Frontend {
+            void init(Package &package, Z_GDU *gdu);
+            Frontend(Rep *rep);
+            ~Frontend();
+            mp::Session m_session;
+            bool m_is_virtual;
+            bool m_in_use;
+
+            void close(Package &package);
+            Rep *m_p;
+        };            
+        class SessionShared::Rep {
+            friend class SessionShared;
+            friend struct Frontend;
+            
+            FrontendPtr get_frontend(Package &package);
+            void release_frontend(Package &package);
+        private:
+            boost::mutex m_mutex;
+            boost::condition m_cond_session_ready;
+            std::map<mp::Session, FrontendPtr> m_clients;
+
+            typedef std::map<InitKey,BackendClass> BackendClassMap;
+            BackendClassMap m_backend_map;
         };
     }
-    
 }
 
-using namespace mp;
-
-bool yf::SessionShared::InitKey::operator < (const SessionShared::InitKey
-                                              &k) const 
+int yf::memcmp2(const void *buf1, int len1,
+                const void *buf2, int len2)
 {
-    if (m_vhost < k.m_vhost)
+    int d = len1 - len2;
+
+    // compare buffer (common length)
+    int c = memcmp(buf1, buf2, d > 0 ? len2 : len1);
+    if (c > 0)
+        return 1;
+    else if (c < 0)
+        return -1;
+    
+    // compare (remaining bytes)
+    if (d > 0)
+        return 1;
+    else if (d < 0)
+        return -1;
+    return 0;
+}
+
+yf::SessionShared::InitKey::InitKey(Z_InitRequest *req)
+{
+    Z_IdAuthentication *t = req->idAuthentication;
+    
+    z_IdAuthentication(m_odr, &t, 1, 0);
+    m_idAuthentication_buf =
+        odr_getbuf(m_odr, &m_idAuthentication_size, 0);
+
+    Z_OtherInformation *o = req->otherInfo;
+    z_OtherInformation(m_odr, &o, 1, 0);
+    m_otherInfo_buf = odr_getbuf(m_odr, &m_otherInfo_size, 0);
+}
+
+bool yf::SessionShared::InitKey::operator < (const SessionShared::InitKey &k)
+    const 
+{
+    int c;
+    c = memcmp2((void*) m_idAuthentication_buf, m_idAuthentication_size,
+                (void*) k.m_idAuthentication_buf, k.m_idAuthentication_size);
+    if (c < 0)
         return true;
-    else if (m_vhost < k.m_vhost)
+    else if (c > 0)
         return false;
 
-    if (m_open < k.m_open)
+    c = memcmp2((void*) m_otherInfo_buf, m_otherInfo_size,
+                (void*) k.m_otherInfo_buf, k.m_otherInfo_size);
+    if (c < 0)
         return true;
-    else if (m_open > k.m_open)
-        return false;
-
-    if (m_user < k.m_user)
-        return true;
-    else if (m_user > k.m_user)
-        return false;
- 
-    if (m_group < k.m_group)
-        return true;
-    else if (m_group > k.m_group)
-        return false;
-
-    if (m_password < k.m_password)
-        return true;
-    else if (m_password > k.m_password)
+    else if (c > 0)
         return false;
     return false;
 }
 
-yf::SessionShared::SessionShared() : m_p(new Rep)
+void yf::SessionShared::Frontend::init(Package &package, Z_GDU *gdu)
 {
-}
+    Z_InitRequest *req = gdu->u.z3950->u.initRequest;
 
-yf::SessionShared::~SessionShared()
-{
-}
+    std::list<std::string> targets;
 
-void yf::SessionShared::Rep::handle_search(Z_APDU *apdu_req,
-                                           Package &package)
-{
-    yaz_log(YLOG_LOG, "Got search");
+    mp::util::get_vhost_otherinfo(&req->otherInfo, false, targets);
 
-    // Z_SearchRequest *req = apdu_req->u.searchRequest;
-
-    SessionListMap::iterator it = m_session_list_map.find(package.session());
-    if (it == m_session_list_map.end())
+    if (targets.size() < 1)
     {
-        mp::odr odr;
-        package.response() =
-            odr.create_close(apdu_req,
-                             Z_Close_protocolError,
-                             "no session for search request in session_shared");
-        package.session().close();
-        
+        package.move();
         return;
     }
-    Package search_package(it->second->m_session, package.origin());
-    search_package.copy_filter(package);
-    search_package.request() = package.request();
-    
-    search_package.move();
-        
-    // transfer to frontend
-    package.response() = search_package.response();
+
 }
 
-void yf::SessionShared::Rep::handle_init(Z_InitRequest *req, Package &package)
+yf::SessionShared::SessionShared() : m_p(new SessionShared::Rep)
 {
-    yaz_log(YLOG_LOG, "Got init");
+}
 
-    SessionShared::InitKey key;
-    const char *vhost =
-        yaz_oi_get_string_oidval(&req->otherInfo, VAL_PROXY, 1, 0);
-    if (vhost)
-        key.m_vhost = vhost;
+yf::SessionShared::~SessionShared() {
+}
 
-    if (!req->idAuthentication)
+
+yf::SessionShared::Frontend::Frontend(Rep *rep) : m_is_virtual(false), m_p(rep)
+{
+}
+
+void yf::SessionShared::Frontend::close(Package &package)
+{
+#if 0
+    std::list<BackendPtr>::const_iterator b_it;
+    
+    for (b_it = m_backend_list.begin(); b_it != m_backend_list.end(); b_it++)
     {
-        yaz_log(YLOG_LOG, "No authentication");
+        (*b_it)->m_backend_session.close();
+        Package close_package((*b_it)->m_backend_session, package.origin());
+        close_package.copy_filter(package);
+        close_package.move((*b_it)->m_route);
     }
-    else
+    m_backend_list.clear();
+#endif
+}
+
+
+yf::SessionShared::Frontend::~Frontend()
+{
+}
+
+yf::SessionShared::FrontendPtr yf::SessionShared::Rep::get_frontend(Package &package)
+{
+    boost::mutex::scoped_lock lock(m_mutex);
+
+    std::map<mp::Session,yf::SessionShared::FrontendPtr>::iterator it;
+    
+    while(true)
     {
-        Z_IdAuthentication *auth = req->idAuthentication;
-        switch(auth->which)
-        {
-        case Z_IdAuthentication_open:
-            yaz_log(YLOG_LOG, "open auth open=%s", auth->u.open);
-            key.m_open = auth->u.open;
+        it = m_clients.find(package.session());
+        if (it == m_clients.end())
             break;
-        case Z_IdAuthentication_idPass:
-            yaz_log(YLOG_LOG, "idPass user=%s group=%s pass=%s",
-                    auth->u.idPass->userId, auth->u.idPass->groupId,
-                    auth->u.idPass->password);
-            if (auth->u.idPass->userId)
-                key.m_user = auth->u.idPass->userId;
-            if (auth->u.idPass->groupId)
-                key.m_group  = auth->u.idPass->groupId;
-            if (auth->u.idPass->password)
-                key.m_password  = auth->u.idPass->password;
-            break;
-        case Z_IdAuthentication_anonymous:
-            yaz_log(YLOG_LOG, "anonymous");
-            break;
-        default:
-            yaz_log(YLOG_LOG, "other");
-        } 
-    }
-    InitListMap::iterator it = m_init_list_map.find(key);
-    if (it == m_init_list_map.end())
-    {
-        yaz_log(YLOG_LOG, "New KEY");
-
-        // building new package with original init and new session 
-        SharedList l(new SessionShared::List);  // new session for backend
-
-        Package init_package(l->m_session, package.origin());
-        init_package.copy_filter(package);
-        init_package.request() = package.request();
-
-        init_package.move();
         
-        // transfer to frontend
-        package.response() = init_package.response();
-         
-        // check that we really got Z39.50 Init Response
-        Z_GDU *gdu = init_package.response().get();
-        if (gdu && gdu->which == Z_GDU_Z3950
-           && gdu->u.z3950->which == Z_APDU_initResponse)
+        if (!it->second->m_in_use)
         {
-            // save the init response
-            l->m_init_response = init_package.response();
-            
-            // save session and init response for later
-            m_init_list_map[key] = l;
-
-            m_session_list_map[package.session()] = l;
+            it->second->m_in_use = true;
+            return it->second;
         }
+        m_cond_session_ready.wait(lock);
     }
-    else
-    {
-        yaz_log(YLOG_LOG, "Existing KEY");
-        package.response() = it->second->m_init_response;
+    FrontendPtr f(new Frontend(this));
+    m_clients[package.session()] = f;
+    f->m_in_use = true;
+    return f;
+}
 
-        m_session_list_map[package.session()] = it->second;
+void yf::SessionShared::Rep::release_frontend(Package &package)
+{
+    boost::mutex::scoped_lock lock(m_mutex);
+    std::map<mp::Session,yf::SessionShared::FrontendPtr>::iterator it;
+    
+    it = m_clients.find(package.session());
+    if (it != m_clients.end())
+    {
+        if (package.session().is_closed())
+        {
+            it->second->close(package);
+            m_clients.erase(it);
+        }
+        else
+        {
+            it->second->m_in_use = false;
+        }
+        m_cond_session_ready.notify_all();
     }
 }
+
 
 void yf::SessionShared::process(Package &package) const
 {
-    // don't tell the backend if the "fronent" filter closes..
-    // we want to keep them alive
-    if (package.session().is_closed())
-    {
-        m_p->m_session_list_map.erase(package.session());
-        return;
-    }
+    FrontendPtr f = m_p->get_frontend(package);
 
     Z_GDU *gdu = package.request().get();
-
-    if (gdu && gdu->which == Z_GDU_Z3950)
+    
+    if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
+        Z_APDU_initRequest && !f->m_is_virtual)
+    {
+        f->init(package, gdu);
+    }
+    else if (!f->m_is_virtual)
+        package.move();
+    else if (gdu && gdu->which == Z_GDU_Z3950)
     {
         Z_APDU *apdu = gdu->u.z3950;
-
-        switch(apdu->which)
+        if (apdu->which == Z_APDU_initRequest)
         {
-        case Z_APDU_initRequest:
-            m_p->handle_init(apdu->u.initRequest, package);
-            break;
-        case Z_APDU_searchRequest:
-            m_p->handle_search(apdu, package);
-            break;
-        default:
             mp::odr odr;
-            package.response() =
-                odr.create_close(apdu, Z_Close_protocolError,
-                                 "cannot handle a package of this type");
-            package.session().close();
-            break;
             
+            package.response() = odr.create_close(
+                apdu,
+                Z_Close_protocolError,
+                "double init");
+            
+            package.session().close();
         }
-        if (package.session().is_closed()) {
-            m_p->m_session_list_map.erase(package.session());
+        else
+        {
+            mp::odr odr;
+            
+            package.response() = odr.create_close(
+                apdu, Z_Close_protocolError,
+                "unsupported APDU in filter_session_shared");
+            
+            package.session().close();
         }
     }
-    else
-        package.move();  // Not Z39.50 or not Init
+    m_p->release_frontend(package);
 }
 
 static mp::filter::Base* filter_creator()
@@ -265,8 +278,6 @@ extern "C" {
         filter_creator
     };
 }
-
-
 
 /*
  * Local variables:

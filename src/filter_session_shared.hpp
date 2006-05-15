@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.hpp,v 1.4 2006-03-16 10:40:59 adam Exp $
+/* $Id: filter_session_shared.hpp,v 1.5 2006-05-15 10:34:40 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -17,6 +17,10 @@ namespace metaproxy_1 {
             class Rep;
             class InitKey;
             class List;
+
+            struct Frontend;
+            class BackendClass;
+            typedef boost::shared_ptr<Frontend> FrontendPtr;
         public:
             ~SessionShared();
             SessionShared();
