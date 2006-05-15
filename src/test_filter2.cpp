@@ -1,4 +1,4 @@
-/* $Id: test_filter2.cpp,v 1.18 2006-03-16 10:40:59 adam Exp $
+/* $Id: test_filter2.cpp,v 1.19 2006-05-15 10:12:33 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -30,9 +30,6 @@ public:
     };
     void configure(const xmlNode* ptr = 0);
     int get_constant() const { return m_constant; };
-private:
-    bool parse_xml_text(const xmlNode *xml_ptr, bool &val);
-    bool parse_xml_text(const xmlNode *xml_ptr, std::string &val);
 private:
     const xmlNode *m_ptr;
     int m_constant;
@@ -74,38 +71,6 @@ void FilterConstant::configure(const xmlNode* ptr)
 
         m_constant = atoi((const char *) val->content);
     }
-}
-
-bool FilterConstant::parse_xml_text(const xmlNode  *xml_ptr, bool &val)
-{
-    std::string v;
-    if (!parse_xml_text(xml_ptr, v))
-        return false;
-    if (v.length() == 1 && v[0] == '1')
-        val = true;
-    else
-        val = false;
-    return true;
-}
-
-bool FilterConstant::parse_xml_text(const xmlNode *xml_ptr, std::string &val)
-{
-    xmlNodePtr ptr = (xmlNodePtr) xml_ptr;
-    bool found = false;
-    std::string v;
-    for(ptr = ptr->children; ptr; ptr = ptr->next)
-        if (ptr->type == XML_TEXT_NODE)
-        {
-            xmlChar *t = ptr->content;
-            if (t)
-            {
-                v += (const char *) t;
-                found = true;
-            }
-        }
-    if (found)
-        val = v;
-    return found;
 }
 
 // This filter dose not have a configure function
