@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.38 2006-05-15 11:43:01 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.39 2006-05-15 13:22:02 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -500,7 +500,6 @@ void yf::Virt_db::Frontend::fixup_npr(Package &p, BackendPtr b)
         fixup_npr(gdu->u.z3950->u.searchResponse->records, database, odr);
         p.response() = gdu;
     }
-
 }
 
 void yf::Virt_db::Frontend::present(Package &package, Z_APDU *apdu_req)

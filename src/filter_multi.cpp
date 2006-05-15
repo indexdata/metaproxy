@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.16 2006-05-15 11:40:26 adam Exp $
+/* $Id: filter_multi.cpp,v 1.17 2006-05-15 13:22:02 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -98,7 +98,6 @@ namespace metaproxy_1 {
             FrontendPtr get_frontend(Package &package);
             void release_frontend(Package &package);
         private:
-            std::map<std::string, Multi::Map>m_maps;
             std::map<std::string,std::string> m_target_route;
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
@@ -199,13 +198,6 @@ yf::Multi::Multi() : m_p(new Multi::Rep)
 yf::Multi::~Multi() {
 }
 
-
-void yf::Multi::add_map_host2hosts(std::string host,
-                                   std::list<std::string> hosts,
-                                   std::string route)
-{
-    m_p->m_maps[host] = Multi::Map(hosts, route);
-}
 
 void yf::Multi::Backend::operator() (void) 
 {
@@ -1094,36 +1086,6 @@ void mp::filter::Multi::configure(const xmlNode * ptr)
             std::string target = mp::xml::get_text(ptr);
             std::cout << "route=" << route << " target=" << target << "\n";
             m_p->m_target_route[target] = route;
-        }
-        else if (!strcmp((const char *) ptr->name, "virtual"))
-        {
-            std::list<std::string> targets;
-            std::string vhost;
-            xmlNode *v_node = ptr->children;
-            for (; v_node; v_node = v_node->next)
-            {
-                if (v_node->type != XML_ELEMENT_NODE)
-                    continue;
-                
-                if (mp::xml::is_element_yp2(v_node, "vhost"))
-                    vhost = mp::xml::get_text(v_node);
-                else if (mp::xml::is_element_yp2(v_node, "target"))
-                    targets.push_back(mp::xml::get_text(v_node));
-                else
-                    throw mp::filter::FilterException
-                        ("Bad element " 
-                         + std::string((const char *) v_node->name)
-                         + " in virtual section"
-                            );
-            }
-            std::string route = mp::xml::get_route(ptr);
-            add_map_host2hosts(vhost, targets, route);
-            std::list<std::string>::const_iterator it;
-            for (it = targets.begin(); it != targets.end(); it++)
-            {
-                std::cout << "Add " << vhost << "->" << *it
-                          << "," << route << "\n";
-            }
         }
         else
         {
