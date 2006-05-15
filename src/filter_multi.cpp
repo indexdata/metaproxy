@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.17 2006-05-15 13:22:02 adam Exp $
+/* $Id: filter_multi.cpp,v 1.18 2006-05-15 13:53:37 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -95,6 +95,7 @@ namespace metaproxy_1 {
             friend class Multi;
             friend struct Frontend;
             
+            Rep();
             FrontendPtr get_frontend(Package &package);
             void release_frontend(Package &package);
         private:
@@ -102,8 +103,14 @@ namespace metaproxy_1 {
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
+            bool m_hide_unavailable;
         };
     }
+}
+
+yf::Multi::Rep::Rep()
+{
+    m_hide_unavailable = false;
 }
 
 bool yf::Multi::BackendSet::operator < (const BackendSet &k) const
@@ -353,7 +360,7 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
     m_is_multi = true;
 
     // create init request 
-    std::list<BackendPtr>::const_iterator bit;
+    std::list<BackendPtr>::iterator bit;
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
         mp::odr odr;
@@ -396,12 +403,20 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
     ODR_MASK_SET(f_resp->protocolVersion, Z_ProtocolVersion_2);
     ODR_MASK_SET(f_resp->protocolVersion, Z_ProtocolVersion_3);
 
-    for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
+    int no_failed = 0;
+    int no_succeeded = 0;
+    for (bit = m_backend_list.begin(); bit != m_backend_list.end(); )
     {
         PackagePtr p = (*bit)->m_package;
         
         if (p->session().is_closed()) // if any backend closes, close frontend
-            package.session().close();
+        {
+            no_failed++;
+            bit = m_backend_list.erase(bit);
+            continue;
+        }
+        no_succeeded++;
+
         Z_GDU *gdu = p->response().get();
         if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
             Z_APDU_initResponse)
@@ -431,6 +446,17 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
             package.response() = p->response();
             return;
         }
+        bit++;
+    }
+    if (m_p->m_hide_unavailable)
+    {
+        if (no_succeeded == 0)
+            package.session().close();
+    }
+    else
+    {
+        if (no_failed)
+            package.session().close();
     }
     package.response() = f_apdu;
 }
@@ -1086,6 +1112,10 @@ void mp::filter::Multi::configure(const xmlNode * ptr)
             std::string target = mp::xml::get_text(ptr);
             std::cout << "route=" << route << " target=" << target << "\n";
             m_p->m_target_route[target] = route;
+        }
+        else if (!strcmp((const char *) ptr->name, "hideunavailable"))
+        {
+            m_p->m_hide_unavailable = true;
         }
         else
         {
