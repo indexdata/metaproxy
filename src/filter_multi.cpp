@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.18 2006-05-15 13:53:37 adam Exp $
+/* $Id: filter_multi.cpp,v 1.19 2006-05-15 20:47:26 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -409,8 +409,9 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
     {
         PackagePtr p = (*bit)->m_package;
         
-        if (p->session().is_closed()) // if any backend closes, close frontend
+        if (p->session().is_closed())
         {
+            // failed. Remove from list and increment number of failed
             no_failed++;
             bit = m_backend_list.erase(bit);
             continue;
