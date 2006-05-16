@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.31 2006-05-16 10:32:54 mike Exp $ -->
+<!-- $Id: book.xml,v 1.32 2006-05-16 10:34:48 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -1195,7 +1195,7 @@ Z>
     latter behaviour add an empty
     <literal>&lt;hideunavailable&gt;</literal>
     element inside the
-    <literal>&lt;multi&gt;</literal>:
+    <literal>multi</literal> filter:
    </para>
    <screen><![CDATA[      <filter type="multi">
         <hideunavailable/>
