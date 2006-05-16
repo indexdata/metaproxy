@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.cpp,v 1.8 2006-05-15 10:34:40 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.9 2006-05-16 11:53:54 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -129,7 +129,7 @@ bool yf::SessionShared::InitKey::operator < (const SessionShared::InitKey &k)
     return false;
 }
 
-void yf::SessionShared::Frontend::init(Package &package, Z_GDU *gdu)
+void yf::SessionShared::Frontend::init(mp::Package &package, Z_GDU *gdu)
 {
     Z_InitRequest *req = gdu->u.z3950->u.initRequest;
 
@@ -157,7 +157,7 @@ yf::SessionShared::Frontend::Frontend(Rep *rep) : m_is_virtual(false), m_p(rep)
 {
 }
 
-void yf::SessionShared::Frontend::close(Package &package)
+void yf::SessionShared::Frontend::close(mp::Package &package)
 {
 #if 0
     std::list<BackendPtr>::const_iterator b_it;
@@ -178,7 +178,7 @@ yf::SessionShared::Frontend::~Frontend()
 {
 }
 
-yf::SessionShared::FrontendPtr yf::SessionShared::Rep::get_frontend(Package &package)
+yf::SessionShared::FrontendPtr yf::SessionShared::Rep::get_frontend(mp::Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
 
@@ -203,7 +203,7 @@ yf::SessionShared::FrontendPtr yf::SessionShared::Rep::get_frontend(Package &pac
     return f;
 }
 
-void yf::SessionShared::Rep::release_frontend(Package &package)
+void yf::SessionShared::Rep::release_frontend(mp::Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
     std::map<mp::Session,yf::SessionShared::FrontendPtr>::iterator it;
@@ -225,7 +225,7 @@ void yf::SessionShared::Rep::release_frontend(Package &package)
 }
 
 
-void yf::SessionShared::process(Package &package) const
+void yf::SessionShared::process(mp::Package &package) const
 {
     FrontendPtr f = m_p->get_frontend(package);
 

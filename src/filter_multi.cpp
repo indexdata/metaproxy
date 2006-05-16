@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.19 2006-05-15 20:47:26 adam Exp $
+/* $Id: filter_multi.cpp,v 1.20 2006-05-16 11:53:53 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -128,7 +128,7 @@ yf::Multi::Frontend::~Frontend()
 {
 }
 
-yf::Multi::FrontendPtr yf::Multi::Rep::get_frontend(Package &package)
+yf::Multi::FrontendPtr yf::Multi::Rep::get_frontend(mp::Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
 
@@ -153,7 +153,7 @@ yf::Multi::FrontendPtr yf::Multi::Rep::get_frontend(Package &package)
     return f;
 }
 
-void yf::Multi::Rep::release_frontend(Package &package)
+void yf::Multi::Rep::release_frontend(mp::Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
     std::map<mp::Session,yf::Multi::FrontendPtr>::iterator it;
@@ -212,7 +212,7 @@ void yf::Multi::Backend::operator() (void)
 }
 
 
-void yf::Multi::Frontend::close(Package &package)
+void yf::Multi::Frontend::close(mp::Package &package)
 {
     std::list<BackendPtr>::const_iterator bit;
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
@@ -330,7 +330,7 @@ void yf::Multi::FrontendSet::round_robin(int start, int number,
     }
 }
 
-void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
+void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
 {
     Z_InitRequest *req = gdu->u.z3950->u.initRequest;
 
@@ -462,7 +462,7 @@ void yf::Multi::Frontend::init(Package &package, Z_GDU *gdu)
     package.response() = f_apdu;
 }
 
-void yf::Multi::Frontend::search(Package &package, Z_APDU *apdu_req)
+void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
 {
     // create search request 
     Z_SearchRequest *req = apdu_req->u.searchRequest;
@@ -596,7 +596,7 @@ void yf::Multi::Frontend::search(Package &package, Z_APDU *apdu_req)
     package.response() = f_apdu; // in this scope because of p
 }
 
-void yf::Multi::Frontend::present(Package &package, Z_APDU *apdu_req)
+void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
 {
     // create present request 
     Z_PresentRequest *req = apdu_req->u.presentRequest;
@@ -729,7 +729,7 @@ void yf::Multi::Frontend::present(Package &package, Z_APDU *apdu_req)
     package.response() = f_apdu;
 }
 
-void yf::Multi::Frontend::scan1(Package &package, Z_APDU *apdu_req)
+void yf::Multi::Frontend::scan1(mp::Package &package, Z_APDU *apdu_req)
 {
     if (m_backend_list.size() > 1)
     {
@@ -820,7 +820,7 @@ Z_Entry *yf::Multi::ScanTermInfo::get_entry(ODR odr)
     return e;
 }
 
-void yf::Multi::Frontend::scan2(Package &package, Z_APDU *apdu_req)
+void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
 {
     Z_ScanRequest *req = apdu_req->u.scanRequest;
 
@@ -1048,7 +1048,7 @@ void yf::Multi::Frontend::scan2(Package &package, Z_APDU *apdu_req)
 }
 
 
-void yf::Multi::process(Package &package) const
+void yf::Multi::process(mp::Package &package) const
 {
     FrontendPtr f = m_p->get_frontend(package);
 

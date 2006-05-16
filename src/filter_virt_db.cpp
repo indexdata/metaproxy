@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.39 2006-05-15 13:22:02 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.40 2006-05-16 11:53:54 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -161,7 +161,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::create_backend_from_databases(
 }
 
 yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
-    std::list<std::string> databases, Package &package,
+    std::list<std::string> databases, mp::Package &package,
     int &error_code, std::string &addinfo)
 {
     BackendPtr b = create_backend_from_databases(databases, error_code,
@@ -237,7 +237,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
     return b;
 }
 
-void yf::Virt_db::Frontend::search(Package &package, Z_APDU *apdu_req)
+void yf::Virt_db::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
 {
     Z_SearchRequest *req = apdu_req->u.searchRequest;
     std::string vhost;
@@ -367,7 +367,7 @@ yf::Virt_db::Frontend::Frontend(Rep *rep)
     m_is_virtual = false;
 }
 
-void yf::Virt_db::Frontend::close(Package &package)
+void yf::Virt_db::Frontend::close(mp::Package &package)
 {
     std::list<BackendPtr>::const_iterator b_it;
     
@@ -385,7 +385,7 @@ yf::Virt_db::Frontend::~Frontend()
 {
 }
 
-yf::Virt_db::FrontendPtr yf::Virt_db::Rep::get_frontend(Package &package)
+yf::Virt_db::FrontendPtr yf::Virt_db::Rep::get_frontend(mp::Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
 
@@ -410,7 +410,7 @@ yf::Virt_db::FrontendPtr yf::Virt_db::Rep::get_frontend(Package &package)
     return f;
 }
 
-void yf::Virt_db::Rep::release_frontend(Package &package)
+void yf::Virt_db::Rep::release_frontend(mp::Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
     std::map<mp::Session,yf::Virt_db::FrontendPtr>::iterator it;
@@ -478,7 +478,7 @@ void yf::Virt_db::Frontend::fixup_npr(Z_Records *records, std::string database,
     }
 }
 
-void yf::Virt_db::Frontend::fixup_npr(Package &p, BackendPtr b)
+void yf::Virt_db::Frontend::fixup_npr(mp::Package &p, BackendPtr b)
 {
     Z_GDU *gdu = p.response().get();
     mp::odr odr;
@@ -502,7 +502,7 @@ void yf::Virt_db::Frontend::fixup_npr(Package &p, BackendPtr b)
     }
 }
 
-void yf::Virt_db::Frontend::present(Package &package, Z_APDU *apdu_req)
+void yf::Virt_db::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
 {
     Z_PresentRequest *req = apdu_req->u.presentRequest;
     std::string resultSetId = req->resultSetId;
@@ -547,7 +547,7 @@ void yf::Virt_db::Frontend::present(Package &package, Z_APDU *apdu_req)
     delete id;
 }
 
-void yf::Virt_db::Frontend::scan(Package &package, Z_APDU *apdu_req)
+void yf::Virt_db::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
 {
     Z_ScanRequest *req = apdu_req->u.scanRequest;
     std::string vhost;
@@ -633,7 +633,7 @@ void yf::Virt_db::add_map_db2target(std::string db,
         = Virt_db::Map(targets, route);
 }
 
-void yf::Virt_db::process(Package &package) const
+void yf::Virt_db::process(mp::Package &package) const
 {
     FrontendPtr f = m_p->get_frontend(package);
 
