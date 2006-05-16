@@ -1,4 +1,4 @@
-<!-- $Id: book.xml,v 1.30 2006-05-03 14:56:07 mike Exp $ -->
+<!-- $Id: book.xml,v 1.31 2006-05-16 10:32:54 mike Exp $ -->
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <author>
@@ -1183,6 +1183,27 @@ Z>
     There is no limitation imposed on the number of databases that may
     be metasearched in this way: issues of resource usage and
     administrative complexity dictate the practical limits.
+   </para>
+   <para>
+    What happens when one of the databases doesn't respond?  By default,
+    the entire multi-database search fails, and the appropriate
+    diagnostic is returned to the client.  This is usually appropriate
+    during development, when technicians need maximum information, but
+    can be inconvenient in deployment, when users typically don't want
+    to be bothered with problems of this kind and prefer just to get
+    the records from the databases that are available.  To obtain this
+    latter behaviour add an empty
+    <literal>&lt;hideunavailable&gt;</literal>
+    element inside the
+    <literal>&lt;multi&gt;</literal>:
+   </para>
+   <screen><![CDATA[      <filter type="multi">
+        <hideunavailable/>
+      </filter>]]></screen>
+   <para>
+    Under this regime, an error is reported to the client only if
+    <emphasis>all</emphasis> the databases in a multi-database search
+    are unavailable.
    </para>
   </section>
 

@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: multi.xml,v 1.4 2006-04-25 12:48:52 marc Exp $ -->
+<!-- $Id: multi.xml,v 1.5 2006-05-16 10:36:51 mike Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>multi</refentrytitle>
@@ -29,6 +29,15 @@
     </filter>
 ]]>
    </screen>
+  </para>
+  <para>
+   If an empty
+   <literal>&lt;hideunavailable&gt;</literal>
+   element is placed inside the
+   <literal>multi</literal>
+   filter, then unavailable databases are not reported to the client,
+   but simply ignored (unless every one of the databases is
+   unanavailable).
   </para>
  </refsect1> 
  
