@@ -1,3 +1,7 @@
+--- 1.0.5 2006/05/16
+
+Fixed compilation on Windows.
+
 --- 1.0.4 2006/05/16
 
 Added documentation for the hidenavailable option for the multi filter.
