@@ -1,12 +1,13 @@
 <?xml version="1.0" standalone="no"?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
-                    "@DTD_DIR@/docbookx.dtd" [
-     <!ENTITY oslash "&#x00F8;"> <!-- CIRCLED DIVISION SLASH -->
-     <!ENTITY book SYSTEM "book.xml">
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1//EN"
+    "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" 
+[
+     <!ENTITY book SYSTEM "@srcdir@/book.xml">
      <!ENTITY manref SYSTEM "manref.xml">
      <!ENTITY progref SYSTEM "progref.xml">
      <!ENTITY version "@VERSION@">
-     <!ENTITY % entities SYSTEM "common/common.ent">
+     <!ENTITY % common SYSTEM "@srcdir@/common/common.ent">
+     %common;
      <!-- Next line allows imagedata/@format="PDF" and is taken from 
 http://lists.oasis-open.org/archives/docbook/200303/msg00163.html
      -->
@@ -16,9 +17,8 @@ http://lists.oasis-open.org/archives/docbook/200303/msg00163.html
 http://lists.oasis-open.org/archives/docbook/200303/msg00180.html
      -->
      <!NOTATION PDF SYSTEM "PDF">
-     %entities;
 ]>
-<!-- $Id: main.xml.in,v 1.6 2006-04-27 13:28:46 mike Exp $ -->
+<!-- $Id: main.xml.in,v 1.7 2006-05-26 20:20:51 adam Exp $ -->
 <book id="metaproxy">
  &book;
 </book>

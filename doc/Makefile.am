@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.15 2006-04-27 16:54:39 adam Exp $
+## $Id: Makefile.am,v 1.16 2006-05-26 20:20:51 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -26,13 +26,13 @@ HTMLFILES = architecture.html \
 	filterref.html \
 	filters.html \
 	future.directions.html \
+	index.html
 	individual.classes.html \
 	installation.html \
 	installation.debian.html \
 	installation.windows.html \
 	introduction.html \
 	licence.html \
-	metaproxy.html \
 	multidb.html \
 	multidb.multi.html \
 	multidb.picture.html \
@@ -51,13 +51,13 @@ man_MANS = $(MANFILES)
 EXTRA_DIST = $(XMLFILES) $(XMLMAN) $(doc_DATA) $(man_MANS) multi.svg
 
 $(HTMLFILES): $(XMLFILES) multi.png
-	jade -E14 -D $(srcdir) -d common/html.dsl -t sgml $(srcdir)/common/xml.dcl $(MAINXML)
+	xsltproc common/html.xsl $(MAINXML)
 
 .xml.3mp:
-	docbook2man $<
+	xsltproc common/man.xsl $<
 
 .xml.1:
-	docbook2man $<
+	xsltproc common/man.xsl $<
 
 metaproxy.pdf: $(XMLFILES) multi.pdf
 	for i in $(PNGFILES) multi.pdf; do \
