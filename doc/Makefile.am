@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.18 2006-05-26 20:32:20 adam Exp $
+## $Id: Makefile.am,v 1.19 2006-05-26 20:44:01 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -60,7 +60,7 @@ $(HTMLFILES): $(XMLFILES) multi.png
 	xsltproc common/man.xsl $<
 
 metaproxy.pdf: $(XMLFILES) multi.pdf
-	for i in $(PNGFILES) multi.pdf; do \
+	for i in $(PNGFILES) common/id.png multi.pdf; do \
 		if test ! -f $$i; then ln -s $(srcdir)/$$i .; fi; \
 	done
 	jade -E14 -D $(srcdir) -d common/print.dsl -t tex $(srcdir)/common/xml.dcl $(MAINXML)
