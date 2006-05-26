@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.17 2006-05-26 20:28:48 adam Exp $
+## $Id: Makefile.am,v 1.18 2006-05-26 20:32:20 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -76,7 +76,7 @@ index.tkl: $(XMLFILES) common/tkl.xsl
 manref.xml: $(XMLMAN) $(srcdir)/common/ref2dbinc.xsl
 	rm -f manref.xml
 	for i in $(XMLMAN); do \
-		xsltproc $(srcdir)/common/ref2dbinc.xsl $$i | sed 1d >> manref.xml; \
+		xsltproc $(srcdir)/common/ref2dbinc.xsl $(srcdir)/$$i | sed 1d >> manref.xml; \
 	done
 
 progref.xml: metaproxy.xml
