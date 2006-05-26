@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.16 2006-05-26 20:20:51 adam Exp $
+## $Id: Makefile.am,v 1.17 2006-05-26 20:28:48 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -26,7 +26,7 @@ HTMLFILES = architecture.html \
 	filterref.html \
 	filters.html \
 	future.directions.html \
-	index.html
+	index.html \
 	individual.classes.html \
 	installation.html \
 	installation.debian.html \
