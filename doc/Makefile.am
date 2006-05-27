@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.21 2006-05-26 20:51:20 adam Exp $
+## $Id: Makefile.am,v 1.22 2006-05-27 08:04:23 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -45,7 +45,7 @@ HTMLFILES = architecture.html \
 
 PNGFILES=multi.png
 
-doc_DATA = $(HTMLFILES) metaproxy.pdf $(PNGFILES)
+doc_DATA = $(HTMLFILES) $(PNGFILES)
 man_MANS = $(MANFILES)
 
 EXTRA_DIST = $(XMLFILES) $(XMLMAN) $(doc_DATA) $(man_MANS) multi.svg
@@ -96,7 +96,7 @@ clean-data-hook:
 	rm -f [0-9]* *.bak
 
 dist-hook:
-	for f in $(srcdir)/*.html; do \
+	for f in *.html; do \
 		found=0; \
 		b=`basename $$f`; \
 		for h in $(HTMLFILES); do \
