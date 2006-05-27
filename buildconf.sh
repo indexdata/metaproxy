@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: buildconf.sh,v 1.10 2006-05-26 20:20:51 adam Exp $
+# $Id: buildconf.sh,v 1.11 2006-05-27 08:07:08 adam Exp $
 
 if automake --version|head -1 |grep '1\.[4-7]'; then
     echo "automake 1.4-1.7 is active. You should use automake 1.8 or later"
@@ -75,7 +75,7 @@ Or just build the Debian packages without configuring
 When building from a CVS checkout, you need these Debian tools:
   autoconf, automake, libtool, gcc, g++, make,
   xsltproc, docbook, docbook-xml, docbook-xsl,
-  libxslt1-dev, libyazpp1-dev,
+  libxslt1-dev, libyazpp-dev,
   libboost-thread-dev, libboost-date-time-dev,
   libboost-program-options-dev, libboost-test-dev
 and for the image-processing needed to build the documentation:
