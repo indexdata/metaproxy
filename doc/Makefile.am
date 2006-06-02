@@ -1,16 +1,15 @@
-## $Id: Makefile.am,v 1.22 2006-05-27 08:04:23 adam Exp $
+## $Id: Makefile.am,v 1.23 2006-06-02 10:23:49 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
 
 SUFFIXES=.3mp .1
 
-XMLFILES = main.xml.in book.xml manref.xml progref.xml copyright.xml \
-	metaproxy.xml
+XMLFILES = book.xml manref.xml progref.xml copyright.xml metaproxy.xml
 
-MAINXML = main.xml
+MAINXML = $(srcdir)/book.xml
 
-XMLMAN   = auth_simple.xml backend_test.xml frontend_net.xml \
+XMLMAN = auth_simple.xml backend_test.xml frontend_net.xml \
 	http_file.xml log.xml multi.xml query_rewrite.xml \
 	session_shared.xml template.xml virt_db.xml z3950_client.xml
 MANFILES = auth_simple.3mp backend_test.3mp frontend_net.3mp \
@@ -43,7 +42,7 @@ HTMLFILES = architecture.html \
 	overview.xml.structure.html \
 	refguide.html
 
-PNGFILES=multi.png
+PNGFILES = multi.png
 
 doc_DATA = $(HTMLFILES) $(PNGFILES)
 man_MANS = $(MANFILES)
@@ -51,13 +50,16 @@ man_MANS = $(MANFILES)
 EXTRA_DIST = $(XMLFILES) $(XMLMAN) $(doc_DATA) $(man_MANS) multi.svg
 
 $(HTMLFILES): $(XMLFILES) multi.png
-	xsltproc common/html.xsl $(MAINXML)
+	$(HTML_COMPILE) $(MAINXML)
 
 .xml.3mp:
-	xsltproc common/man.xsl $<
+	$(MAN_COMPILE) $<
 
 .xml.1:
-	xsltproc common/man.xsl $<
+	$(MAN_COMPILE) $<
+
+index.tkl: $(XMLFILES)
+	$(TKL_COMPILE) $(MAINXML)
 
 metaproxy.pdf: $(XMLFILES) multi.pdf
 	for i in $(PNGFILES) common/id.png multi.pdf; do \
@@ -65,13 +67,10 @@ metaproxy.pdf: $(XMLFILES) multi.pdf
 	done
 	jade -E14 -D $(srcdir) -d common/print.dsl -t tex $(srcdir)/common/xml.dcl $(MAINXML)
 	rm -f metaproxy.tex
-	mv main.tex metaproxy.tex
+	mv book.tex metaproxy.tex
 	pdfjadetex metaproxy.tex >/dev/null
 	pdfjadetex metaproxy.tex >/dev/null
 	pdfjadetex metaproxy.tex >/dev/null
-
-index.tkl: $(XMLFILES) common/tkl.xsl
-	xsltproc common/tkl.xsl $(MAINXML)
 
 manref.xml: $(XMLMAN) $(srcdir)/common/ref2dbinc.xsl
 	rm -f manref.xml

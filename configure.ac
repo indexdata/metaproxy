@@ -134,7 +134,7 @@ AC_CONFIG_FILES([
 	src/Makefile
 	src/Jamfile
 	doc/Makefile
-	doc/main.xml
+	doc/local.ent
         doc/common/Makefile
 	doc/common/tkl.xsl doc/common/html.xsl doc/common/man.xsl 
 	doc/common/print.dsl doc/common/html.dsl
