@@ -136,8 +136,7 @@ AC_CONFIG_FILES([
 	doc/Makefile
 	doc/local.ent
         doc/common/Makefile
-	doc/common/tkl.xsl doc/common/html.xsl doc/common/man.xsl 
-	doc/common/print.dsl doc/common/html.dsl
+	doc/common/print.dsl
 	etc/Makefile
 ])
 
