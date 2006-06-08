@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!-- $Id: config-local.xml,v 1.1 2006-06-08 22:22:49 mike Exp $ -->
+<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+  <start route="start"/>
+  <routes>
+    <route id="start">
+      <filter type="frontend_net">
+	<threads>10</threads>
+	<port>@:9000</port>
+      </filter>
+      <filter type="log">
+        <message>F</message>
+      </filter>
+      <filter type="virt_db">
+        <virtual>
+          <database>marc</database>
+          <target>localhost:9999/Default</target>
+        </virtual>
+        <virtual>
+          <database>gils</database>
+          <target>localhost:9998/Default</target>
+        </virtual>
+        <virtual>
+          <database>all</database>
+          <target>localhost:9999/Default</target>
+          <target>localhost:9998/Default</target>
+        </virtual>
+      </filter>
+      <filter type="multi"/>
+      <filter type="z3950_client">
+        <timeout>30</timeout>
+      </filter>
+    </route>
+  </routes>
+</yp2>
