@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: config.xsd,v 1.16 2006-03-30 11:43:59 mike Exp $ -->
+<!-- $Id: config.xsd,v 1.17 2006-06-08 22:20:04 mike Exp $ -->
 <!--
 	This Schema prescribes the format of YP2 configuration files.
 	Invoke it like this:
@@ -61,7 +61,12 @@
         <xs:element ref="config:message"/>
 
 	<!-- type="virt_db" or type="multi" -->
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="config:virtual"/>
+        <xs:sequence>
+	  <xs:element minOccurs="0" maxOccurs="unbounded" ref="config:virtual"/>
+	  <xs:element minOccurs="0" maxOccurs="1" name="hideunavailable">
+	    <xs:complexType/>
+	  </xs:element>
+        </xs:sequence>
 
 	<!-- type="auth_simple" -->
         <xs:sequence>
