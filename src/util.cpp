@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.15 2006-05-15 11:43:01 adam Exp $
+/* $Id: util.cpp,v 1.16 2006-06-09 14:12:13 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -16,7 +16,31 @@
 
 namespace mp = metaproxy_1;
 
-std::string mp::util::database_name_normalize(const std::string &s)
+// Doxygen doesn't like mp::util, so we use this instead
+namespace mp_util = metaproxy_1::util;
+
+int mp_util::memcmp2(const void *buf1, int len1,
+                     const void *buf2, int len2)
+{
+    int d = len1 - len2;
+
+    // compare buffer (common length)
+    int c = memcmp(buf1, buf2, d > 0 ? len2 : len1);
+    if (c > 0)
+        return 1;
+    else if (c < 0)
+        return -1;
+    
+    // compare (remaining bytes)
+    if (d > 0)
+        return 1;
+    else if (d < 0)
+        return -1;
+    return 0;
+}
+
+
+std::string mp_util::database_name_normalize(const std::string &s)
 {
     std::string r = s;
     size_t i;
@@ -30,11 +54,11 @@ std::string mp::util::database_name_normalize(const std::string &s)
 
 }
 
-void mp::util::piggyback(int smallSetUpperBound,
-                          int largeSetLowerBound,
-                          int mediumSetPresentNumber,
-                          int result_set_size,
-                          int &number_to_present)
+void mp_util::piggyback(int smallSetUpperBound,
+                                  int largeSetLowerBound,
+                                  int mediumSetPresentNumber,
+                                  int result_set_size,
+                                  int &number_to_present)
 {
     // deal with piggyback
 
@@ -58,7 +82,8 @@ void mp::util::piggyback(int smallSetUpperBound,
 }
 
 
-bool mp::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
+bool mp_util::pqf(ODR odr, Z_APDU *apdu, const std::string &q)
+{
     YAZ_PQF_Parser pqf_parser = yaz_pqf_create();
     
     Z_RPNQuery *rpn = yaz_pqf_parse(pqf_parser, odr, q.c_str());
@@ -77,7 +102,7 @@ bool mp::util::pqf(ODR odr, Z_APDU *apdu, const std::string &q) {
 }
 
 
-std::string mp::util::zQueryToString(Z_Query *query)
+std::string mp_util::zQueryToString(Z_Query *query)
 {
     std::string query_str = "";
 
@@ -119,8 +144,8 @@ std::string mp::util::zQueryToString(Z_Query *query)
     return query_str;
 }
 
-void mp::util::get_default_diag(Z_DefaultDiagFormat *r,
-                                 int &error_code, std::string &addinfo)
+void mp_util::get_default_diag(Z_DefaultDiagFormat *r,
+                                         int &error_code, std::string &addinfo)
 {
     error_code = *r->condition;
     switch (r->which)
@@ -134,8 +159,8 @@ void mp::util::get_default_diag(Z_DefaultDiagFormat *r,
     }
 }
 
-void mp::util::get_init_diagnostics(Z_InitResponse *initrs,
-                                     int &error_code, std::string &addinfo)
+void mp_util::get_init_diagnostics(
+    Z_InitResponse *initrs, int &error_code, std::string &addinfo)
 {
     Z_External *uif = initrs->userInformationField;
     
@@ -166,9 +191,10 @@ void mp::util::get_init_diagnostics(Z_InitResponse *initrs,
     }
 }
 
-int mp::util::get_vhost_otherinfo(Z_OtherInformation **otherInformation,
-                                   bool remove_flag,
-                                   std::list<std::string> &vhosts)
+int mp_util::get_vhost_otherinfo(
+    Z_OtherInformation **otherInformation,
+    bool remove_flag,
+    std::list<std::string> &vhosts)
 {
     int cat;
     for (cat = 1; ; cat++)
@@ -187,9 +213,9 @@ int mp::util::get_vhost_otherinfo(Z_OtherInformation **otherInformation,
     return cat;
 }
 
-void mp::util::set_vhost_otherinfo(Z_OtherInformation **otherInformation,
-                                    ODR odr,
-                                    const std::list<std::string> &vhosts)
+void mp_util::set_vhost_otherinfo(
+    Z_OtherInformation **otherInformation, ODR odr,
+    const std::list<std::string> &vhosts)
 {
     int cat;
     std::list<std::string>::const_iterator it = vhosts.begin();
@@ -200,8 +226,8 @@ void mp::util::set_vhost_otherinfo(Z_OtherInformation **otherInformation,
     }
 }
 
-void mp::util::split_zurl(std::string zurl, std::string &host,
-                           std::list<std::string> &db)
+void mp_util::split_zurl(std::string zurl, std::string &host,
+                                   std::list<std::string> &db)
 {
     const char *zurl_cstr = zurl.c_str();
     const char *sep = strchr(zurl_cstr, '/');
@@ -230,8 +256,9 @@ void mp::util::split_zurl(std::string zurl, std::string &host,
     }
 }
 
-bool mp::util::set_databases_from_zurl(ODR odr, std::string zurl,
-                                        int *db_num, char ***db_strings)
+bool mp_util::set_databases_from_zurl(
+    ODR odr, std::string zurl,
+    int *db_num, char ***db_strings)
 {
     std::string host;
     std::list<std::string> dblist;
@@ -285,7 +312,7 @@ Z_APDU *mp::odr::create_APDU(int type, Z_APDU *in_apdu)
     return mp::util::create_APDU(m_odr, type, in_apdu);
 }
 
-Z_APDU *mp::util::create_APDU(ODR odr, int type, Z_APDU *in_apdu)
+Z_APDU *mp_util::create_APDU(ODR odr, int type, Z_APDU *in_apdu)
 {
     Z_APDU *out_apdu = zget_APDU(odr, type);
 
@@ -414,7 +441,7 @@ Z_GDU *mp::odr::create_HTTP_Response(mp::Session &session,
     return gdu;
 }
 
-Z_ReferenceId **mp::util::get_referenceId(Z_APDU *apdu)
+Z_ReferenceId **mp_util::get_referenceId(Z_APDU *apdu)
 {
     switch (apdu->which)
     {

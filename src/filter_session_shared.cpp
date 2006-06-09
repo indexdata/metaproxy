@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.cpp,v 1.9 2006-05-16 11:53:54 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.10 2006-06-09 14:12:13 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -25,12 +25,11 @@
 #include <iostream>
 
 namespace mp = metaproxy_1;
-namespace yf = mp::filter;
+namespace yf = metaproxy_1::filter;
 
 namespace metaproxy_1 {
 
     namespace filter {
-        int memcmp2(const void *buf1, int len1, const void *buf2, int len2);
 
         class SessionShared::InitKey {
         public:
@@ -76,25 +75,6 @@ namespace metaproxy_1 {
     }
 }
 
-int yf::memcmp2(const void *buf1, int len1,
-                const void *buf2, int len2)
-{
-    int d = len1 - len2;
-
-    // compare buffer (common length)
-    int c = memcmp(buf1, buf2, d > 0 ? len2 : len1);
-    if (c > 0)
-        return 1;
-    else if (c < 0)
-        return -1;
-    
-    // compare (remaining bytes)
-    if (d > 0)
-        return 1;
-    else if (d < 0)
-        return -1;
-    return 0;
-}
 
 yf::SessionShared::InitKey::InitKey(Z_InitRequest *req)
 {
@@ -113,15 +93,16 @@ bool yf::SessionShared::InitKey::operator < (const SessionShared::InitKey &k)
     const 
 {
     int c;
-    c = memcmp2((void*) m_idAuthentication_buf, m_idAuthentication_size,
-                (void*) k.m_idAuthentication_buf, k.m_idAuthentication_size);
+    c = mp::util::memcmp2(
+        (void*) m_idAuthentication_buf, m_idAuthentication_size,
+        (void*) k.m_idAuthentication_buf, k.m_idAuthentication_size);
     if (c < 0)
         return true;
     else if (c > 0)
         return false;
 
-    c = memcmp2((void*) m_otherInfo_buf, m_otherInfo_size,
-                (void*) k.m_otherInfo_buf, k.m_otherInfo_size);
+    c = mp::util::memcmp2((void*) m_otherInfo_buf, m_otherInfo_size,
+                          (void*) k.m_otherInfo_buf, k.m_otherInfo_size);
     if (c < 0)
         return true;
     else if (c > 0)
@@ -137,12 +118,14 @@ void yf::SessionShared::Frontend::init(mp::Package &package, Z_GDU *gdu)
 
     mp::util::get_vhost_otherinfo(&req->otherInfo, false, targets);
 
+    // std::cout << "SessionShared::Frontend::init\n";
     if (targets.size() < 1)
     {
+        // no targets given, just relay this one and don't deal with it
         package.move();
         return;
     }
-
+    InitKey k(req);
 }
 
 yf::SessionShared::SessionShared() : m_p(new SessionShared::Rep)

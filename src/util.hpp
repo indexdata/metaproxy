@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.14 2006-05-15 11:43:01 adam Exp $
+/* $Id: util.hpp,v 1.15 2006-06-09 14:12:13 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -18,6 +18,8 @@
 
 namespace metaproxy_1 {
     namespace util  {
+        int memcmp2(const void *buf1, int len1, const void *buf2, int len2);
+
         std::string database_name_normalize(const std::string &s);
 
 	bool pqf(ODR odr, Z_APDU *apdu, const std::string &q);

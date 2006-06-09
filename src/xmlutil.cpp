@@ -1,4 +1,4 @@
-/* $Id: xmlutil.cpp,v 1.5 2006-03-16 10:40:59 adam Exp $
+/* $Id: xmlutil.cpp,v 1.6 2006-06-09 14:12:13 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -7,8 +7,10 @@
 #include "xmlutil.hpp"
 
 namespace mp = metaproxy_1;
+// Doxygen doesn't like mp::xml, so we use this instead
+namespace mp_xml = metaproxy_1::xml;
 
-std::string mp::xml::get_text(const xmlNode *ptr)
+std::string mp_xml::get_text(const xmlNode *ptr)
 {
     std::string c;
     for (ptr = ptr->children; ptr; ptr = ptr->next)
@@ -18,7 +20,7 @@ std::string mp::xml::get_text(const xmlNode *ptr)
 }
 
 
-bool mp::xml::is_element(const xmlNode *ptr, 
+bool mp_xml::is_element(const xmlNode *ptr, 
                           const std::string &ns,
                           const std::string &name)
 {
@@ -29,14 +31,14 @@ bool mp::xml::is_element(const xmlNode *ptr,
     return false;
 }
 
-bool mp::xml::is_element_yp2(const xmlNode *ptr, 
+bool mp_xml::is_element_yp2(const xmlNode *ptr, 
                               const std::string &name)
 {
     return mp::xml::is_element(ptr, "http://indexdata.dk/yp2/config/1", name);
 }
 
 
-bool mp::xml::check_element_yp2(const xmlNode *ptr, 
+bool mp_xml::check_element_yp2(const xmlNode *ptr, 
                                  const std::string &name)
 {
     if (!mp::xml::is_element_yp2(ptr, name))
@@ -44,7 +46,7 @@ bool mp::xml::check_element_yp2(const xmlNode *ptr,
     return true;
 }
 
-std::string mp::xml::get_route(const xmlNode *node)
+std::string mp_xml::get_route(const xmlNode *node)
 {
     std::string route_value;
     if (node)
@@ -70,7 +72,7 @@ std::string mp::xml::get_route(const xmlNode *node)
 }
 
 
-const xmlNode* mp::xml::jump_to_children(const xmlNode* node,
+const xmlNode* mp_xml::jump_to_children(const xmlNode* node,
                                           int xml_node_type)
 {
     node = node->children;
@@ -79,7 +81,7 @@ const xmlNode* mp::xml::jump_to_children(const xmlNode* node,
     return node;
 }
 
-const xmlNode* mp::xml::jump_to_next(const xmlNode* node,
+const xmlNode* mp_xml::jump_to_next(const xmlNode* node,
                                       int xml_node_type)
 {
     node = node->next;
@@ -88,7 +90,7 @@ const xmlNode* mp::xml::jump_to_next(const xmlNode* node,
     return node;
 }
 
-const xmlNode* mp::xml::jump_to(const xmlNode* node,
+const xmlNode* mp_xml::jump_to(const xmlNode* node,
                                  int xml_node_type)
 {
     for (; node && node->type != xml_node_type; node = node->next)
@@ -96,7 +98,7 @@ const xmlNode* mp::xml::jump_to(const xmlNode* node,
     return node;
 }
 
-void mp::xml::check_empty(const xmlNode *node)
+void mp_xml::check_empty(const xmlNode *node)
 {
     if (node)
     {

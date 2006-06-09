@@ -1,5 +1,5 @@
 
-/* $Id: thread_pool_observer.cpp,v 1.15 2006-03-29 13:44:45 adam Exp $
+/* $Id: thread_pool_observer.cpp,v 1.16 2006-06-09 14:12:13 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -32,8 +32,6 @@
 #include "thread_pool_observer.hpp"
 #include "pipe.hpp"
 
-namespace mp = metaproxy_1;
-
 namespace metaproxy_1 {
     class ThreadPoolSocketObserver::Worker {
     public:
@@ -65,9 +63,9 @@ namespace metaproxy_1 {
 
 
 using namespace yazpp_1;
-using namespace mp;
+using namespace metaproxy_1;
 
-ThreadPoolSocketObserver::Rep::Rep(ISocketObservable *obs)
+ThreadPoolSocketObserver::Rep::Rep(yazpp_1::ISocketObservable *obs)
     : m_socketObservable(obs), m_pipe(9123)
 {
 }
@@ -81,8 +79,8 @@ IThreadPoolMsg::~IThreadPoolMsg()
 
 }
 
-ThreadPoolSocketObserver::ThreadPoolSocketObserver(ISocketObservable *obs,
-                                                   int no_threads)
+ThreadPoolSocketObserver::ThreadPoolSocketObserver(
+    yazpp_1::ISocketObservable *obs, int no_threads)
     : m_p(new Rep(obs))
 {
     obs->addObserver(m_p->m_pipe.read_fd(), this);
