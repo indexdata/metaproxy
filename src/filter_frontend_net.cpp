@@ -1,4 +1,4 @@
-/* $Id: filter_frontend_net.cpp,v 1.17 2006-03-29 13:44:45 adam Exp $
+/* $Id: filter_frontend_net.cpp,v 1.18 2006-06-09 14:11:42 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
 %LICENSE%
@@ -6,6 +6,7 @@
 
 #include "config.hpp"
 
+#include "util.hpp"
 #include "pipe.hpp"
 #include "filter.hpp"
 #include "package.hpp"
@@ -106,11 +107,32 @@ void mp::ThreadPoolPackage::result()
     m_session->m_no_requests--;
 
     yazpp_1::GDU *gdu = &m_package->response();
+
     if (gdu->get())
     {
 	int len;
 	m_session->send_GDU(gdu->get(), &len);
     }
+    else if (!m_package->session().is_closed())
+    {
+        // no response package and yet the session is still open..
+        // means that request is unhandled..
+        yazpp_1::GDU *gdu_req = &m_package->request();
+        Z_GDU *z_gdu = gdu_req->get();
+        if (z_gdu && z_gdu->which == Z_GDU_Z3950)
+        {
+            // For Z39.50, response with a Close and shutdown
+            mp::odr odr;
+            int len;
+            Z_APDU *apdu_response = odr.create_close(
+                z_gdu->u.z3950, Z_Close_systemProblem, 
+                "unhandled Z39.50 request");
+
+            m_session->send_Z_PDU(apdu_response, &len);
+            m_package->session().close();
+        }
+    }
+
     if (m_session->m_no_requests == 0 && m_package->session().is_closed())
 	delete m_session;
     delete this;
