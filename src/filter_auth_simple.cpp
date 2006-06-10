@@ -1,7 +1,7 @@
-/* $Id: filter_auth_simple.cpp,v 1.19 2006-05-15 11:43:01 adam Exp $
+/* $Id: filter_auth_simple.cpp,v 1.20 2006-06-10 14:29:12 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 #include "config.hpp"

@@ -1,7 +1,7 @@
-/* $Id: filter_virt_db.cpp,v 1.40 2006-05-16 11:53:54 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.41 2006-06-10 14:29:12 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 #include "config.hpp"

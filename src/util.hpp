@@ -1,7 +1,7 @@
-/* $Id: util.hpp,v 1.15 2006-06-09 14:12:13 adam Exp $
+/* $Id: util.hpp,v 1.16 2006-06-10 14:29:13 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 #ifndef YP2_UTIL_HPP

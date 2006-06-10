@@ -1,7 +1,7 @@
-/* $Id: test_filter2.cpp,v 1.19 2006-05-15 10:12:33 adam Exp $
+/* $Id: test_filter2.cpp,v 1.20 2006-06-10 14:29:12 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 #include <libxml/parser.h>

@@ -1,7 +1,7 @@
-/* $Id: filter_session_shared.hpp,v 1.5 2006-05-15 10:34:40 adam Exp $
+/* $Id: filter_session_shared.hpp,v 1.6 2006-06-10 14:29:12 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 #ifndef FILTER_SESSION_SHARED_HPP

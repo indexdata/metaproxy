@@ -1,7 +1,7 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.26 2006-03-16 10:40:59 adam Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.27 2006-06-10 14:29:11 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 #include "config.hpp"

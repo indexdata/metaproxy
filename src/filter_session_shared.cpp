@@ -1,7 +1,7 @@
-/* $Id: filter_session_shared.cpp,v 1.10 2006-06-09 14:12:13 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.11 2006-06-10 14:29:12 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 #include "config.hpp"

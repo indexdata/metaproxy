@@ -17,7 +17,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.33 2006-06-02 10:23:49 adam Exp $ -->
+<!-- $Id: book.xml,v 1.34 2006-06-10 14:29:11 adam Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -125,26 +125,60 @@
   </para>
  </chapter>
 
-
-
- <chapter id="licence">
-  <title>The Metaproxy Licence</title>
-  <para>
-   <emphasis role="strong">
-    No decision has yet been made on the terms under which
-    Metaproxy will be distributed.
-   </emphasis>
-   It is possible that, unlike
-   other Index Data products, metaproxy may not be released under a
-   free-software licence such as the GNU GPL.  Until a decision is
-   made and a public statement made, then, and unless it has been
-   delivered to you other specific terms, please treat Metaproxy as
-   though it were proprietary software.
-   The code should not be redistributed without explicit
-   written permission from the copyright holders, Index Data ApS.
-  </para>
+ <chapter id="license">
+  <title>The Metaproxy License</title>
+  <orderedlist numeration="arabic">
+   <listitem>
+    <para>
+     You are allowed to download this software for evaluation purposes.
+     You can unpack it, build it, run it, see how it works and how it fits
+     your needs, all at zero cost.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+     You may NOT deploy the software.  For the purposes of this license,
+     deployment means running it for any purpose other than evaluation,
+     whether or not you or anyone else makes a profit from doing so.  If
+     you wish to deploy the software, you must first contact Index Data and
+     arrange to purchase a DEPLOYMENT LICENCE.  If you are unsure
+     whether or not your proposed use of the software constitutes
+     deployment, email us at <literal>info@indexdata.com</literal>
+     for clarification.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+     You may modify your copy of the software (fix bugs, add features)
+     if you need to.  We encourage you to send your changes back to us for
+     integration into the master copy, but you are not obliged to do so.  You
+      may NOT pass your changes on to any other party.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+     There is NO WARRANTY for this software, to the extent permitted by
+     applicable law.  We provide the software ``as is'' without warranty of
+     any kind, either expressed or implied, including, but not limited to, the
+     implied warranties of MERCHANTABILITY and FITNESS FOR A
+     PARTICULAR PURPOSE.  The entire risk as to the quality and
+     performance of the software is with you.  Should the software prove
+     defective, you assume the cost of all necessary servicing, repair or
+     correction.  In no event unless required by applicable law will we be
+     liable to you for damages, arising out of the use of the software,
+     including but not limited to loss of data or data being rendered
+     inaccurate.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+     All rights to the software are reserved by Index Data except where
+     this license explicitly says otherwise.
+    </para>
+   </listitem>
+  </orderedlist>
  </chapter>
-
+ 
  <chapter id="installation">
   <title>Installation</title>
   <para>

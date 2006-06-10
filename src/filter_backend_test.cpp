@@ -1,7 +1,7 @@
-/* $Id: filter_backend_test.cpp,v 1.18 2006-03-16 10:40:59 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.19 2006-06-10 14:29:12 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 #include "config.hpp"

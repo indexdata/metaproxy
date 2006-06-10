@@ -1,7 +1,7 @@
-/* $Id: router.hpp,v 1.11 2006-03-16 10:40:59 adam Exp $
+/* $Id: router.hpp,v 1.12 2006-06-10 14:29:12 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 #ifndef ROUTER_HPP

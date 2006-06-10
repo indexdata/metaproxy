@@ -1,7 +1,7 @@
-/* $Id: filter_query_rewrite.hpp,v 1.4 2006-03-16 10:40:59 adam Exp $
+/* $Id: filter_query_rewrite.hpp,v 1.5 2006-06-10 14:29:12 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 // Filter that rewrites RPN queries using Regular Expressions

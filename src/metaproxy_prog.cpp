@@ -1,7 +1,7 @@
-/* $Id: metaproxy_prog.cpp,v 1.5 2006-04-29 08:51:54 adam Exp $
+/* $Id: metaproxy_prog.cpp,v 1.6 2006-06-10 14:29:12 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 #include "config.hpp"

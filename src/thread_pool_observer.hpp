@@ -1,7 +1,7 @@
-/* $Id: thread_pool_observer.hpp,v 1.9 2006-03-29 13:44:45 adam Exp $
+/* $Id: thread_pool_observer.hpp,v 1.10 2006-06-10 14:29:13 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 #ifndef YP2_THREAD_POOL_OBSERVER_HPP

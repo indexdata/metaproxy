@@ -1,7 +1,7 @@
-/* $Id: test_filter_z3950_client.cpp,v 1.8 2006-03-16 10:40:59 adam Exp $
+/* $Id: test_filter_z3950_client.cpp,v 1.9 2006-06-10 14:29:13 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 #include "config.hpp"

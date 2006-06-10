@@ -1,7 +1,7 @@
-/* $Id: filter_multi.cpp,v 1.20 2006-05-16 11:53:53 adam Exp $
+/* $Id: filter_multi.cpp,v 1.21 2006-06-10 14:29:12 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
-%LICENSE%
+   See the LICENSE file for details
  */
 
 #include "config.hpp"
