@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-bytarget.xml,v 1.1 2006-06-16 10:31:42 mike Exp $ -->
+<!-- $Id: config-bytarget.xml,v 1.2 2006-06-16 14:01:58 mike Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <routes>
@@ -32,19 +32,17 @@
       </filter>
     </route>
     <route id="group1">
-      <!-- ### Adam suggests: <filter type="multi"/> -->
       <filter type="query_rewrite">
         <xslt>pqf2pqf.xsl</xslt>
       </filter>
       <filter type="log">
-        <message>Group 1</message>
+        <message>LoC</message>
       </filter>
       <filter type="z3950_client">
         <timeout>30</timeout>
       </filter>
     </route>
     <route id="group2">
-      <!-- ### Adam suggests: <filter type="multi"/> -->
 <!--
       <filter type="auth-set">
         <username>mike</username>
@@ -53,7 +51,7 @@
       </filter>
 -->
       <filter type="log">
-	<message>Group 2</message>
+	<message>Gils</message>
       </filter>
       <filter type="z3950_client">
 	<timeout>30</timeout>
