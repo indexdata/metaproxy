@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: config.xsd,v 1.17 2006-06-08 22:20:04 mike Exp $ -->
+<!-- $Id: config.xsd,v 1.18 2006-06-19 13:27:49 adam Exp $ -->
 <!--
 	This Schema prescribes the format of YP2 configuration files.
 	Invoke it like this:
@@ -58,7 +58,19 @@
         <xs:element ref="config:timeout"/>
 
 	<!-- type="log" -->
-        <xs:element ref="config:message"/>
+        <xs:sequence>
+         <xs:element minOccurs="0" ref="config:message"/>
+         <xs:element minOccurs="0" ref="config:filename"/>
+         <xs:element minOccurs="0" name="category">
+           <xs:complexType>
+            <xs:attribute name="request-session" type="xs:boolean"/>
+            <xs:attribute name="response-session" type="xs:boolean"/>
+            <xs:attribute name="request-apdu" type="xs:boolean"/>
+            <xs:attribute name="response-apdu" type="xs:boolean"/>
+           </xs:complexType>
+         </xs:element>
+        </xs:sequence>
+
 
 	<!-- type="virt_db" or type="multi" -->
         <xs:sequence>
@@ -129,6 +141,7 @@
   <xs:element name="port" type="xs:string"/>
   <xs:element name="timeout" type="xs:integer"/>
   <xs:element name="message" type="xs:NCName"/>
+  <xs:element name="filename" type="xs:string"/>
   <xs:element name="userRegister" type="xs:string"/>
   <xs:element name="targetRegister" type="xs:string"/>
   <xs:element name="discardUnauthorisedTargets" type="xs:string"/>
