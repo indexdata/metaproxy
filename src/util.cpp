@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.17 2006-06-10 14:29:13 adam Exp $
+/* $Id: util.cpp,v 1.18 2006-06-19 23:54:02 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -296,8 +296,8 @@ mp::odr::operator ODR() const
     return m_odr;
 }
 
-Z_APDU *mp::odr::create_close(Z_APDU *in_apdu,
-                               int reason, const char *addinfo)
+Z_APDU *mp::odr::create_close(const Z_APDU *in_apdu,
+                              int reason, const char *addinfo)
 {
     Z_APDU *apdu = create_APDU(Z_APDU_close, in_apdu);
     
@@ -307,20 +307,25 @@ Z_APDU *mp::odr::create_close(Z_APDU *in_apdu,
     return apdu;
 }
 
-Z_APDU *mp::odr::create_APDU(int type, Z_APDU *in_apdu)
+Z_APDU *mp::odr::create_APDU(int type, const Z_APDU *in_apdu)
 {
     return mp::util::create_APDU(m_odr, type, in_apdu);
 }
 
-Z_APDU *mp_util::create_APDU(ODR odr, int type, Z_APDU *in_apdu)
+Z_APDU *mp_util::create_APDU(ODR odr, int type, const Z_APDU *in_apdu)
 {
     Z_APDU *out_apdu = zget_APDU(odr, type);
+    transfer_referenceId(odr, in_apdu, out_apdu);
+    return out_apdu;
+}
 
-    Z_ReferenceId **id_to = mp::util::get_referenceId(out_apdu);
+void mp_util::transfer_referenceId(ODR odr, const Z_APDU *src, Z_APDU *dst)
+{
+    Z_ReferenceId **id_to = mp::util::get_referenceId(dst);
     *id_to = 0;
-    if (in_apdu)
+    if (src)
     {
-        Z_ReferenceId **id_from = mp::util::get_referenceId(in_apdu);
+        Z_ReferenceId **id_from = mp::util::get_referenceId(src);
         if (id_from && *id_from && id_to)
         {
             *id_to = (Z_ReferenceId*) odr_malloc (odr, sizeof(**id_to));
@@ -331,11 +336,10 @@ Z_APDU *mp_util::create_APDU(ODR odr, int type, Z_APDU *in_apdu)
         else if (id_to)
             *id_to = 0;
     }
-    return out_apdu;
 }
 
-Z_APDU *mp::odr::create_initResponse(Z_APDU *in_apdu,
-                                      int error, const char *addinfo)
+Z_APDU *mp::odr::create_initResponse(const Z_APDU *in_apdu,
+                                     int error, const char *addinfo)
 {
     Z_APDU *apdu = create_APDU(Z_APDU_initResponse, in_apdu);
     if (error)
@@ -347,8 +351,8 @@ Z_APDU *mp::odr::create_initResponse(Z_APDU *in_apdu,
     return apdu;
 }
 
-Z_APDU *mp::odr::create_searchResponse(Z_APDU *in_apdu,
-                                        int error, const char *addinfo)
+Z_APDU *mp::odr::create_searchResponse(const Z_APDU *in_apdu,
+                                       int error, const char *addinfo)
 {
     Z_APDU *apdu = create_APDU(Z_APDU_searchResponse, in_apdu);
     if (error)
@@ -364,8 +368,8 @@ Z_APDU *mp::odr::create_searchResponse(Z_APDU *in_apdu,
     return apdu;
 }
 
-Z_APDU *mp::odr::create_presentResponse(Z_APDU *in_apdu,
-                                         int error, const char *addinfo)
+Z_APDU *mp::odr::create_presentResponse(const Z_APDU *in_apdu,
+                                        int error, const char *addinfo)
 {
     Z_APDU *apdu = create_APDU(Z_APDU_presentResponse, in_apdu);
     if (error)
@@ -381,8 +385,8 @@ Z_APDU *mp::odr::create_presentResponse(Z_APDU *in_apdu,
     return apdu;
 }
 
-Z_APDU *mp::odr::create_scanResponse(Z_APDU *in_apdu,
-                                      int error, const char *addinfo)
+Z_APDU *mp::odr::create_scanResponse(const Z_APDU *in_apdu,
+                                     int error, const char *addinfo)
 {
     Z_APDU *apdu = create_APDU(Z_APDU_scanResponse, in_apdu);
     Z_ScanResponse *res = apdu->u.scanResponse;
@@ -409,7 +413,7 @@ Z_APDU *mp::odr::create_scanResponse(Z_APDU *in_apdu,
 }
 
 Z_GDU *mp::odr::create_HTTP_Response(mp::Session &session,
-                                      Z_HTTP_Request *hreq, int code)
+                                     Z_HTTP_Request *hreq, int code)
 {
     const char *response_version = "1.0";
     bool keepalive = false;
@@ -441,7 +445,7 @@ Z_GDU *mp::odr::create_HTTP_Response(mp::Session &session,
     return gdu;
 }
 
-Z_ReferenceId **mp_util::get_referenceId(Z_APDU *apdu)
+Z_ReferenceId **mp_util::get_referenceId(const Z_APDU *apdu)
 {
     switch (apdu->which)
     {

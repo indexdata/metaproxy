@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.16 2006-06-10 14:29:13 adam Exp $
+/* $Id: util.hpp,v 1.17 2006-06-19 23:54:02 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -26,9 +26,11 @@ namespace metaproxy_1 {
 
         std::string zQueryToString(Z_Query *query);
 
-        Z_ReferenceId **get_referenceId(Z_APDU *apdu);
+        Z_ReferenceId **get_referenceId(const Z_APDU *apdu);
 
-        Z_APDU *create_APDU(ODR odr, int type, Z_APDU *in_apdu);
+        void transfer_referenceId(ODR odr, const Z_APDU *src, Z_APDU *dst);
+
+        Z_APDU *create_APDU(ODR odr, int type, const Z_APDU *in_apdu);
 
         bool set_databases_from_zurl(ODR odr, std::string zurl,
                                      int *db_num, char ***db_strings);
@@ -63,17 +65,18 @@ namespace metaproxy_1 {
         odr();
         ~odr();
         operator ODR() const;
-        Z_APDU *create_close(Z_APDU *in_apdu, 
+        Z_APDU *create_close(const Z_APDU *in_apdu, 
                              int reason, const char *addinfo);
-        Z_APDU *create_initResponse(Z_APDU *in_apdu, 
+        Z_APDU *create_initResponse(const Z_APDU *in_apdu, 
                                     int error, const char *addinfo);
-        Z_APDU *create_searchResponse(Z_APDU *in_apdu,
+        Z_APDU *create_searchResponse(const Z_APDU *in_apdu,
                                       int error, const char *addinfo);
-        Z_APDU *create_presentResponse(Z_APDU *in_apdu,
+        Z_APDU *create_presentResponse(const Z_APDU *in_apdu,
                                        int error, const char *addinfo);
-        Z_APDU *create_scanResponse(Z_APDU *in_apdu,
+        Z_APDU *create_scanResponse(const Z_APDU *in_apdu,
                                     int error, const char *addinfo);
-        Z_APDU *create_APDU(int type, Z_APDU *in_apdu);
+        Z_APDU *create_APDU(int type, const Z_APDU *in_apdu);
+
         Z_GDU *create_HTTP_Response(metaproxy_1::Session &session,
                                     Z_HTTP_Request *req, int code);
     private:

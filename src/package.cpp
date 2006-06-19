@@ -1,4 +1,4 @@
-/* $Id: package.cpp,v 1.8 2006-06-10 14:29:12 adam Exp $
+/* $Id: package.cpp,v 1.9 2006-06-19 23:54:02 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -20,7 +20,7 @@ mp::Package::~Package()
     delete m_route_pos;
 }
 
-mp::Package::Package(mp::Session &session, mp::Origin &origin) 
+mp::Package::Package(mp::Session &session, const mp::Origin &origin) 
     : m_session(session), m_origin(origin),
       m_route_pos(0), m_data(0)
 {

@@ -1,4 +1,4 @@
-/* $Id: package.hpp,v 1.17 2006-06-10 14:29:12 adam Exp $
+/* $Id: package.hpp,v 1.18 2006-06-19 23:54:02 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -35,7 +35,8 @@ namespace metaproxy_1 {
 
         ~Package();
         
-        Package(metaproxy_1::Session &session, metaproxy_1::Origin &origin);
+        Package(metaproxy_1::Session &session, const 
+                metaproxy_1::Origin &origin);
 
         Package & copy_filter(const Package &p);
 

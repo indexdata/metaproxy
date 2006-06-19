@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.hpp,v 1.6 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_session_shared.hpp,v 1.7 2006-06-19 23:54:02 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -8,6 +8,8 @@
 #define FILTER_SESSION_SHARED_HPP
 
 #include <boost/scoped_ptr.hpp>
+#include <list>
+#include <map>
 
 #include "filter.hpp"
 
@@ -16,11 +18,24 @@ namespace metaproxy_1 {
         class SessionShared : public Base {
             class Rep;
             class InitKey;
-            class List;
+            class BackendSet;
+            class FrontendSet;
+            class Worker;
 
             struct Frontend;
             class BackendClass;
+            class BackendInstance;
             typedef boost::shared_ptr<Frontend> FrontendPtr;
+            typedef boost::shared_ptr<BackendClass> BackendClassPtr;
+            typedef boost::shared_ptr<BackendInstance> BackendInstancePtr;
+            typedef boost::shared_ptr<BackendSet> BackendSetPtr;
+            typedef boost::shared_ptr<FrontendSet> FrontendSetPtr;
+            typedef std::list<std::string> Databases;
+
+            typedef std::list<BackendInstancePtr> BackendInstanceList;
+            typedef std::map<InitKey, BackendClassPtr> BackendClassMap;
+            typedef std::list<BackendSetPtr> BackendSetList;
+            typedef std::map<std::string, FrontendSetPtr> FrontendSets;
         public:
             ~SessionShared();
             SessionShared();
