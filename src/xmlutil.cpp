@@ -1,9 +1,10 @@
-/* $Id: xmlutil.cpp,v 1.7 2006-06-10 14:29:13 adam Exp $
+/* $Id: xmlutil.cpp,v 1.8 2006-06-19 13:08:00 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
  */
 
+#include <string.h>
 #include "xmlutil.hpp"
 
 namespace mp = metaproxy_1;
@@ -19,6 +20,17 @@ std::string mp_xml::get_text(const xmlNode *ptr)
     return c;
 }
 
+bool mp_xml::get_bool(const xmlNode *ptr, bool default_value)
+{
+    if (ptr && ptr->type == XML_TEXT_NODE && ptr->content)
+    {
+        if (!strcmp((const char *) ptr->content, "true"))
+            return true;
+        else
+            return false;
+    }
+    return default_value;
+}
 
 bool mp_xml::is_element(const xmlNode *ptr, 
                           const std::string &ns,

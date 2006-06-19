@@ -1,3 +1,8 @@
+Log filter can be configured to write to a given file using 'filename'
+element. Also information category can be specified with 'category'.
+If filename is omitted, the log filter writes to metaproxy.log.
+See etc/config5.xml for example.
+
 --- 1.0.5 2006/05/16
 
 Fixed compilation on Windows.

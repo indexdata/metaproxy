@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: log.xml,v 1.4 2006-04-25 12:48:52 marc Exp $ -->
+<!-- $Id: log.xml,v 1.5 2006-06-19 13:08:00 adam Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>log</refentrytitle>
@@ -27,6 +27,7 @@
    <screen><![CDATA[
     <filter type="log">
      <message>B</message>
+     <filename>logs/etaproxy.log</filename>
     </filter>
 ]]>
    </screen>

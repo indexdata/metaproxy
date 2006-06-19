@@ -1,4 +1,4 @@
-/* $Id: xmlutil.hpp,v 1.6 2006-06-10 14:29:13 adam Exp $
+/* $Id: xmlutil.hpp,v 1.7 2006-06-19 13:08:00 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -14,6 +14,7 @@
 namespace metaproxy_1 {
     namespace xml {
         std::string get_text(const xmlNode *ptr);
+        bool get_bool(const xmlNode *ptr, bool default_value);
         bool is_element(const xmlNode *ptr, 
                         const std::string &ns,
                         const std::string &name);

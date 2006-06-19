@@ -1,4 +1,4 @@
-/* $Id: filter_log.hpp,v 1.15 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_log.hpp,v 1.16 2006-06-19 13:08:00 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -8,6 +8,7 @@
 #define FILTER_LOG_HPP
 
 #include <boost/scoped_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include "filter.hpp"
 
@@ -22,6 +23,7 @@ namespace metaproxy_1 {
             ~Log();
             void process(metaproxy_1::Package & package) const;
             void configure(const xmlNode * ptr);
+            class LFile;
         };
     }
 }
