@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.19 2006-06-19 13:08:00 adam Exp $
+/* $Id: filter_log.cpp,v 1.20 2006-06-20 22:29:39 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -42,6 +42,7 @@ namespace metaproxy_1 {
             bool m_res_apdu;
             bool m_req_session;
             bool m_res_session;
+            bool m_init_options;
         };
         // Only used during configure stage (no threading)
         static std::list<LFilePtr> filter_log_files;
@@ -54,6 +55,7 @@ yf::Log::Rep::Rep()
     m_res_apdu = true;
     m_req_session = true;
     m_res_session = true;
+    m_init_options = false;
 }
 
 yf::Log::Log(const std::string &x) : m_p(new Rep)
@@ -71,6 +73,12 @@ void stream_write(ODR o, void *handle, int type, const char *buf, int len)
 {
     yf::Log::LFile *lfile = (yf::Log::LFile*) handle;
     lfile->out.write(buf, len);
+}
+
+void option_write(const char *name, void *handle)
+{
+    yf::Log::LFile *lfile = (yf::Log::LFile*) handle;
+    lfile->out << " " << name;
 }
 
 void yf::Log::process(mp::Package &package) const
@@ -93,6 +101,20 @@ void yf::Log::process(mp::Package &package) const
                              << (package.session().is_closed() ? "yes" : "no")
                              << "\n";
         }
+        if (m_p->m_init_options)
+        {
+            gdu = package.request().get();
+            if (gdu && gdu->which == Z_GDU_Z3950 &&
+                gdu->u.z3950->which == Z_APDU_initRequest)
+            {
+                m_p->m_file->out << receive_time << " " << m_p->m_msg;
+                m_p->m_file->out << " init options:";
+                yaz_init_opt_decode(gdu->u.z3950->u.initRequest->options,
+                                    option_write, m_p->m_file.get());
+                m_p->m_file->out << "\n";
+            }
+        }
+
         if (m_p->m_req_apdu)
         {
             gdu = package.request().get();
@@ -126,6 +148,19 @@ void yf::Log::process(mp::Package &package) const
                              << (package.session().is_closed() ? "yes " : "no ")
                              << "duration=" << duration      
                              << "\n";
+        }
+        if (m_p->m_init_options)
+        {
+            gdu = package.response().get();
+            if (gdu && gdu->which == Z_GDU_Z3950 &&
+                gdu->u.z3950->which == Z_APDU_initResponse)
+            {
+                m_p->m_file->out << receive_time << " " << m_p->m_msg;
+                m_p->m_file->out << " init options:";
+                yaz_init_opt_decode(gdu->u.z3950->u.initResponse->options,
+                                    option_write, m_p->m_file.get());
+                m_p->m_file->out << "\n";
+            }
         }
         if (m_p->m_res_apdu)
         {
@@ -184,6 +219,11 @@ void yf::Log::configure(const xmlNode *ptr)
                     m_p->m_req_apdu = mp::xml::get_bool(attr->children, true);
                 else if (!strcmp((const char *) attr->name, "response-apdu"))
                     m_p->m_res_apdu = mp::xml::get_bool(attr->children, true);
+                else if (!strcmp((const char *) attr->name, "apdu"))
+                {
+                    m_p->m_req_apdu = mp::xml::get_bool(attr->children, true);
+                    m_p->m_res_apdu = m_p->m_req_apdu;
+                }
                 else if (!strcmp((const char *) attr->name,
                                  "request-session"))
                     m_p->m_req_session = 
@@ -191,6 +231,17 @@ void yf::Log::configure(const xmlNode *ptr)
                 else if (!strcmp((const char *) attr->name, 
                                  "response-session"))
                     m_p->m_res_session = 
+                        mp::xml::get_bool(attr->children, true);
+                else if (!strcmp((const char *) attr->name,
+                                 "session"))
+                {
+                    m_p->m_req_session = 
+                        mp::xml::get_bool(attr->children, true);
+                    m_p->m_res_session = m_p->m_req_session;
+                }
+                else if (!strcmp((const char *) attr->name, 
+                                 "init-options"))
+                    m_p->m_init_options = 
                         mp::xml::get_bool(attr->children, true);
                 else
                     throw mp::filter::FilterException(

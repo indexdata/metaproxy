@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: config.xsd,v 1.18 2006-06-19 13:27:49 adam Exp $ -->
+<!-- $Id: config.xsd,v 1.19 2006-06-20 22:29:38 adam Exp $ -->
 <!--
 	This Schema prescribes the format of YP2 configuration files.
 	Invoke it like this:
@@ -65,8 +65,11 @@
            <xs:complexType>
             <xs:attribute name="request-session" type="xs:boolean"/>
             <xs:attribute name="response-session" type="xs:boolean"/>
+            <xs:attribute name="session" type="xs:boolean"/>
             <xs:attribute name="request-apdu" type="xs:boolean"/>
             <xs:attribute name="response-apdu" type="xs:boolean"/>
+            <xs:attribute name="apdu" type="xs:boolean"/>
+            <xs:attribute name="init-options" type="xs:boolean"/>
            </xs:complexType>
          </xs:element>
         </xs:sequence>
