@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.cpp,v 1.12 2006-06-19 23:54:02 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.13 2006-06-20 22:27:45 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -124,9 +124,10 @@ namespace metaproxy_1 {
             ~Frontend();
             bool m_is_virtual;
             bool m_in_use;
-
+            Z_Options m_init_options;
             void search(Package &package, Z_APDU *apdu);
             void present(Package &package, Z_APDU *apdu);
+            void scan(Package &package, Z_APDU *apdu);
 
             void get_set(mp::Package &package,
                          const Z_APDU *apdu_req,
@@ -314,7 +315,25 @@ yf::SessionShared::BackendInstancePtr yf::SessionShared::BackendClass::create_ba
 
     init_package.copy_filter(frontend_package);
 
-    init_package.request() = m_init_request;
+    yazpp_1::GDU actual_init_request = m_init_request;
+    Z_GDU *init_pdu = actual_init_request.get();
+
+    assert(init_pdu->which == Z_GDU_Z3950);
+    assert(init_pdu->u.z3950->which == Z_APDU_initRequest);
+
+    Z_InitRequest *req = init_pdu->u.z3950->u.initRequest;
+    ODR_MASK_ZERO(req->options);
+
+    ODR_MASK_SET(req->options, Z_Options_search);
+    ODR_MASK_SET(req->options, Z_Options_present);
+    ODR_MASK_SET(req->options, Z_Options_namedResultSets);
+    ODR_MASK_SET(req->options, Z_Options_scan);
+
+    ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_1);
+    ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_2);
+    ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_3);
+
+    init_package.request() = init_pdu;
 
     init_package.move();
 
@@ -353,7 +372,7 @@ yf::SessionShared::BackendInstancePtr yf::SessionShared::BackendClass::create_ba
 yf::SessionShared::BackendClass::BackendClass(const yazpp_1::GDU &init_request)
     : m_named_result_sets(false), m_init_request(init_request),
       m_sequence_top(0), m_backend_set_ttl(30),
-      m_backend_expiry_ttl(90), m_backend_set_max(10)
+      m_backend_expiry_ttl(30), m_backend_set_max(10)
 {}
 
 yf::SessionShared::BackendClass::~BackendClass()
@@ -365,6 +384,7 @@ void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
     Z_InitRequest *req = gdu->u.z3950->u.initRequest;
 
     frontend->m_is_virtual = true;
+    frontend->m_init_options = *req->options;
     InitKey k(req);
     {
         boost::mutex::scoped_lock lock(m_mutex_backend_map);
@@ -399,10 +419,20 @@ void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
     else
     {
         boost::mutex::scoped_lock lock(bc->m_mutex_backend_class);
-        Z_GDU *response_gdu = bc->m_init_response.get();
+        yazpp_1::GDU init_response = bc->m_init_response;
+        Z_GDU *response_gdu = init_response.get();
         mp::util::transfer_referenceId(odr, gdu->u.z3950,
                                        response_gdu->u.z3950);
-        package.response() = response_gdu;
+
+        Z_Options *server_options =
+            response_gdu->u.z3950->u.initResponse->options;
+        Z_Options *client_options = &frontend->m_init_options;
+
+        int i;
+        for (i = 0; i<30; i++)
+            if (!ODR_MASK_GET(client_options, i))
+                ODR_MASK_CLEAR(server_options, i);
+        package.response() = init_response;
     }
     if (backend)
         bc->release_backend(backend);
@@ -488,18 +518,17 @@ bool yf::SessionShared::BackendSet::search(
         m_result_set_size = *b_resp->resultCount;
         return true;
     }
+    Z_APDU *f_apdu = 0;
     if (frontend_apdu->which == Z_APDU_searchRequest)
-    {
-        Z_APDU *f_apdu = 
-            odr.create_searchResponse(frontend_apdu, 1, "Search closed");
-        frontend_package.response() = f_apdu;
-    }
-    if (frontend_apdu->which == Z_APDU_presentRequest)
-    {
-        Z_APDU *f_apdu = 
-            odr.create_presentResponse(frontend_apdu, 1, "Search closed");
-        frontend_package.response() = f_apdu;
-    }
+        f_apdu = odr.create_searchResponse(
+            frontend_apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+    else if (frontend_apdu->which == Z_APDU_presentRequest)
+        f_apdu = odr.create_presentResponse(
+            frontend_apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+    else
+        f_apdu = odr.create_close(
+            frontend_apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+    frontend_package.response() = f_apdu;
     return false;
 }
 
@@ -550,7 +579,6 @@ void yf::SessionShared::Frontend::override_set(
             return;
         }
     }
-
 }
 
 void yf::SessionShared::Frontend::get_set(mp::Package &package,
@@ -598,7 +626,29 @@ void yf::SessionShared::Frontend::get_set(mp::Package &package,
     {
         // create a new backend set (and new set)
         found_backend = bc->create_backend(package);
-        assert(found_backend);
+
+        if (!found_backend)
+        {
+            Z_APDU *f_apdu = 0;
+            mp::odr odr;
+            if (apdu_req->which == Z_APDU_searchRequest)
+            {
+                f_apdu = odr.create_searchResponse(
+                        apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+            }
+            else if (apdu_req->which == Z_APDU_presentRequest)
+            {
+                f_apdu = odr.create_presentResponse(
+                    apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+            }
+            else
+            {
+                f_apdu = odr.create_close(
+                    apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+            }
+            package.response() = f_apdu;
+            return;
+        }
         std::cout << "NEW " << found_backend << "\n";
         
         if (bc->m_named_result_sets)
@@ -617,7 +667,7 @@ void yf::SessionShared::Frontend::get_set(mp::Package &package,
     if (!new_set->search(package, apdu_req, found_backend))
     {
         std::cout << "search error\n";
-        bc->release_backend(found_backend);
+        bc->remove_backend(found_backend);
         return; // search error 
     }
     found_set = new_set;
@@ -662,9 +712,9 @@ void yf::SessionShared::Frontend::search(mp::Package &package,
     BackendInstancePtr found_backend; // null
 
     get_set(package, apdu_req, databases, query, found_backend, found_set);
-
     if (!found_set)
         return;
+
     mp::odr odr;
     Z_APDU *f_apdu = odr.create_searchResponse(apdu_req, 0, 0);
     Z_SearchResponse *f_resp = f_apdu->u.searchResponse;
@@ -746,8 +796,38 @@ void yf::SessionShared::Frontend::present(mp::Package &package,
     {
         bc->remove_backend(found_backend);
         Z_APDU *f_apdu_res = 
-            odr.create_presentResponse(apdu_req, 1, "present error");
+            odr.create_presentResponse(
+                apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
         package.response() = f_apdu_res;
+    }
+}
+
+void yf::SessionShared::Frontend::scan(mp::Package &frontend_package,
+                                       Z_APDU *apdu_req)
+{
+    BackendClassPtr bc = m_backend_class;
+    BackendInstancePtr backend = bc->get_backend(frontend_package);
+    if (!backend)
+    {
+        mp::odr odr;
+        Z_APDU *apdu = odr.create_scanResponse(
+            apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+        frontend_package.response() = apdu;
+    }
+    else
+    {
+        Package scan_package(backend->m_session, frontend_package.origin());
+        scan_package.copy_filter(frontend_package);
+        scan_package.request() = apdu_req;
+        scan_package.move();
+        frontend_package.response() = scan_package.response();
+        if (scan_package.session().is_closed())
+        {
+            frontend_package.session().close();
+            bc->remove_backend(backend);
+        }
+        else
+            bc->release_backend(backend);
     }
 }
 
@@ -770,12 +850,18 @@ void yf::SessionShared::BackendClass::expire()
     {
         std::cout << "expiry ";
         time_t last_use = (*bit)->m_time_last_use;
-        if ((now >= last_use && now - last_use > m_backend_expiry_ttl)
+        
+        if ((*bit)->m_in_use)
+        {
+            std::cout << "inuse";
+            bit++;
+        }
+        else if ((now >= last_use && now - last_use > m_backend_expiry_ttl)
             || (now < last_use))
         {
             mp::odr odr;
             (*bit)->m_close_package->response() = odr.create_close(
-                0, Z_Close_lackOfActivity, "session expired");
+                0, Z_Close_lackOfActivity, 0);
             (*bit)->m_close_package->session().close();
             (*bit)->m_close_package->move();
 
@@ -918,6 +1004,10 @@ void yf::SessionShared::process(mp::Package &package) const
         else if (apdu->which == Z_APDU_presentRequest)
         {
             f->present(package, apdu);
+        }
+        else if (apdu->which == Z_APDU_scanRequest)
+        {
+            f->scan(package, apdu);
         }
         else
         {
