@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.cpp,v 1.14 2006-06-21 09:16:54 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.15 2006-06-21 10:06:07 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -466,7 +466,7 @@ yf::SessionShared::BackendSet::BackendSet(
 }
 
 bool yf::SessionShared::BackendSet::search(
-    Package &frontend_package,
+    mp::Package &frontend_package,
     const Z_APDU *frontend_apdu,
     const BackendInstancePtr bp)
 {
