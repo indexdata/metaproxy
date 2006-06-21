@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.26 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.27 2006-06-21 14:34:16 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -62,6 +62,7 @@ namespace metaproxy_1 {
 
         class Z3950Client::Rep {
         public:
+            // number of seconds to wait before we give up request
             int m_timeout_sec;
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
@@ -192,6 +193,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         while(true)
         {
 #if 0
+            // double init .. NOT working yet
             if (gdu && gdu->which == Z_GDU_Z3950 &&
                 gdu->u.z3950->which == Z_APDU_initRequest)
             {
@@ -285,7 +287,7 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
     if (!c->m_connected)
     {
         c->client(c->m_host.c_str());
-        c->timeout(1);
+        c->timeout(1);  // so timeoutNotify gets called once per second
 
         while (!c->m_destroyed && c->m_waiting 
                && c->m_socket_manager->processEvent() > 0)
@@ -371,12 +373,7 @@ void yf::Z3950Client::configure(const xmlNode *ptr)
             continue;
         if (!strcmp((const char *) ptr->name, "timeout"))
         {
-            std::string timeout_str = mp::xml::get_text(ptr);
-            int timeout_sec = atoi(timeout_str.c_str());
-            if (timeout_sec < 2)
-                throw mp::filter::FilterException("Bad timeout value " 
-                                                   + timeout_str);
-            m_p->m_timeout_sec = timeout_sec;
+            m_p->m_timeout_sec = mp::xml::get_int(ptr->children, 30);
         }
         else
         {
