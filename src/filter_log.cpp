@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.20 2006-06-20 22:29:39 adam Exp $
+/* $Id: filter_log.cpp,v 1.21 2006-06-21 12:50:35 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -28,8 +28,10 @@ namespace metaproxy_1 {
         public:
             boost::mutex m_mutex;
             std::string m_fname;
-            std::ofstream out;
+            std::ofstream fout;
+            std::ostream &out;
             LFile(std::string fname);
+            LFile(std::string fname, std::ostream &use_this);
         };
         typedef boost::shared_ptr<Log::LFile> LFilePtr;
         class Log::Rep {
@@ -56,6 +58,7 @@ yf::Log::Rep::Rep()
     m_req_session = true;
     m_res_session = true;
     m_init_options = false;
+    openfile("");
 }
 
 yf::Log::Log(const std::string &x) : m_p(new Rep)
@@ -176,9 +179,14 @@ void yf::Log::process(mp::Package &package) const
     }
 }
 
-yf::Log::LFile::LFile(std::string fname) : m_fname(fname)
+yf::Log::LFile::LFile(std::string fname) : 
+    m_fname(fname), fout(fname.c_str()), out(fout)
 {
-    out.open(fname.c_str());
+}
+
+yf::Log::LFile::LFile(std::string fname, std::ostream &use_this) : 
+    m_fname(fname), out(use_this)
+{
 }
 
 void yf::Log::Rep::openfile(const std::string &fname)
@@ -192,7 +200,10 @@ void yf::Log::Rep::openfile(const std::string &fname)
             return;
         }
     }
-    LFilePtr newfile(new LFile(fname));
+    // open stdout for empty file
+    LFilePtr newfile(fname.length() == 0 
+                     ? new LFile(fname, std::cout) 
+                     : new LFile(fname));
     filter_log_files.push_back(newfile);
     m_file = newfile;
 }
@@ -256,8 +267,6 @@ void yf::Log::configure(const xmlNode *ptr)
                                                              ptr->name));
         }
     }
-    if (!m_p->m_file)
-        m_p->openfile("metaproxy.log");
 }
 
 static mp::filter::Base* filter_creator()
