@@ -17,7 +17,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.34 2006-06-10 14:29:11 adam Exp $ -->
+<!-- $Id: book.xml,v 1.35 2006-06-21 15:08:58 mike Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -52,10 +52,10 @@
     using the filter API.
    </simpara>
    <simpara>
-    The terms under which Metaproxy will be distributed have yet to be
-    established, but it will not necessarily be open source; so users
-    should not at this stage redistribute the code without explicit
-    written permission from the copyright holders, Index Data ApS.
+    Metaproxy is <emphasis>not</emphasis> open-source software, but
+    may be freely downloaded, unpacked, inspected, built and run for
+    evaluation purposes.  Deployment requires a separate, commercial,
+    license.
    </simpara>
    <simpara>
     <inlinemediaobject>
@@ -110,7 +110,7 @@
    functionality.
   </para>
   <para>
-   This manual will briefly describe Metaproxy's licensing situation
+   This manual will describe how to install Metaproxy
    before giving an overview of its architecture, then discussing the
    key concept of a filter in some depth and giving an overview of
    the various filter types, then discussing the configuration file
