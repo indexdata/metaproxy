@@ -1,4 +1,4 @@
-/* $Id: xmlutil.cpp,v 1.8 2006-06-19 13:08:00 adam Exp $
+/* $Id: xmlutil.cpp,v 1.9 2006-06-21 09:16:54 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -28,6 +28,15 @@ bool mp_xml::get_bool(const xmlNode *ptr, bool default_value)
             return true;
         else
             return false;
+    }
+    return default_value;
+}
+
+int mp_xml::get_int(const xmlNode *ptr, int default_value)
+{
+    if (ptr && ptr->type == XML_TEXT_NODE && ptr->content)
+    {
+        return atoi((const char *) ptr->content);
     }
     return default_value;
 }

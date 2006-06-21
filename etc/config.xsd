@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id: config.xsd,v 1.19 2006-06-20 22:29:38 adam Exp $ -->
+<!-- $Id: config.xsd,v 1.20 2006-06-21 09:16:53 adam Exp $ -->
 <!--
 	This Schema prescribes the format of YP2 configuration files.
 	Invoke it like this:
@@ -74,7 +74,6 @@
          </xs:element>
         </xs:sequence>
 
-
 	<!-- type="virt_db" or type="multi" -->
         <xs:sequence>
 	  <xs:element minOccurs="0" maxOccurs="unbounded" ref="config:virtual"/>
@@ -96,7 +95,19 @@
 	<!-- No elements included -->
 
 	<!-- type="session_shared" -->
-	<!-- No example configuration to deduce from yet -->
+        <xs:sequence>
+	  <xs:element minOccurs="0" name="resultset">
+           <xs:complexType>
+            <xs:attribute name="ttl" type="xs:integer"/>
+            <xs:attribute name="max" type="xs:integer"/>
+           </xs:complexType>
+	  </xs:element>
+	  <xs:element minOccurs="0" name="session">
+           <xs:complexType>
+            <xs:attribute name="ttl" type="xs:integer"/>
+           </xs:complexType>
+	  </xs:element>
+	</xs:sequence>
 
 	<!-- type="template" -->
 	<!-- No example configuration to deduce from yet -->

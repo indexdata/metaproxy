@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.cpp,v 1.13 2006-06-20 22:27:45 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.14 2006-06-21 09:16:54 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -105,7 +105,10 @@ namespace metaproxy_1 {
             time_t m_backend_expiry_ttl;
             size_t m_backend_set_max;
         public:
-            BackendClass(const yazpp_1::GDU &init_request);
+            BackendClass(const yazpp_1::GDU &init_request,
+                         int resultset_ttl,
+                         int resultset_max,
+                         int session_ttl);
             ~BackendClass();
         };
         class SessionShared::FrontendSet {
@@ -161,6 +164,9 @@ namespace metaproxy_1 {
             BackendClassMap m_backend_map;
             boost::mutex m_mutex_backend_map;
             boost::thread_group m_thrds;
+            int m_resultset_ttl;
+            int m_resultset_max;
+            int m_session_ttl;
         };
     }
 }
@@ -369,10 +375,13 @@ yf::SessionShared::BackendInstancePtr yf::SessionShared::BackendClass::create_ba
 }
 
 
-yf::SessionShared::BackendClass::BackendClass(const yazpp_1::GDU &init_request)
+yf::SessionShared::BackendClass::BackendClass(const yazpp_1::GDU &init_request,
+                                              int resultset_ttl,
+                                              int resultset_max,
+                                              int session_ttl)
     : m_named_result_sets(false), m_init_request(init_request),
-      m_sequence_top(0), m_backend_set_ttl(30),
-      m_backend_expiry_ttl(30), m_backend_set_max(10)
+      m_sequence_top(0), m_backend_set_ttl(resultset_ttl),
+      m_backend_expiry_ttl(session_ttl), m_backend_set_max(resultset_max)
 {}
 
 yf::SessionShared::BackendClass::~BackendClass()
@@ -392,7 +401,10 @@ void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
         it = m_backend_map.find(k);
         if (it == m_backend_map.end())
         {
-            BackendClassPtr b(new BackendClass(gdu->u.z3950));
+            BackendClassPtr b(new BackendClass(gdu->u.z3950,
+                                               m_resultset_ttl,
+                                               m_resultset_max,
+                                               m_session_ttl));
             m_backend_map[k] = b;
             frontend->m_backend_class = b;
             std::cout << "SessionShared::Rep::init new session " 
@@ -895,6 +907,9 @@ void yf::SessionShared::Rep::expire()
 
 yf::SessionShared::Rep::Rep()
 {
+    m_resultset_ttl = 30;
+    m_resultset_max = 10;
+    m_session_ttl = 90;
     yf::SessionShared::Worker w(this);
     m_thrds.add_thread(new boost::thread(w));
 }
@@ -1021,6 +1036,54 @@ void yf::SessionShared::process(mp::Package &package) const
         }
     }
     m_p->release_frontend(package);
+}
+
+void yf::SessionShared::configure(const xmlNode *ptr)
+{
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
+    {
+        if (ptr->type != XML_ELEMENT_NODE)
+            continue;
+        if (!strcmp((const char *) ptr->name, "resultset"))
+        {
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "ttl"))
+                    m_p->m_resultset_ttl = 
+                        mp::xml::get_int(attr->children, 30);
+                else if (!strcmp((const char *) attr->name, "max"))
+                {
+                    m_p->m_resultset_max = 
+                        mp::xml::get_int(attr->children, 10);
+                }
+                else
+                    throw mp::filter::FilterException(
+                        "Bad attribute " + std::string((const char *)
+                                                       attr->name));
+            }
+        }
+        else if (!strcmp((const char *) ptr->name, "session"))
+        {
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "ttl"))
+                    m_p->m_session_ttl = 
+                        mp::xml::get_int(attr->children, 120);
+                else
+                    throw mp::filter::FilterException(
+                        "Bad attribute " + std::string((const char *)
+                                                       attr->name));
+            }
+        }
+        else
+        {
+            throw mp::filter::FilterException("Bad element " 
+                                               + std::string((const char *)
+                                                             ptr->name));
+        }
+    }
 }
 
 static mp::filter::Base* filter_creator()

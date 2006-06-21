@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.hpp,v 1.7 2006-06-19 23:54:02 adam Exp $
+/* $Id: filter_session_shared.hpp,v 1.8 2006-06-21 09:16:54 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -40,6 +40,7 @@ namespace metaproxy_1 {
             ~SessionShared();
             SessionShared();
             void process(metaproxy_1::Package & package) const;
+            void configure(const xmlNode * ptr);
         private:
             boost::scoped_ptr<Rep> m_p;
         };

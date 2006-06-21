@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-shared1.xml,v 1.2 2006-06-20 22:29:38 adam Exp $ -->
+<!-- $Id: config-shared1.xml,v 1.3 2006-06-21 09:16:53 adam Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <filters>
@@ -16,7 +16,10 @@
 	<message>F</message>
 	<category init-options="true" apdu="false"/>
       </filter>
-      <filter type="session_shared"/> 
+      <filter type="session_shared"> 
+	<resultset ttl="10" max="3"/>
+	<session ttl="30"/>
+      </filter>
       <filter type="log">
 	<message>B</message>
 	<category init-options="true" apdu="false"/>
