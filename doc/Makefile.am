@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.24 2006-06-10 14:32:19 adam Exp $
+## $Id: Makefile.am,v 1.25 2006-06-28 21:55:40 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -95,7 +95,7 @@ clean-data-hook:
 	rm -f [0-9]* *.bak
 
 dist-hook:
-	for f in *.html; do \
+	if test -f index.html; then for f in *.html; do \
 		found=0; \
 		b=`basename $$f`; \
 		for h in $(HTMLFILES); do \
@@ -107,4 +107,4 @@ dist-hook:
 			echo "$$f not found in HTMLFILES"; \
 			exit 1; \
 		fi \
-	done
+	done; fi
