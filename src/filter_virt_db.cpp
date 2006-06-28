@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.41 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.42 2006-06-28 22:46:58 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -711,6 +711,10 @@ void yf::Virt_db::process(mp::Package &package) const
         else if (apdu->which == Z_APDU_scanRequest)
         {
             f->scan(package, apdu);
+        }
+        else if (apdu->which == Z_APDU_close)
+        {
+            package.session().close();
         }
         else
         {
