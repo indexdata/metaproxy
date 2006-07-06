@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.21 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_multi.cpp,v 1.22 2006-07-06 13:55:42 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -711,17 +711,18 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
             odr_malloc(odr, sizeof(Z_NamePlusRecord *) * nprl->num_records);
         int i = 0;
         std::list<Multi::FrontendSet::PresentJob>::const_iterator jit;
-        for (jit = jobs.begin(); jit != jobs.end(); jit++)
+        for (jit = jobs.begin(); jit != jobs.end(); jit++, i++)
         {
             PackagePtr p = jit->m_backend->m_package;
             
             Z_GDU *gdu = p->response().get();
             Z_APDU *b_apdu = gdu->u.z3950;
             Z_PresentResponse *b_resp = b_apdu->u.presentResponse;
-
-            nprl->records[i++] =
-                b_resp->records->u.databaseOrSurDiagnostics->
-                records[jit->m_inside_pos];
+            
+            nprl->records[i] =  b_resp->records->
+                u.databaseOrSurDiagnostics->records[jit->m_inside_pos];
+            nprl->records[i]->databaseName =
+                    odr_strdup(odr, jit->m_backend->m_vhost.c_str());
         }
         *f_resp->nextResultSetPosition = start + i;
         *f_resp->numberOfRecordsReturned = i;
