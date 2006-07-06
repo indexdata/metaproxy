@@ -82,34 +82,6 @@ if test -z "$YAZPPLIB"; then
 fi
 YAZ_DOC
 
-## libxslt checks
-AC_SUBST(XSLT_LIBS)
-AC_SUBST(XSLT_CFLAGS)
-xsltdir=default
-AC_ARG_WITH(xslt,[[  --with-xslt[=PREFIX]    use libxslt in PREFIX]],xsltdir=$withval)
-if test "$xsltdir" = "yes" -o "$xsltdir" = "default"; then
-	for d in /usr /usr/local; do
-		if test -x $d/bin/xslt-config; then
-			xsltdir=$d
-		fi
-	done
-fi
-if test "$xsltdir" != "no"; then
-	AC_MSG_CHECKING(for libXSLT)
-	if test -x $xsltdir/bin/xslt-config; then
-		XSLT_LIBS=`$xsltdir/bin/xslt-config --libs`
-		XSLT_CFLAGS=`$xsltdir/bin/xslt-config --cflags`
-		XSLT_VER=`$xsltdir/bin/xslt-config --version`
-		AC_MSG_RESULT($XSLT_VER)
-		AC_DEFINE([HAVE_XSLT],[1],
-                [Define to 1 if you have libxslt installed])
-	else
-		AC_MSG_RESULT(Not found)
-		AC_MSG_ERROR([libxslt required.])
-	fi
-fi
-
-
 # Checks for header files.
 ##AC_HEADER_STDC
 ##AC_HEADER_SYS_WAIT
