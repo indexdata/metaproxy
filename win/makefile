@@ -1,6 +1,6 @@
 # Copyright (C) 2005-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.18 2006-07-07 06:37:22 adam Exp $
+# $Id: makefile,v 1.19 2006-07-07 07:10:00 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
@@ -90,7 +90,7 @@ YAZPPD=yazpp_1
 
 # YAZ includes & libs
 YAZ_LIB="$(YAZ_DIR)\lib\$(YAZD).lib"
-YAZ_DEF=/DYAZ_USE_NEW_LOG=1 /I"$(YAZ_DIR)\include"
+YAZ_DEF=/DYAZ_HAVE_XML2=1 /DYAZ_HAVE_XSLT=1 /DYAZ_USE_NEW_LOG=1 /I"$(YAZ_DIR)\include"
 
 # Copy yaz.dll to our bin
 yaz: $(BINDIR)\$(YAZD).dll
