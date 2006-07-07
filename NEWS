@@ -1,3 +1,9 @@
+--- 1.0.6 2006/07/07
+
+Database name in records returned set for virt_db/multi filters.
+
+Filter session_shared now functional.
+
 Log filter can be configured to write to a given file using 'filename'
 element. Also information category can be specified with 'category'. If
 filename is omitted, the log filter writes to stdout. See etc/config5.xml
