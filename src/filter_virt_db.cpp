@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.43 2006-07-06 13:55:42 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.44 2006-08-01 13:24:53 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -469,8 +469,6 @@ void yf::Virt_db::Frontend::fixup_npr_record(ODR odr, Z_NamePlusRecord *npr,
     if (npr->databaseName)
     {
         std::string b_database = std::string(npr->databaseName);
-
-        std::cout << "Fix up: " << b_database << "\n";
 
         // consider each of the frontend databases..
         std::list<std::string>::const_iterator db_it;
