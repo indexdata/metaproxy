@@ -1,4 +1,4 @@
-/* $Id: package.cpp,v 1.9 2006-06-19 23:54:02 adam Exp $
+/* $Id: package.cpp,v 1.10 2006-08-01 13:03:41 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -28,6 +28,7 @@ mp::Package::Package(mp::Session &session, const mp::Origin &origin)
 
 mp::Package & mp::Package::copy_filter(const Package &p)
 {
+    delete m_route_pos;
     m_route_pos = p.m_route_pos->clone();
     return *this;
 }
