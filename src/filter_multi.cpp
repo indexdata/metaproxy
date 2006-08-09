@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.22 2006-07-06 13:55:42 adam Exp $
+/* $Id: filter_multi.cpp,v 1.23 2006-08-09 12:27:18 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -718,8 +718,10 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
             Z_GDU *gdu = p->response().get();
             Z_APDU *b_apdu = gdu->u.z3950;
             Z_PresentResponse *b_resp = b_apdu->u.presentResponse;
-            
-            nprl->records[i] =  b_resp->records->
+
+            nprl->records[i] = (Z_NamePlusRecord*)
+                odr_malloc(odr, sizeof(Z_NamePlusRecord));
+	    *nprl->records[i] = *b_resp->records->
                 u.databaseOrSurDiagnostics->records[jit->m_inside_pos];
             nprl->records[i]->databaseName =
                     odr_strdup(odr, jit->m_backend->m_vhost.c_str());
