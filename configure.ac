@@ -117,11 +117,14 @@ AC_OUTPUT
 
 # postamble
 
+
 echo \
 "------------------------------------------------------------------------
-Configuration:
 
+  Package:                    ${PACKAGE}
+  Version:                    ${VERSION}
   Source code location:       ${srcdir}
+  CPP Preprocessor:           ${CPP}
   CPP Preprocessor flags:     ${CPPFLAGS}
   CXX Compiler:               ${CXX}
   CXX Compiler flags:         ${CXXFLAGS}
@@ -130,5 +133,12 @@ Configuration:
   Host System Type:           ${host}
   Install path:               ${prefix}
   Automake:                   ${AUTOMAKE}
+  Archiver:                   ${AR}
+  Ranlib:                     ${RANLIB}
+  YAZPP Version:              ${YAZPPVERSION}
+  YAZPP Include:              ${YAZPPINC}
+  YAZPP La Lib:               ${YAZPPLALIB}
+  YAZPP Lib:                  ${YAZPPLIB}
+  Bugreport:                  ${PACKAGE_BUGREPORT}
 
 ------------------------------------------------------------------------"
