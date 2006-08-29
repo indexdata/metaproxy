@@ -1,23 +1,22 @@
-/* $Id: filter_http_file.cpp,v 1.5 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_http_file.cpp,v 1.6 2006-08-29 10:34:32 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
  */
 
 #include "config.hpp"
-
 #include "filter.hpp"
 #include "package.hpp"
-
-#include <boost/thread/mutex.hpp>
-
 #include "util.hpp"
 #include "filter_http_file.hpp"
 
+#include <yaz/zgdu.h>
+
+#include <boost/thread/mutex.hpp>
+
 #include <list>
 #include <map>
-
-#include <yaz/zgdu.h>
+#include <iostream>
 
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
