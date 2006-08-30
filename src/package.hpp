@@ -1,4 +1,4 @@
-/* $Id: package.hpp,v 1.20 2006-08-30 08:44:29 marc Exp $
+/* $Id: package.hpp,v 1.21 2006-08-30 09:56:41 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -54,10 +54,6 @@ namespace metaproxy_1 {
         
         Package(metaproxy_1::Session &session, 
                 const metaproxy_1::Origin &origin);
-        
-        Package(metaproxy_1::Session &session, 
-                const metaproxy_1::Origin &origin,
-                const metaproxy_1::Origin &target);
 
         Package & copy_filter(const Package &p);
 
@@ -88,15 +84,6 @@ namespace metaproxy_1 {
         /// set function - can be chained
         Package & origin(const Origin & origin);
 
-        /// get function - right val in assignment
-        Origin target() const;
-        
-        /// set function - left val in assignment
-        Origin & target();
-        
-        /// set function - can be chained
-        Package & target(const Origin & target);
-
         Package & router(const Router &router);
 
         yazpp_1::GDU &request();
@@ -109,7 +96,6 @@ namespace metaproxy_1 {
     private:
         Session m_session;
         Origin m_origin;
-        Origin m_target;
 
         RoutePos *m_route_pos;
 

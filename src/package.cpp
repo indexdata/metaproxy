@@ -1,4 +1,4 @@
-/* $Id: package.cpp,v 1.13 2006-08-30 08:49:13 marc Exp $
+/* $Id: package.cpp,v 1.14 2006-08-30 09:56:41 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -28,12 +28,6 @@ mp::Package::Package(mp::Session &session, const mp::Origin &origin)
 {
 }
 
-mp::Package::Package(mp::Session &session,
-                     const mp::Origin &origin, const mp::Origin &target) 
-    : m_session(session), m_origin(origin), m_target(target),
-      m_route_pos(0), m_data(0)
-{
-}
 
 mp::Package & mp::Package::copy_filter(const Package &p)
 {
@@ -103,22 +97,6 @@ mp::Package & mp::Package::origin(const Origin & origin)
     return *this;
 }
 
-mp::Origin mp::Package::target() const 
-{
-    return m_target;
-}
-        
-mp::Origin & mp::Package::target()
-{
-    return m_target;
-}
-
-mp::Package & mp::Package::target(const Origin & target)
-{
-    m_target = target;
-    return *this;
-}
-
 mp::Package & mp::Package::router(const mp::Router &router)
 {
     m_route_pos = router.createpos();
@@ -144,8 +122,7 @@ mp::Session mp::Package::session() const
 std::ostream& std::operator<<(std::ostream& os,  mp::Package& p)
 {
     os << p.session().id() << " ";
-    os << p.origin() << " ";
-    os << p.target();
+    os << p.origin();
     return os;
 }
 
