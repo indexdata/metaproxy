@@ -1,12 +1,14 @@
-/* $Id: package.cpp,v 1.10 2006-08-01 13:03:41 adam Exp $
+/* $Id: package.cpp,v 1.11 2006-08-30 08:35:03 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
  */
 
-#include "config.hpp"
 
+#include "config.hpp"
 #include "package.hpp"
+
+#include <iostream>
 
 namespace mp = metaproxy_1;
 
@@ -115,6 +117,24 @@ mp::Session mp::Package::session() const
 {
     return m_session;
 }
+
+std::ostream& std::operator<<(std::ostream& os,  mp::Package& p)
+{
+    os << p.session().id() << " ";
+    os << p.origin();
+    return os;
+}
+
+std::ostream& std::operator<<(std::ostream& os,  mp::Origin& o)
+{
+    if (o.address != "")
+        os << o.address;
+    else
+        os << "0";
+    os << ":" << o.port;
+    return os;
+}
+
                 
 /*
  * Local variables:

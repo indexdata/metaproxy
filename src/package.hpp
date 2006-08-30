@@ -1,4 +1,4 @@
-/* $Id: package.hpp,v 1.18 2006-06-19 23:54:02 adam Exp $
+/* $Id: package.hpp,v 1.19 2006-08-30 08:35:03 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -7,7 +7,7 @@
 #ifndef YP2_PACKAGE_HPP
 #define YP2_PACKAGE_HPP
 
-#include <iostream>
+#include <iosfwd>
 #include <stdexcept>
 #include <yazpp/gdu.h>
 
@@ -15,9 +15,25 @@
 #include "filter.hpp"
 #include "session.hpp"
 
+namespace metaproxy_1
+{
+    class Origin;
+    class Package;
+}
+
+
+namespace std 
+{
+    std::ostream& operator<<(std::ostream& os, metaproxy_1::Origin& o);
+    std::ostream& operator<<(std::ostream& os, metaproxy_1::Package& p);
+}
+
 namespace metaproxy_1 {
     
     class Origin {
+        friend std::ostream& 
+        std::operator<<(std::ostream& os,  metaproxy_1::Origin& o);
+
         enum origin_t {
             API,
             UNIX,
@@ -27,6 +43,7 @@ namespace metaproxy_1 {
         int port;            // TCPIP only
     public:
         Origin() : type(API) {};
+
     };
 
     class Package {
@@ -88,6 +105,8 @@ namespace metaproxy_1 {
         yazpp_1::GDU m_response_gdu;
     };
 }
+
+
 
 #endif
 /*
