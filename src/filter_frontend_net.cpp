@@ -1,4 +1,4 @@
-/* $Id: filter_frontend_net.cpp,v 1.20 2006-08-30 09:56:41 marc Exp $
+/* $Id: filter_frontend_net.cpp,v 1.21 2006-08-30 10:48:52 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -154,7 +154,10 @@ mp::ZAssocChild::ZAssocChild(yazpp_1::IPDU_Observable *PDU_Observable,
     m_no_requests = 0;
     m_delete_flag = false;
     m_package = package;
-    // TODO why is m_origin not set here someplace ?? MC ??
+    const char *peername = PDU_Observable->getpeername();
+    if (!peername)
+        peername = "unknown";
+    m_origin.set_tcpip_address(std::string(peername), m_session.id());
 }
 
 

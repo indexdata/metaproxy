@@ -1,4 +1,4 @@
-/* $Id: package.cpp,v 1.14 2006-08-30 09:56:41 marc Exp $
+/* $Id: package.cpp,v 1.15 2006-08-30 10:48:52 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -123,16 +123,6 @@ std::ostream& std::operator<<(std::ostream& os,  mp::Package& p)
 {
     os << p.session().id() << " ";
     os << p.origin();
-    return os;
-}
-
-std::ostream& std::operator<<(std::ostream& os,  mp::Origin& o)
-{
-    if (o.address != "")
-        os << o.address;
-    else
-        os << "0";
-    os << ":" << o.port;
     return os;
 }
 

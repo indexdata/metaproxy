@@ -1,4 +1,4 @@
-/* $Id: package.hpp,v 1.21 2006-08-30 09:56:41 marc Exp $
+/* $Id: package.hpp,v 1.22 2006-08-30 10:48:52 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -40,10 +40,10 @@ namespace metaproxy_1 {
             TCPIP
         } type;
         std::string address; // UNIX+TCPIP
-        int port;            // TCPIP only
+        unsigned long origin_id;
     public:
-        Origin() : type(API) {};
-
+        Origin();
+        void set_tcpip_address(std::string addr, unsigned long id);
     };
 
     class Package {
