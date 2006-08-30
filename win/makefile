@@ -1,6 +1,6 @@
 # Copyright (C) 2005-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.19 2006-07-07 07:10:00 adam Exp $
+# $Id: makefile,v 1.20 2006-08-30 12:30:02 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
@@ -237,6 +237,7 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\filter_template.obj \
         $(OBJDIR)\filter_virt_db.obj \
         $(OBJDIR)\filter_z3950_client.obj \
+	$(OBJDIR)\origin.obj \
 	$(OBJDIR)\package.obj \
 	$(OBJDIR)\pipe.obj \
 	$(OBJDIR)\plainfile.obj \
