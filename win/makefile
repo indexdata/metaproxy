@@ -1,6 +1,6 @@
 # Copyright (C) 2005-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.20 2006-08-30 12:30:02 adam Exp $
+# $Id: makefile,v 1.21 2006-08-30 13:18:44 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
@@ -22,9 +22,9 @@ BOOST_MODEL=mt
 
 # libxml2 + libxslt + associates
 ZLIB_DIR=\zlib-1.2.3.win32
-ICONV_DIR=\iconv-1.9.1.win32
-LIBXML2_DIR=\libxml2-2.6.20.win32
-LIBXSLT_DIR=\libxslt-1.1.14.win32
+ICONV_DIR=\iconv-1.9.2.win32
+LIBXML2_DIR=\libxml2-2.6.26.win32
+LIBXSLT_DIR=\libxslt-1.1.17.win32
 
 # The targets
 
@@ -238,6 +238,7 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\filter_virt_db.obj \
         $(OBJDIR)\filter_z3950_client.obj \
 	$(OBJDIR)\origin.obj \
+	$(OBJDIR)\gduutil.obj \
 	$(OBJDIR)\package.obj \
 	$(OBJDIR)\pipe.obj \
 	$(OBJDIR)\plainfile.obj \
