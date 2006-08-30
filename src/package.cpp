@@ -1,4 +1,4 @@
-/* $Id: package.cpp,v 1.15 2006-08-30 10:48:52 adam Exp $
+/* $Id: package.cpp,v 1.16 2006-08-30 14:37:11 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -121,8 +121,8 @@ mp::Session mp::Package::session() const
 
 std::ostream& std::operator<<(std::ostream& os,  mp::Package& p)
 {
-    os << p.session().id() << " ";
-    os << p.origin();
+    os << p.origin() << " ";
+    os << p.session().id();
     return os;
 }
 

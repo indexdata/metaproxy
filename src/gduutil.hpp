@@ -1,4 +1,4 @@
-/* $Id: gduutil.hpp,v 1.1 2006-08-29 10:06:31 marc Exp $
+/* $Id: gduutil.hpp,v 1.2 2006-08-30 14:37:11 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -15,7 +15,12 @@
 namespace std 
 {
     std::ostream& operator<<(std::ostream& os, Z_GDU& zgdu);
-    std::ostream& operator<<(std::ostream& os, Z_APDU& zapdu);    
+    std::ostream& operator<<(std::ostream& os, Z_APDU& zapdu); 
+    std::ostream& operator<<(std::ostream& os, Z_HTTP_Request& httpreq);
+    std::ostream& operator<<(std::ostream& os, Z_HTTP_Response& httpres);
+    std::ostream& operator<<(std::ostream& os, Z_Records & rs);
+    std::ostream& operator<<(std::ostream& os, Z_DiagRec& dr);
+    std::ostream& operator<<(std::ostream& os, Z_DefaultDiagFormat& ddf);
 }
 
 

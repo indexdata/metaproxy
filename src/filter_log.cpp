@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.24 2006-08-30 08:35:47 marc Exp $
+/* $Id: filter_log.cpp,v 1.25 2006-08-30 14:37:11 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -58,10 +58,11 @@ namespace metaproxy_1 {
 
 yf::Log::Rep::Rep()
 {
-    m_req_apdu = true;
-    m_res_apdu = true;
-    m_req_session = true;
-    m_res_session = true;
+    m_access = true;
+    m_req_apdu = false;
+    m_res_apdu = false;
+    m_req_session = false;
+    m_res_session = false;
     m_init_options = false;
     openfile("");
 }
@@ -97,11 +98,7 @@ void yf::Log::process(mp::Package &package) const
     boost::posix_time::ptime receive_time
         = boost::posix_time::microsec_clock::local_time();
 
-
-    //std::ostringstream msg_request;
-    //std::ostringstream msg_request_2;
-    //std::ostringstream msg_response;
-    //std::ostringstream msg_response_2;
+    //std::ostringstream msg;
 
     // scope for locking Ostream 
     { 
@@ -114,10 +111,12 @@ void yf::Log::process(mp::Package &package) const
             if (gdu)          
             {
                 m_p->m_file->out
+                    //<< receive_time << " "
+                    //<< to_iso_string(receive_time) << " "
+                    << to_iso_extended_string(receive_time) << " "
                     << m_p->m_msg_config << " "
-                    << receive_time << " "
                     << package << " "
-                    << "00:00:00.000000" << " " 
+                    << "000000.000000" << " " 
                     << *gdu
                     << "\n";
             }
@@ -178,10 +177,12 @@ void yf::Log::process(mp::Package &package) const
             if (gdu)
             {
                 m_p->m_file->out
+                    //<< send_time << " "
+                    //<< to_iso_string(send_time) << " "
+                    << to_iso_extended_string(send_time) << " "
                     << m_p->m_msg_config << " "
-                    << send_time << " "
                     << package << " "
-                    << duration << " "
+                    << to_iso_string(duration) << " "
                     << *gdu
                     << "\n";
             }   

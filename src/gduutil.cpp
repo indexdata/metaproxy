@@ -1,15 +1,17 @@
-/* $Id: gduutil.cpp,v 1.2 2006-08-30 08:35:47 marc Exp $
+/* $Id: gduutil.cpp,v 1.3 2006-08-30 14:37:11 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
 */
 
 #include "gduutil.hpp"
+#include "util.hpp"
 
 #include <yaz/wrbuf.h>
 #include <yaz/querytowrbuf.h>
 
 #include <iostream>
+#include <list>
 
 namespace mp = metaproxy_1;
 
@@ -21,11 +23,78 @@ std::ostream& std::operator<<(std::ostream& os,  Z_GDU& zgdu)
     if (zgdu.which == Z_GDU_Z3950)
         os << "Z3950" << " " << *(zgdu.u.z3950) ;
     else if (zgdu.which == Z_GDU_HTTP_Request)
-        os << "HTTP_Request" << " ";
+        os << "HTTP_Request" << " " << *(zgdu.u.HTTP_Request);
     else if (zgdu.which == Z_GDU_HTTP_Response)
-        os << "HTTP_Response" << " ";
+        os << "HTTP_Response" << " " << *(zgdu.u.HTTP_Response);
     else
-        os << "Z_GDU" << " ";
+        os << "Z_GDU";
+    return os;
+}
+
+std::ostream& std::operator<<(std::ostream& os, Z_HTTP_Request& httpreq)
+{
+    os << httpreq.method << " ";
+    os << httpreq.path;    
+    return os;
+}
+
+
+std::ostream& std::operator<<(std::ostream& os, Z_HTTP_Response& httpres)
+{
+    os << httpres.code << " ";
+    os << httpres.content_len;   
+    return os;
+}
+
+std::ostream& std::operator<<(std::ostream& os, Z_Records & rs)
+{
+    switch(rs.which) {
+    case Z_Records_DBOSD :
+        break;
+    case Z_Records_NSD:
+        os << *(rs.u.nonSurrogateDiagnostic);
+        break;
+    case Z_Records_multipleNSD:
+        os << "Z_Records_multipleNSD";
+        //os << *(rs.u.multipleNonSurDiagnostics);
+        break;
+    default:
+        os << "Z_Records" ;
+    }
+    
+    return os;
+}
+
+std::ostream& std::operator<<(std::ostream& os, Z_DiagRec& dr)
+{
+    switch(dr.which) {
+    case Z_DiagRec_defaultFormat:
+        os << *(dr.u.defaultFormat);
+        break;
+    case Z_DiagRec_externallyDefined :
+        os << "Z_DiagRec_externallyDefined";
+        break;
+    default:
+        os << "Z_DiagRec" ;
+    }
+    
+    return os;
+}
+
+std::ostream& std::operator<<(std::ostream& os, Z_DefaultDiagFormat& ddf)
+{
+    os << *(ddf.condition) << " ";
+    switch(ddf.which) {
+    case Z_DefaultDiagFormat_v2Addinfo:
+        os << ddf.u.v2Addinfo;
+        break;
+    case Z_DefaultDiagFormat_v3Addinfo:
+        os << ddf.u.v3Addinfo;
+        break;
+    default:
+        os << "Z_DefaultDiagFormat" ;
+    }
+    
     return os;
 }
 
@@ -42,16 +111,24 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
 
             Z_IdAuthentication *a = ir->idAuthentication;
             if (a && a->which == Z_IdAuthentication_idPass )
-                os << a->u.idPass->userId 
-                   << ":" << a->u.idPass->groupId << " ";
+                os << a->u.idPass->userId << " ";
+            //<< ":" << a->u.idPass->groupId << " ";
             else
-                os << "-:-" << " ";
+                os << "--" << " ";
 
+            std::list<std::string> vhosts;
+            mp::util::get_vhost_otherinfo(ir->otherInfo, vhosts);
+            if (vhosts.size()){
+                copy(vhosts.begin(), vhosts.end(), 
+                     ostream_iterator<string>(os, " "));
+            }
+                else
+                    os << "--" << " " ;
 
             os << (ir->implementationId) << " "
                 //<< ir->referenceId << " "
                << (ir->implementationName) << " "
-               << (ir->implementationVersion) << " ";
+               << (ir->implementationVersion);
         }
         break;
     case Z_APDU_initResponse:
@@ -66,12 +143,11 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                    << (ir->implementationName) << " "
                    << (ir->implementationVersion) << " ";
             else
-                os << "DIAG" << " ";
+                os << "DIAG";
         }
         break;
     case Z_APDU_searchRequest:
-        os << "searchRequest" << " "
-           << "--" << " ";
+        os << "searchRequest" << " ";
         { 
             Z_SearchRequest *sr 
                 = zapdu.u.searchRequest;
@@ -87,7 +163,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                          
             WRBUF wr = wrbuf_alloc();
             yaz_query_to_wrbuf(wr, sr->query);
-            os << wrbuf_buf(wr) << " ";
+            os << wrbuf_buf(wr);
             wrbuf_free(wr, 1);
         }
         break;
@@ -101,20 +177,22 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                    << *(sr->resultCount) << " "
                     //<< sr->referenceId << " "
                    << *(sr->numberOfRecordsReturned) << " "
-                   << *(sr->nextResultSetPosition) << " ";
-            else
-                os << "DIAG" << " ";
+                   << *(sr->nextResultSetPosition);
+            else 
+                if (sr->records)
+                    os << "DIAG " << *(sr->records);
+                else
+                    os << "ERROR";
         }
         break;
     case Z_APDU_presentRequest:
-        os << "presentRequest" << " "
-           << "--" << " "; 
+        os << "presentRequest" << " ";
         {
             Z_PresentRequest *pr = zapdu.u.presentRequest;
             os << pr->resultSetId << " "
                 //<< pr->referenceId << " "
                << *(pr->resultSetStartPoint) << " "
-               << *(pr->numberOfRecordsRequested) << " ";
+               << *(pr->numberOfRecordsRequested);
         }
         break;
     case Z_APDU_presentResponse:
@@ -124,48 +202,52 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 = zapdu.u.presentResponse;
             if (!*(pr->presentStatus))
                 os << "OK" << " "
-                   << "-" << " "
+                    //<< "-" << " "
                     //<< pr->referenceId << " "
                    << *(pr->numberOfRecordsReturned) << " "
-                   << *(pr->nextResultSetPosition) << " ";
+                   << *(pr->nextResultSetPosition);
             else
-                os << "DIAG" << " "
-                   << "-" << " "
-                    //<< pr->referenceId << " "
-                   << *(pr->numberOfRecordsReturned) << " "
-                   << *(pr->nextResultSetPosition) << " ";
+                if (pr->records)
+                    os << "DIAG " << *(pr->records);
+                else
+                    os << "ERROR";
+
+            //os << "DIAG" << " "
+            //<< "-" << " "
+            //<< pr->referenceId << " "
+            //<< *(pr->numberOfRecordsReturned) << " "
+            //<< *(pr->nextResultSetPosition);
         }
         break;
     case Z_APDU_deleteResultSetRequest:
-        os << "deleteResultSetRequest" << " ";
+        os << "deleteResultSetRequest";
         break;
     case Z_APDU_deleteResultSetResponse:
-        os << "deleteResultSetResponse" << " ";
+        os << "deleteResultSetResponse";
         break;
     case Z_APDU_accessControlRequest:
-        os << "accessControlRequest" << " ";
+        os << "accessControlRequest";
         break;
     case Z_APDU_accessControlResponse:
-        os << "accessControlResponse" << " ";
+        os << "accessControlResponse";
         break;
     case Z_APDU_resourceControlRequest:
-        os << "resourceControlRequest" << " ";
+        os << "resourceControlRequest";
         break;
     case Z_APDU_resourceControlResponse:
-        os << "resourceControlResponse" << " ";
+        os << "resourceControlResponse";
         break;
     case Z_APDU_triggerResourceControlRequest:
-        os << "triggerResourceControlRequest" << " ";
+        os << "triggerResourceControlRequest";
         break;
     case Z_APDU_resourceReportRequest:
-        os << "resourceReportRequest" << " ";
+        os << "resourceReportRequest";
         break;
     case Z_APDU_resourceReportResponse:
-        os << "resourceReportResponse" << " ";
+        os << "resourceReportResponse";
         break;
     case Z_APDU_scanRequest:
-        os << "scanRequest" << " "
-           << "--" << " ";
+        os << "scanRequest" << " ";
         { 
             Z_ScanRequest *sr 
                 = zapdu.u.scanRequest;
@@ -185,7 +267,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                          
             WRBUF wr = wrbuf_alloc();
             yaz_scan_to_wrbuf(wr, sr->termListAndStartPoint, VAL_NONE);
-            os << wrbuf_buf(wr) << " ";
+            os << wrbuf_buf(wr);
             wrbuf_free(wr, 1);
         }
         break;
@@ -194,20 +276,45 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         {
             Z_ScanResponse *sr 
                 = zapdu.u.scanResponse;
-            if (*(sr->scanStatus))
+            if (!*(sr->scanStatus))
                 os << "OK" << " "
-                   << *(sr->scanStatus) << " "
+                    //<< *(sr->scanStatus) << " "
                    << *(sr->numberOfEntriesReturned) << " "
                     //<< sr->referenceId << " "
                    << *(sr->positionOfTerm) << " "
                    << *(sr->stepSize) << " ";
-            else
-                os << "DIAG" << " "
-                   << *(sr->scanStatus) << " "
-                   << *(sr->numberOfEntriesReturned) << " "
-                    //<< sr->referenceId << " "
-                   << *(sr->positionOfTerm) << " "
-                   << *(sr->stepSize) << " ";
+            else {
+                os << "ERROR" << " "
+                   << *(sr->scanStatus) << " ";
+                
+                switch (*(sr->scanStatus)){
+                case Z_Scan_success:
+                    os << "success ";
+                    break;
+                case Z_Scan_partial_1:
+                    os << "partial_1";
+                    break;
+                case Z_Scan_partial_2:
+                    os << "partial_2";
+                    break;
+                case Z_Scan_partial_3:
+                    os << "partial_3";
+                        break;
+                case Z_Scan_partial_4:
+                    os << "partial_4";
+                    break;
+                case Z_Scan_partial_5:
+                    os << "partial_5";
+                    break;
+                case Z_Scan_failure:
+                    os << "failure";
+                    break;
+                default:
+                    os << "unknown";
+                }
+                
+                os << " " << *(sr->numberOfEntriesReturned);
+            }
         }
         break;
     case Z_APDU_sortRequest:
@@ -220,7 +327,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         os << "segmentRequest" << " ";
         break;
     case Z_APDU_extendedServicesRequest:
-        os << "extendedServicesRequest" << " ";
+        os << "extendedServicesRequest";
 //         { 
 //             Z_ExtendedServicesRequest *er 
 //                 = zapdu.u.extendedServicesRequest;
@@ -249,50 +356,50 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
             os << *(c->closeReason) << " ";
             switch (*(c->closeReason)) {
             case Z_Close_finished:
-                os << "finished" << " ";
+                os << "finished";
                 break;
             case Z_Close_shutdown:
-                os << "shutdown" << " ";
+                os << "shutdown";
                 break;
             case Z_Close_systemProblem:
-                os << "systemProblem" << " ";
+                os << "systemProblem";
                 break;
             case Z_Close_costLimit:
-                os << "costLimit" << " ";
+                os << "costLimit";
                 break;
             case Z_Close_resources:
-                os << "resources" << " ";
+                os << "resources";
                 break;
             case Z_Close_securityViolation:
-                os << "securityViolation" << " ";
+                os << "securityViolation";
                 break;
             case Z_Close_protocolError:
-                os << "protocolError" << " ";
+                os << "protocolError";
                 break;
             case Z_Close_lackOfActivity:
-                os << "" << " ";
+                os << "";
                 break;
             case Z_Close_peerAbort:
-                os << "peerAbort" << " ";
+                os << "peerAbort";
                 break;
             case Z_Close_unspecified:
-                os << "unspecified" << " ";
+                os << "unspecified";
                 break;
             default:
-                os << "unknown" << " ";
+                os << "unknown";
                 break;
             }
         }
         break;
     case Z_APDU_duplicateDetectionRequest:
-        os << "duplicateDetectionRequest" << " ";
+        os << "duplicateDetectionRequest";
         break;
     case Z_APDU_duplicateDetectionResponse:
-        os << "duplicateDetectionResponse" << " ";
+        os << "duplicateDetectionResponse";
         break;
     default: 
         os << "Z_APDU "
-           << "UNKNOWN" << " ";
+           << "UNKNOWN";
     }
 
     return os;
