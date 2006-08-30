@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.20 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_auth_simple.cpp,v 1.21 2006-08-30 12:27:34 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -343,7 +343,7 @@ void yf::AuthSimple::check_targets(mp::Package & package) const
 
     std::list<std::string> targets;
     Z_OtherInformation *otherInfo = initReq->otherInfo;
-    mp::util::get_vhost_otherinfo(&otherInfo, 1, targets);
+    mp::util::get_vhost_otherinfo(otherInfo, targets);
 
     // Check each of the targets specified in the otherInfo package
     std::list<std::string>::iterator i;

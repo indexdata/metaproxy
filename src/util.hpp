@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.17 2006-06-19 23:54:02 adam Exp $
+/* $Id: util.hpp,v 1.18 2006-08-30 12:27:34 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -37,14 +37,21 @@ namespace metaproxy_1 {
 
         void split_zurl(std::string zurl, std::string &host,
                         std::list<std::string> &db);
-
-        int get_vhost_otherinfo(Z_OtherInformation **otherInformation,
-                                bool remove_flag,
-                                std::list<std::string> &vhosts);
+        
+        void get_vhost_otherinfo(Z_OtherInformation *otherInformation,
+                                 std::list<std::string> &vhosts);
+        
+        int remove_vhost_otherinfo(Z_OtherInformation **otherInformation,
+                                   std::list<std::string> &vhosts);
 
         void set_vhost_otherinfo(Z_OtherInformation **otherInformation,
                                  ODR odr,
                                  const std::list<std::string> &vhosts);
+
+        int get_or_remove_vhost_otherinfo(
+            Z_OtherInformation **otherInformation,
+            bool remove_flag,
+            std::list<std::string> &vhosts);
 
         void get_init_diagnostics(Z_InitResponse *res,
                                   int &error_code, std::string &addinfo);

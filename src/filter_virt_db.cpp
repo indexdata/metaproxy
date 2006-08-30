@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.44 2006-08-01 13:24:53 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.45 2006-08-30 12:27:34 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -681,7 +681,7 @@ void yf::Virt_db::process(mp::Package &package) const
         Z_InitRequest *req = gdu->u.z3950->u.initRequest;
         
         std::list<std::string> vhosts;
-        mp::util::get_vhost_otherinfo(&req->otherInfo, false, vhosts);
+        mp::util::get_vhost_otherinfo(req->otherInfo, vhosts);
         if (vhosts.size() == 0)
         {
             f->m_init_gdu = gdu;

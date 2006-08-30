@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.27 2006-06-21 14:34:16 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.28 2006-08-30 12:27:34 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -227,8 +227,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         return 0;
     }
     std::list<std::string> vhosts;
-    mp::util::get_vhost_otherinfo(&apdu->u.initRequest->otherInfo,
-                                   true, vhosts);
+    mp::util::remove_vhost_otherinfo(&apdu->u.initRequest->otherInfo, vhosts);
     size_t no_vhosts = vhosts.size();
     if (no_vhosts == 0)
     {

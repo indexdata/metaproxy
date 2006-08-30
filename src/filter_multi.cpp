@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.23 2006-08-09 12:27:18 adam Exp $
+/* $Id: filter_multi.cpp,v 1.24 2006-08-30 12:27:34 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -336,7 +336,7 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
 
     std::list<std::string> targets;
 
-    mp::util::get_vhost_otherinfo(&req->otherInfo, false, targets);
+    mp::util::get_vhost_otherinfo(req->otherInfo, targets);
 
     if (targets.size() < 1)
     {

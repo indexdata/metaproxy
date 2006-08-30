@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.18 2006-06-19 23:54:02 adam Exp $
+/* $Id: util.cpp,v 1.19 2006-08-30 12:27:34 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -191,7 +191,7 @@ void mp_util::get_init_diagnostics(
     }
 }
 
-int mp_util::get_vhost_otherinfo(
+int mp_util::get_or_remove_vhost_otherinfo(
     Z_OtherInformation **otherInformation,
     bool remove_flag,
     std::list<std::string> &vhosts)
@@ -211,6 +211,20 @@ int mp_util::get_vhost_otherinfo(
     }
     --cat;
     return cat;
+}
+
+void mp_util::get_vhost_otherinfo(
+    Z_OtherInformation *otherInformation,
+    std::list<std::string> &vhosts)
+{
+    get_or_remove_vhost_otherinfo(&otherInformation, false, vhosts);
+}
+
+int mp_util::remove_vhost_otherinfo(
+    Z_OtherInformation **otherInformation,
+    std::list<std::string> &vhosts)
+{
+    return get_or_remove_vhost_otherinfo(otherInformation, true, vhosts);
 }
 
 void mp_util::set_vhost_otherinfo(
