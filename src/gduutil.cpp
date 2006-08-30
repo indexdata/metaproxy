@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.3 2006-08-30 14:37:11 marc Exp $
+/* $Id: gduutil.cpp,v 1.4 2006-08-30 15:56:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -327,25 +327,65 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         os << "segmentRequest" << " ";
         break;
     case Z_APDU_extendedServicesRequest:
-        os << "extendedServicesRequest";
-//         { 
-//             Z_ExtendedServicesRequest *er 
-//                 = zapdu.u.extendedServicesRequest;
+        os << "extendedServicesRequest" << " ";
+        { 
+            Z_ExtendedServicesRequest *er 
+                = zapdu.u.extendedServicesRequest;
 
-//             os << er->packageName << " "
-//                << er->userId << " "
-//                << er->description << " ";
-//         }
+            switch(*(er->function))
+            {
+            case Z_ExtendedServicesRequest_create:
+                os << "create";
+                break;
+            case Z_ExtendedServicesRequest_delete:
+                os << "delete";
+                break;
+            case Z_ExtendedServicesRequest_modify:
+                os << "modify";
+                break;
+            default:
+                os << "unknown";
+            }
+
+            if (er->userId)
+                os << " " << er->userId ;
+            else
+                os << " " << "--";
+
+            if (er->packageName)
+                os << " " << er->packageName;
+            else
+                os << " " << "--";
+
+            if (er->description)
+                os << " " << er->description;
+            else
+                os << " " << "--";
+        }
         break;
     case Z_APDU_extendedServicesResponse:
         os << "extendedServicesResponse" << " ";
-//         { 
-//             Z_ExtendedServicesResponse *er 
-//                 = zapdu.u.extendedServicesResponse;
+         { 
+             Z_ExtendedServicesResponse *er 
+                 = zapdu.u.extendedServicesResponse;
 
-//             os << *(er->operationStatus) << " "
-//                << er->num_diagnostics << " ";
-//         }
+             switch (*(er->operationStatus)){
+                 case Z_ExtendedServicesResponse_done:
+                     os << "OK";
+                 break;
+                 case Z_ExtendedServicesResponse_accepted:
+                     os << "ACCEPT";
+                 break;
+                 case Z_ExtendedServicesResponse_failure:
+                     if (er->num_diagnostics)
+                         os << "DIAG " << **(er->diagnostics);
+                     else
+                         os << "ERROR";
+                 break;
+             default:
+                 os << "unknown";
+             }
+         }
         break;
     case Z_APDU_close:
         os  << "close" << " ";
