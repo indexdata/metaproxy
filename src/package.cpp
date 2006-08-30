@@ -1,4 +1,4 @@
-/* $Id: package.cpp,v 1.11 2006-08-30 08:35:03 marc Exp $
+/* $Id: package.cpp,v 1.12 2006-08-30 08:44:58 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -24,6 +24,13 @@ mp::Package::~Package()
 
 mp::Package::Package(mp::Session &session, const mp::Origin &origin) 
     : m_session(session), m_origin(origin),
+      m_route_pos(0), m_data(0)
+{
+}
+
+mp::Package::Package(mp::Session &session,
+                     const mp::Origin &origin, const mp::Origin &target) 
+    : m_session(session), m_origin(origin), m_target(target),
       m_route_pos(0), m_data(0)
 {
 }
@@ -93,6 +100,22 @@ mp::Origin & mp::Package::origin()
 mp::Package & mp::Package::origin(const Origin & origin)
 {
     m_origin = origin;
+    return *this;
+}
+
+mp::Origin mp::Package::target() const 
+{
+    return m_target;
+}
+        
+mp::Origin & mp::Package::target()
+{
+    return m_target;
+}
+
+mp::Package & mp::Package::target(const Origin & target)
+{
+    m_target = target;
     return *this;
 }
 
