@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.23 2006-08-29 10:06:31 marc Exp $
+/* $Id: filter_log.cpp,v 1.24 2006-08-30 08:35:47 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -98,10 +98,10 @@ void yf::Log::process(mp::Package &package) const
         = boost::posix_time::microsec_clock::local_time();
 
 
-    std::ostringstream msg_request;
-    std::ostringstream msg_request_2;
-    std::ostringstream msg_response;
-    std::ostringstream msg_response_2;
+    //std::ostringstream msg_request;
+    //std::ostringstream msg_request_2;
+    //std::ostringstream msg_response;
+    //std::ostringstream msg_response_2;
 
     // scope for locking Ostream 
     { 
@@ -115,8 +115,8 @@ void yf::Log::process(mp::Package &package) const
             {
                 m_p->m_file->out
                     << m_p->m_msg_config << " "
-                    << package.session().id() << " "
                     << receive_time << " "
+                    << package << " "
                     << "00:00:00.000000" << " " 
                     << *gdu
                     << "\n";
@@ -179,9 +179,9 @@ void yf::Log::process(mp::Package &package) const
             {
                 m_p->m_file->out
                     << m_p->m_msg_config << " "
-                    << package.session().id() << " "
                     << send_time << " "
-                    << duration  << " "
+                    << package << " "
+                    << duration << " "
                     << *gdu
                     << "\n";
             }   
