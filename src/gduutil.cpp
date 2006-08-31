@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.4 2006-08-30 15:56:54 marc Exp $
+/* $Id: gduutil.cpp,v 1.5 2006-08-31 12:55:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -392,7 +392,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         { 
             Z_Close  *c 
                 = zapdu.u.close;
-
+            
             os << *(c->closeReason) << " ";
             switch (*(c->closeReason)) {
             case Z_Close_finished:
@@ -429,6 +429,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 os << "unknown";
                 break;
             }
+            os << " " << c->diagnosticInformation;
         }
         break;
     case Z_APDU_duplicateDetectionRequest:
