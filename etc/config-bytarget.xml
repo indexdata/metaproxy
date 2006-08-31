@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-bytarget.xml,v 1.2 2006-06-16 14:01:58 mike Exp $ -->
+<!-- $Id: config-bytarget.xml,v 1.3 2006-08-31 13:01:09 marc Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <routes>
@@ -30,6 +30,7 @@
         <target route="group1">z3950.loc.gov:7090/voyager</target>
         <target route="group2">indexdata.dk/gils</target>
       </filter>
+      <filter type="bounce"/>
     </route>
     <route id="group1">
       <filter type="query_rewrite">
@@ -41,6 +42,7 @@
       <filter type="z3950_client">
         <timeout>30</timeout>
       </filter>
+      <filter type="bounce"/>
     </route>
     <route id="group2">
 <!--
@@ -56,6 +58,7 @@
       <filter type="z3950_client">
 	<timeout>30</timeout>
       </filter>
+      <filter type="bounce"/>
     </route>
   </routes>
 </yp2>

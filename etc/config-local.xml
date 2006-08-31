@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-local.xml,v 1.1 2006-06-08 22:22:49 mike Exp $ -->
+<!-- $Id: config-local.xml,v 1.2 2006-08-31 13:01:09 marc Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <routes>
@@ -30,6 +30,7 @@
       <filter type="z3950_client">
         <timeout>30</timeout>
       </filter>
+      <filter type="bounce"/>
     </route>
   </routes>
 </yp2>

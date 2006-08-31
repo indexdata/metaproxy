@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config4.xml,v 1.1 2006-01-25 11:28:23 adam Exp $ -->
+<!-- $Id: config4.xml,v 1.2 2006-08-31 13:01:09 marc Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <!-- sample config which illustrates the use of http_file filter.. -->
@@ -19,6 +19,7 @@
 	<prefix>/etc</prefix>
       </area>
       </filter>
+      <filter type="bounce"/>
     </route>
   </routes>
 </yp2>

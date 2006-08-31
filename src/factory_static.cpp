@@ -1,4 +1,4 @@
-/* $Id: factory_static.cpp,v 1.10 2006-06-10 14:29:12 adam Exp $
+/* $Id: factory_static.cpp,v 1.11 2006-08-31 13:01:09 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -17,6 +17,7 @@
 
 #include "filter_auth_simple.hpp"
 #include "filter_backend_test.hpp"
+#include "filter_bounce.hpp"
 #include "filter_frontend_net.hpp"
 #include "filter_http_file.hpp"
 #include "filter_log.hpp"
@@ -34,6 +35,7 @@ mp::FactoryStatic::FactoryStatic()
     struct metaproxy_1_filter_struct *buildins[] = {
         &metaproxy_1_filter_auth_simple,
         &metaproxy_1_filter_backend_test,
+        &metaproxy_1_filter_bounce,
         &metaproxy_1_filter_frontend_net,        
         &metaproxy_1_filter_http_file,
         &metaproxy_1_filter_log,

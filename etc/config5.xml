@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config5.xml,v 1.4 2006-06-19 13:27:49 adam Exp $ -->
+<!-- $Id: config5.xml,v 1.5 2006-08-31 13:01:09 marc Exp $ -->
 <!-- Uses dummy backend + query rewrite filter.. -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
@@ -26,6 +26,7 @@
 		  />
       </filter>
       <filter type="backend_test"/>
+      <filter type="bounce"/>
     </route>
   </routes>
 </yp2>

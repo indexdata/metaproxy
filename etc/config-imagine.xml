@@ -39,20 +39,24 @@
       </filter>   
     <filter name="reject">        <!-- reject .. -->
     </filter>
+    <filter type="bounce"/>
     </route>
     <route id="public">
       <filter type="z3950-client">
 	<target>localhost:9999/A</target>
     </filter>
+    <filter type="bounce"/>
     </route>
     <route id="internal">
       <filter type="z3950-client">
 	<target>localhost:9999/B</target>
       </filter>
-    </route>
+      <filter type="bounce"/>
+   </route>
     <route id="internal">
       <xml:include href="file://module2.xml#filter45"/>
       <xml:include href="file://module4.xml#filter145"/>
+      <filter type="bounce"/>
     </route>
     <route id="AB">
       <filter type="multi">
@@ -60,6 +64,7 @@
         <package route="B"/>
         <merge type="simple"/>
       </filter>
+      <filter type="bounce"/>
     </route>
   </routes>
 </yp2>
