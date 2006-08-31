@@ -1,9 +1,10 @@
-/* $Id: filter_log.cpp,v 1.25 2006-08-30 14:37:11 marc Exp $
+/* $Id: filter_log.cpp,v 1.26 2006-08-31 12:56:40 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
  */
 
+#include "filter_log.hpp"
 #include "config.hpp"
 #include "package.hpp"
 
@@ -15,7 +16,6 @@
 #include "gduutil.hpp"
 #include "util.hpp"
 #include "xmlutil.hpp"
-#include "filter_log.hpp"
 
 #include <fstream>
 #include <yaz/zgdu.h>
@@ -98,7 +98,7 @@ void yf::Log::process(mp::Package &package) const
     boost::posix_time::ptime receive_time
         = boost::posix_time::microsec_clock::local_time();
 
-    //std::ostringstream msg;
+
 
     // scope for locking Ostream 
     { 
