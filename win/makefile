@@ -1,6 +1,6 @@
 # Copyright (C) 2005-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.21 2006-08-30 13:18:44 adam Exp $
+# $Id: makefile,v 1.22 2006-09-07 11:15:35 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
@@ -228,6 +228,7 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\filter.obj \
 	$(OBJDIR)\filter_auth_simple.obj \
         $(OBJDIR)\filter_backend_test.obj \
+        $(OBJDIR)\filter_bounce.obj \
 	$(OBJDIR)\filter_frontend_net.obj \
 	$(OBJDIR)\filter_http_file.obj \
         $(OBJDIR)\filter_log.obj \
