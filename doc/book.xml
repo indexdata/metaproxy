@@ -17,7 +17,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.35 2006-06-21 15:08:58 mike Exp $ -->
+<!-- $Id: book.xml,v 1.36 2006-09-07 09:42:53 mike Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -555,7 +555,7 @@
       The word ``filter'' is sometimes used rather loosely, in two
       different ways: it may be used to mean a particular
       <emphasis>type</emphasis> of filter, as when we speak of ``the
-      auth_simplefilter'' or ``the multi filter''; or it may be used
+      auth_simple filter'' or ``the multi filter''; or it may be used
       to be a specific <emphasis>instance</emphasis> of a filter
       within a Metaproxy configuration.  For example, a single
       configuration will often contain multiple instances of the
@@ -663,6 +663,29 @@
     The filters are here listed in alphabetical order:
    </para>
    
+<!--
+
+### New filters:
+
+New virt_db-alike that does inteligent peer choice, explain merging,
+adds FD&N to explain.  Keeps init responses (like "virt_db Classic"),
+makes routing choices based on local explain knowledge.  Ref IDDI
+paper.
+
+Filter to convert Explain Classic to ZeeRex.
+
+CQL2PQF (which needs augmented ZeeRex) - MARC for Talis.
+
+SRU2Z39.50 (ditto).
+
+Figure out what additional information we need in:
+	ZeeRex (check against D3.1)
+	Init request (e.g. loop detection)
+	Query package (e.g. number of hops)
+	Query response (e.g. record source)
+
+-->
+
    <section>
     <title><literal>auth_simple</literal>
      (mp::filter::AuthSimple)</title>
