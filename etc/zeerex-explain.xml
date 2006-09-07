@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- $Id: zeerex-explain.xml,v 1.1 2006-09-07 09:52:23 marc Exp $ -->
+
+<!-- this file configures the SRU/SRW explain response -->
+<!-- see: http://explain.z3950.org/dtd/commentary.html -->
+<!-- validate this using zeerex-2.0.xsd -->
+<!-- http://explain.z3950.org/dtd/zeerex-2.0.xsd -->
+<!-- Extensions see: http://explain.z3950.org/dtd/extensions.html -->
+<!-- Other info:  Z39.92 -->
+
+<explain xmlns="http://explain.z3950.org/dtd/2.0/"
+         xmlns:izx="http://indexdata.com/zeerex/1.0">
+
+  <!-- try stylesheet url: http://./?stylesheet=docpath/sru2.xsl -->
+  <serverInfo protocol="SRW/SRU/Z39.50">
+
+    <host>foo.indexdata.dk</host>
+    <port>80</port>
+    <!-- <database numRecs="1314" lastUpdate="2006-03-15 09-05-33">
+         Default</database> -->
+    <database>Default</database>
+        <!--<authentication>
+      <user>azaroth</user>
+      <group>agroup</group>
+      <password>squirrelfish</password>
+    </authentication>-->
+  </serverInfo>
+
+  <databaseInfo>
+
+    <title lang="en" primary="true">Metaproxy SRU/SRW/Z39.50 server</title>
+
+    <description lang="en" primary="true">
+      Test ZeeRex Explain for SRU  and CQL-to-PQF query Metaproxy filter
+    </description>
+
+    <author>Marc Cromme, Index Data Aps, 
+            http://www.indexdata.dk</author>
+
+    <contact>Marc Cromme, marc(at)indexdata(dot)com</contact>
+
+    <!--<langUsage codes="en fr">
+        The records are in English and French.
+        </langUsage>  -->
+    <!-- <extend>Partially crawled web data</extend> -->
+   
+    <history>
+      Implemented for Talis
+    </history>
+
+    <implementation  identifier="Metaproxy" version="0.??">
+      <title>Index Data Metaproxy http://www.indexdata.dk</title>
+    </implementation>
+    
+    <links> 
+      <link type="z39.50">http://foo.indexdata.dk:80</link>
+      <link type="srw">http://foo.indexdata.dk:80</link>
+      <link type="sru">http://foo.indexdata.dk:80</link>
+    </links>
+    
+  </databaseInfo>
+
+  <!--
+  <metaInfo>
+    <dateModified>2002-03-29 19:00:00</dateModified>
+    <aggregatedFrom> z39.50r://gondolin.hist.liv.ac.uk:210/IR-Explain-1?
+                   id=ghlau-1;esn=F;rs=XML </aggregatedFrom>
+    <dateAggregated>2002-03-30 06:30:00</dateAggregated>
+  </metaInfo>
+  -->
+
+
+  <indexInfo>
+    <set name="cql" identifier="info:srw/cql-context-set/1/cql-v1.1">
+      <title>CQL Standard Set</title>
+    </set>
+    <set name="rec" identifier="info:srw/cql-context-set/2/rec-1.0">
+      <title>Record Standard Set</title>
+    </set>
+    <set name="dc" identifier="info:srw/cql-context-set/1/dc-v1.1">
+      <title>Dublin Core Set</title>
+    </set>
+    <set name="bib1" identifier="1.2.840.10003.3.1">
+      <title>BIB-1 Z39.50 Standard Set</title>
+    </set>
+
+
+    <!-- CQL standard index -->
+    <index search="true" scan="true" sort="false">
+      <title lang="en">CQL Server Choice</title>
+      <map><name set="cql">serverChoice</name></map>
+      <map>
+        <attr type="1" set="bib1">text</attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">CQL All</title>
+      <map><name set="cql">all</name></map>
+      <map>
+        <attr type="1" set="bib1">text</attr>
+      </map>
+    </index>
+
+    <!-- Record ID index -->
+    <index search="true" scan="true" sort="false">
+      <title lang="en">Record ID</title>
+      <map><name set="rec">id</name></map>
+      <map>
+        <attr type="1" set="bib1">rec:id</attr>
+        <attr type="4" set="bib1">3</attr>
+      </map>
+    </index>    
+
+    <!-- Dublin Core Indexes -->
+    <index search="true" scan="true" sort="false">
+      <izx:cost value="0"/>
+      <title lang="en">DC Title</title>
+      <map><name set="dc">title</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:title</attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Creator</title>
+      <map><name set="dc">creator</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:creator</attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Subject</title>
+      <map><name set="dc">subject</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:subject</attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Description</title>
+      <map><name set="dc">description</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:description</attr>
+        <!-- <attr type="2" set="bib1">102</attr> -->
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Publisher</title>
+      <map><name set="dc">publisher</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:publisher</attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Contributor</title>
+      <map><name set="dc">contributor</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:contributor</attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Date</title>
+      <map><name set="dc">date</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:date</attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Type</title>
+      <map><name set="dc">type</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:type</attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Format</title>
+      <map><name set="dc">format</name></map>
+      <map>
+        <attr type="1" set="bib1"></attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Identifier</title>
+      <map><name set="dc">identifier</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:identifier</attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Source</title>
+      <map><name set="dc">source</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:source</attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Language</title>
+      <map><name set="dc">language</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:language</attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Relation</title>
+      <map><name set="dc">relation</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:relation</attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Coverage</title>
+      <map><name set="dc">coverage</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:coverage</attr>
+      </map>
+    </index>
+    <index search="true" scan="true" sort="false">
+      <title lang="en">DC Rights</title>
+      <map><name set="dc">rights</name></map>
+      <map>
+        <attr type="1" set="bib1">dc:rights</attr>
+      </map>
+    </index>
+
+  </indexInfo>
+
+  <!-- Z39.50 stuff ... not allowed in one and the same explain together with 
+       <schemaInfo>, sic ..
+  <recordInfo>
+    <recordSyntax identifier="1.2.840.10003.5.109.10">
+      <elementSet name="F">
+        <title lang="en" primary="true">Full XML Record</title>
+      </elementSet>
+      <elementSet name="B">
+        <title lang="en" primary="true">Brief XML Record</title>
+      </elementSet>
+    </recordSyntax>
+  </recordInfo>
+  -->
+
+  <retrievalInfo xmlns="http://indexdata.com/yaz/2.28">
+    <retrieval syntax="grs-1"/>
+    <retrieval syntax="usmarc">
+       <elementset name="F"/>
+       <elementset name="B"/>
+    </retrieval>
+
+    <retrieval syntax="xml">
+      <elementset name="marcxml"
+                  identifier="info:srw/schema/1/marcxml-v1.1"
+                  localtion="">
+        <backend syntax="usmarc" name="F"/>
+        <convert>
+          <marc inputformat="marc" outputformat="marcxml"
+                inputcharset="marc-8"/>
+        </convert>
+      </elementset>
+ 
+      <elementset name="danmarc">
+        <backend syntax="usmarc" name="F"/>
+        <convert>
+          <marc inputformat="marc" outputformat="marcxchange"
+                inputcharset="marc-8"/>
+        </convert>
+      </elementset>
+
+      <elementset name="dc"
+                  identifier="info:srw/schema/1/dc-v1.1"
+                  location="http://www.loc.gov/standards/sru/dc-schema.xsd">
+        <backend syntax="usmarc" name="F"/>
+        <convert>
+          <marc inputformat="marc" outputformat="marcxml"
+                inputcharset="marc-8"/>
+          <xslt stylesheet="../etc/MARC21slim2DC.xsl"/>
+        </convert>
+      </elementset>
+    </retrieval>
+  </retrievalInfo>
+
+  <schemaInfo>
+
+    <izx:recordSyntax identifier="1.2.840.10003.5.10">
+      <title lang="en" primary="true">MARC21</title>
+      <elementSet name="B">
+        <title lang="en" primary="true">Brief Record</title>
+      </elementSet>
+      <elementSet name="F">
+        <title lang="en" primary="true">Full Record</title>
+      </elementSet>
+    </izx:recordSyntax>
+
+    <schema identifier="info:srw/schema/2/rec-1.0"
+            location="http://srw.cheshire3.org/schemas/rec/1.0/rec.xsd" 
+            name="rec"
+            retrieve="true">
+      <title lang="en">Record Metadata</title>
+      
+    </schema>
+    <schema identifier="info:srw/schema/1/dc-v1.1"
+            location="http://www.loc.gov/standards/sru/dc-schema.xsd" 
+            name="dc"
+            retrieve="true">
+      <title lang="en">Dublin Core</title>
+    </schema>
+    <schema identifier="info:srw/schema/1/mods-v3.0"
+            location="http://www.loc.gov/standards/mods/v3/mods-3-0.xsd"
+            name="mods"
+            retrieve="true">
+      <title lang="en">Mods</title>
+    </schema>
+    <schema identifier="info:srw/schema/1/marcxml-v1.1"
+            location="http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd"
+            name="marcxml"
+            retrieve="true">
+      <title lang="en">MarcXML</title>
+    </schema>
+  </schemaInfo>
+
+ 
+  <configInfo>
+
+    <!-- searchRetrieve settings -->
+
+    <!-- default context set -->
+    <default type="contextSet">cql</default>
+
+    <default type="index">all</default>
+
+    <!-- default relation -->
+    <default type="relation">=</default>
+
+    <supports type="relation" 
+              izx:type="2" izx:set="bib1" izx:value="1">&lt;</supports>
+    <supports type="relation" 
+              izx:type="2" izx:set="bib1" izx:value="2">&lt;=</supports>
+    <supports type="relation"
+              izx:type="2" izx:set="bib1" izx:value="3">=</supports> 
+    <supports type="relation"
+              izx:type="2" izx:set="bib1" izx:value="4">&gt;=</supports>
+    <supports type="relation"
+              izx:type="2" izx:set="bib1" izx:value="5">&gt;</supports>
+
+
+    <!-- <supports type="relation">&lt;&gt;</supports> --><!-- 2=6 DEAD !!! -->
+    <!-- <supports type="relation">all</supports> --><!-- 2=3 OK -->
+    <!-- <supports type="relation">any</supports> --><!-- 2=3 OK -->
+
+    <supports type="relationModifier"
+              izx:type="2" izx:set="bib1" izx:value="102">relevant</supports>
+
+    <!-- <supports type="relationModifier"
+              izx:type="2" izx:set="bib1" izx:value="100">phonetic</supports> -->
+    <!-- <supports type="relationModifier"
+              izx:type="2" izx:set="bib1" izx:value="101">stem</supports> -->
+
+
+    <!-- support proximity (Empty) -->
+    <!-- <supports type="proximity"></supports> --> <!-- DEAD,  title = (house prox/distance=1/unit=word  the) FAILS -->
+
+
+    <!-- proximity modifier supported by the server or index 
+         (relation, distance, unit, ordering) -->
+    <!-- <supports type="proximityModifier"></supports> -->
+
+    <!-- boolean modifier supported by the server or index -->
+    <!-- <supports type="booleanModifier"></supports> -->
+
+    <!-- masking character supported (* or ?) -->
+    <supports type="maskingCharacter">*</supports>
+    <supports type="maskingCharacter">?</supports>
+
+    <!-- anchoring supported? (^ character) -->
+    <!-- MARC: how do I express that I only support left anchoring in 
+         the beginning of the field ( bib1 3=1 ), but no right anchoring ?? -->
+    <!-- MIKE: You can't.  The ZeeRex documentation should be changed
+	 to allow this, as <supports type="anchoring">left</supports> -->
+    <!-- <supports type="anchoring"></supports> -->
+
+    <!-- empty terms supported (Empty) -->
+    <!-- MARC: what's the use case of this ?? -->
+    <!-- MIKE: lots of uses!  For example, scanning from the very
+	 start of the index with 'scan @attr 1=text ""'.  Or searching
+	 for bibliographic records with no title, etc. -->
+    <!-- MARC: I see, and we can if we always use '""' 
+         (the empty string), as in 'scan @attr 1=text ""' -->
+    <supports type="emptyTerm"></supports>
+
+
+    <!-- sorting settings -->
+
+    <!-- default schema used in sorting, in short name form -->
+    <!-- <default type="sortSchema"></default> -->
+    <!-- MIKE: deprecated -->
+
+    <!-- server support sort -->
+    <!-- MARC: why stating this redundant info here?? it's already in the 
+         <index sort="true" attribute -->
+    <!-- MIKE: that's not quite the same thing.  This is saying
+         whether the server can do sorting at all.  Since
+	 sort="true|false" attributes can be omitted entirely from
+	 indexes, you can't deduce from a set of <index> elements
+	 without sorting specified that the server doesn't support
+	 sorting -->
+    <!-- MARC: which ought to be the same thing than saying that sorting is 
+         _not_ possible. In short,  one simple <index sort="true" attribute
+         should be enough to tell that sorting _is_ possible. Or we have the 
+         same discussion about overruling general sorting capabilities in 
+         specific indexes ?? Quite confusing ... -->
+    <!-- MIKE: no, within an <index>, saying sort="true" means that
+	 you can sort on it, sort="false" means that you can't, and
+	 not saying anything means you're not saying anything.  Three
+	 different cases.   That's as it should be, since Explain
+	 records might be auto-generated by systems that can't do the
+	 necessary probes.  So a ZeeRex record might not have "sort"
+	 attributes on any of its <index>es, but still say that
+	 sorting is supported.  The client (or user) has to experiment
+	 to find out what indexes support it.  Check the mailing list
+	 archives if you want a rationale, I forget the details. -->
+    <!-- <supports type="sort"></supports> -->
+
+    <!-- supported sortmodifier (ascending, missingValue, caseSensitive) -->
+    <!-- <supports type="sortModifier"></supports> -->
+    <!-- MIKE: this is for the new CQL "sortby" sorting, which Zebra
+	 doesn't yet do at all, so you're right to omit this for now. -->
+
+    <!-- presentation settings --> 
+
+    <!-- default number of records that a server will return at once  -->
+    <default type="numberOfRecords">0</default>
+
+    <!-- default schema used for retrieved records -->
+    <default type="retrieveSchema">index</default>
+    <!-- MIKE: That's not what I get by default.  A URL such as
+http://localhost:1314/Default?version=1.1&operation=searchRetrieve&query=1&maximumRecords=10
+         gives me a weird sort of hybrid record with <metadata>
+	 sections and <z:index> elements.  Unfortunately, the SRU
+	 response doesn't see to explicitly state what schema is
+	 used. -->
+     <!-- MARC: Right, the default seems to be the 'index' schema. I have to 
+          talk to Adam to get a better way to choose the default schema -->
+
+    <!-- default stylesheet URL, or if stylesheets are supported -->
+    <!-- MARC: here I want to express: no default, but you kan use this 
+         and only this one - should I use 'setting' ?? -->
+    <!-- MIKE: There is no way to say this at present, but what you
+	 suggest is sensible.  Please suggest it to the list -->
+    <setting type="stylesheet">docpath/sru.xsl</setting>
+
+    <!-- default record packing returned (string or xml) -->
+    <default type="recordPacking">xml</default>
+
+    <!-- maximum number of records that a server will return at once -->
+    <!-- <setting type="maximumRecords">1000</setting> -->
+
+    <!-- support result sets (Empty) -->
+    <!-- MARC: this one is for result sets in Z39.50, right ?? -->
+    <!-- MIKE: No, this also applies for SRU -->
+    <!-- MARC: Rrrrriiiight! That's why the section about this is called
+         <schemaInfo>, and the word resultSet never appears in a SRU Explain.
+         Very intuitive! -->
+    <!-- MIKE: I don't understand what point you're making.  SRU, like
+	 Z39.50, has specifications for how to do result sets.  But I
+	 don't know whether Zebra supports them or not -->
+    <!-- MARC: open question, then, I'll better comment out -->
+    <!-- <supports type="resultSets"></supports>  --> 
+
+    <!-- XPath retrieval supported -->
+    <!-- <supports type="recordXPath"></supports> -->
+
+
+    <!-- scan settings -->
+
+    <!-- scan operation supported -->
+    <supports type="scan"></supports>
+
+    <!-- default number of terms to be returned in scan -->
+    <default type="numberOfTerms">20</default>
+
+
+
+    <!-- other server settings -->
+
+    <!-- older version of the protocol supported  -->
+    <!-- MARC: why only older versions of the protocol ?? It seems 
+         natural just to list what you understand, including the one the
+         client sucesfully used --> 
+    <!-- MIKE: it may seem natural, but it ain't what it means! -->
+    <!-- MARC: but makes sense, and makes determining the list of protocol 
+         versions easier in a thin client -->
+    <!-- MIKE: if you want to change the meaning of this, then propose
+	 it on-list.  I doubt you'll get much support.  Thin clients
+	 won't use this anyway, they will just speak one version and
+	 hope for the best -->
+    <!-- <supports type="version">1.1</supports> -->
+
+    <!-- number of seconds that a result set will be maintained for -->
+    <setting type="resultSetTTL">0</setting>
+
+    <!-- A type of extraRequestData available in the
+         searchRetrieveRequest. The extra*Data fields are represented as two
+         space separated words, the first the identifier for the extension and
+         the second the individual element name from the extension. If there is
+         only one word, then it is the extension id and all elements from
+         within are supported. -->
+    <!-- <supports type="extraSearchData"></supports> -->
+    <!-- MIKE: we could explain x-pquery here -->
+    <!-- MARC: I talked to Adam about this. We should make a new 'x-type'
+         with possible values PQF, CQL, CCL , .. such that 'query' still is
+         obligatory, and carries the query string, be it PQF, CCL, or CQL. -->
+    <!-- MIKE: Yes, that would be _much_ better -->
+
+    <!-- A type of extraRequestData available in the explainRequest -->
+    <!-- <supports type="extraExplainData"></supports> -->
+
+    <!-- A type of extraRequestData available in the scanRequest -->
+    <!-- <supports type="extraScanData"></supports> -->
+    <!-- MIKE: we could explain x-pscan here -->
+    <!-- MARC: re-use of 'x-type' here .. drop 'x-pscan' -->
+
+    <!-- The URI identifier of a supported profile -->
+    <!-- MARC: what's this ?? -->
+    <!-- <supports type="profile"></supports> -->
+    <!-- MIKE: this is a very good thing, which we should use when the
+	 time is right.  A "profile" is a complete set of
+	 specifications for using Z39.50 and/or SRU within a
+	 particular application domain.  We should write a (brief)
+	 "Alvis Profile for SRU", assign it an opaque identifier URI,
+	 and point to it here.  (Not today, though!) -->
+    <!-- MARC: so this is some HTML prosa text ?? -->
+    <!-- MIKE: see for example
+	http://zthes2.z3950.org/srw/zthes-srw-1.0.html
+	-->
+  </configInfo>
+   
+</explain>
