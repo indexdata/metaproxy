@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.5 2006-08-31 12:55:54 marc Exp $
+/* $Id: gduutil.cpp,v 1.6 2006-09-07 12:12:21 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -429,7 +429,8 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 os << "unknown";
                 break;
             }
-            os << " " << c->diagnosticInformation;
+			if (c->diagnosticInformation)
+                os << " " << c->diagnosticInformation;
         }
         break;
     case Z_APDU_duplicateDetectionRequest:
