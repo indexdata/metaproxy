@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.25 2006-06-28 21:55:40 adam Exp $
+## $Id: Makefile.am,v 1.26 2006-09-07 09:00:09 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -17,30 +17,7 @@ MANFILES = auth_simple.3mp backend_test.3mp frontend_net.3mp \
 	session_shared.3mp template.3mp virt_db.3mp z3950_client.3mp \
 	metaproxy.1
 
-HTMLFILES = architecture.html \
-	classes.html \
-	configuration.html \
-	example.configuration.html \
-	extensions.html \
-	filterref.html \
-	filters.html \
-	future.directions.html \
-	index.html \
-	individual.classes.html \
-	installation.html \
-	installation.debian.html \
-	installation.windows.html \
-	introduction.html \
-	license.html \
-	multidb.html \
-	multidb.multi.html \
-	multidb.picture.html \
-	multidb.virt_db.html \
-	multidb.what.html \
-	other.source.files.html \
-	overview.filter.types.html \
-	overview.xml.structure.html \
-	refguide.html
+HTMLFILES = index.html
 
 PNGFILES = multi.png
 
@@ -50,6 +27,7 @@ man_MANS = $(MANFILES)
 EXTRA_DIST = $(XMLFILES) $(XMLMAN) $(doc_DATA) $(man_MANS) multi.svg
 
 $(HTMLFILES): $(XMLFILES) multi.png
+	rm -f *.html
 	$(HTML_COMPILE) $(MAINXML)
 
 .xml.3mp:
@@ -95,16 +73,13 @@ clean-data-hook:
 	rm -f [0-9]* *.bak
 
 dist-hook:
-	if test -f index.html; then for f in *.html; do \
-		found=0; \
-		b=`basename $$f`; \
-		for h in $(HTMLFILES); do \
-			if test "$$h" = "$$b"; then \
-				found=1; \
-			fi \
-		done; \
-		if test "$$found" = "0"; then \
-			echo "$$f not found in HTMLFILES"; \
-			exit 1; \
-		fi \
-	done; fi
+	if test -f index.html; then d=.; else d="$(srcdir)"; fi; \
+	for p in $$d/*.html; do \
+		cp $$p $(distdir); \
+	done
+
+install-data-hook:
+	if test -f index.html; then d=.; else d="$(srcdir)"; fi; \
+	for p in $$d/*.html; do \
+		$(docDATA_INSTALL) $$p $(DESTDIR)/$(docdir); \
+	done
