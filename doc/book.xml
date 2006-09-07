@@ -17,7 +17,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.36 2006-09-07 09:42:53 mike Exp $ -->
+<!-- $Id: book.xml,v 1.37 2006-09-07 10:00:43 adam Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -26,6 +26,9 @@
   </author>
   <author>
    <firstname>Adam</firstname><surname>Dickmeiss</surname>
+  </author>
+  <author>
+   <firstname>Marc</firstname><surname>Cromme</surname>
   </author>
   <copyright>
    <year>2006</year>
@@ -1690,31 +1693,20 @@ Z>
    </para>
   </section>
  </chapter>
-
-
-
- <chapter id="refguide">
+ 
+ 
+ 
+ <reference id="refguide">
   <title>Reference guide</title>
-  <para>
-   The material in this chapter is drawn directly from the individual
-   manual entries.  In particular, the Metaproxy invocation section is
-   available using <command>man metaproxy</command>, and the section
-   on each individual filter is available using the name of the filter
-   as the argument to the <command>man</command> command.
-  </para>
-
-
-  <section id="progref">
-   <title>Metaproxy invocation</title>
-   &progref;
-  </section>
-
-
-  <section id="filterref">
-   <title>Reference guide to Metaproxy filters</title>
-   &manref;
-  </section>
- </chapter>
+    <para>
+     The material in this chapter is drawn directly from the individual
+     manual entries.  In particular, the Metaproxy invocation section is
+     available using <command>man metaproxy</command>, and the section
+     on each individual filter is available using the name of the filter
+     as the argument to the <command>man</command> command.
+    </para>
+    &manref;
+ </reference>
 </book>
 
  <!-- Keep this comment at the end of the file
