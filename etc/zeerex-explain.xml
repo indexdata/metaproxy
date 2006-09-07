@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: zeerex-explain.xml,v 1.1 2006-09-07 09:52:23 marc Exp $ -->
+<!-- $Id: zeerex-explain.xml,v 1.2 2006-09-07 11:48:08 marc Exp $ -->
 
 <!-- this file configures the SRU/SRW explain response -->
 <!-- see: http://explain.z3950.org/dtd/commentary.html -->
@@ -237,35 +237,61 @@
   </recordInfo>
   -->
 
-  <retrievalInfo xmlns="http://indexdata.com/yaz/2.28">
-    <retrieval syntax="grs-1"/>
-    <retrieval syntax="usmarc">
-       <elementset name="F"/>
-       <elementset name="B"/>
+  <retrievalInfo 
+      xmlns="http://indexdata.com/yaz"
+      version="1.0">
+    <retrieval 
+        syntax="grs-1"
+        identifier="1.2.840.10003.5.105"
+        location="http://www.loc.gov/z3950/agency/asn1.html#RecordSyntax-generic"/>
+    <retrieval 
+        syntax="marc21" 
+        identifier="1.2.840.10003.5.10"
+        location="http://www.loc.gov/marc/">
+      <title lang="en">Marc21</title>
+      <elementset name="F">
+        <title lang="en" primary="true">Full Marc21 Record</title>
+        <backend syntax="usmarc" name="F"/>
+      </elementset>
+      <elementset name="B">
+        <title lang="en" primary="true">Brief Marc21 Record</title>
+        <backend syntax="usmarc" name="B"/>
+      </elementset>
     </retrieval>
 
-    <retrieval syntax="xml">
-      <elementset name="marcxml"
-                  identifier="info:srw/schema/1/marcxml-v1.1"
-                  localtion="">
+    <retrieval 
+        syntax="xml" 
+        identifier="1.2.840.10003.5.109.10"
+        location="http://www.w3.org/XML/">
+        <!-- location="http://www.w3.org/TR/2006/REC-xml-20060816/"  -->
+      <title lang="en">XML</title>
+      <elementset
+          identifier="info:srw/schema/1/marcxml-v1.1"
+          location="http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd"
+          name="marcxml">
+        <title lang="en">MarcXML</title>
         <backend syntax="usmarc" name="F"/>
         <convert>
           <marc inputformat="marc" outputformat="marcxml"
                 inputcharset="marc-8"/>
         </convert>
       </elementset>
- 
-      <elementset name="danmarc">
+      
+      <elementset 
+          name="marcxchange">
+        <title lang="en">Marc XChange</title>
         <backend syntax="usmarc" name="F"/>
         <convert>
           <marc inputformat="marc" outputformat="marcxchange"
                 inputcharset="marc-8"/>
         </convert>
       </elementset>
-
-      <elementset name="dc"
-                  identifier="info:srw/schema/1/dc-v1.1"
-                  location="http://www.loc.gov/standards/sru/dc-schema.xsd">
+      
+      <elementset 
+          identifier="info:srw/schema/1/dc-v1.1"
+          location="http://www.loc.gov/standards/sru/dc-schema.xsd"
+          name="dc">
+        <title lang="en">Dublin Core</title>
         <backend syntax="usmarc" name="F"/>
         <convert>
           <marc inputformat="marc" outputformat="marcxml"
@@ -276,18 +302,8 @@
     </retrieval>
   </retrievalInfo>
 
+<!--
   <schemaInfo>
-
-    <izx:recordSyntax identifier="1.2.840.10003.5.10">
-      <title lang="en" primary="true">MARC21</title>
-      <elementSet name="B">
-        <title lang="en" primary="true">Brief Record</title>
-      </elementSet>
-      <elementSet name="F">
-        <title lang="en" primary="true">Full Record</title>
-      </elementSet>
-    </izx:recordSyntax>
-
     <schema identifier="info:srw/schema/2/rec-1.0"
             location="http://srw.cheshire3.org/schemas/rec/1.0/rec.xsd" 
             name="rec"
@@ -314,7 +330,7 @@
       <title lang="en">MarcXML</title>
     </schema>
   </schemaInfo>
-
+-->
  
   <configInfo>
 
