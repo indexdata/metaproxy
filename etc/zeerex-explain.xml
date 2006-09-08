@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: zeerex-explain.xml,v 1.2 2006-09-07 11:48:08 marc Exp $ -->
+<!-- $Id: zeerex-explain.xml,v 1.3 2006-09-08 12:52:02 marc Exp $ -->
 
 <!-- this file configures the SRU/SRW explain response -->
 <!-- see: http://explain.z3950.org/dtd/commentary.html -->
@@ -69,6 +69,196 @@
     <dateAggregated>2002-03-30 06:30:00</dateAggregated>
   </metaInfo>
   -->
+
+
+
+  <!-- tricky problem of mapping PQF to CQL or 
+       other query forms (Opensearch?? -->
+  <!--
+  PQF query language evaluation in most natural order
+  boolean:            @and, @or, @not, @prox
+  boolean modifier:   @prox exclusion distance ordered relation which unit 
+                      @prox 0 3 1 2 k 2 term1 term2
+  attrset:            bib-1, exp-1, gils
+  1=Use:              4=Title 7=ISBN 8=ISSN 30=Date 62=Abstract 
+                      1003=Author 1016=Any
+  4=Structure:        1=Phrase  2=Word  3=Key  4=Year  5=Date  6=WordList
+  2=Relation:         1<   2<=  3=  4>=  5>  6!=  102=Relevance
+  5=Truncation:       1=Right  2=Left  3=L&R  100=No  101=#  102=Re-1  103=Re-2
+  6=Completeness:     1=Incompl subfield  2=Complete subfield  3=Complete field
+  3=Position:         1=First in Field  2=First in subfield  3=Any position
+  term:               fish, "fish and chips"
+  regexp:             ...
+  -->
+  <!--
+  CQL query language evaluation in most natural order
+  boolean:            and, or, not, prox
+  boolean mod set:    and/rel.sum (cql is default)
+  boolean modifier:   distance, unit, ordered, unordered
+  boolean mod rel:    =, <, >, prox/distance=1, prox/distance>2
+  boolean mod qual:   prox/distance=1/unit=word, prox/distance>2/ordered 
+  set name:           cql, rec, dc
+  index name:         cql.all, cql.serverChoice, rec.id, dc.title
+  relation:           <, <=, =, >, >=, <>, exact, all, any
+  relation mod set:   cql (default), rel
+  relation mod name:  relevant, phonetic, stem 
+                      any/relevant/rel.CORI 
+  relation mod qual:  word, string, isoDate, number, uri, masked, unmasked
+                      =/relevant=word
+  anchoring:          ^left, right^, "^cat in the hat" 
+  masking char:       *, ?, c*t, c?t 
+  term:               fish, "fish and chips"
+  -->
+
+  <queryInfo
+      xmlns="http://indexdata.com/query"
+      version="1.0">
+    <syntax name="cql" 
+            identifier=""
+            location="">
+      <boolean name="and"/>
+      <boolean name="or"/>
+      <boolean name="not"/>
+      <!--
+      <boolean name="prox">
+        <boolean_mod_rel name="="/>
+        <boolean_mod name="distance">
+          <boolean_mod_rel name="="/>
+          <boolean_mod_rel name="&lt;"/>
+          <boolean_mod_rel name="&gt;"/>
+        </boolean_mod>
+        <boolean_mod name="unit">
+          <boolean_mod_qual name="sentence"/>
+          <boolean_mod_qual name="word"/>
+        </boolean_mod>
+        <boolean_modifier name="ordered" name=""/>
+        <boolean_modifier name="unordered" name=""/>
+      </boolean>
+      -->
+
+      <relation name="=" default="true"/>
+
+      <set name="cql" default="true" 
+           identifier="info:srw/cql-context-set/1/cql-v1.1">
+        <title>CQL Standard Set</title>
+        <index name="all" default="true">
+          <relation name="=" default="true">
+            <relation_mod_set name="cql" default="true">
+              <relation_mod name="relevant"/>
+            </relation_mod_set>
+            <relation_mod_set name="rel">
+              <relation_mod name="foo"/>
+              <relation_mod name="bar"/>
+            </relation_mod_set>
+          </relation>
+          <mask name="*"/>
+          <mask name="?"/>
+          <anchor name="^" type="right"/>
+          <anchor name="^" type="left"/>
+        </index>
+        <index name="serverChoice"/>
+      </set>
+      <set name="rec" identifier="info:srw/cql-context-set/2/rec-1.0">
+        <title>Record Standard Set</title>
+        <index name="id" default="true"/>
+      </set>
+      <set name="dc" identifier="info:srw/cql-context-set/1/dc-v1.1">
+        <title>Dublin Core Set</title>
+        <index name="title"/>
+        <index name="description"/>
+        <index name="author" identifier="creator"/>
+        <index name="creator"/>
+        <index name="date">
+          <relation name="=" default="true"/>
+          <relation name="&lt;"/>
+          <relation name="&gt;"/>
+        </index>
+        <index name="publisher"/>
+      </set>
+    </syntax>
+    <syntax name="pqf" 
+            identifier=""
+            location="">
+      <set name="bib1" identifier="1.2.840.10003.3.1">
+        <title>BIB-1 Z39.50 Standard Set</title>
+        <structure name="2" default="true"/>
+        <structure name="1"/>
+        <relation name="3"/>
+        <truncation name="100"/>
+        <completeness name="3"/>
+        <position name="3"/>
+        <use name="4">
+          <title>Title</title>
+        </use>
+        <use name="7">
+          <title>ISBN</title>
+          <structure name="3">
+            <relation name="3" default="true"/>
+            <relation name="1"/>
+            <relation name="4"/>
+          </structure>
+        </use>
+        <use name="8">
+          <title>ISSN</title>
+          <structure name="3"/>
+        </use>
+        <use name="30">
+          <title>Date</title>
+          <structure name="5"/>
+        </use>
+        <use name="62">
+          <title>Abstract</title>
+        </use>
+        <use name="1003">
+          <title>Author</title>
+        </use>
+        <use name="1016">
+          <title>Any</title>
+          <structure name="2">
+            <relation name="3" default="true"/>
+            <relation name="102">
+              <truncation name="100" default="true"/>
+              <truncation name="101"/>
+              <truncation name="102"/>
+            </relation>
+          </structure>
+        </use>
+      </set>
+      <set name="exp1" identifier="">
+        <title>Explain Z39.50 Standard Set</title>
+      </set>
+      <set name="gils" identifier="">
+        <title>Gils Z39.50 Standard Set</title>
+      </set>
+    </syntax>
+    <syntax name="ccl" 
+            identifier=""
+            location="">
+      <title xml:lang="en">CCL Query Language - English Configuration</title>
+      <title xml:lang="da">CCL Søgesprog - Dansk Konfiguration</title>
+      <boolean xml:lang="en" name="and" default="true" identifier="and"/>
+      <boolean xml:lang="en" name="or" identifier="or"/>
+      <boolean xml:lang="en" name="not" identifier="not"/>
+      <boolean xml:lang="da" name="og" default="true" identifier="and"/>
+      <boolean xml:lang="da" name="eller" identifier="or"/>
+      <boolean xml:lang="da" name="ikke" identifier="not"/>
+
+      <relation name="=" default="true"/>
+
+      <index xml:lang="en" name="title"/>
+      <index xml:lang="en" name="description" default="true"/>
+      <index xml:lang="en" name="author" identifier="creator"/>
+      <index xml:lang="en" name="creator"/>
+      <index xml:lang="en" name="publisher"/>
+      <index xml:lang="da" name="titel" identifier="title"/>
+      <index xml:lang="da" name="beskrivelse"  default="true" 
+             identifier="description"/>
+      <index xml:lang="da" name="author" identifier="creator"/>
+      <index xml:lang="da" name="ophav" identifier="creator"/>
+      <index xml:lang="da" name="editor" identifier="publisher"/>
+    </syntax>
+  </queryInfo>
+
 
 
   <indexInfo>
@@ -238,7 +428,7 @@
   -->
 
   <retrievalInfo 
-      xmlns="http://indexdata.com/yaz"
+      xmlns="http://indexdata.com/retrieval"
       version="1.0">
     <retrieval 
         syntax="grs-1"
