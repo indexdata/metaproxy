@@ -1,4 +1,4 @@
-/* $Id: factory_static.cpp,v 1.11 2006-08-31 13:01:09 marc Exp $
+/* $Id: factory_static.cpp,v 1.12 2006-09-13 10:43:24 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -24,6 +24,7 @@
 #include "filter_multi.hpp"
 #include "filter_query_rewrite.hpp"
 #include "filter_session_shared.hpp"
+#include "filter_sru_to_z3950.hpp"
 #include "filter_template.hpp"
 #include "filter_virt_db.hpp"
 #include "filter_z3950_client.hpp"
@@ -42,6 +43,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_multi,
         &metaproxy_1_filter_query_rewrite,
         &metaproxy_1_filter_session_shared,
+        &metaproxy_1_filter_sru_to_z3950,
         &metaproxy_1_filter_template,
         &metaproxy_1_filter_virt_db,
         &metaproxy_1_filter_z3950_client,

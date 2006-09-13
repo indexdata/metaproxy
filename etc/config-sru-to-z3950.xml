@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!-- $Id: config-sru-to-z3950.xml,v 1.1 2006-09-13 10:43:21 marc Exp $ -->
+<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+  <start route="start"/>
+  <filters>
+    <filter id="frontend" type="frontend_net">
+      <threads>10</threads>
+      <port>@:9000</port>
+    </filter>
+    <filter id="backend" type="z3950_client">
+     <timeout>30</timeout>
+    </filter>
+  </filters>
+  <routes>  
+    <route id="start">
+      <filter refid="frontend"/>
+      <filter type="log">
+        <message>SRU/W</message>
+      </filter>
+      <filter type="SRUtoZ3950"/>
+      <filter type="log">
+        <message>Z3950</message>
+      </filter>
+     <filter type="virt_db">
+        <virtual>
+          <database>Default</database>
+          <target>localhost:1314/Default</target>
+        </virtual>
+      </filter>
+      <filter refid="backend"/>
+      <filter type="bounce"/>
+    </route>
+  </routes>
+</yp2>
+

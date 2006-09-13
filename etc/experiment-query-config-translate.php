@@ -9,6 +9,13 @@ print_r($command->command());
 $config = new Config;
 $config->load($command->config());
 $config->parse();
+$config->cql_check_boolean("and");
+$config->cql_check_boolean("notexist");
+$config->cql_check_apt("cql", "all", "=");
+$config->cql_check_apt("cql", "all", "notexist");
+$config->cql_check_apt("cql", "notexist", "=");
+$config->cql_check_apt("notexist", "all", "<>");
+
 
 print("DONE\n");
 exit(0);
@@ -122,15 +129,44 @@ class Config {
     $namespaces =  $this->xml_conf->getNamespaces(true);
     foreach ($namespaces as $ns){
       print("namespace '" . $ns . "'\n");
-    } 
-
+    }
 
     foreach ($this->xml_conf->xpath('//iq:syntax') as $syntax){
       print("syntax '" . $syntax['name']  . "'\n");
+    }    
+    
+  }
+  
+  public function cql_check_boolean($boolean){
+    foreach ($this->xml_conf->xpath("//iq:syntax[@name='cql']//iq:boolean") 
+             as $b){
+      if ($b['name'] == $boolean ){
+        print("CQL boolean '" . $boolean . "' exists\n");
+        return;
+      }    
     }
-   
+    print("CQL boolean '" . $boolean . "' error\n");
+  }
+
+  public function cql_check_apt($set, $index, $relation){
+        print("CQL APT set'" . $set . "' index '" . $index 
+              . "' relation '" . $relation . "' check\n");
     
-    
+   foreach ($this->xml_conf->xpath("//iq:syntax[@name='cql']//iq:set") 
+             as $s){
+      if ($s['name'] == $set ){
+        print("CQL APT set'" . $set . "' OK\n");
+        foreach ($set->xpath("//iq:index") as $i){
+          
+        print("CQL APT set'" . $set . "' OK index '" . $index . "' ERROR\n");
+        return;
+        }
+        
+        print("CQL APT set'" . $set . "' OK index '" . $index . "' ERROR\n");
+        return;
+      }    
+    }
+    print("CQL APT set'" . $set . "' ERROR\n");
   }
   
 }
