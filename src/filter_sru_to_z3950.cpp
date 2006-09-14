@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.3 2006-09-13 21:49:34 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.4 2006-09-14 11:51:08 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -27,12 +27,30 @@ namespace metaproxy_1
 {
 
     template<typename T>
-    std::string stringify(const T& x)
+    std::string to_string(const T& t)
     {
         std::ostringstream o;
-        o << x;
-        return o.str();
+        if(o << t)
+            return o.str();
+        
+        return std::string();
     }
+
+    std::string http_header_value(const Z_HTTP_Header* header, 
+                                  const std::string name)
+    {
+        while (header && header->name
+               && std::string(header->name) !=  name)
+            header = header->next;
+        
+        if (header && header->name && std::string(header->name) == name
+            && header->value)
+            return std::string(header->value);
+
+        return std::string();
+    }
+    
+
 }
 
 
@@ -44,7 +62,7 @@ namespace metaproxy_1 {
             void configure(const xmlNode *xmlnode);
             void process(metaproxy_1::Package &package) const;
         private:
-            std::string protocol_type(const Z_HTTP_Request &http_req) const;
+            std::string sru_protocol(const Z_HTTP_Request &http_req) const;
             std::string debug_http(const Z_HTTP_Request &http_req) const;
             void http_response(metaproxy_1::Package &package, 
                                const std::string &content, 
@@ -84,37 +102,80 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
         package.move();
         return;
     }
-
-
- 
     
     // only working on  HTTP_Request packages now
     Z_HTTP_Request* http_req =  zgdu_req->u.HTTP_Request;
 
-    // TODO: SRU package checking and translation to Z3950 package
+    // SRU request package checking
  
-    std::cout << protocol_type(*http_req) << "\n";
+    // std::cout << "Detected " << sru_protocol(*http_req) << "\n";
 
-    package.move();
-    return;
-
-
-
-//     int ret_code = 2;  /* 2=NOT TAKEN, 1=TAKEN, 0=SOAP TAKEN */
-//     Z_SRW_PDU *sru_res = 0;
-//     Z_SOAP *soap_package = 0;
-//     char *charset = 0;
-//     Z_SRW_diagnostic *diagnostic = 0;
-//     int num_diagnostic = 0;
-//     mp::odr odr;
+    Z_SRW_PDU *sru_pdu_req = 0;
+    Z_SOAP *soap_req = 0;
+    char *charset = 0;
+    Z_SRW_diagnostic *diag = 0;
+    int num_diags = 0;
+    mp::odr odr(ODR_DECODE);
     
-//     ret_code = yaz_sru_decode(http_req, &sru_res, 
-//                                    &soap_package, odr, &charset,
-//                                    &diagnostic, &num_diagnostic)))
-//      
-//     ret_code = yaz_srw_decode(http_req, &sru_res, 
-//                                         &soap_package, odr, &charset)))
+    if (0 == yaz_sru_decode(http_req, &sru_pdu_req, &soap_req, 
+                            odr, &charset, &diag, &num_diags))
+    {
+        std::cout << "SRU GET/POST \n";
+    }
+    else if (0 == yaz_srw_decode(http_req, &sru_pdu_req, &soap_req, 
+                                 odr, &charset))
+    {
+        std::cout << "SRU SOAP \n";
+    } 
+    else 
+    {
+        std::cout << "SRU DECODING ERROR - SHOULD NEVER HAPPEN\n";
+        package.session().close();
+        return;
+    }
 
+    if (num_diags)
+    {
+        std::cout << "SRU DIAGNOSTICS " << num_diags << "\n";
+        // TODO: make nice diagnostic return package 
+        //Z_SRW_PDU *srw_pdu_res =
+        //            yaz_srw_get(odr(ODR_ENCODE),
+        //                        Z_SRW_searchRetrieve_response);
+        //        Z_SRW_searchRetrieveResponse *srw_res = srw_pdu_res->u.response;
+
+        //        srw_res->diagnostics = diagnostic;
+        //        srw_res->num_diagnostics = num_diagnostic;
+        //        send_srw_response(srw_pdu_res);
+        //        return;
+
+        // package.session().close();
+        return;
+    }
+
+    
+    // SRU request package translation to Z3950 package
+
+    // searchRetrieve
+    if (sru_pdu_req && sru_pdu_req->which == Z_SRW_searchRetrieve_request)
+    {
+        Z_SRW_searchRetrieveRequest *srw_req = sru_pdu_req->u.request;   
+
+        // recordXPath unsupported.
+        //if (srw_req->recordXPath)
+        //    yaz_add_srw_diagnostic(odr_decode(),
+        //                           &diag, &num_diags, 72, 0);
+        // sort unsupported
+        //    if (srw_req->sort_type != Z_SRW_sort_type_none)
+        //        yaz_add_srw_diagnostic(odr_decode(),
+        //                               &diag, &num_diags, 80, 0);
+    }
+    else
+    {
+        std::cout << "SRU OPERATION NOT SUPPORTED \n";
+        // TODO: make nice diagnostic return package 
+        // package.session().close();
+        return;
+    }
     
 
 
@@ -123,7 +184,7 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
 
 
     // TODO: Z3950 response parsing and translation to SRU package
-    Z_HTTP_Response* http_res = 0;
+    //Z_HTTP_Response* http_res = 0;
 
     std::string content = debug_http(*http_req);
     int http_code = 200;
@@ -134,20 +195,15 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
 }
 
 std::string 
-yf::SRUtoZ3950::Rep::protocol_type(const Z_HTTP_Request &http_req) const
+yf::SRUtoZ3950::Rep::sru_protocol(const Z_HTTP_Request &http_req) const
 {
-    std::string protocol("HTTP");
-
+    const std::string mime_urlencoded("application/x-www-form-urlencoded");
     const std::string mime_text_xml("text/xml");
     const std::string mime_soap_xml("application/soap+xml");
-    const std::string mime_urlencoded("application/x-www-form-urlencoded");
 
     const std::string http_method(http_req.method);
-
-    //const std::string http_type(z_HTTP_header_lookup(http_req.headers, 
-    //                                               "Content-Type"));
-    // TODO: there is a sude condition in the above, fix it in YAZ
-    const std::string http_type("xyz");
+    const std::string http_type 
+        =  http_header_value(http_req.headers, "Content-Type");
 
     if (http_method == "GET")
         return "SRU GET";
@@ -176,12 +232,12 @@ yf::SRUtoZ3950::Rep::debug_http(const Z_HTTP_Request &http_req) const
     message += "<b>Method: </b> " + std::string(http_req.method) + "<br/>\n";
     message += "<b>Version:</b> " + std::string(http_req.version) + "<br/>\n";
     message += "<b>Path:   </b> " + std::string(http_req.path) + "<br/>\n";
+
     message += "<b>Content-Type:</b>"
-        + std::string(z_HTTP_header_lookup(http_req.headers, "Content-Type"))
+        + http_header_value(http_req.headers, "Content-Type")
         + "<br/>\n";
     message += "<b>Content-Length:</b>"
-        + std::string(z_HTTP_header_lookup(http_req.headers, 
-                                           "Content-Length"))
+        + http_header_value(http_req.headers, "Content-Length")
         + "<br/>\n";
     message += "</p>\n";    
     
