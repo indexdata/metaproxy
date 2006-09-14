@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.4 2006-09-14 11:51:08 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.5 2006-09-14 20:29:50 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -64,9 +64,16 @@ namespace metaproxy_1 {
         private:
             std::string sru_protocol(const Z_HTTP_Request &http_req) const;
             std::string debug_http(const Z_HTTP_Request &http_req) const;
-            void http_response(metaproxy_1::Package &package, 
+            void http_response(mp::Package &package, 
                                const std::string &content, 
                                int http_code = 200) const;
+            bool build_sru_debug_package(mp::Package &package) const;
+            bool z3950_init_request(mp::Package &package, 
+                                         const std::string 
+                                         &database = "Default") const;
+            bool z3950_close_request(mp::Package &package) const;
+            bool z3950_search_request(mp::Package &package) const;
+            bool z3950_scan_request(mp::Package &package) const;
         };
     }
 }
@@ -104,26 +111,50 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
     }
     
     // only working on  HTTP_Request packages now
+
+    z3950_init_request(package);
+    //z3950_search_request(package);
+    //z3950_scan_request(package);
+    z3950_close_request(package);
+
+
+    // TODO: Z3950 response parsing and translation to SRU package
     Z_HTTP_Request* http_req =  zgdu_req->u.HTTP_Request;
+
+    
+    build_sru_debug_package(package);
+    return;
+
+
+
+
+
+
+
 
     // SRU request package checking
  
-    // std::cout << "Detected " << sru_protocol(*http_req) << "\n";
 
+    Z_GDU *zgdu_res = 0; 
     Z_SRW_PDU *sru_pdu_req = 0;
+    Z_SRW_PDU *sru_pdu_res = 0;
+    Z_APDU *z3950_apdu_req = 0;
+    Z_APDU *z3950_apdu_res = 0;
+    
+
     Z_SOAP *soap_req = 0;
     char *charset = 0;
     Z_SRW_diagnostic *diag = 0;
     int num_diags = 0;
-    mp::odr odr(ODR_DECODE);
+    //mp::odr odr_de(ODR_DECODE);
     
     if (0 == yaz_sru_decode(http_req, &sru_pdu_req, &soap_req, 
-                            odr, &charset, &diag, &num_diags))
+                            odr(ODR_DECODE), &charset, &diag, &num_diags))
     {
         std::cout << "SRU GET/POST \n";
     }
     else if (0 == yaz_srw_decode(http_req, &sru_pdu_req, &soap_req, 
-                                 odr, &charset))
+                                 odr(ODR_DECODE), &charset))
     {
         std::cout << "SRU SOAP \n";
     } 
@@ -176,23 +207,116 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
         // package.session().close();
         return;
     }
-    
 
-
-    // sending Z3950 package through pipeline
-    package.move();
-
-
-    // TODO: Z3950 response parsing and translation to SRU package
-    //Z_HTTP_Response* http_res = 0;
-
-    std::string content = debug_http(*http_req);
-    int http_code = 200;
-    
-    http_response(package, content, http_code);
-
-    //package.response() = zgdu_res;
 }
+
+bool yf::SRUtoZ3950::Rep::build_sru_debug_package(mp::Package &package) const
+{
+    Z_GDU *zgdu_req = package.request().get();
+    if  (zgdu_req && zgdu_req->which == Z_GDU_HTTP_Request)
+    {    
+        Z_HTTP_Request* http_req =  zgdu_req->u.HTTP_Request;
+        std::string content = debug_http(*http_req);
+        int http_code = 400;    
+        http_response(package, content, http_code);
+        return true;
+    }
+    return false;
+}
+
+
+bool 
+yf::SRUtoZ3950::Rep::z3950_init_request(mp::Package &package, 
+                                             const std::string &database) const
+{
+    // prepare Z3950 package 
+    Package z3950_package(package.session(), package.origin());
+    z3950_package.copy_filter(package);
+
+    // set initRequest APDU
+    mp::odr odr_en(ODR_ENCODE);
+    Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_initRequest);
+    //TODO: add database name in apdu
+    z3950_package.request() = apdu;
+
+    // send Z3950 package
+    z3950_package.move();
+    if (z3950_package.session().is_closed()){
+        package.session().close();
+        return false;
+    }
+
+    // check successful initResponse
+    Z_GDU *gdu = package.response().get();
+    if (gdu && gdu->which == Z_GDU_Z3950 
+        && gdu->u.z3950->which == Z_APDU_initResponse)
+        return true;
+
+    return false;
+}
+
+bool 
+yf::SRUtoZ3950::Rep::z3950_close_request(mp::Package &package) const
+{
+    // prepare Z3950 package 
+    Package z3950_package(package.session(), package.origin());
+    z3950_package.copy_filter(package);
+
+    // set initRequest APDU
+    mp::odr odr_en(ODR_ENCODE);
+    Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_close);
+    //TODO: add database name in apdu
+    z3950_package.request() = apdu;
+
+    // send Z3950 package
+    z3950_package.move();
+    //if (z3950_package.session().is_closed()){
+    //    package.session().close();
+    //    return false;
+    //}
+
+    // check successful initResponse
+    Z_GDU *gdu = package.response().get();
+    if (gdu && gdu->which == Z_GDU_Z3950 
+        && gdu->u.z3950->which == Z_APDU_close)
+        return true;
+
+    return false;
+}
+
+bool 
+yf::SRUtoZ3950::Rep::z3950_search_request(mp::Package &package) const
+{
+    Package z3950_package(package.session(), package.origin());
+    z3950_package.copy_filter(package); 
+    mp::odr odr_en(ODR_ENCODE);
+    Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_searchRequest);
+    //TODO: add stuff in apdu
+
+
+    z3950_package.request() = apdu;
+    z3950_package.move();
+    //TODO: check success condition
+    return true;
+    return false;
+}
+
+bool 
+yf::SRUtoZ3950::Rep::z3950_scan_request(mp::Package &package) const
+{
+    Package z3950_package(package.session(), package.origin());
+    z3950_package.copy_filter(package); 
+    mp::odr odr_en(ODR_ENCODE);
+    Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_scanRequest);
+    //TODO: add stuff in apdu
+    z3950_package.request() = apdu;
+    z3950_package.move();
+    //TODO: check success condition
+    return true;
+    return false;
+}
+
+
 
 std::string 
 yf::SRUtoZ3950::Rep::sru_protocol(const Z_HTTP_Request &http_req) const
