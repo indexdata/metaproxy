@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.5 2006-09-14 20:29:50 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.6 2006-09-14 23:07:35 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -112,15 +112,16 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
     
     // only working on  HTTP_Request packages now
 
-    z3950_init_request(package);
-    //z3950_search_request(package);
-    //z3950_scan_request(package);
-    z3950_close_request(package);
-
 
     // TODO: Z3950 response parsing and translation to SRU package
     Z_HTTP_Request* http_req =  zgdu_req->u.HTTP_Request;
 
+    if (z3950_init_request(package))
+    {
+        z3950_search_request(package);
+        z3950_scan_request(package);
+        z3950_close_request(package);
+    }
     
     build_sru_debug_package(package);
     return;
@@ -229,29 +230,50 @@ bool
 yf::SRUtoZ3950::Rep::z3950_init_request(mp::Package &package, 
                                              const std::string &database) const
 {
-    // prepare Z3950 package 
+    // prepare Z3950 package
+    //Session s;
+    //Package z3950_package(s, package.origin());
     Package z3950_package(package.session(), package.origin());
     z3950_package.copy_filter(package);
 
     // set initRequest APDU
     mp::odr odr_en(ODR_ENCODE);
     Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_initRequest);
-    //TODO: add database name in apdu
+    Z_InitRequest *init_req = apdu->u.initRequest;
+    //TODO: add user name in apdu
+    //TODO: add user passwd in apdu
+    //init_req->idAuthentication = org_init->idAuthentication;
+    //init_req->implementationId = "IDxyz";
+    //init_req->implementationName = "NAMExyz";
+    //init_req->implementationVersion = "VERSIONxyz";
+
+    ODR_MASK_SET(init_req->options, Z_Options_search);
+    ODR_MASK_SET(init_req->options, Z_Options_present);
+    ODR_MASK_SET(init_req->options, Z_Options_namedResultSets);
+    ODR_MASK_SET(init_req->options, Z_Options_scan);
+
+    ODR_MASK_SET(init_req->protocolVersion, Z_ProtocolVersion_1);
+    ODR_MASK_SET(init_req->protocolVersion, Z_ProtocolVersion_2);
+    ODR_MASK_SET(init_req->protocolVersion, Z_ProtocolVersion_3);
+
     z3950_package.request() = apdu;
 
     // send Z3950 package
     z3950_package.move();
+
+    // dead Z3950 backend detection
     if (z3950_package.session().is_closed()){
         package.session().close();
         return false;
     }
 
     // check successful initResponse
-    Z_GDU *gdu = package.response().get();
-    if (gdu && gdu->which == Z_GDU_Z3950 
-        && gdu->u.z3950->which == Z_APDU_initResponse)
-        return true;
+    Z_GDU *z3950_gdu = z3950_package.response().get();
 
+    if (z3950_gdu && z3950_gdu->which == Z_GDU_Z3950 
+        && z3950_gdu->u.z3950->which == Z_APDU_initResponse)
+         return true;
+ 
     return false;
 }
 
@@ -270,15 +292,17 @@ yf::SRUtoZ3950::Rep::z3950_close_request(mp::Package &package) const
 
     // send Z3950 package
     z3950_package.move();
-    //if (z3950_package.session().is_closed()){
-    //    package.session().close();
-    //    return false;
-    //}
 
-    // check successful initResponse
-    Z_GDU *gdu = package.response().get();
-    if (gdu && gdu->which == Z_GDU_Z3950 
-        && gdu->u.z3950->which == Z_APDU_close)
+    // dead Z3950 backend detection
+    if (z3950_package.session().is_closed()){
+        //package.session().close();
+        return true;
+    }
+
+    // check successful close response
+    Z_GDU *z3950_gdu = z3950_package.response().get();
+    if (z3950_gdu && z3950_gdu->which == Z_GDU_Z3950 
+        && z3950_gdu->u.z3950->which == Z_APDU_close)
         return true;
 
     return false;
@@ -291,8 +315,62 @@ yf::SRUtoZ3950::Rep::z3950_search_request(mp::Package &package) const
     z3950_package.copy_filter(package); 
     mp::odr odr_en(ODR_ENCODE);
     Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_searchRequest);
-    //TODO: add stuff in apdu
 
+    //TODO: add stuff in apdu
+    Z_SearchRequest *z_searchRequest = apdu->u.searchRequest;
+    z_searchRequest->num_databaseNames = 1;
+    //z_searchRequest->databaseNames = (char**)
+    //    odr_malloc(m_s2z_odr_search, sizeof(char *));
+    //z_searchRequest->databaseNames[0] = odr_strdup(m_s2z_odr_search,
+
+    // TODO query transformation
+    Z_Query *query = (Z_Query *) odr_malloc(odr_en, sizeof(Z_Query));
+    z_searchRequest->query = query;
+
+//             if (srw_req->query_type == Z_SRW_query_type_cql)
+//             {
+//                 Z_External *ext = (Z_External *) 
+//                     odr_malloc(m_s2z_odr_search, sizeof(*ext));
+//                 ext->direct_reference = 
+//                     odr_getoidbystr(m_s2z_odr_search, "1.2.840.10003.16.2");
+//                 ext->indirect_reference = 0;
+//                 ext->descriptor = 0;
+//                 ext->which = Z_External_CQL;
+//                 ext->u.cql = srw_req->query.cql;
+                
+//                 query->which = Z_Query_type_104;
+//                 query->u.type_104 =  ext;
+//             }
+//             else if (srw_req->query_type == Z_SRW_query_type_pqf)
+//                Z_RPNQuery *RPNquery;
+//                 YAZ_PQF_Parser pqf_parser;
+                
+//                 pqf_parser = yaz_pqf_create ();
+                
+//                 RPNquery = yaz_pqf_parse (pqf_parser, m_s2z_odr_search,
+//                                           srw_req->query.pqf);
+//                 if (!RPNquery)
+//                 {
+//                     const char *pqf_msg;
+//                     size_t off;
+//                     int code = yaz_pqf_error (pqf_parser, &pqf_msg, &off);
+//                     int ioff = off;
+//                     yaz_log(YLOG_LOG, "%*s^\n", ioff+4, "");
+//                     yaz_log(YLOG_LOG, "Bad PQF: %s (code %d)\n", pqf_msg, code);
+                    
+//                     send_to_srw_client_error(10, 0);
+//                     return;
+//                 }
+//                 query->which = Z_Query_type_1;
+//                 query->u.type_1 =  RPNquery;
+                
+//                 yaz_pqf_destroy (pqf_parser);
+//             }
+//             else
+//             {
+//                 send_to_srw_client_error(7, "query");
+//                 return;
+//             }
 
     z3950_package.request() = apdu;
     z3950_package.move();
