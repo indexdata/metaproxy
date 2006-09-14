@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.6 2006-09-07 12:12:21 adam Exp $
+/* $Id: gduutil.cpp,v 1.7 2006-09-14 19:56:51 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -114,7 +114,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 os << a->u.idPass->userId << " ";
             //<< ":" << a->u.idPass->groupId << " ";
             else
-                os << "--" << " ";
+                os << "-" << " ";
 
             std::list<std::string> vhosts;
             mp::util::get_vhost_otherinfo(ir->otherInfo, vhosts);
@@ -123,7 +123,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                      ostream_iterator<string>(os, " "));
             }
                 else
-                    os << "--" << " " ;
+                    os << "-" << " " ;
 
             os << (ir->implementationId) << " "
                 //<< ir->referenceId << " "
