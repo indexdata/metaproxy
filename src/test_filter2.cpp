@@ -1,4 +1,4 @@
-/* $Id: test_filter2.cpp,v 1.20 2006-06-10 14:29:12 adam Exp $
+/* $Id: test_filter2.cpp,v 1.21 2006-09-14 19:53:57 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -25,7 +25,6 @@ class FilterConstant: public mp::filter::Base {
 public:
     FilterConstant() : m_constant(1234) { };
     void process(mp::Package & package) const {
-	package.data() = m_constant;
 	package.move();
     };
     void configure(const xmlNode* ptr = 0);
@@ -78,7 +77,6 @@ void FilterConstant::configure(const xmlNode* ptr)
 class FilterDouble: public mp::filter::Base {
 public:
     void process(mp::Package & package) const {
-	package.data() = package.data() * 2;
 	package.move();
     };
 };
@@ -104,7 +102,7 @@ BOOST_AUTO_UNIT_TEST( testfilter2_1 )
 	    
 	    pack.router(router1).move(); 
 	    
-            BOOST_CHECK_EQUAL(pack.data(), 2468);
+            //BOOST_CHECK_EQUAL(pack.data(), 2468);
             
         }
         
@@ -120,7 +118,7 @@ BOOST_AUTO_UNIT_TEST( testfilter2_1 )
 	 
             pack.router(router2).move();
      
-            BOOST_CHECK_EQUAL(pack.data(), 1234);
+            //BOOST_CHECK_EQUAL(pack.data(), 1234);
             
 	}
 

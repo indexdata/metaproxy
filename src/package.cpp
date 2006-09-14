@@ -1,4 +1,4 @@
-/* $Id: package.cpp,v 1.16 2006-08-30 14:37:11 marc Exp $
+/* $Id: package.cpp,v 1.17 2006-09-14 19:53:57 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -13,7 +13,7 @@
 namespace mp = metaproxy_1;
 
 mp::Package::Package() 
-    : m_route_pos(0), m_data(0)
+    : m_route_pos(0)
 {
 }
 
@@ -24,7 +24,7 @@ mp::Package::~Package()
 
 mp::Package::Package(mp::Session &session, const mp::Origin &origin) 
     : m_session(session), m_origin(origin),
-      m_route_pos(0), m_data(0)
+      m_route_pos(0)
 {
 }
 
@@ -62,23 +62,6 @@ void mp::Package::move(std::string route)
 mp::Session & mp::Package::session()
 {
     return m_session;
-}
-
-
-int mp::Package::data() const
-{
-    return m_data;
-}
-
-int & mp::Package::data()
-{
-    return m_data;
-}
-        
-mp::Package & mp::Package::data(const int & data)
-{
-    m_data = data;
-    return *this;
 }
 
 mp::Origin mp::Package::origin() const 

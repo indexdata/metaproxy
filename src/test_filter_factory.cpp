@@ -1,4 +1,4 @@
-/* $Id: test_filter_factory.cpp,v 1.13 2006-06-10 14:29:12 adam Exp $
+/* $Id: test_filter_factory.cpp,v 1.14 2006-09-14 19:53:57 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -27,7 +27,7 @@ public:
 
 void XFilter::process(mp::Package & package) const
 {
-    package.data() = 1;
+    //package.data() = 1;
 }
 
 static mp::filter::Base* xfilter_creator(){
@@ -42,7 +42,7 @@ public:
 
 void YFilter::process(mp::Package & package) const
 {
-    package.data() = 2;
+    //package.data() = 2;
 }
 
 static mp::filter::Base* yfilter_creator(){
@@ -76,10 +76,10 @@ BOOST_AUTO_UNIT_TEST( test_filter_factory_1 )
 
         mp::Package pack;
         xfilter->process(pack);
-        BOOST_CHECK_EQUAL(pack.data(), 1);
+        //BOOST_CHECK_EQUAL(pack.data(), 1);
 
         yfilter->process(pack);
-        BOOST_CHECK_EQUAL(pack.data(), 2);
+        //BOOST_CHECK_EQUAL(pack.data(), 2);
     }
     catch ( ... ) {
         throw;
@@ -109,7 +109,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_factory_2 )
 
         mp::Package pack;
         filter->process(pack);
-        BOOST_CHECK_EQUAL(pack.data(), 42); // magic from filter_dl ..
+        //BOOST_CHECK_EQUAL(pack.data(), 42); // magic from filter_dl ..
     }
     catch ( ... ) {
         throw;

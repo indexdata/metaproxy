@@ -1,4 +1,4 @@
-/* $Id: package.hpp,v 1.22 2006-08-30 10:48:52 adam Exp $
+/* $Id: package.hpp,v 1.23 2006-09-14 19:53:57 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -67,15 +67,6 @@ namespace metaproxy_1 {
         metaproxy_1::Session & session();
         
         /// get function - right val in assignment
-        int data() const;
-
-        /// set function - left val in assignment
-        int & data();
-        
-        /// set function - can be chained
-        Package & data(const int & data);
-        
-        /// get function - right val in assignment
         Origin origin() const;
         
         /// set function - left val in assignment
@@ -99,7 +90,7 @@ namespace metaproxy_1 {
 
         RoutePos *m_route_pos;
 
-        int m_data;
+        //int m_data;
         
         yazpp_1::GDU m_request_gdu;
         yazpp_1::GDU m_response_gdu;

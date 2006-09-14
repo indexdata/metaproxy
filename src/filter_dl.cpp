@@ -1,4 +1,4 @@
-/* $Id: filter_dl.cpp,v 1.6 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_dl.cpp,v 1.7 2006-09-14 19:53:57 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -22,7 +22,6 @@ namespace metaproxy_1 {
 
 void mp::filter::Filter_dl::process(mp::Package & package) const
 {
-    package.data() = 42;   // magic checked in test_filter_factory
 }
 
 static mp::filter::Base* filter_creator()
