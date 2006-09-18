@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.7 2006-09-14 19:56:51 marc Exp $
+/* $Id: gduutil.cpp,v 1.8 2006-09-18 10:25:00 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -21,11 +21,23 @@ namespace mp_gdu = metaproxy_1::gdu;
 std::ostream& std::operator<<(std::ostream& os,  Z_GDU& zgdu)
 {
     if (zgdu.which == Z_GDU_Z3950)
-        os << "Z3950" << " " << *(zgdu.u.z3950) ;
+    {
+        os << "Z3950";
+        if (zgdu.u.z3950)
+            os << *(zgdu.u.z3950);
+    }
     else if (zgdu.which == Z_GDU_HTTP_Request)
-        os << "HTTP_Request" << " " << *(zgdu.u.HTTP_Request);
+    {
+        os << "HTTP_Request";
+        if (zgdu.u.HTTP_Request)
+            os << " " << *(zgdu.u.HTTP_Request);
+    }
     else if (zgdu.which == Z_GDU_HTTP_Response)
-        os << "HTTP_Response" << " " << *(zgdu.u.HTTP_Response);
+    {
+        os << "HTTP_Response";
+        if (zgdu.u.HTTP_Response)
+            os << " " << *(zgdu.u.HTTP_Response);
+    }
     else
         os << "Z_GDU";
     return os;
@@ -52,7 +64,8 @@ std::ostream& std::operator<<(std::ostream& os, Z_Records & rs)
     case Z_Records_DBOSD :
         break;
     case Z_Records_NSD:
-        os << *(rs.u.nonSurrogateDiagnostic);
+        if (rs.u.nonSurrogateDiagnostic)
+            os << *(rs.u.nonSurrogateDiagnostic);
         break;
     case Z_Records_multipleNSD:
         os << "Z_Records_multipleNSD";
@@ -69,7 +82,8 @@ std::ostream& std::operator<<(std::ostream& os, Z_DiagRec& dr)
 {
     switch(dr.which) {
     case Z_DiagRec_defaultFormat:
-        os << *(dr.u.defaultFormat);
+        if (dr.u.defaultFormat)
+            os << *(dr.u.defaultFormat);
         break;
     case Z_DiagRec_externallyDefined :
         os << "Z_DiagRec_externallyDefined";
@@ -83,7 +97,9 @@ std::ostream& std::operator<<(std::ostream& os, Z_DiagRec& dr)
 
 std::ostream& std::operator<<(std::ostream& os, Z_DefaultDiagFormat& ddf)
 {
-    os << *(ddf.condition) << " ";
+    if (ddf.condition)
+        os << *(ddf.condition) << " ";
+
     switch(ddf.which) {
     case Z_DefaultDiagFormat_v2Addinfo:
         os << ddf.u.v2Addinfo;
@@ -103,7 +119,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
     switch(zapdu.which) {
 
     case Z_APDU_initRequest:
-        os << "initRequest" << " ";
+        os << " " << "initRequest" << " ";
                         
         {
             Z_InitRequest *ir 
@@ -132,11 +148,11 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         }
         break;
     case Z_APDU_initResponse:
-        os << "initResponse" << " ";
+        os << " " << "initResponse" << " ";
         {
             Z_InitResponse *ir 
                 = zapdu.u.initResponse;
-            if (*(ir->result))
+            if (ir->result && *(ir->result))
                 os << "OK" << " "
                    << (ir->implementationId) << " "
                     //<< ir->referenceId << " "
@@ -147,7 +163,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         }
         break;
     case Z_APDU_searchRequest:
-        os << "searchRequest" << " ";
+        os << " " << "searchRequest" << " ";
         { 
             Z_SearchRequest *sr 
                 = zapdu.u.searchRequest;
@@ -168,16 +184,27 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         }
         break;
     case Z_APDU_searchResponse:
-        os << "searchResponse" << " ";
+        os << " " << "searchResponse" << " ";
         {
             Z_SearchResponse *sr 
                 = zapdu.u.searchResponse;
-            if (*(sr->searchStatus))
-                os << "OK" << " "
-                   << *(sr->resultCount) << " "
-                    //<< sr->referenceId << " "
-                   << *(sr->numberOfRecordsReturned) << " "
-                   << *(sr->nextResultSetPosition);
+            if (sr->searchStatus && *(sr->searchStatus))
+            {
+                os << "OK";
+                if (sr->resultCount)
+                    os << " " << *(sr->resultCount);
+                else
+                    os << " -";
+                //<< sr->referenceId << " "
+                if (sr->numberOfRecordsReturned)
+                    os << " " << *(sr->numberOfRecordsReturned);
+                else
+                    os << " -";
+                if (sr->nextResultSetPosition)
+                    os << " " << *(sr->nextResultSetPosition);
+                else
+                    os << " -";
+            }
             else 
                 if (sr->records)
                     os << "DIAG " << *(sr->records);
@@ -186,7 +213,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         }
         break;
     case Z_APDU_presentRequest:
-        os << "presentRequest" << " ";
+        os << " " << "presentRequest" << " ";
         {
             Z_PresentRequest *pr = zapdu.u.presentRequest;
             os << pr->resultSetId << " "
@@ -196,16 +223,23 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         }
         break;
     case Z_APDU_presentResponse:
-        os << "presentResponse" << " ";
+        os << " " << "presentResponse" << " ";
         {
             Z_PresentResponse *pr 
                 = zapdu.u.presentResponse;
-            if (!*(pr->presentStatus))
-                os << "OK" << " "
-                    //<< "-" << " "
-                    //<< pr->referenceId << " "
-                   << *(pr->numberOfRecordsReturned) << " "
-                   << *(pr->nextResultSetPosition);
+            if ((pr->presentStatus) && !*(pr->presentStatus))
+            {
+                os << "OK";
+                //<< pr->referenceId << " "
+                if (pr->numberOfRecordsReturned)
+                    os << " " << *(pr->numberOfRecordsReturned);
+                else
+                    os << " -";
+                if (pr->nextResultSetPosition)
+                    os << " " << *(pr->nextResultSetPosition);
+                else
+                    os << " -";
+            }
             else
                 if (pr->records)
                     os << "DIAG " << *(pr->records);
@@ -220,228 +254,285 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         }
         break;
     case Z_APDU_deleteResultSetRequest:
-        os << "deleteResultSetRequest";
+        os << " " << "deleteResultSetRequest";
         break;
     case Z_APDU_deleteResultSetResponse:
-        os << "deleteResultSetResponse";
+        os << " " << "deleteResultSetResponse";
         break;
     case Z_APDU_accessControlRequest:
-        os << "accessControlRequest";
+        os << " " << "accessControlRequest";
         break;
     case Z_APDU_accessControlResponse:
-        os << "accessControlResponse";
+        os << " " << "accessControlResponse";
         break;
     case Z_APDU_resourceControlRequest:
-        os << "resourceControlRequest";
+        os << " " << "resourceControlRequest";
         break;
     case Z_APDU_resourceControlResponse:
-        os << "resourceControlResponse";
+        os << " " << "resourceControlResponse";
         break;
     case Z_APDU_triggerResourceControlRequest:
-        os << "triggerResourceControlRequest";
+        os << " " << "triggerResourceControlRequest";
         break;
     case Z_APDU_resourceReportRequest:
-        os << "resourceReportRequest";
+        os << " " << "resourceReportRequest";
         break;
     case Z_APDU_resourceReportResponse:
-        os << "resourceReportResponse";
+        os << " " << "resourceReportResponse";
         break;
     case Z_APDU_scanRequest:
-        os << "scanRequest" << " ";
+        os << " " << "scanRequest" << " ";
         { 
             Z_ScanRequest *sr 
                 = zapdu.u.scanRequest;
-                            
-            for (int i = 0; i < sr->num_databaseNames; i++)
+                        
+            if (sr)
             {
-                os << sr->databaseNames[i];
-                if (i+1 ==  sr->num_databaseNames)
-                    os << " ";
-                else
+                for (int i = 0; i < sr->num_databaseNames; i++)
+                {
+                    os << sr->databaseNames[i];
+                    if (i+1 ==  sr->num_databaseNames)
+                        os << " ";
+                    else
                     os << "+";
+                }
+                if (sr->numberOfTermsRequested)
+                    os << " " << *(sr->numberOfTermsRequested);
+                else
+                     os << " -";
+                if (sr->preferredPositionInResponse)
+                    os << " " << *(sr->preferredPositionInResponse);
+                else
+                    os << " -";
+                if (sr->stepSize)
+                    os << " " << *(sr->stepSize);
+                else
+                    os << " -";
+                
+                if (sr->termListAndStartPoint)
+                {
+                    WRBUF wr = wrbuf_alloc();
+                    yaz_scan_to_wrbuf(wr, sr->termListAndStartPoint, VAL_NONE);
+                    os << wrbuf_buf(wr);
+                    wrbuf_free(wr, 1);
+                }
+                else
+                    os << " -";
             }
-
-            os << *(sr->numberOfTermsRequested) << " "
-               << *(sr->preferredPositionInResponse) << " "
-               << *(sr->stepSize) << " ";
-                         
-            WRBUF wr = wrbuf_alloc();
-            yaz_scan_to_wrbuf(wr, sr->termListAndStartPoint, VAL_NONE);
-            os << wrbuf_buf(wr);
-            wrbuf_free(wr, 1);
         }
         break;
     case Z_APDU_scanResponse:
-        os << "scanResponse" << " ";
+        os << " " << "scanResponse" << " ";
         {
             Z_ScanResponse *sr 
                 = zapdu.u.scanResponse;
-            if (!*(sr->scanStatus))
-                os << "OK" << " "
+            if (sr)
+            {
+                if ((sr->scanStatus) && !*(sr->scanStatus))
+                {
+                    os << "OK";
                     //<< *(sr->scanStatus) << " "
-                   << *(sr->numberOfEntriesReturned) << " "
+                    if (sr->numberOfEntriesReturned)
+                        os << " " << *(sr->numberOfEntriesReturned);
+                    else
+                        os << " -";
                     //<< sr->referenceId << " "
-                   << *(sr->positionOfTerm) << " "
-                   << *(sr->stepSize) << " ";
-            else {
-                os << "ERROR" << " "
-                   << *(sr->scanStatus) << " ";
-                
-                switch (*(sr->scanStatus)){
-                case Z_Scan_success:
-                    os << "success ";
-                    break;
-                case Z_Scan_partial_1:
-                    os << "partial_1";
-                    break;
-                case Z_Scan_partial_2:
-                    os << "partial_2";
-                    break;
-                case Z_Scan_partial_3:
-                    os << "partial_3";
-                        break;
-                case Z_Scan_partial_4:
-                    os << "partial_4";
-                    break;
-                case Z_Scan_partial_5:
-                    os << "partial_5";
-                    break;
-                case Z_Scan_failure:
-                    os << "failure";
-                    break;
-                default:
-                    os << "unknown";
+                    if (sr->positionOfTerm)
+                        os << " " << *(sr->positionOfTerm);
+                    else
+                        os << " -";
+                    if (sr->stepSize)
+                        os << " " << *(sr->stepSize);
+                     else
+                        os << " -";                  
                 }
-                
-                os << " " << *(sr->numberOfEntriesReturned);
+                else {
+                    os << "ERROR";
+                    if (sr->scanStatus)
+                    {
+                        os << " " << *(sr->scanStatus) << " ";
+                    
+                        switch (*(sr->scanStatus)){
+                        case Z_Scan_success:
+                            os << "success ";
+                            break;
+                        case Z_Scan_partial_1:
+                            os << "partial_1";
+                            break;
+                        case Z_Scan_partial_2:
+                            os << "partial_2";
+                            break;
+                        case Z_Scan_partial_3:
+                            os << "partial_3";
+                            break;
+                        case Z_Scan_partial_4:
+                            os << "partial_4";
+                            break;
+                        case Z_Scan_partial_5:
+                            os << "partial_5";
+                            break;
+                        case Z_Scan_failure:
+                            os << "failure";
+                            break;
+                        default:
+                            os << "unknown";
+                        }
+                    }
+                    if (sr->numberOfEntriesReturned)
+                        os << " " << *(sr->numberOfEntriesReturned);
+                    else
+                        os << " -";
+                }
             }
         }
         break;
     case Z_APDU_sortRequest:
-        os << "sortRequest" << " ";
+        os << " " << "sortRequest" << " ";
         break;
     case Z_APDU_sortResponse:
-        os << "sortResponse" << " ";
+        os << " " << "sortResponse" << " ";
         break;
     case Z_APDU_segmentRequest:
-        os << "segmentRequest" << " ";
+        os << " " << "segmentRequest" << " ";
         break;
     case Z_APDU_extendedServicesRequest:
-        os << "extendedServicesRequest" << " ";
+        os << " " << "extendedServicesRequest";
         { 
             Z_ExtendedServicesRequest *er 
                 = zapdu.u.extendedServicesRequest;
-
-            switch(*(er->function))
+            if (er)
             {
-            case Z_ExtendedServicesRequest_create:
-                os << "create";
-                break;
-            case Z_ExtendedServicesRequest_delete:
-                os << "delete";
-                break;
-            case Z_ExtendedServicesRequest_modify:
-                os << "modify";
-                break;
-            default:
-                os << "unknown";
+                if (er->function)
+                {
+                    os << " ";
+                    switch(*(er->function))
+                    {
+                    case Z_ExtendedServicesRequest_create:
+                        os << "create";
+                        break;
+                    case Z_ExtendedServicesRequest_delete:
+                        os << "delete";
+                        break;
+                    case Z_ExtendedServicesRequest_modify:
+                        os << "modify";
+                        break;
+                    default:
+                        os << "unknown";
+                    }
+                }
+                else
+                    os << " -";
+                    
+                
+                if (er->userId)
+                    os << " " << er->userId ;
+                else
+                    os << " -";
+                
+                if (er->packageName)
+                    os << " " << er->packageName;
+                else
+                    os << " -";
+                
+                if (er->description)
+                    os << " " << er->description;
+                else
+                    os << " -";
             }
-
-            if (er->userId)
-                os << " " << er->userId ;
-            else
-                os << " " << "--";
-
-            if (er->packageName)
-                os << " " << er->packageName;
-            else
-                os << " " << "--";
-
-            if (er->description)
-                os << " " << er->description;
-            else
-                os << " " << "--";
         }
         break;
     case Z_APDU_extendedServicesResponse:
-        os << "extendedServicesResponse" << " ";
+        os << " " << "extendedServicesResponse";
          { 
              Z_ExtendedServicesResponse *er 
                  = zapdu.u.extendedServicesResponse;
-
-             switch (*(er->operationStatus)){
-                 case Z_ExtendedServicesResponse_done:
-                     os << "OK";
-                 break;
-                 case Z_ExtendedServicesResponse_accepted:
-                     os << "ACCEPT";
-                 break;
-                 case Z_ExtendedServicesResponse_failure:
-                     if (er->num_diagnostics)
-                         os << "DIAG " << **(er->diagnostics);
-                     else
-                         os << "ERROR";
-                 break;
-             default:
-                 os << "unknown";
+             if (er)
+             {
+                 if (er->operationStatus)
+                 {
+                     os << " ";
+                     switch (*(er->operationStatus)){
+                     case Z_ExtendedServicesResponse_done:
+                         os << "OK";
+                         break;
+                     case Z_ExtendedServicesResponse_accepted:
+                         os << "ACCEPT";
+                         break;
+                     case Z_ExtendedServicesResponse_failure:
+                         if (er->num_diagnostics)
+                             os << "DIAG " << **(er->diagnostics);
+                         else
+                             os << "ERROR";
+                         break;
+                     default:
+                         os << "unknown";
+                     }
+                 }
+                 else
+                     os << " -";
              }
          }
         break;
     case Z_APDU_close:
-        os  << "close" << " ";
+        os  << " " << "close" << " ";
         { 
             Z_Close  *c 
                 = zapdu.u.close;
-            
-            os << *(c->closeReason) << " ";
-            switch (*(c->closeReason)) {
-            case Z_Close_finished:
-                os << "finished";
-                break;
-            case Z_Close_shutdown:
-                os << "shutdown";
-                break;
-            case Z_Close_systemProblem:
-                os << "systemProblem";
-                break;
-            case Z_Close_costLimit:
-                os << "costLimit";
-                break;
-            case Z_Close_resources:
-                os << "resources";
-                break;
-            case Z_Close_securityViolation:
-                os << "securityViolation";
-                break;
-            case Z_Close_protocolError:
-                os << "protocolError";
-                break;
-            case Z_Close_lackOfActivity:
-                os << "";
-                break;
-            case Z_Close_peerAbort:
-                os << "peerAbort";
-                break;
-            case Z_Close_unspecified:
-                os << "unspecified";
-                break;
-            default:
-                os << "unknown";
-                break;
+            if (c)
+            {
+                if (c->closeReason)
+                {
+                    os << *(c->closeReason) << " ";
+
+                    switch (*(c->closeReason)) {
+                    case Z_Close_finished:
+                        os << "finished";
+                        break;
+                    case Z_Close_shutdown:
+                        os << "shutdown";
+                        break;
+                    case Z_Close_systemProblem:
+                        os << "systemProblem";
+                        break;
+                    case Z_Close_costLimit:
+                        os << "costLimit";
+                        break;
+                    case Z_Close_resources:
+                        os << "resources";
+                        break;
+                    case Z_Close_securityViolation:
+                        os << "securityViolation";
+                        break;
+                    case Z_Close_protocolError:
+                        os << "protocolError";
+                        break;
+                    case Z_Close_lackOfActivity:
+                        os << "lackOfActivity";
+                        break;
+                    case Z_Close_peerAbort:
+                        os << "peerAbort";
+                        break;
+                    case Z_Close_unspecified:
+                        os << "unspecified";
+                        break;
+                    default:
+                        os << "unknown";
+                    }
+                }
+                
+                if (c->diagnosticInformation)
+                    os << " " << c->diagnosticInformation;
             }
-			if (c->diagnosticInformation)
-                os << " " << c->diagnosticInformation;
         }
         break;
     case Z_APDU_duplicateDetectionRequest:
-        os << "duplicateDetectionRequest";
+        os << " " << "duplicateDetectionRequest";
         break;
     case Z_APDU_duplicateDetectionResponse:
-        os << "duplicateDetectionResponse";
+        os << " " << "duplicateDetectionResponse";
         break;
     default: 
-        os << "Z_APDU "
-           << "UNKNOWN";
+        os << " " << "Z_APDU " << "UNKNOWN";
     }
 
     return os;
