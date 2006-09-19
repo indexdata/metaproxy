@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.8 2006-09-18 10:25:00 marc Exp $
+/* $Id: gduutil.cpp,v 1.9 2006-09-19 13:50:17 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -537,6 +537,142 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
 
     return os;
 }
+
+
+std::ostream& std::operator<<(std::ostream& os, Z_SRW_PDU& srw_pdu) 
+{
+    os << "SRU";
+    
+    switch(srw_pdu.which) {
+    case  Z_SRW_searchRetrieve_request:
+        os << " " << "searchRetrieveRequest";
+        {
+            Z_SRW_searchRetrieveRequest *sr = srw_pdu.u.request;
+            if (sr)
+            {
+                if (sr->database)
+                    os << " " << (sr->database);
+                else
+                    os << " -";
+                if (sr->startRecord)
+                    os << " " << *(sr->startRecord);
+                else
+                    os << " -";
+                if (sr->maximumRecords)
+                    os << " " << *(sr->maximumRecords);
+                else
+                    os << " -";
+                if (sr->recordPacking)
+                    os << " " << *(sr->recordPacking);
+                else
+                    os << " -";
+                
+                switch (sr->query_type){
+                case Z_SRW_query_type_cql:
+                    os << " CQL " << sr->query.cql;
+                    break;
+                case Z_SRW_query_type_xcql:
+                    os << " XCQL";
+                    break;
+                case Z_SRW_query_type_pqf:
+                    os << " PQF " << sr->query.pqf;
+                    break;
+                }
+            }
+        }
+        break;
+    case  Z_SRW_searchRetrieve_response:
+        os << " " << "searchRetrieveResponse";
+        break;
+    case  Z_SRW_explain_request:
+        os << " " << "explainRequest";
+        break;
+    case  Z_SRW_explain_response:
+        os << " " << "explainResponse";
+        break;
+    case  Z_SRW_scan_request:
+        os << " " << "scanRequest";
+        break;
+    case  Z_SRW_scan_response:
+        os << " " << "scanResponse";
+        break;
+    case  Z_SRW_update_request:
+        os << " " << "updateRequest";
+        break;
+    case  Z_SRW_update_response:
+        os << " " << "updateResponse";
+        break;
+    default: 
+        os << " " << "UNKNOWN";    
+    }
+
+    return os;    
+}
+
+    
+//         {
+//             Z_InitRequest *ir 
+//                 = zapdu.u.initRequest;
+
+//             Z_IdAuthentication *a = ir->idAuthentication;
+//             if (a && a->which == Z_IdAuthentication_idPass )
+//                 os << a->u.idPass->userId << " ";
+//             //<< ":" << a->u.idPass->groupId << " ";
+//             else
+//                 os << "-" << " ";
+
+//             std::list<std::string> vhosts;
+//             mp::util::get_vhost_otherinfo(ir->otherInfo, vhosts);
+//             if (vhosts.size()){
+//                 copy(vhosts.begin(), vhosts.end(), 
+//                      ostream_iterator<string>(os, " "));
+//             }
+//                 else
+//                     os << "-" << " " ;
+
+//             os << (ir->implementationId) << " "
+//                 //<< ir->referenceId << " "
+//                << (ir->implementationName) << " "
+//                << (ir->implementationVersion);
+//         }
+//         break;
+//     case Z_APDU_initResponse:
+//         os << " " << "initResponse" << " ";
+//         {
+//             Z_InitResponse *ir 
+//                 = zapdu.u.initResponse;
+//             if (ir->result && *(ir->result))
+//                 os << "OK" << " "
+//                    << (ir->implementationId) << " "
+//                     //<< ir->referenceId << " "
+//                    << (ir->implementationName) << " "
+//                    << (ir->implementationVersion) << " ";
+//             else
+//                 os << "DIAG";
+//         }
+//         break;
+//     case Z_APDU_searchRequest:
+//         os << " " << "searchRequest" << " ";
+//         { 
+//             Z_SearchRequest *sr 
+//                 = zapdu.u.searchRequest;
+                            
+//             for (int i = 0; i < sr->num_databaseNames; i++)
+//             {
+//                 os << sr->databaseNames[i];
+//                 if (i+1 ==  sr->num_databaseNames)
+//                     os << " ";
+//                 else
+//                     os << "+";
+//             }
+                         
+//             WRBUF wr = wrbuf_alloc();
+//             yaz_query_to_wrbuf(wr, sr->query);
+//             os << wrbuf_buf(wr);
+//             wrbuf_free(wr, 1);
+//         }
+//         break;
+
 
 
 /*
