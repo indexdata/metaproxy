@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.9 2006-09-19 13:50:17 marc Exp $
+/* $Id: gduutil.cpp,v 1.10 2006-09-20 15:09:45 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -563,7 +563,7 @@ std::ostream& std::operator<<(std::ostream& os, Z_SRW_PDU& srw_pdu)
                 else
                     os << " -";
                 if (sr->recordPacking)
-                    os << " " << *(sr->recordPacking);
+                    os << " " << (sr->recordPacking);
                 else
                     os << " -";
                 
@@ -583,6 +583,46 @@ std::ostream& std::operator<<(std::ostream& os, Z_SRW_PDU& srw_pdu)
         break;
     case  Z_SRW_searchRetrieve_response:
         os << " " << "searchRetrieveResponse";
+        {
+            Z_SRW_searchRetrieveResponse *sr = srw_pdu.u.response;
+            if (sr)
+            {
+                if (! (sr->num_diagnostics))
+                {
+                    os << " OK";
+                    if (sr->numberOfRecords)
+                        os << " " << *(sr->numberOfRecords);
+                    else
+                        os << " -";
+                    //if (sr->num_records)
+                    os << " " << (sr->num_records);
+                    //else
+                    //os << " -";
+                    if (sr->nextRecordPosition)
+                        os << " " << *(sr->nextRecordPosition);
+                    else
+                        os << " -";
+                } 
+                else
+                {
+                    os << " DIAG";
+                    if (sr->diagnostics && sr->diagnostics->uri)
+                        os << " " << *(sr->diagnostics->uri);
+                    else
+                        os << " -";
+                    if (sr->diagnostics && sr->diagnostics->message)
+                        os << " " << *(sr->diagnostics->message);
+                    else
+                        os << " -";
+                    if (sr->diagnostics && sr->diagnostics->details)
+                        os << " " << *(sr->diagnostics->details);
+                    else
+                        os << " -";
+                }
+                
+                    
+            }
+        }
         break;
     case  Z_SRW_explain_request:
         os << " " << "explainRequest";
