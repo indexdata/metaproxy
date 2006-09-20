@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.8 2006-09-19 13:50:17 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.9 2006-09-20 15:08:27 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -74,8 +74,17 @@ namespace metaproxy_1 {
                                const std::string &content, 
                                int http_code = 200) const;
             bool build_sru_debug_package(mp::Package &package) const;
+            bool build_sru_response(mp::Package &package, 
+                                    mp::odr &odr_en,
+                                    Z_SOAP *soap,
+                                    const Z_SRW_PDU *sru_pdu_res,
+                                    char *charset,
+                                    const char *stylesheet) const;
             Z_SRW_PDU * decode_sru_request(mp::Package &package,   
-                                           mp::odr &odr_de) const;
+                                           mp::odr &odr_de,
+                                           Z_SOAP *&soap,
+                                           char *charset,
+                                           const char *stylesheet) const;
             bool z3950_build_query(mp::odr &odr_en, Z_Query *z_query, 
                                    const SRW_query &query, 
                                    SRW_query_type query_type) const;
@@ -84,20 +93,23 @@ namespace metaproxy_1 {
                                          &database = "Default") const;
             bool z3950_close_request(mp::Package &package) const;
             bool z3950_search_request(mp::Package &package,
-                                      unsigned int &hits,
+                                      mp::odr &odr_en,
+                                      Z_SRW_PDU *sru_pdu_res,
                                       Z_SRW_searchRetrieveRequest 
                                           const *sr_req) const;
                                       //const std::string &database, 
                                       //const std::string &query, 
                                       //int query_type) const;
             bool z3950_present_request(mp::Package &package,
-                                       unsigned int &records_returned, 
-                                       unsigned int &next_position,
+                                       mp::odr &odr_en,
+                                       Z_SRW_PDU *sru_pdu_res,
                                        Z_SRW_searchRetrieveRequest 
                                        const *sr_req) const;
             //unsigned int start_position,
             //unsigned int records_requested) const;
             bool z3950_scan_request(mp::Package &package,
+                                    mp::odr &odr_en,
+                                    Z_SRW_PDU *sru_pdu_res,
                                     Z_SRW_scanRequest 
                                     const *sr_req) const;
             //const std::string &database, 
@@ -143,17 +155,27 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
 
 
     // TODO: Z3950 response parsing and translation to SRU package
-    bool ok;    
+    bool ok = true;    
 
     Z_SRW_PDU *sru_pdu_req = 0;
     mp::odr odr_de(ODR_DECODE);
+
+    Z_SRW_PDU *sru_pdu_res = 0;
     mp::odr odr_en(ODR_ENCODE);
 
+    Z_SOAP *soap = 0;
+    char *charset = 0;
+    const char *stylesheet = 0;
 
-    if (! (sru_pdu_req = decode_sru_request(package, odr_de)))
+    if (! (sru_pdu_req = decode_sru_request(package, odr_de, soap, 
+                                            charset, stylesheet)))
     {
+        sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
         std::cout << "TODO: correct error when SRW package could not be"
             " parsed\n";
+        //build_sru_debug_package(package);
+        build_sru_response(package, odr_en, soap, 
+                           sru_pdu_res, charset, stylesheet);
         return;
     }
     
@@ -165,11 +187,23 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
         std::cout << "SRU empty\n";
     
 
+    // explain
+    if (sru_pdu_req && sru_pdu_req->which == Z_SRW_explain_request)
+    {
+        //Z_SRW_searchRetrieveRequest *sr_req = sru_pdu_req->u.request;
+        sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
+        std::cout << "TODO: implement explain response";
+        
+    }
+    
+
     // searchRetrieve
     if (sru_pdu_req && sru_pdu_req->which == Z_SRW_searchRetrieve_request)
     {
         Z_SRW_searchRetrieveRequest *sr_req = sru_pdu_req->u.request;   
         
+        sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_searchRetrieve_response);
+
         // TODO: checking of unsupported operations and proper diagnostic setup
 
         // recordXPath unsupported.
@@ -184,18 +218,15 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
 
         if (z3950_init_request(package))
         {
-            unsigned int search_hits = 0;
-            unsigned int records_returned = 0;
-            unsigned int next_position = 0;
             {
-                ok = z3950_search_request(package, search_hits, sr_req);
-                                          //"Default", 
-                                          //"dc.title=bacillus", 
-                                          //Z_SRW_query_type_cql);
-                if (ok && search_hits)
-                    ok = z3950_present_request(package, 
-                                               records_returned, 
-                                               next_position,
+                ok = z3950_search_request(package, odr_en,
+                                          sru_pdu_res, sr_req);
+
+                if (ok && sru_pdu_res->u.response->numberOfRecords
+                    && *(sru_pdu_res->u.response->numberOfRecords))
+                    
+                    ok = z3950_present_request(package, odr_en,
+                                               sru_pdu_res,
                                                sr_req);
                 z3950_close_request(package);
             }
@@ -205,22 +236,29 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
     // scan
     else if (sru_pdu_req && sru_pdu_req->which == Z_SRW_scan_request)
     {
-           Z_SRW_scanRequest  *sr_req = sru_pdu_req->u.scan_request;   
+        Z_SRW_scanRequest  *sr_req = sru_pdu_req->u.scan_request;   
+
+        sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_scan_response);
+        
         if (z3950_init_request(package))
         {
-            z3950_scan_request(package, sr_req);    
+            z3950_scan_request(package, odr_en, sru_pdu_res, sr_req);    
             z3950_close_request(package);
         }        
     }
     else
     {
         std::cout << "SRU OPERATION NOT SUPPORTED \n";
+        sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
+        
         // TODO: make nice diagnostic return package 
         package.session().close();
         return;
     }
 
-    build_sru_debug_package(package);
+    //build_sru_debug_package(package);
+    build_sru_response(package, odr_en, soap, 
+                       sru_pdu_res, charset, stylesheet);
     return;
 
 
@@ -242,12 +280,79 @@ bool yf::SRUtoZ3950::Rep::build_sru_debug_package(mp::Package &package) const
         http_response(package, content, http_code);
         return true;
     }
+    package.session().close();
     return false;
 }
 
 
+bool yf::SRUtoZ3950::Rep::build_sru_response(mp::Package &package, 
+                                             mp::odr &odr_en,
+                                             Z_SOAP *soap,
+                                             const Z_SRW_PDU *sru_pdu_res,
+                                             char *charset,
+                                             const char *stylesheet) 
+    const
+{
+
+    // SRU request package translation to Z3950 package
+    if (sru_pdu_res)
+        std::cout << *(const_cast<Z_SRW_PDU *>(sru_pdu_res)) << "\n";
+    else
+        std::cout << "SRU empty\n";
+
+    
+    Z_GDU *zgdu_req = package.request().get();
+    if  (zgdu_req && zgdu_req->which == Z_GDU_HTTP_Request)
+    {    
+        Z_GDU *zgdu_res //= z_get_HTTP_Response(odr_en, 200);
+            = odr_en.create_HTTP_Response(package.session(), 
+                                          zgdu_req->u.HTTP_Request, 
+                                          200);
+          Z_HTTP_Response * http_res = zgdu_res->u.HTTP_Response;
+
+          static Z_SOAP_Handler soap_handlers[4] = {
+              {"http://www.loc.gov/zing/srw/", 0,
+               (Z_SOAP_fun) yaz_srw_codec},
+              {"http://www.loc.gov/zing/srw/v1.0/", 0,
+               (Z_SOAP_fun) yaz_srw_codec},
+              {"http://www.loc.gov/zing/srw/update/", 0,
+               (Z_SOAP_fun) yaz_ucp_codec},
+              {0, 0, 0}
+          };
+
+          //if (!stylesheet && assoc->server)
+          //stylesheet = assoc->server->stylesheet;
+
+          /* empty stylesheet means NO stylesheet */
+          //if (stylesheet && *stylesheet == '\0')
+          //    stylesheet = 0;
+          //ret = z_soap_codec_enc_xsl(assoc->encode, &soap_package,
+          //&hres->content_buf, &hres->content_len,
+          //                             soap_handlers, charset, stylesheet);
+
+          // encoding SRU package
+
+         soap->u.generic->p  = (void*) sru_pdu_res;         
+         //int ret = 
+         z_soap_codec_enc_xsl(odr_en, &soap, 
+                              &http_res->content_buf, &http_res->content_len,
+                              soap_handlers, charset, 0);
+
+         package.response() = zgdu_res;
+         return true;
+    }
+    package.session().close();
+    return false;
+}
+
+
+
  Z_SRW_PDU * yf::SRUtoZ3950::Rep::decode_sru_request(mp::Package &package,
-                                             mp::odr &odr_de) const
+                                                     mp::odr &odr_de,
+                                                     Z_SOAP *&soap,
+                                                     char *charset,
+                                                     const char *stylesheet) 
+     const
 {
     Z_GDU *zgdu_req = package.request().get();
     Z_SRW_PDU *sru_pdu_req = 0;
@@ -261,17 +366,15 @@ bool yf::SRUtoZ3950::Rep::build_sru_debug_package(mp::Package &package) const
     if (! http_req)
         return 0;
 
-    Z_SOAP *soap_req = 0;
-    char *charset = 0;
     Z_SRW_diagnostic *diag = 0;
     int num_diags = 0;
     
-    if (0 == yaz_sru_decode(http_req, &sru_pdu_req, &soap_req, 
+    if (0 == yaz_sru_decode(http_req, &sru_pdu_req, &soap, 
                             odr_de, &charset, &diag, &num_diags))
     {
         if (num_diags)
         {
-            std::cout << "SRU DIAGNOSTICS " << num_diags << "\n";
+            std::cout << "SRU DECODE DIAGNOSTICS " << num_diags << "\n";
             // TODO: make nice diagnostic return package 
             //Z_SRW_PDU *srw_pdu_res =
             //            yaz_srw_get(odr(ODR_ENCODE),
@@ -284,11 +387,11 @@ bool yf::SRUtoZ3950::Rep::build_sru_debug_package(mp::Package &package) const
             //        return;
             
             // package.session().close();
-            return 0;
+            //return 0;
         }
         return sru_pdu_req;
     }
-    else if (0 == yaz_srw_decode(http_req, &sru_pdu_req, &soap_req, 
+    else if (0 == yaz_srw_decode(http_req, &sru_pdu_req, &soap, 
                                  odr_de, &charset))
         return sru_pdu_req;
     else 
@@ -381,22 +484,21 @@ yf::SRUtoZ3950::Rep::z3950_close_request(mp::Package &package) const
 }
 
 bool 
-yf::SRUtoZ3950::Rep::z3950_search_request(mp::Package &package,
-                                          unsigned int &hits,
+yf::SRUtoZ3950::Rep::z3950_search_request(mp::Package &package,  
+                                          mp::odr &odr_en,
+                                          Z_SRW_PDU *sru_pdu_res,
                                           Z_SRW_searchRetrieveRequest 
                                           const *sr_req) const
 {
-    hits = 0;
-
     Package z3950_package(package.session(), package.origin());
     z3950_package.copy_filter(package); 
-    mp::odr odr_en(ODR_ENCODE);
+    //mp::odr odr_en(ODR_ENCODE);
     Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_searchRequest);
 
-    //TODO: add stuff in apdu
+    //add stuff in z3950 apdu
     Z_SearchRequest *z_searchRequest = apdu->u.searchRequest;
 
-    // database repackaging
+    // z3950'fy database
     z_searchRequest->num_databaseNames = 1;
     z_searchRequest->databaseNames = (char**)
         odr_malloc(odr_en, sizeof(char *));
@@ -408,7 +510,7 @@ yf::SRUtoZ3950::Rep::z3950_search_request(mp::Package &package,
             = odr_strdup(odr_en, "Default");
 
 
-    // query repackaging
+    // z3950'fy query
     Z_Query *z_query = (Z_Query *) odr_malloc(odr_en, sizeof(Z_Query));
     z_searchRequest->query = z_query;
  
@@ -424,7 +526,13 @@ yf::SRUtoZ3950::Rep::z3950_search_request(mp::Package &package,
     //std::cout << "z3950_search_request " << *apdu << "\n";
         
     z3950_package.move();
+
     //TODO: check success condition
+
+    //int yaz_diag_bib1_to_srw (int bib1_code);
+    //int yaz_diag_srw_to_bib1(int srw_code);
+    //Se kode i src/seshigh.c (srw_bend_search, srw_bend_init).
+
     Z_GDU *z3950_gdu = z3950_package.response().get();
     //std::cout << "z3950_search_request " << *z3950_gdu << "\n";
 
@@ -432,7 +540,16 @@ yf::SRUtoZ3950::Rep::z3950_search_request(mp::Package &package,
         && z3950_gdu->u.z3950->which == Z_APDU_searchResponse
         && z3950_gdu->u.z3950->u.searchResponse->searchStatus)
     {
-        hits = *(z3950_gdu->u.z3950->u.searchResponse->resultCount);
+
+        Z_SearchResponse *sr = z3950_gdu->u.z3950->u.searchResponse;
+        if (sr)
+        {
+            // srw'fy number of records
+            sru_pdu_res->u.response->numberOfRecords 
+                = (int *) odr_malloc(odr_en, sizeof(int *));
+            *(sru_pdu_res->u.response->numberOfRecords) = *(sr->resultCount);
+        }
+
         return true;
     }
     
@@ -441,20 +558,16 @@ yf::SRUtoZ3950::Rep::z3950_search_request(mp::Package &package,
 
 bool 
 yf::SRUtoZ3950::Rep::z3950_present_request(mp::Package &package, 
-                                           unsigned int &records_returned, 
-                                           unsigned int &next_position,
+                                           mp::odr &odr_en,
+                                           Z_SRW_PDU *sru_pdu_res,
                                            Z_SRW_searchRetrieveRequest 
                                            const *sr_req)
-//                                           unsigned int start_position,
-//                                           unsigned int records_requested) 
     const
 {
 
     if (!sr_req)
         return false;
 
-    records_returned = 0;
-    next_position = 1;
     
     // no need to work if nobody wants records seen ..
     if (!(sr_req->maximumRecords) || 0 == *(sr_req->maximumRecords))
@@ -463,7 +576,7 @@ yf::SRUtoZ3950::Rep::z3950_present_request(mp::Package &package,
     // creating Z3950 package
     Package z3950_package(package.session(), package.origin());
     z3950_package.copy_filter(package); 
-    mp::odr odr_en(ODR_ENCODE);
+    //mp::odr odr_en(ODR_ENCODE);
     Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_presentRequest);
 
     //TODO: add stuff in apdu
@@ -495,19 +608,27 @@ yf::SRUtoZ3950::Rep::z3950_present_request(mp::Package &package,
     Z_GDU *z3950_gdu = z3950_package.response().get();
     if (z3950_gdu && z3950_gdu->which == Z_GDU_Z3950 
         && z3950_gdu->u.z3950->which == Z_APDU_presentResponse)
-        //&& z3950_gdu->u.z3950->u.presentResponse->searchStatus)
+
     {
         //std::cout << "z3950_present_request OK\n";
-        records_returned = 0;
-        next_position = 0;
+
         Z_PresentResponse *pr = z3950_gdu->u.z3950->u.presentResponse;
         if (pr)
         {
-            if (pr->numberOfRecordsReturned)
-                records_returned = *(pr->numberOfRecordsReturned);
-            if (pr->nextResultSetPosition)
-                next_position = *(pr->nextResultSetPosition);
-        }        
+
+            // srw'fy number of returned records
+            //sru_pdu_res->u.response->num_records 
+            //    = *(pr->numberOfRecordsReturned);
+            //= (int *) odr_malloc(odr_en, sizeof(int *));
+            //*(sru_pdu_res->u.response->num_records) 
+            //    = *(pr->numberOfRecordsReturned);
+
+            // srw'fy nextRecordPosition
+            sru_pdu_res->u.response->nextRecordPosition 
+                = (int *) odr_malloc(odr_en, sizeof(int *));
+            *(sru_pdu_res->u.response->nextRecordPosition) 
+                = *(pr->nextResultSetPosition);
+        }
         return true;
     }
 
@@ -516,14 +637,13 @@ yf::SRUtoZ3950::Rep::z3950_present_request(mp::Package &package,
 
 bool 
 yf::SRUtoZ3950::Rep::z3950_scan_request(mp::Package &package,
+                                        mp::odr &odr_en,
+                                        Z_SRW_PDU *sru_pdu_res,
                                         Z_SRW_scanRequest const *sr_req) const 
-    //const std::string &database, 
-    //const std::string &query, 
-    //int query_type) const
 {
     Package z3950_package(package.session(), package.origin());
     z3950_package.copy_filter(package); 
-    mp::odr odr_en(ODR_ENCODE);
+    //mp::odr odr_en(ODR_ENCODE);
     Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_scanRequest);
 
     //TODO: add stuff in apdu
