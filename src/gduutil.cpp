@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.10 2006-09-20 15:09:45 marc Exp $
+/* $Id: gduutil.cpp,v 1.11 2006-09-21 11:45:00 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -607,15 +607,15 @@ std::ostream& std::operator<<(std::ostream& os, Z_SRW_PDU& srw_pdu)
                 {
                     os << " DIAG";
                     if (sr->diagnostics && sr->diagnostics->uri)
-                        os << " " << *(sr->diagnostics->uri);
+                        os << " " << (sr->diagnostics->uri);
                     else
                         os << " -";
                     if (sr->diagnostics && sr->diagnostics->message)
-                        os << " " << *(sr->diagnostics->message);
+                        os << " " << (sr->diagnostics->message);
                     else
                         os << " -";
                     if (sr->diagnostics && sr->diagnostics->details)
-                        os << " " << *(sr->diagnostics->details);
+                        os << " " << (sr->diagnostics->details);
                     else
                         os << " -";
                 }
