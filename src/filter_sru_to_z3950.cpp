@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.11 2006-09-22 11:11:17 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.12 2006-09-22 14:09:27 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -86,6 +86,11 @@ namespace metaproxy_1 {
                                            Z_SOAP *&soap,
                                            char *charset,
                                            char *stylesheet) const;
+            bool check_sru_query_exists(mp::Package &package,
+                                       mp::odr &odr_en,
+                                       Z_SRW_PDU *sru_pdu_res,
+                                       Z_SRW_searchRetrieveRequest 
+                                       const *sr_req) const;
             bool z3950_build_query(mp::odr &odr_en, Z_Query *z_query, 
                                    const SRW_query &query, 
                                    SRW_query_type query_type) const;
@@ -109,6 +114,8 @@ namespace metaproxy_1 {
                                     Z_SRW_scanRequest 
                                     const *sr_req) const;
             Z_ElementSetNames * build_esn_from_schema(mp::odr &odr_en, const char *schema) const;
+            int z3950_to_srw_diag(mp::odr &odr_en, Z_SRW_searchRetrieveResponse *srw_res,
+                                  Z_DefaultDiagFormat *ddf) const;
         };
     }
 }
@@ -168,6 +175,7 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
     {
         build_sru_response(package, odr_en, soap, 
                            sru_pdu_res, charset, stylesheet);
+        package.session().close();
         return;
     }
     
@@ -190,13 +198,18 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
     
 
     // searchRetrieve
-    if (sru_pdu_req && sru_pdu_req->which == Z_SRW_searchRetrieve_request)
+    if (sru_pdu_req 
+        && sru_pdu_req->which == Z_SRW_searchRetrieve_request
+        && sru_pdu_req->u.request)
     {
         Z_SRW_searchRetrieveRequest *sr_req = sru_pdu_req->u.request;   
         
         sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_searchRetrieve_response);
 
-        if (z3950_init_request(package))
+        // checking that we have a query
+        ok = check_sru_query_exists(package, odr_en, sru_pdu_res, sr_req);
+
+        if (ok && z3950_init_request(package))
         {
             {
                 ok = z3950_search_request(package, odr_en,
@@ -217,7 +230,9 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
     }
 
     // scan
-    else if (sru_pdu_req && sru_pdu_req->which == Z_SRW_scan_request)
+    else if (sru_pdu_req 
+             && sru_pdu_req->which == Z_SRW_scan_request
+             && sru_pdu_req->u.scan_request)
     {
         Z_SRW_scanRequest  *sr_req = sru_pdu_req->u.scan_request;   
 
@@ -390,6 +405,45 @@ bool yf::SRUtoZ3950::Rep::build_sru_response(mp::Package &package,
 }
 
 bool 
+yf::SRUtoZ3950::Rep::check_sru_query_exists(mp::Package &package, mp::odr &odr_en,
+                                            Z_SRW_PDU *sru_pdu_res, 
+                                            Z_SRW_searchRetrieveRequest const *sr_req)
+    const
+{
+    if( (sr_req->query_type == Z_SRW_query_type_cql && !sr_req->query.cql) )
+    {
+        yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.response->diagnostics), 
+                               &(sru_pdu_res->u.response->num_diagnostics), 
+                               7, "query");
+        yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.response->diagnostics), 
+                               &(sru_pdu_res->u.response->num_diagnostics), 
+                               10, "CQL query is empty");
+        return false;
+    }
+    if( (sr_req->query_type == Z_SRW_query_type_xcql && !sr_req->query.xcql) )
+    {
+         yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.response->diagnostics), 
+                               &(sru_pdu_res->u.response->num_diagnostics), 
+                               10, "XCQL query is empty");
+         return false;
+   }
+    if( (sr_req->query_type == Z_SRW_query_type_pqf && !sr_req->query.pqf) )
+    {
+        yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.response->diagnostics), 
+                               &(sru_pdu_res->u.response->num_diagnostics), 
+                               10, "PQF query is empty");
+        return false;
+    }
+    return true;
+};
+
+
+
+bool 
 yf::SRUtoZ3950::Rep::z3950_init_request(mp::Package &package, 
                                              const std::string &database) const
 {
@@ -479,17 +533,17 @@ yf::SRUtoZ3950::Rep::z3950_search_request(mp::Package &package,
                                           const *sr_req) const
 {
     Package z3950_package(package.session(), package.origin());
-    z3950_package.copy_filter(package); 
-    //mp::odr odr_en(ODR_ENCODE);
-    Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_searchRequest);
+    z3950_package.copy_filter(package);
 
     //add stuff in z3950 apdu
+    Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_searchRequest);
     Z_SearchRequest *z_searchRequest = apdu->u.searchRequest;
 
     // z3950'fy database
     z_searchRequest->num_databaseNames = 1;
     z_searchRequest->databaseNames = (char**)
         odr_malloc(odr_en, sizeof(char *));
+
     if (sr_req->database)
         z_searchRequest->databaseNames[0] 
             = odr_strdup(odr_en, const_cast<char *>(sr_req->database));
@@ -608,6 +662,19 @@ yf::SRUtoZ3950::Rep::z3950_present_request(mp::Package &package,
                                80, 0);
     }
     
+    // start record requested larger than number of records
+    if (sr_req->startRecord 
+        && sru_pdu_res->u.response->numberOfRecords
+        && *(sr_req->startRecord) > *(sru_pdu_res->u.response->numberOfRecords))
+    {
+        //          = *(sr_req->startRecord);
+        send_z3950_present = false;
+        yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.response->diagnostics), 
+                               &(sru_pdu_res->u.response->num_diagnostics), 
+                               61, 0);
+    }    
+
     // exit on all these above diagnostics
     if (!send_z3950_present)
         return false;
@@ -655,88 +722,97 @@ yf::SRUtoZ3950::Rep::z3950_present_request(mp::Package &package,
     //std::cout << "z3950_present_request " << *apdu << "\n";   
     z3950_package.move();
 
-    //TODO: check success condition
+    //check successful Z3950 present response
     Z_GDU *z3950_gdu = z3950_package.response().get();
-    if (z3950_gdu && z3950_gdu->which == Z_GDU_Z3950 
-        && z3950_gdu->u.z3950->which == Z_APDU_presentResponse)
+    if (!z3950_gdu || z3950_gdu->which != Z_GDU_Z3950 
+        || z3950_gdu->u.z3950->which != Z_APDU_presentResponse
+        || !z3950_gdu->u.z3950->u.presentResponse)
 
     {
-        //std::cout << "z3950_present_request OK\n";
-
-        Z_PresentResponse *pr = z3950_gdu->u.z3950->u.presentResponse;
-        if (pr)
-        {
-            Z_SRW_searchRetrieveResponse *sru_res = sru_pdu_res->u.response;
-            
-            // srw'fy nextRecordPosition
-            if (pr->nextResultSetPosition)
-                sru_res->nextRecordPosition 
-                    = odr_intdup(odr_en, *(pr->nextResultSetPosition));
-            
-            //    = (int *) odr_malloc(odr_en, sizeof(int *));
-            //*(sru_res->nextRecordPosition) 
-                                                     //= *(Pr->nextResultSetPosition);
-
-            // copy all records if existing
-            if (pr->records && pr->records->which == Z_Records_DBOSD)
-            {
-                // srw'fy number of returned records
-                sru_res->num_records
-                    = pr->records->u.databaseOrSurDiagnostics->num_records;
-
-                sru_res->records 
-                    = (Z_SRW_record *) 
-                    odr_malloc(odr_en, 
-                               sru_res->num_records *sizeof(Z_SRW_record));
-
-                for (int i = 0; i < sru_res->num_records; i++)
-                {
-                    Z_NamePlusRecord *npr 
-                        = pr->records->u.databaseOrSurDiagnostics->records[i];
-
-                    sru_res->records[i].recordPosition 
-                        = odr_intdup(odr_en, i + *(apdu->u.presentRequest->resultSetStartPoint));
-
-                    sru_res->records[i].recordPacking = record_packing;
-
-                    if (npr->which != Z_NamePlusRecord_databaseRecord)
-                    {
-                        sru_res->records[i].recordSchema = "diagnostic";
-                        sru_res->records[i].recordData_buf = "67";
-                        sru_res->records[i].recordData_len = 2;
-                    }
-                    else
-                    {
-                        Z_External *r = npr->u.databaseRecord;
-                        oident *ent = oid_getentbyoid(r->direct_reference);
-                        if (r->which == Z_External_octet 
-                            && ent->value == VAL_TEXT_XML)
-                        {
-                            sru_res->records[i].recordSchema = "dc";
-                            sru_res->records[i].recordData_buf
-                                = odr_strdupn(odr_en, 
-                                              (const char *)r->u.octet_aligned->buf, 
-                                              r->u.octet_aligned->len);
-                            sru_res->records[i].recordData_len 
-                                = r->u.octet_aligned->len;
-                        }
-                        else
-                        {
-                            sru_res->records[i].recordSchema = "diagnostic";
-                            sru_res->records[i].recordData_buf = "67";
-                            sru_res->records[i].recordData_len = 2;
-                        }
-                    }
-                    
-                }
-                
-                
-            }
-        }
-        return true;
+        yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.response->diagnostics), 
+                               &(sru_pdu_res->u.response->num_diagnostics), 
+                               2, 0);
+        package.session().close();
+        return false;
     }
+    
 
-    return false;
+    // everything fine, continuing
+    //std::cout << "z3950_present_request OK\n";
+
+    Z_PresentResponse *pr = z3950_gdu->u.z3950->u.presentResponse;
+    Z_SRW_searchRetrieveResponse *sru_res = sru_pdu_res->u.response;
+        
+    // checking non surrogate dioagnostics in Z3950 present response package
+    if (pr->records 
+        && pr->records->which == Z_Records_NSD
+        && pr->records->u.nonSurrogateDiagnostic)
+    {
+        //int http_code =
+        z3950_to_srw_diag(odr_en, sru_res, pr->records->u.nonSurrogateDiagnostic);
+        return false;
+    }
+    
+    // copy all records if existing
+    if (pr->records && pr->records->which == Z_Records_DBOSD)
+    {
+        // srw'fy number of returned records
+        sru_res->num_records
+            = pr->records->u.databaseOrSurDiagnostics->num_records;
+        
+        sru_res->records 
+            = (Z_SRW_record *) odr_malloc(odr_en, 
+                                          sru_res->num_records *sizeof(Z_SRW_record));
+        
+        // srw'fy nextRecordPosition
+        if (pr->nextResultSetPosition)
+            sru_res->nextRecordPosition 
+                = odr_intdup(odr_en, *(pr->nextResultSetPosition));
+
+        // inserting all records
+        for (int i = 0; i < sru_res->num_records; i++)
+        {
+            Z_NamePlusRecord *npr 
+                = pr->records->u.databaseOrSurDiagnostics->records[i];
+            
+            sru_res->records[i].recordPosition 
+                = odr_intdup(odr_en, i + *(apdu->u.presentRequest->resultSetStartPoint));
+            
+            sru_res->records[i].recordPacking = record_packing;
+            
+            if (npr->which != Z_NamePlusRecord_databaseRecord)
+            {
+                sru_res->records[i].recordSchema = "diagnostic";
+                sru_res->records[i].recordData_buf = "67";
+                sru_res->records[i].recordData_len = 2;
+            }
+            else
+            {
+                Z_External *r = npr->u.databaseRecord;
+                oident *ent = oid_getentbyoid(r->direct_reference);
+                if (r->which == Z_External_octet 
+                    && ent->value == VAL_TEXT_XML)
+                {
+                    sru_res->records[i].recordSchema = "dc";
+                    sru_res->records[i].recordData_buf
+                        = odr_strdupn(odr_en, 
+                                      (const char *)r->u.octet_aligned->buf, 
+                                      r->u.octet_aligned->len);
+                    sru_res->records[i].recordData_len 
+                        = r->u.octet_aligned->len;
+                }
+                else
+                {
+                    sru_res->records[i].recordSchema = "diagnostic";
+                    sru_res->records[i].recordData_buf = "67";
+                    sru_res->records[i].recordData_len = 2;
+                }
+            }   
+        }    
+    }
+    
+    return true;
 }
 
 bool 
@@ -942,6 +1018,23 @@ Z_ElementSetNames * yf::SRUtoZ3950::Rep::build_esn_from_schema(mp::odr &odr_en, 
     esn->u.generic = odr_strdup(odr_en, schema);
     return esn; 
 }
+
+int yf::SRUtoZ3950::Rep::z3950_to_srw_diag(mp::odr &odr_en, Z_SRW_searchRetrieveResponse *sru_res,
+                                           Z_DefaultDiagFormat *ddf) const
+{
+    int bib1_code = *ddf->condition;
+    if (bib1_code == 109)
+        return 404;
+    sru_res->num_diagnostics = 1;
+    sru_res->diagnostics = (Z_SRW_diagnostic *)
+        odr_malloc(odr_en, sizeof(*sru_res->diagnostics));
+    yaz_mk_std_diagnostic(odr_en, sru_res->diagnostics,
+                          yaz_diag_bib1_to_srw(*ddf->condition), 
+                          ddf->u.v2Addinfo);
+    return 0;
+}
+
+
 
 static mp::filter::Base* filter_creator()
 {
