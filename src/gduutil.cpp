@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.11 2006-09-21 11:45:00 marc Exp $
+/* $Id: gduutil.cpp,v 1.12 2006-09-22 14:13:03 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -213,13 +213,31 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         }
         break;
     case Z_APDU_presentRequest:
-        os << " " << "presentRequest" << " ";
+        os << " " << "presentRequest";
         {
             Z_PresentRequest *pr = zapdu.u.presentRequest;
-            os << pr->resultSetId << " "
-                //<< pr->referenceId << " "
-               << *(pr->resultSetStartPoint) << " "
-               << *(pr->numberOfRecordsRequested);
+            if (pr->resultSetId)
+                os << " " << (pr->resultSetId);
+            else
+                os << " -";
+            //<< pr->referenceId << " "
+            if (pr->resultSetStartPoint)
+                os << " " << *(pr->resultSetStartPoint);
+            else
+                os << " -";
+            if (pr->numberOfRecordsRequested)
+                os << " " << *(pr->numberOfRecordsRequested);
+            else
+                os << " -";
+            //if (pr->preferredRecordSyntax)
+            //    os << " " << *(pr->preferredRecordSyntax);
+            //else
+            //    os << " -";
+            //elements
+            //if (pr->)
+            //    os << " " << *(pr->);
+            //else
+            //    os << " -";
         }
         break;
     case Z_APDU_presentResponse:
@@ -566,16 +584,25 @@ std::ostream& std::operator<<(std::ostream& os, Z_SRW_PDU& srw_pdu)
                     os << " " << (sr->recordPacking);
                 else
                     os << " -";
+
+                if (sr->recordSchema)
+                    os << " " << (sr->recordSchema);
+                else
+                    os << " -";
                 
                 switch (sr->query_type){
                 case Z_SRW_query_type_cql:
-                    os << " CQL " << sr->query.cql;
+                    os << " CQL";
+                    if (sr->query.cql)
+                        os << " " << sr->query.cql;
                     break;
                 case Z_SRW_query_type_xcql:
                     os << " XCQL";
                     break;
                 case Z_SRW_query_type_pqf:
-                    os << " PQF " << sr->query.pqf;
+                    os << " PQF";
+                    if (sr->query.pqf)
+                        os << " " << sr->query.pqf;
                     break;
                 }
             }
