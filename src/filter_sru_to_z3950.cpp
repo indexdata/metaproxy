@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.13 2006-09-26 11:37:08 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.14 2006-09-26 13:15:33 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -9,6 +9,7 @@
 #include "package.hpp"
 #include "util.hpp"
 #include "gduutil.hpp"
+#include "sru_util.hpp"
 #include "filter_sru_to_z3950.hpp"
 
 #include <yaz/zgdu.h>
