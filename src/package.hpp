@@ -1,4 +1,4 @@
-/* $Id: package.hpp,v 1.24 2006-09-26 11:37:08 marc Exp $
+/* $Id: package.hpp,v 1.25 2006-09-26 13:02:50 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -8,52 +8,25 @@
 #define YP2_PACKAGE_HPP
 
 #include <iosfwd>
-#include <stdexcept>
+
 #include <yazpp/gdu.h>
 
 #include "router.hpp"
 #include "filter.hpp"
 #include "session.hpp"
+#include "origin.hpp"
 
-namespace metaproxy_1
-{
-    class Origin;
+namespace metaproxy_1 {
     class Package;
 }
 
 
 namespace std 
 {
-    std::ostream& operator<<(std::ostream& os, metaproxy_1::Origin& o);
     std::ostream& operator<<(std::ostream& os, metaproxy_1::Package& p);
 }
 
 namespace metaproxy_1 {
-    
-    class Origin {
-        friend std::ostream& 
-        std::operator<<(std::ostream& os,  metaproxy_1::Origin& o);
-
-        enum origin_t {
-            API,
-            UNIX,
-            TCPIP
-        } type;
-        std::string address; // UNIX+TCPIP
-        unsigned long origin_id;
-        std::string m_server_host;
-        unsigned int m_server_port;
-    public:
-        Origin(std::string server_host = "", unsigned int server_port = 0);
-
-        /// get function - right val in assignment
-        std::string server_host() const;
-
-        /// get function - right val in assignment
-        unsigned int server_port() const;
-        
-        void set_tcpip_address(std::string addr, unsigned long id);
-    };
 
     class Package {
     public:
@@ -64,6 +37,7 @@ namespace metaproxy_1 {
         Package(metaproxy_1::Session &session, 
                 const metaproxy_1::Origin &origin);
 
+        /// shallow copy constructor which only copies the filter chain info
         Package & copy_filter(const Package &p);
 
         /// send Package to it's next Filter defined in Router
@@ -84,6 +58,7 @@ namespace metaproxy_1 {
         /// set function - can be chained
         Package & origin(const Origin & origin);
 
+        /// set function - can be chained
         Package & router(const Router &router);
 
         yazpp_1::GDU &request();
