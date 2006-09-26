@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.12 2006-09-22 14:09:27 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.13 2006-09-26 11:37:08 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -73,6 +73,11 @@ namespace metaproxy_1 {
                                const std::string &content, 
                                int http_code = 200) const;
             bool build_sru_debug_package(mp::Package &package) const;
+            bool build_simple_explain(mp::Package &package, 
+                                      mp::odr &odr_en,
+                                      Z_SRW_PDU *sru_pdu_res,
+                                      Z_SRW_explainRequest const *er_req) 
+                const;
             bool build_sru_response(mp::Package &package, 
                                     mp::odr &odr_en,
                                     Z_SOAP *soap,
@@ -190,15 +195,14 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
     // explain
     if (sru_pdu_req && sru_pdu_req->which == Z_SRW_explain_request)
     {
-        //Z_SRW_searchRetrieveRequest *sr_req = sru_pdu_req->u.request;
-        // sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
-        std::cout << "TODO: implement explain response";
-        
+        Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
+        //sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
+
+        build_simple_explain(package, odr_en, sru_pdu_res, er_req);
     }
-    
 
     // searchRetrieve
-    if (sru_pdu_req 
+    else if (sru_pdu_req 
         && sru_pdu_req->which == Z_SRW_searchRetrieve_request
         && sru_pdu_req->u.request)
     {
@@ -266,6 +270,61 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
 
 
 }
+
+
+bool yf::SRUtoZ3950::Rep::build_simple_explain(mp::Package &package, 
+                                               mp::odr &odr_en,
+                                               Z_SRW_PDU *sru_pdu_res,
+                                               Z_SRW_explainRequest 
+                                               const *er_req) const
+{
+
+    // z3950'fy recordPacking
+    int record_packing = Z_SRW_recordPacking_XML;
+    if (er_req->recordPacking && 's' == *(er_req->recordPacking))
+        record_packing = Z_SRW_recordPacking_string;
+
+    // getting database info
+    std::string database("Default");
+    if (er_req->database)
+        database = er_req->database;
+
+    // building SRU explain record
+    std::string explain_xml 
+        = mp::to_string(
+            "<explain>\n"
+            "  <serverInfo protocol='SRU'>\n"
+            "  <host>")
+        + package.origin().server_host()
+        + mp::to_string("</host>\n"
+            "  <port>")
+        + mp::to_string(package.origin().server_port())
+        + mp::to_string("</port>\n"
+            "  <database>")
+        + database
+        + mp::to_string("</database>\n"
+            "  </serverInfo>\n"
+            "</explain>\n");
+    
+    
+    // preparing explain record insert
+    Z_SRW_explainResponse *sru_res = sru_pdu_res->u.explain_response;
+    //sru_res->record 
+    //    = (Z_SRW_record *) odr_malloc(odr_en, sizeof(Z_SRW_record));
+    
+    // inserting one and only explain record
+    
+    sru_res->record.recordPosition = odr_intdup(odr_en, 1);
+    sru_res->record.recordPacking = record_packing;
+    sru_res->record.recordSchema = "http://explain.z3950.org/dtd/2.0/";
+    sru_res->record.recordData_len = 1 + explain_xml.size();
+    sru_res->record.recordData_buf
+        = odr_strdupn(odr_en, (const char *)explain_xml.c_str(), 
+                      1 + explain_xml.size());
+
+    return true;
+};
+
 
 bool yf::SRUtoZ3950::Rep::build_sru_debug_package(mp::Package &package) const
 {
@@ -405,9 +464,11 @@ bool yf::SRUtoZ3950::Rep::build_sru_response(mp::Package &package,
 }
 
 bool 
-yf::SRUtoZ3950::Rep::check_sru_query_exists(mp::Package &package, mp::odr &odr_en,
+yf::SRUtoZ3950::Rep::check_sru_query_exists(mp::Package &package, 
+                                            mp::odr &odr_en,
                                             Z_SRW_PDU *sru_pdu_res, 
-                                            Z_SRW_searchRetrieveRequest const *sr_req)
+                                            Z_SRW_searchRetrieveRequest 
+                                                              const *sr_req)
     const
 {
     if( (sr_req->query_type == Z_SRW_query_type_cql && !sr_req->query.cql) )
@@ -618,7 +679,7 @@ yf::SRUtoZ3950::Rep::z3950_present_request(mp::Package &package,
         return false;
 
     
-    // no need to work if nobody wants records seen ..
+    // no need to work if nobody wants record ..
     if (!(sr_req->maximumRecords) || 0 == *(sr_req->maximumRecords))
         return true;
 
@@ -1007,7 +1068,9 @@ void yf::SRUtoZ3950::Rep::http_response(metaproxy_1::Package &package,
 }
 
 
-Z_ElementSetNames * yf::SRUtoZ3950::Rep::build_esn_from_schema(mp::odr &odr_en, const char *schema) const
+Z_ElementSetNames * 
+yf::SRUtoZ3950::Rep::build_esn_from_schema(mp::odr &odr_en, 
+                                           const char *schema) const
 {
   if (!schema)
         return 0;
@@ -1019,8 +1082,10 @@ Z_ElementSetNames * yf::SRUtoZ3950::Rep::build_esn_from_schema(mp::odr &odr_en, 
     return esn; 
 }
 
-int yf::SRUtoZ3950::Rep::z3950_to_srw_diag(mp::odr &odr_en, Z_SRW_searchRetrieveResponse *sru_res,
-                                           Z_DefaultDiagFormat *ddf) const
+int 
+yf::SRUtoZ3950::Rep::z3950_to_srw_diag(mp::odr &odr_en, 
+                                       Z_SRW_searchRetrieveResponse *sru_res,
+                                       Z_DefaultDiagFormat *ddf) const
 {
     int bib1_code = *ddf->condition;
     if (bib1_code == 109)

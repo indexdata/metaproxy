@@ -1,4 +1,4 @@
-/* $Id: origin.cpp,v 1.1 2006-08-30 10:48:52 adam Exp $
+/* $Id: origin.cpp,v 1.2 2006-09-26 11:37:08 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -12,10 +12,23 @@
 
 namespace mp = metaproxy_1;
 
-mp::Origin::Origin() : type(API) 
-{ 
-    origin_id = 0; 
+mp::Origin::Origin(std::string server_host, 
+                   unsigned int server_port) 
+    : type(API), address(""), origin_id(0),
+      m_server_host(server_host), m_server_port(server_port)
+{
 }
+
+std::string mp::Origin::server_host() const
+{
+    return m_server_host;
+};
+
+unsigned int mp::Origin::server_port() const
+{
+    return m_server_port;
+};
+
 
 void mp::Origin::set_tcpip_address(std::string addr, unsigned long s)
 {
