@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.55 2006-09-26 13:02:50 marc Exp $
+## $Id: Makefile.am,v 1.56 2006-09-26 13:04:07 marc Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -36,6 +36,7 @@ libmetaproxy_la_SOURCES = \
 	router.hpp router_chain.hpp router_chain.cpp \
         router_flexml.hpp router_flexml.cpp \
 	session.cpp session.hpp \
+	sru_util.cpp sru_util.hpp \
 	thread_pool_observer.cpp thread_pool_observer.hpp \
 	util.cpp util.hpp \
 	xmlutil.cpp xmlutil.hpp
