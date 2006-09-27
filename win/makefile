@@ -1,6 +1,6 @@
 # Copyright (C) 2005-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.22 2006-09-07 11:15:35 adam Exp $
+# $Id: makefile,v 1.23 2006-09-27 12:06:55 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
@@ -235,6 +235,7 @@ PROJECT_DLL_OBJS = \
 	$(OBJDIR)\filter_multi.obj \
 	$(OBJDIR)\filter_query_rewrite.obj \
         $(OBJDIR)\filter_session_shared.obj \
+        $(OBJDIR)\filter_sru_to_z3950.obj \
         $(OBJDIR)\filter_template.obj \
         $(OBJDIR)\filter_virt_db.obj \
         $(OBJDIR)\filter_z3950_client.obj \
@@ -246,6 +247,7 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\router_chain.obj \
         $(OBJDIR)\router_flexml.obj \
         $(OBJDIR)\session.obj \
+        $(OBJDIR)\sru_util.obj \
 	$(OBJDIR)\thread_pool_observer.obj \
         $(OBJDIR)\util.obj \
         $(OBJDIR)\xmlutil.obj 
