@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.hpp,v 1.9 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_backend_test.hpp,v 1.10 2006-09-28 11:56:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -13,11 +13,11 @@
 
 namespace metaproxy_1 {
     namespace filter {
-        class Backend_test : public Base {
+        class BackendTest : public Base {
             class Rep;
         public:
-            ~Backend_test();
-            Backend_test();
+            ~BackendTest();
+            BackendTest();
             void process(metaproxy_1::Package & package) const;
         private:
             boost::scoped_ptr<Rep> m_p;

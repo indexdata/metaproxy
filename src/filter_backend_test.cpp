@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.19 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.20 2006-09-28 11:56:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -32,8 +32,8 @@ namespace metaproxy_1 {
         class Session_info {
             int dummy;
         };
-        class Backend_test::Rep {
-            friend class Backend_test;
+        class BackendTest::Rep {
+            friend class BackendTest;
 
             Z_Records *fetch(
                 ODR odr, Odr_oid *preferredRecordSyntax,
@@ -77,14 +77,14 @@ static const char *marc_record =
   "\x20\x20\x20\x31\x31\x32\x32\x34\x34\x36\x36\x20\x1E\x1D";
 
 
-yf::Backend_test::Backend_test() : m_p(new Backend_test::Rep) {
+yf::BackendTest::BackendTest() : m_p(new BackendTest::Rep) {
     m_p->m_support_named_result_sets = false;
 }
 
-yf::Backend_test::~Backend_test() {
+yf::BackendTest::~BackendTest() {
 }
 
-Z_Records *yf::Backend_test::Rep::fetch(
+Z_Records *yf::BackendTest::Rep::fetch(
     ODR odr, Odr_oid *preferredRecordSyntax,
     int start, int number, int &error_code, std::string &addinfo,
     int *number_returned, int *next_position)
@@ -144,7 +144,7 @@ Z_Records *yf::Backend_test::Rep::fetch(
     return rec;
 }
 
-void yf::Backend_test::process(Package &package) const
+void yf::BackendTest::process(Package &package) const
 {
     Z_GDU *gdu = package.request().get();
 
@@ -298,7 +298,7 @@ void yf::Backend_test::process(Package &package) const
 
 static mp::filter::Base* filter_creator()
 {
-    return new mp::filter::Backend_test;
+    return new mp::filter::BackendTest;
 }
 
 extern "C" {

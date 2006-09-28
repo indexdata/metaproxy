@@ -1,4 +1,4 @@
-/* $Id: test_filter_virt_db.cpp,v 1.13 2006-06-10 14:29:12 adam Exp $
+/* $Id: test_filter_virt_db.cpp,v 1.14 2006-09-28 11:56:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -208,7 +208,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_virt_db_3 )
 #if 0
         router.append(filter_log2);
 #endif
-        mp::filter::Backend_test btest;
+        mp::filter::BackendTest btest;
         router.append(btest);
 
         mp::Session session1;

@@ -1,4 +1,4 @@
-/* $Id: test_filter_sru_to_z3950.cpp,v 1.1 2006-09-28 10:38:00 marc Exp $
+/* $Id: test_filter_sru_to_z3950.cpp,v 1.2 2006-09-28 11:56:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -36,28 +36,26 @@ BOOST_AUTO_UNIT_TEST( test_filter_sru_to_z3950_1 )
     }
 }
 
-// BOOST_AUTO_UNIT_TEST( test_filter_sru_to_z3950_2 )
-// {
-//     try 
-//     {
-//         mp::RouterChain router;
+BOOST_AUTO_UNIT_TEST( test_filter_sru_to_z3950_2 )
+{
+    try 
+    {
+        mp::RouterChain router;
         
-//         mp::filter::SRUtoZ3950 f_sru_to_z3950;
-//         //FilterBounceZ3950 f_bounce_z3950;
+        mp::filter::SRUtoZ3950 f_sru_to_z3950;
         
-//         router.append(f_sru_to_z3950);
-//         //router.append(f_bounce_z3950);
+        router.append(f_sru_to_z3950);
 
-//         check_sru_to_z3950_init(router);
-//         check_sru_to_z3950_search(router, 
-//                                    "@attrset Bib-1 @attr 1=4 the", 
-//                                    "@attrset Bib-1 @attr 1=4 the");
+        //check_sru_to_z3950_init(router);
+        //check_sru_to_z3950_search(router, 
+        //                           "@attrset Bib-1 @attr 1=4 the", 
+        //                           "@attrset Bib-1 @attr 1=4 the");
 
-//     }
-//     catch ( ... ) {
-//         BOOST_CHECK (false);
-//     }
-// }
+    }
+    catch ( ... ) {
+        BOOST_CHECK (false);
+    }
+}
 
 
 // BOOST_AUTO_UNIT_TEST( test_filter_sru_to_z3950_3 )

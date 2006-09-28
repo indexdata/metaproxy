@@ -1,4 +1,4 @@
-/* $Id: test_filter_backend_test.cpp,v 1.8 2006-06-10 14:29:12 adam Exp $
+/* $Id: test_filter_backend_test.cpp,v 1.9 2006-09-28 11:56:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -30,7 +30,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_backend_test_1 )
 {
     try 
     {
-        mp::filter::Backend_test btest;
+        mp::filter::BackendTest btest;
     }
     catch ( ... ) {
         BOOST_CHECK (false);
@@ -43,7 +43,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_backend_test_2 )
     {
         mp::RouterChain router;
         
-        mp::filter::Backend_test btest;
+        mp::filter::BackendTest btest;
         router.append(btest);
         
         mp::Package pack;
@@ -81,7 +81,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_backend_test_3 )
     {
         mp::RouterChain router;
         
-        mp::filter::Backend_test btest;
+        mp::filter::BackendTest btest;
         router.append(btest);
         
         mp::Package pack;
@@ -128,7 +128,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_backend_test_4 )
     {
         mp::RouterChain router;
         
-        mp::filter::Backend_test btest;
+        mp::filter::BackendTest btest;
         router.append(btest);
         
         mp::Package pack;
