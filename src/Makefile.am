@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.57 2006-09-28 10:33:04 marc Exp $
+## $Id: Makefile.am,v 1.58 2006-09-28 10:38:00 marc Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -78,6 +78,7 @@ check_PROGRAMS = \
 	test_filter_z3950_client \
 	test_filter_backend_test \
 	test_filter_bounce \
+	test_filter_sru_to_z3950 \
 	test_filter_virt_db \
 	test_ses_map \
 	test_router_flexml
