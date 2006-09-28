@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.56 2006-09-26 13:04:07 marc Exp $
+## $Id: Makefile.am,v 1.57 2006-09-28 10:33:04 marc Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -77,6 +77,7 @@ check_PROGRAMS = \
 	test_filter_query_rewrite \
 	test_filter_z3950_client \
 	test_filter_backend_test \
+	test_filter_bounce \
 	test_filter_virt_db \
 	test_ses_map \
 	test_router_flexml
@@ -100,6 +101,8 @@ test_filter_multi_SOURCES = test_filter_multi.cpp
 test_filter_query_rewrite_SOURCES = test_filter_query_rewrite.cpp
 test_filter_z3950_client_SOURCES = test_filter_z3950_client.cpp
 test_filter_backend_test_SOURCES = test_filter_backend_test.cpp
+test_filter_bounce_SOURCES = test_filter_bounce.cpp
+test_filter_sru_to_z3950_SOURCES = test_filter_sru_to_z3950.cpp
 test_filter_virt_db_SOURCES = test_filter_virt_db.cpp
 test_ses_map_SOURCES = test_ses_map.cpp
 test_router_flexml_SOURCES = test_router_flexml.cpp
@@ -114,7 +117,6 @@ test_session1_LDADD = $(TESTLDADD)
 test_session2_LDADD = $(TESTLDADD)
 test_boost_threads_LDADD = $(TESTLDADD)
 test_boost_time_LDADD = $(TESTLDADD)
-test_thread_pool_observer_LDADD = $(TESTLDADD)
 test_filter_auth_simple_LDADD = $(TESTLDADD)
 test_filter_factory_LDADD = $(TESTLDADD)
 test_filter_frontend_net_LDADD = $(TESTLDADD)
@@ -123,9 +125,12 @@ test_filter_multi_LDADD = $(TESTLDADD)
 test_filter_query_rewrite_LDADD = $(TESTLDADD)
 test_filter_z3950_client_LDADD = $(TESTLDADD)
 test_filter_backend_test_LDADD = $(TESTLDADD)
+test_filter_bounce_LDADD = $(TESTLDADD)
+test_filter_sru_to_z3950_LDADD = $(TESTLDADD)
 test_filter_virt_db_LDADD = $(TESTLDADD)
-test_ses_map_LDADD = $(TESTLDADD)
 test_router_flexml_LDADD = $(TESTLDADD)
+test_ses_map_LDADD = $(TESTLDADD)
+test_thread_pool_observer_LDADD = $(TESTLDADD)
 
 # doxygen target
 dox:
