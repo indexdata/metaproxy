@@ -1,18 +1,16 @@
-/* $Id: filter_template.cpp,v 1.8 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_template.cpp,v 1.9 2006-09-29 09:48:36 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
  */
 
 #include "config.hpp"
-
 #include "filter.hpp"
+#include "filter_template.hpp"
 #include "package.hpp"
+#include "util.hpp"
 
 #include <boost/thread/mutex.hpp>
-
-#include "util.hpp"
-#include "filter_template.hpp"
 
 #include <yaz/zgdu.h>
 
@@ -21,27 +19,62 @@ namespace yf = mp::filter;
 
 namespace metaproxy_1 {
     namespace filter {
-        class Template::Rep {
-            friend class Template;
-            int dummy;
+        class Template::Impl {
+        public:
+            Impl();
+            ~Impl();
+            void process(metaproxy_1::Package & package) const;
+            void configure(const xmlNode * ptr);
+        private:
+            int m_dummy;
         };
     }
 }
 
-yf::Template::Template() : m_p(new Rep)
+// define Pimpl wrapper forwarding to Impl
+ 
+yf::Template::Template() : m_p(new Impl)
 {
-    m_p->dummy = 1;
 }
 
 yf::Template::~Template()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
+void yf::Template::configure(const xmlNode *xmlnode)
+{
+    m_p->configure(xmlnode);
+}
+
 void yf::Template::process(mp::Package &package) const
+{
+    m_p->process(package);
+}
+
+
+// define Implementation stuff
+
+
+
+yf::Template::Impl::Impl()
+{
+    m_dummy = 1;
+}
+
+yf::Template::Impl::~Impl()
+{ 
+}
+
+void yf::Template::Impl::configure(const xmlNode *xmlnode)
+{
+}
+
+void yf::Template::Impl::process(mp::Package &package) const
 {
     // Z_GDU *gdu = package.request().get();
     package.move();
 }
+
 
 static mp::filter::Base* filter_creator()
 {

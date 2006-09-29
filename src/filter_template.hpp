@@ -1,4 +1,4 @@
-/* $Id: filter_template.hpp,v 1.6 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_template.hpp,v 1.7 2006-09-29 09:48:36 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -15,12 +15,13 @@
 namespace metaproxy_1 {
     namespace filter {
         class Template : public Base {
-            class Rep;
-            boost::scoped_ptr<Rep> m_p;
+            class Impl;
+            boost::scoped_ptr<Impl> m_p;
         public:
             Template();
             ~Template();
             void process(metaproxy_1::Package & package) const;
+            void configure(const xmlNode * ptr);
         };
     }
 }

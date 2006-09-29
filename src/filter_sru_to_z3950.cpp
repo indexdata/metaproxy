@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.15 2006-09-29 08:42:47 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.16 2006-09-29 09:48:36 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -31,13 +31,13 @@ namespace yf = mp::filter;
 
 namespace metaproxy_1 {
     namespace filter {
-        class SRUtoZ3950::Rep {
-        private:
-            union SRW_query {char * cql; char * xcql; char * pqf;};
-            typedef const int& SRW_query_type;
+        class SRUtoZ3950::Impl {
         public:
             void configure(const xmlNode *xmlnode);
             void process(metaproxy_1::Package &package) const;
+        private:
+            union SRW_query {char * cql; char * xcql; char * pqf;};
+            typedef const int& SRW_query_type;
         private:
             std::string sru_protocol(const Z_HTTP_Request &http_req) const;
             std::string debug_http(const Z_HTTP_Request &http_req) const;
@@ -90,14 +90,17 @@ namespace metaproxy_1 {
                                     Z_SRW_PDU *sru_pdu_res,
                                     Z_SRW_scanRequest 
                                     const *sr_req) const;
-            Z_ElementSetNames * build_esn_from_schema(mp::odr &odr_en, const char *schema) const;
-            int z3950_to_srw_diag(mp::odr &odr_en, Z_SRW_searchRetrieveResponse *srw_res,
+            Z_ElementSetNames * build_esn_from_schema(mp::odr &odr_en, 
+                                                      const char *schema) 
+                const;
+            int z3950_to_srw_diag(mp::odr &odr_en, 
+                                  Z_SRW_searchRetrieveResponse *srw_res,
                                   Z_DefaultDiagFormat *ddf) const;
         };
     }
 }
 
-yf::SRUtoZ3950::SRUtoZ3950() : m_p(new Rep)
+yf::SRUtoZ3950::SRUtoZ3950() : m_p(new Impl)
 {
 }
 
@@ -115,11 +118,11 @@ void yf::SRUtoZ3950::process(mp::Package &package) const
     m_p->process(package);
 }
 
-void yf::SRUtoZ3950::Rep::configure(const xmlNode *xmlnode)
+void yf::SRUtoZ3950::Impl::configure(const xmlNode *xmlnode)
 {
 }
 
-void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
+void yf::SRUtoZ3950::Impl::process(mp::Package &package) const
 {
     Z_GDU *zgdu_req = package.request().get();
 
@@ -244,7 +247,7 @@ void yf::SRUtoZ3950::Rep::process(mp::Package &package) const
 }
 
 
-bool yf::SRUtoZ3950::Rep::build_simple_explain(mp::Package &package, 
+bool yf::SRUtoZ3950::Impl::build_simple_explain(mp::Package &package, 
                                                mp::odr &odr_en,
                                                Z_SRW_PDU *sru_pdu_res,
                                                Z_SRW_explainRequest 
@@ -298,7 +301,7 @@ bool yf::SRUtoZ3950::Rep::build_simple_explain(mp::Package &package,
 };
 
 
-bool yf::SRUtoZ3950::Rep::build_sru_debug_package(mp::Package &package) const
+bool yf::SRUtoZ3950::Impl::build_sru_debug_package(mp::Package &package) const
 {
     Z_GDU *zgdu_req = package.request().get();
     if  (zgdu_req && zgdu_req->which == Z_GDU_HTTP_Request)
@@ -314,7 +317,7 @@ bool yf::SRUtoZ3950::Rep::build_sru_debug_package(mp::Package &package) const
 }
 
 
-bool yf::SRUtoZ3950::Rep::build_sru_response(mp::Package &package, 
+bool yf::SRUtoZ3950::Impl::build_sru_response(mp::Package &package, 
                                              mp::odr &odr_en,
                                              Z_SOAP *soap,
                                              const Z_SRW_PDU *sru_pdu_res,
@@ -385,7 +388,7 @@ bool yf::SRUtoZ3950::Rep::build_sru_response(mp::Package &package,
 
 
 
- Z_SRW_PDU * yf::SRUtoZ3950::Rep::decode_sru_request(mp::Package &package,
+ Z_SRW_PDU * yf::SRUtoZ3950::Impl::decode_sru_request(mp::Package &package,
                                                      mp::odr &odr_de,
                                                      mp::odr &odr_en,
                                                      Z_SRW_PDU *sru_pdu_res,
@@ -436,7 +439,7 @@ bool yf::SRUtoZ3950::Rep::build_sru_response(mp::Package &package,
 }
 
 bool 
-yf::SRUtoZ3950::Rep::check_sru_query_exists(mp::Package &package, 
+yf::SRUtoZ3950::Impl::check_sru_query_exists(mp::Package &package, 
                                             mp::odr &odr_en,
                                             Z_SRW_PDU *sru_pdu_res, 
                                             Z_SRW_searchRetrieveRequest 
@@ -477,7 +480,7 @@ yf::SRUtoZ3950::Rep::check_sru_query_exists(mp::Package &package,
 
 
 bool 
-yf::SRUtoZ3950::Rep::z3950_init_request(mp::Package &package, 
+yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package, 
                                              const std::string &database) const
 {
     // prepare Z3950 package
@@ -529,7 +532,7 @@ yf::SRUtoZ3950::Rep::z3950_init_request(mp::Package &package,
 }
 
 bool 
-yf::SRUtoZ3950::Rep::z3950_close_request(mp::Package &package) const
+yf::SRUtoZ3950::Impl::z3950_close_request(mp::Package &package) const
 {
     // close SRU package
     package.session().close();
@@ -559,7 +562,7 @@ yf::SRUtoZ3950::Rep::z3950_close_request(mp::Package &package) const
 }
 
 bool 
-yf::SRUtoZ3950::Rep::z3950_search_request(mp::Package &package,  
+yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,  
                                           mp::odr &odr_en,
                                           Z_SRW_PDU *sru_pdu_res,
                                           Z_SRW_searchRetrieveRequest 
@@ -639,7 +642,7 @@ yf::SRUtoZ3950::Rep::z3950_search_request(mp::Package &package,
 }
 
 bool 
-yf::SRUtoZ3950::Rep::z3950_present_request(mp::Package &package, 
+yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package, 
                                            mp::odr &odr_en,
                                            Z_SRW_PDU *sru_pdu_res,
                                            Z_SRW_searchRetrieveRequest 
@@ -849,7 +852,7 @@ yf::SRUtoZ3950::Rep::z3950_present_request(mp::Package &package,
 }
 
 bool 
-yf::SRUtoZ3950::Rep::z3950_scan_request(mp::Package &package,
+yf::SRUtoZ3950::Impl::z3950_scan_request(mp::Package &package,
                                         mp::odr &odr_en,
                                         Z_SRW_PDU *sru_pdu_res,
                                         Z_SRW_scanRequest const *sr_req) const 
@@ -910,7 +913,7 @@ yf::SRUtoZ3950::Rep::z3950_scan_request(mp::Package &package,
     return false;
 }
 
-bool yf::SRUtoZ3950::Rep::z3950_build_query(mp::odr &odr_en, Z_Query *z_query, 
+bool yf::SRUtoZ3950::Impl::z3950_build_query(mp::odr &odr_en, Z_Query *z_query, 
                                             const SRW_query &query, 
                                             SRW_query_type query_type) const
 {        
@@ -954,7 +957,7 @@ bool yf::SRUtoZ3950::Rep::z3950_build_query(mp::odr &odr_en, Z_Query *z_query,
 
 
 std::string 
-yf::SRUtoZ3950::Rep::sru_protocol(const Z_HTTP_Request &http_req) const
+yf::SRUtoZ3950::Impl::sru_protocol(const Z_HTTP_Request &http_req) const
 {
     const std::string mime_urlencoded("application/x-www-form-urlencoded");
     const std::string mime_text_xml("text/xml");
@@ -980,7 +983,7 @@ yf::SRUtoZ3950::Rep::sru_protocol(const Z_HTTP_Request &http_req) const
 }
 
 std::string 
-yf::SRUtoZ3950::Rep::debug_http(const Z_HTTP_Request &http_req) const
+yf::SRUtoZ3950::Impl::debug_http(const Z_HTTP_Request &http_req) const
 {
     std::string message("<html>\n<body>\n<h1>"
                         "Metaproxy SRUtoZ3950 filter"
@@ -1014,7 +1017,7 @@ yf::SRUtoZ3950::Rep::debug_http(const Z_HTTP_Request &http_req) const
     return message;
 }
 
-void yf::SRUtoZ3950::Rep::http_response(metaproxy_1::Package &package, 
+void yf::SRUtoZ3950::Impl::http_response(metaproxy_1::Package &package, 
                                         const std::string &content, 
                                         int http_code) const
 {
@@ -1041,7 +1044,7 @@ void yf::SRUtoZ3950::Rep::http_response(metaproxy_1::Package &package,
 
 
 Z_ElementSetNames * 
-yf::SRUtoZ3950::Rep::build_esn_from_schema(mp::odr &odr_en, 
+yf::SRUtoZ3950::Impl::build_esn_from_schema(mp::odr &odr_en, 
                                            const char *schema) const
 {
   if (!schema)
@@ -1055,7 +1058,7 @@ yf::SRUtoZ3950::Rep::build_esn_from_schema(mp::odr &odr_en,
 }
 
 int 
-yf::SRUtoZ3950::Rep::z3950_to_srw_diag(mp::odr &odr_en, 
+yf::SRUtoZ3950::Impl::z3950_to_srw_diag(mp::odr &odr_en, 
                                        Z_SRW_searchRetrieveResponse *sru_res,
                                        Z_DefaultDiagFormat *ddf) const
 {
