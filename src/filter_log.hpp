@@ -1,4 +1,4 @@
-/* $Id: filter_log.hpp,v 1.16 2006-06-19 13:08:00 adam Exp $
+/* $Id: filter_log.hpp,v 1.17 2006-09-29 12:24:49 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -15,15 +15,16 @@
 namespace metaproxy_1 {
     namespace filter {
         class Log : public Base {
-            class Rep;
-            boost::scoped_ptr<Rep> m_p;
         public:
             Log();
             Log(const std::string &x);
             ~Log();
             void process(metaproxy_1::Package & package) const;
             void configure(const xmlNode * ptr);
-            class LFile;
+            //class LFile;
+        private:
+            class Impl;
+            boost::scoped_ptr<Impl> m_p;
         };
     }
 }

@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.26 2006-08-31 12:56:40 marc Exp $
+/* $Id: filter_log.cpp,v 1.27 2006-09-29 12:24:49 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -28,7 +28,40 @@ namespace yf = metaproxy_1::filter;
 
 namespace metaproxy_1 {
     namespace filter {
-        class Log::LFile {
+
+        class Log::Impl {
+        public:
+            class LFile;
+            typedef boost::shared_ptr<Log::Impl::LFile> LFilePtr;
+        public:
+            //Impl();
+            Impl(const std::string &x = "");
+           ~Impl();
+            void process(metaproxy_1::Package & package) const;
+            void configure(const xmlNode * ptr);
+        private:
+            void openfile(const std::string &fname);
+            // needs to be static to be called by C pointer-to-function-syntax
+            static void stream_write(ODR o, void *handle, int type, 
+                              const char *buf, int len);
+            // needs to be static to be called by C pointer-to-function-syntax
+            static void option_write(const char *name, void *handle);
+        private:
+            std::string m_msg_config;
+            bool m_access;
+            bool m_req_apdu;
+            bool m_res_apdu;
+            bool m_req_session;
+            bool m_res_session;
+            bool m_init_options;
+            LFilePtr m_file;
+            // Only used during configure stage (no threading), 
+            // for performance avoid opening files which other log filter 
+            // instances already have opened
+            static std::list<LFilePtr> filter_log_files;
+       };
+
+        class Log::Impl::LFile {
         public:
             boost::mutex m_mutex;
             std::string m_fname;
@@ -37,60 +70,136 @@ namespace metaproxy_1 {
             LFile(std::string fname);
             LFile(std::string fname, std::ostream &use_this);
         };
-        typedef boost::shared_ptr<Log::LFile> LFilePtr;
-        class Log::Rep {
-            friend class Log;
-            Rep();
-            void openfile(const std::string &fname);
-            std::string m_msg_config;
-            LFilePtr m_file;
-            bool m_access;
-            bool m_req_apdu;
-            bool m_res_apdu;
-            bool m_req_session;
-            bool m_res_session;
-            bool m_init_options;
-        };
-        // Only used during configure stage (no threading)
-        static std::list<LFilePtr> filter_log_files;
+        
     }
 }
 
-yf::Log::Rep::Rep()
-{
-    m_access = true;
-    m_req_apdu = false;
-    m_res_apdu = false;
-    m_req_session = false;
-    m_res_session = false;
-    m_init_options = false;
-    openfile("");
-}
-
-yf::Log::Log(const std::string &x) : m_p(new Rep)
-{
-    m_p->m_msg_config = x;
-}
-
-yf::Log::Log() : m_p(new Rep)
+// define Pimpl wrapper forwarding to Impl
+ 
+yf::Log::Log() : m_p(new Impl)
 {
 }
 
-yf::Log::~Log() {}
-
-void stream_write(ODR o, void *handle, int type, const char *buf, int len)
+yf::Log::Log(const std::string &x) : m_p(new Impl(x))
 {
-    yf::Log::LFile *lfile = (yf::Log::LFile*) handle;
-    lfile->out.write(buf, len);
 }
 
-void option_write(const char *name, void *handle)
+yf::Log::~Log()
+{  // must have a destructor because of boost::scoped_ptr
+}
+
+void yf::Log::configure(const xmlNode *xmlnode)
 {
-    yf::Log::LFile *lfile = (yf::Log::LFile*) handle;
-    lfile->out << " " << name;
+    m_p->configure(xmlnode);
 }
 
 void yf::Log::process(mp::Package &package) const
+{
+    m_p->process(package);
+}
+
+
+// define Implementation stuff
+
+// static initialization
+std::list<yf::Log::Impl::LFilePtr> yf::Log::Impl::filter_log_files;
+
+
+// yf::Log::Impl::Impl()
+// {
+//     m_access = true;
+//     m_req_apdu = false;
+//     m_res_apdu = false;
+//     m_req_session = false;
+//     m_res_session = false;
+//     m_init_options = false;
+//     openfile("");
+// }
+
+yf::Log::Impl::Impl(const std::string &x)
+    : m_msg_config(x),
+      m_access(true),
+      m_req_apdu(false),
+      m_res_apdu(false),
+      m_req_session(false),
+      m_res_session(false),
+      m_init_options(false)
+{
+    openfile("");
+}
+
+
+yf::Log::Impl::~Impl() 
+{
+}
+
+
+void yf::Log::Impl::configure(const xmlNode *ptr)
+{
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
+    {
+        if (ptr->type != XML_ELEMENT_NODE)
+            continue;
+        if (!strcmp((const char *) ptr->name, "message"))
+            m_msg_config = mp::xml::get_text(ptr);
+        else if (!strcmp((const char *) ptr->name, "filename"))
+        {
+            std::string fname = mp::xml::get_text(ptr);
+            openfile(fname);
+        }
+        else if (!strcmp((const char *) ptr->name, "category"))
+        {
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, 
+                                 "access"))
+                    m_access = 
+                        mp::xml::get_bool(attr->children, true);
+                else if (!strcmp((const char *) attr->name, "request-apdu"))
+                    m_req_apdu = mp::xml::get_bool(attr->children, true);
+                else if (!strcmp((const char *) attr->name, "response-apdu"))
+                    m_res_apdu = mp::xml::get_bool(attr->children, true);
+                else if (!strcmp((const char *) attr->name, "apdu"))
+                {
+                    m_req_apdu = mp::xml::get_bool(attr->children, true);
+                    m_res_apdu = m_req_apdu;
+                }
+                else if (!strcmp((const char *) attr->name,
+                                 "request-session"))
+                    m_req_session = 
+                        mp::xml::get_bool(attr->children, true);
+                else if (!strcmp((const char *) attr->name, 
+                                 "response-session"))
+                    m_res_session = 
+                        mp::xml::get_bool(attr->children, true);
+                else if (!strcmp((const char *) attr->name,
+                                 "session"))
+                {
+                    m_req_session = 
+                        mp::xml::get_bool(attr->children, true);
+                    m_res_session = m_req_session;
+                }
+                else if (!strcmp((const char *) attr->name, 
+                                 "init-options"))
+                    m_init_options = 
+                        mp::xml::get_bool(attr->children, true);
+                else
+                    throw mp::filter::FilterException(
+                        "Bad attribute " + std::string((const char *)
+                                                       attr->name));
+            }
+        }
+        else
+        {
+            throw mp::filter::FilterException("Bad element " 
+                                               + std::string((const char *)
+                                                             ptr->name));
+        }
+    }
+}
+
+void yf::Log::Impl::process(mp::Package &package) const
 {
     Z_GDU *gdu;
 
@@ -102,19 +211,19 @@ void yf::Log::process(mp::Package &package) const
 
     // scope for locking Ostream 
     { 
-        boost::mutex::scoped_lock scoped_lock(m_p->m_file->m_mutex);
+        boost::mutex::scoped_lock scoped_lock(m_file->m_mutex);
         
  
-        if (m_p->m_access)
+        if (m_access)
         {
             gdu = package.request().get();
             if (gdu)          
             {
-                m_p->m_file->out
+                m_file->out
                     //<< receive_time << " "
                     //<< to_iso_string(receive_time) << " "
                     << to_iso_extended_string(receive_time) << " "
-                    << m_p->m_msg_config << " "
+                    << m_msg_config << " "
                     << package << " "
                     << "000000.000000" << " " 
                     << *gdu
@@ -122,40 +231,40 @@ void yf::Log::process(mp::Package &package) const
             }
         }
 
-        if (m_p->m_req_session)
+        if (m_req_session)
         {
-            m_p->m_file->out << receive_time << " " << m_p->m_msg_config;
-            m_p->m_file->out << " request id=" << package.session().id();
-            m_p->m_file->out << " close=" 
+            m_file->out << receive_time << " " << m_msg_config;
+            m_file->out << " request id=" << package.session().id();
+            m_file->out << " close=" 
                              << (package.session().is_closed() ? "yes" : "no")
                              << "\n";
         }
 
-        if (m_p->m_init_options)
+        if (m_init_options)
         {
             gdu = package.request().get();
             if (gdu && gdu->which == Z_GDU_Z3950 &&
                 gdu->u.z3950->which == Z_APDU_initRequest)
             {
-                m_p->m_file->out << receive_time << " " << m_p->m_msg_config;
-                m_p->m_file->out << " init options:";
+                m_file->out << receive_time << " " << m_msg_config;
+                m_file->out << " init options:";
                 yaz_init_opt_decode(gdu->u.z3950->u.initRequest->options,
-                                    option_write, m_p->m_file.get());
-                m_p->m_file->out << "\n";
+                                    option_write, m_file.get());
+                m_file->out << "\n";
             }
         }
         
-        if (m_p->m_req_apdu)
+        if (m_req_apdu)
         {
             gdu = package.request().get();
             if (gdu)
             {
                 mp::odr odr(ODR_PRINT);
-                odr_set_stream(odr, m_p->m_file.get(), stream_write, 0);
+                odr_set_stream(odr, m_file.get(), stream_write, 0);
                 z_GDU(odr, &gdu, 0, 0);
             }
         }
-        m_p->m_file->out.flush();
+        m_file->out.flush();
     }
     
     // unlocked during move
@@ -169,18 +278,18 @@ void yf::Log::process(mp::Package &package) const
 
     // scope for locking Ostream 
     { 
-        boost::mutex::scoped_lock scoped_lock(m_p->m_file->m_mutex);
+        boost::mutex::scoped_lock scoped_lock(m_file->m_mutex);
 
-        if (m_p->m_access)
+        if (m_access)
         {
             gdu = package.response().get();
             if (gdu)
             {
-                m_p->m_file->out
+                m_file->out
                     //<< send_time << " "
                     //<< to_iso_string(send_time) << " "
                     << to_iso_extended_string(send_time) << " "
-                    << m_p->m_msg_config << " "
+                    << m_msg_config << " "
                     << package << " "
                     << to_iso_string(duration) << " "
                     << *gdu
@@ -188,58 +297,50 @@ void yf::Log::process(mp::Package &package) const
             }   
         }
 
-        if (m_p->m_res_session)
+        if (m_res_session)
         {
-            m_p->m_file->out << send_time << " " << m_p->m_msg_config;
-            m_p->m_file->out << " response id=" << package.session().id();
-            m_p->m_file->out << " close=" 
+            m_file->out << send_time << " " << m_msg_config;
+            m_file->out << " response id=" << package.session().id();
+            m_file->out << " close=" 
                              << (package.session().is_closed() ? "yes " : "no ")
                              << "duration=" << duration      
                              << "\n";
         }
 
-        if (m_p->m_init_options)
+        if (m_init_options)
         {
             gdu = package.response().get();
             if (gdu && gdu->which == Z_GDU_Z3950 &&
                 gdu->u.z3950->which == Z_APDU_initResponse)
             {
-                m_p->m_file->out << receive_time << " " << m_p->m_msg_config;
-                m_p->m_file->out << " init options:";
+                m_file->out << receive_time << " " << m_msg_config;
+                m_file->out << " init options:";
                 yaz_init_opt_decode(gdu->u.z3950->u.initResponse->options,
-                                    option_write, m_p->m_file.get());
-                m_p->m_file->out << "\n";
+                                    option_write, m_file.get());
+                m_file->out << "\n";
             }
         }
         
-        if (m_p->m_res_apdu)
+        if (m_res_apdu)
         {
             gdu = package.response().get();
             if (gdu)
             {
                 mp::odr odr(ODR_PRINT);
-                odr_set_stream(odr, m_p->m_file.get(), stream_write, 0);
+                odr_set_stream(odr, m_file.get(), stream_write, 0);
                 z_GDU(odr, &gdu, 0, 0);
             }
         }
         
-        m_p->m_file->out.flush();
+        m_file->out.flush();
     }
 }
 
-yf::Log::LFile::LFile(std::string fname) : 
-    m_fname(fname), fout(fname.c_str()), out(fout)
-{
-}
 
-yf::Log::LFile::LFile(std::string fname, std::ostream &use_this) : 
-    m_fname(fname), out(use_this)
+void yf::Log::Impl::openfile(const std::string &fname)
 {
-}
-
-void yf::Log::Rep::openfile(const std::string &fname)
-{
-    std::list<LFilePtr>::const_iterator it = filter_log_files.begin();
+    std::list<LFilePtr>::const_iterator it
+        = filter_log_files.begin();
     for (; it != filter_log_files.end(); it++)
     {
         if ((*it)->m_fname == fname)
@@ -256,70 +357,32 @@ void yf::Log::Rep::openfile(const std::string &fname)
     m_file = newfile;
 }
 
-void yf::Log::configure(const xmlNode *ptr)
+
+void yf::Log::Impl::stream_write(ODR o, void *handle, int type, const char *buf, int len)
 {
-    for (ptr = ptr->children; ptr; ptr = ptr->next)
-    {
-        if (ptr->type != XML_ELEMENT_NODE)
-            continue;
-        if (!strcmp((const char *) ptr->name, "message"))
-            m_p->m_msg_config = mp::xml::get_text(ptr);
-        else if (!strcmp((const char *) ptr->name, "filename"))
-        {
-            std::string fname = mp::xml::get_text(ptr);
-            m_p->openfile(fname);
-        }
-        else if (!strcmp((const char *) ptr->name, "category"))
-        {
-            const struct _xmlAttr *attr;
-            for (attr = ptr->properties; attr; attr = attr->next)
-            {
-                if (!strcmp((const char *) attr->name, 
-                                 "access"))
-                    m_p->m_access = 
-                        mp::xml::get_bool(attr->children, true);
-                else if (!strcmp((const char *) attr->name, "request-apdu"))
-                    m_p->m_req_apdu = mp::xml::get_bool(attr->children, true);
-                else if (!strcmp((const char *) attr->name, "response-apdu"))
-                    m_p->m_res_apdu = mp::xml::get_bool(attr->children, true);
-                else if (!strcmp((const char *) attr->name, "apdu"))
-                {
-                    m_p->m_req_apdu = mp::xml::get_bool(attr->children, true);
-                    m_p->m_res_apdu = m_p->m_req_apdu;
-                }
-                else if (!strcmp((const char *) attr->name,
-                                 "request-session"))
-                    m_p->m_req_session = 
-                        mp::xml::get_bool(attr->children, true);
-                else if (!strcmp((const char *) attr->name, 
-                                 "response-session"))
-                    m_p->m_res_session = 
-                        mp::xml::get_bool(attr->children, true);
-                else if (!strcmp((const char *) attr->name,
-                                 "session"))
-                {
-                    m_p->m_req_session = 
-                        mp::xml::get_bool(attr->children, true);
-                    m_p->m_res_session = m_p->m_req_session;
-                }
-                else if (!strcmp((const char *) attr->name, 
-                                 "init-options"))
-                    m_p->m_init_options = 
-                        mp::xml::get_bool(attr->children, true);
-                else
-                    throw mp::filter::FilterException(
-                        "Bad attribute " + std::string((const char *)
-                                                       attr->name));
-            }
-        }
-        else
-        {
-            throw mp::filter::FilterException("Bad element " 
-                                               + std::string((const char *)
-                                                             ptr->name));
-        }
-    }
+    yf::Log::Impl::LFile *lfile = (yf::Log::Impl::LFile*) handle;
+    lfile->out.write(buf, len);
 }
+
+void yf::Log::Impl::option_write(const char *name, void *handle)
+{
+    yf::Log::Impl::LFile *lfile = (yf::Log::Impl::LFile*) handle;
+    lfile->out << " " << name;
+}
+
+
+yf::Log::Impl::LFile::LFile(std::string fname) : 
+    m_fname(fname), fout(fname.c_str()), out(fout)
+{
+}
+
+yf::Log::Impl::LFile::LFile(std::string fname, std::ostream &use_this) : 
+    m_fname(fname), out(use_this)
+{
+}
+
+
+
 
 static mp::filter::Base* filter_creator()
 {
