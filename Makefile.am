@@ -1,6 +1,6 @@
 ## This file is part of Metaproxy
 ## Copyright (C) 2005-2006, Index Data ApS
-## $Id: Makefile.am,v 1.15 2006-06-21 14:37:52 adam Exp $
+## $Id: Makefile.am,v 1.16 2006-09-29 08:57:15 marc Exp $
 
 SUBDIRS = src doc etc
 
@@ -22,6 +22,19 @@ dist-hook:
 dox:
 	doxygen
 
-.PHONY:showdox
-showdox:
-	firefox file://`pwd`/dox/html/index.html &
+.PHONY:firefox
+firefox:
+	firefox  -new-window file://`pwd`/dox/html/index.html &
+
+.PHONY:konqueror
+konqueror:
+	konqueror file://`pwd`/dox/html/index.html &
+
+.PHONY:galeon
+galeon:
+	galeon file://`pwd`/dox/html/index.html &
+
+.PHONY:ephiphany
+ephiphany:
+	ephiphany file://`pwd`/dox/html/index.html &
+
