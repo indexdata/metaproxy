@@ -1,6 +1,6 @@
 ## This file is part of Metaproxy
 ## Copyright (C) 2005-2006, Index Data ApS
-## $Id: Makefile.am,v 1.16 2006-09-29 08:57:15 marc Exp $
+## $Id: Makefile.am,v 1.17 2006-09-29 09:43:56 marc Exp $
 
 SUBDIRS = src doc etc
 
@@ -34,7 +34,7 @@ konqueror:
 galeon:
 	galeon file://`pwd`/dox/html/index.html &
 
-.PHONY:ephiphany
-ephiphany:
-	ephiphany file://`pwd`/dox/html/index.html &
+.PHONY:epiphany
+epiphany:
+	epiphany --new-window file://`pwd`/dox/html/index.html &
 
