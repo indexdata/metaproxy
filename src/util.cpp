@@ -1,23 +1,40 @@
-/* $Id: util.cpp,v 1.19 2006-08-30 12:27:34 adam Exp $
+/* $Id: util.cpp,v 1.20 2006-09-29 08:42:47 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
  */
 
 #include "config.hpp"
+#include "util.hpp"
 
 #include <yaz/odr.h>
 #include <yaz/pquery.h>
 #include <yaz/otherinfo.h>
 #include <yaz/querytowrbuf.h> // for yaz_query_to_wrbuf()
-#include "util.hpp"
 
-//#include <iostream>
+#include <iostream>
 
 namespace mp = metaproxy_1;
 
 // Doxygen doesn't like mp::util, so we use this instead
 namespace mp_util = metaproxy_1::util;
+
+
+std::string mp_util::http_header_value(const Z_HTTP_Header* header, 
+                                       const std::string name)
+{
+    while (header && header->name
+           && std::string(header->name) !=  name)
+        header = header->next;
+    
+    if (header && header->name && std::string(header->name) == name
+        && header->value)
+        return std::string(header->value);
+    
+    return std::string();
+}
+    
+
 
 int mp_util::memcmp2(const void *buf1, int len1,
                      const void *buf2, int len2)

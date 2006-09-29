@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.45 2006-08-30 12:27:34 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.46 2006-09-29 08:42:47 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -29,7 +29,7 @@ namespace yf = mp::filter;
 namespace metaproxy_1 {
     namespace filter {
 
-        struct Virt_db::Set {
+        struct VirtualDB::Set {
             Set(BackendPtr b, std::string setname);
             Set();
             ~Set();
@@ -37,13 +37,13 @@ namespace metaproxy_1 {
             BackendPtr m_backend;
             std::string m_setname;
         };
-        struct Virt_db::Map {
+        struct VirtualDB::Map {
             Map(std::list<std::string> targets, std::string route);
             Map();
             std::list<std::string> m_targets;
             std::string m_route;
         };
-        struct Virt_db::Backend {
+        struct VirtualDB::Backend {
             mp::Session m_backend_session;
             std::list<std::string> m_frontend_databases;
             std::list<std::string> m_targets;
@@ -51,7 +51,7 @@ namespace metaproxy_1 {
             bool m_named_result_sets;
             int m_number_of_sets;
         };
-        struct Virt_db::Frontend {
+        struct VirtualDB::Frontend {
             Frontend(Rep *rep);
             ~Frontend();
             mp::Session m_session;
@@ -59,14 +59,14 @@ namespace metaproxy_1 {
             bool m_in_use;
             yazpp_1::GDU m_init_gdu;
             std::list<BackendPtr> m_backend_list;
-            std::map<std::string,Virt_db::Set> m_sets;
+            std::map<std::string,VirtualDB::Set> m_sets;
 
             void search(Package &package, Z_APDU *apdu);
             void present(Package &package, Z_APDU *apdu);
             void scan(Package &package, Z_APDU *apdu);
 
             void close(Package &package);
-            typedef std::map<std::string,Virt_db::Set>::iterator Sets_it;
+            typedef std::map<std::string,VirtualDB::Set>::iterator Sets_it;
 
             void fixup_package(Package &p, BackendPtr b);
             void fixup_npr_record(ODR odr, Z_NamePlusRecord *npr,
@@ -86,15 +86,15 @@ namespace metaproxy_1 {
                                     int &error_code, std::string &addinfo);
             Rep *m_p;
         };            
-        class Virt_db::Rep {
-            friend class Virt_db;
+        class VirtualDB::Rep {
+            friend class VirtualDB;
             friend struct Frontend;
             
             FrontendPtr get_frontend(Package &package);
             void release_frontend(Package &package);
         private:
-            std::map<std::string, Virt_db::Map>m_maps;
-            typedef std::map<std::string,Virt_db::Set>::iterator Sets_it;
+            std::map<std::string, VirtualDB::Map>m_maps;
+            typedef std::map<std::string,VirtualDB::Set>::iterator Sets_it;
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
@@ -102,7 +102,7 @@ namespace metaproxy_1 {
     }
 }
 
-yf::Virt_db::BackendPtr yf::Virt_db::Frontend::lookup_backend_from_databases(
+yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::lookup_backend_from_databases(
     std::list<std::string> databases)
 {
     std::list<BackendPtr>::const_iterator map_it;
@@ -114,7 +114,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::lookup_backend_from_databases(
     return null;
 }
 
-yf::Virt_db::BackendPtr yf::Virt_db::Frontend::create_backend_from_databases(
+yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::create_backend_from_databases(
     std::list<std::string> databases, int &error_code, std::string &addinfo)
 {
     BackendPtr b(new Backend);
@@ -129,7 +129,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::create_backend_from_databases(
     std::map<std::string,bool> targets_dedup;
     for (; db_it != databases.end(); db_it++)
     {
-        std::map<std::string, Virt_db::Map>::iterator map_it;
+        std::map<std::string, VirtualDB::Map>::iterator map_it;
         map_it = m_p->m_maps.find(mp::util::database_name_normalize(*db_it));
         if (map_it == m_p->m_maps.end())  // database not found
         {
@@ -161,7 +161,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::create_backend_from_databases(
     return b;
 }
 
-yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
+yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::init_backend(
     std::list<std::string> databases, mp::Package &package,
     int &error_code, std::string &addinfo)
 {
@@ -238,7 +238,7 @@ yf::Virt_db::BackendPtr yf::Virt_db::Frontend::init_backend(
     return b;
 }
 
-void yf::Virt_db::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
+void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
 {
     Z_SearchRequest *req = apdu_req->u.searchRequest;
     std::string vhost;
@@ -357,18 +357,18 @@ void yf::Virt_db::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     }
     b->m_number_of_sets++;
 
-    m_sets[resultSetId] = Virt_db::Set(b, backend_setname);
+    m_sets[resultSetId] = VirtualDB::Set(b, backend_setname);
     fixup_package(search_package, b);
     package.response() = search_package.response();
 }
 
-yf::Virt_db::Frontend::Frontend(Rep *rep)
+yf::VirtualDB::Frontend::Frontend(Rep *rep)
 {
     m_p = rep;
     m_is_virtual = false;
 }
 
-void yf::Virt_db::Frontend::close(mp::Package &package)
+void yf::VirtualDB::Frontend::close(mp::Package &package)
 {
     std::list<BackendPtr>::const_iterator b_it;
     
@@ -382,15 +382,15 @@ void yf::Virt_db::Frontend::close(mp::Package &package)
     m_backend_list.clear();
 }
 
-yf::Virt_db::Frontend::~Frontend()
+yf::VirtualDB::Frontend::~Frontend()
 {
 }
 
-yf::Virt_db::FrontendPtr yf::Virt_db::Rep::get_frontend(mp::Package &package)
+yf::VirtualDB::FrontendPtr yf::VirtualDB::Rep::get_frontend(mp::Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
 
-    std::map<mp::Session,yf::Virt_db::FrontendPtr>::iterator it;
+    std::map<mp::Session,yf::VirtualDB::FrontendPtr>::iterator it;
     
     while(true)
     {
@@ -411,10 +411,10 @@ yf::Virt_db::FrontendPtr yf::Virt_db::Rep::get_frontend(mp::Package &package)
     return f;
 }
 
-void yf::Virt_db::Rep::release_frontend(mp::Package &package)
+void yf::VirtualDB::Rep::release_frontend(mp::Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
-    std::map<mp::Session,yf::Virt_db::FrontendPtr>::iterator it;
+    std::map<mp::Session,yf::VirtualDB::FrontendPtr>::iterator it;
     
     it = m_clients.find(package.session());
     if (it != m_clients.end())
@@ -432,38 +432,38 @@ void yf::Virt_db::Rep::release_frontend(mp::Package &package)
     }
 }
 
-yf::Virt_db::Set::Set(BackendPtr b, std::string setname)
+yf::VirtualDB::Set::Set(BackendPtr b, std::string setname)
     :  m_backend(b), m_setname(setname)
 {
 }
 
 
-yf::Virt_db::Set::Set()
+yf::VirtualDB::Set::Set()
 {
 }
 
 
-yf::Virt_db::Set::~Set()
+yf::VirtualDB::Set::~Set()
 {
 }
 
-yf::Virt_db::Map::Map(std::list<std::string> targets, std::string route)
+yf::VirtualDB::Map::Map(std::list<std::string> targets, std::string route)
     : m_targets(targets), m_route(route) 
 {
 }
 
-yf::Virt_db::Map::Map()
+yf::VirtualDB::Map::Map()
 {
 }
 
-yf::Virt_db::Virt_db() : m_p(new Virt_db::Rep)
+yf::VirtualDB::VirtualDB() : m_p(new VirtualDB::Rep)
 {
 }
 
-yf::Virt_db::~Virt_db() {
+yf::VirtualDB::~VirtualDB() {
 }
 
-void yf::Virt_db::Frontend::fixup_npr_record(ODR odr, Z_NamePlusRecord *npr,
+void yf::VirtualDB::Frontend::fixup_npr_record(ODR odr, Z_NamePlusRecord *npr,
                                              BackendPtr b)
 {
     if (npr->databaseName)
@@ -476,11 +476,11 @@ void yf::Virt_db::Frontend::fixup_npr_record(ODR odr, Z_NamePlusRecord *npr,
              db_it != b->m_frontend_databases.end(); db_it++)
         {
             // see which target it corresponds to.. (if any)
-            std::map<std::string,Virt_db::Map>::const_iterator map_it;
+            std::map<std::string,VirtualDB::Map>::const_iterator map_it;
             map_it = m_p->m_maps.find(*db_it);
             if (map_it != m_p->m_maps.end())
             { 
-                Virt_db::Map m = map_it->second;
+                VirtualDB::Map m = map_it->second;
                 
                 std::list<std::string>::const_iterator t;
                 for (t = m.m_targets.begin(); t != m.m_targets.end(); t++)
@@ -503,7 +503,7 @@ void yf::Virt_db::Frontend::fixup_npr_record(ODR odr, Z_NamePlusRecord *npr,
     }
 }
 
-void yf::Virt_db::Frontend::fixup_npr_records(ODR odr, Z_Records *records,
+void yf::VirtualDB::Frontend::fixup_npr_records(ODR odr, Z_Records *records,
                                               BackendPtr b)
 {
     if (records && records->which == Z_Records_DBOSD)
@@ -517,7 +517,7 @@ void yf::Virt_db::Frontend::fixup_npr_records(ODR odr, Z_Records *records,
     }
 }
 
-void yf::Virt_db::Frontend::fixup_package(mp::Package &p, BackendPtr b)
+void yf::VirtualDB::Frontend::fixup_package(mp::Package &p, BackendPtr b)
 {
     Z_GDU *gdu = p.response().get();
     mp::odr odr;
@@ -538,7 +538,7 @@ void yf::Virt_db::Frontend::fixup_package(mp::Package &p, BackendPtr b)
     }
 }
 
-void yf::Virt_db::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
+void yf::VirtualDB::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
 {
     Z_PresentRequest *req = apdu_req->u.presentRequest;
     std::string resultSetId = req->resultSetId;
@@ -583,7 +583,7 @@ void yf::Virt_db::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
     delete id;
 }
 
-void yf::Virt_db::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
+void yf::VirtualDB::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
 {
     Z_ScanRequest *req = apdu_req->u.scanRequest;
     std::string vhost;
@@ -649,16 +649,16 @@ void yf::Virt_db::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
 }
 
 
-void yf::Virt_db::add_map_db2targets(std::string db, 
+void yf::VirtualDB::add_map_db2targets(std::string db, 
                                      std::list<std::string> targets,
                                      std::string route)
 {
     m_p->m_maps[mp::util::database_name_normalize(db)] 
-        = Virt_db::Map(targets, route);
+        = VirtualDB::Map(targets, route);
 }
 
 
-void yf::Virt_db::add_map_db2target(std::string db, 
+void yf::VirtualDB::add_map_db2target(std::string db, 
                                     std::string target,
                                     std::string route)
 {
@@ -666,10 +666,10 @@ void yf::Virt_db::add_map_db2target(std::string db,
     targets.push_back(target);
 
     m_p->m_maps[mp::util::database_name_normalize(db)]
-        = Virt_db::Map(targets, route);
+        = VirtualDB::Map(targets, route);
 }
 
-void yf::Virt_db::process(mp::Package &package) const
+void yf::VirtualDB::process(mp::Package &package) const
 {
     FrontendPtr f = m_p->get_frontend(package);
 
@@ -767,7 +767,7 @@ void yf::Virt_db::process(mp::Package &package) const
 }
 
 
-void mp::filter::Virt_db::configure(const xmlNode * ptr)
+void mp::filter::VirtualDB::configure(const xmlNode * ptr)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
@@ -809,7 +809,7 @@ void mp::filter::Virt_db::configure(const xmlNode * ptr)
 
 static mp::filter::Base* filter_creator()
 {
-    return new mp::filter::Virt_db;
+    return new mp::filter::VirtualDB;
 }
 
 extern "C" {

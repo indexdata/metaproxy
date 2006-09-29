@@ -1,4 +1,4 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.27 2006-06-10 14:29:11 adam Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.28 2006-09-29 08:42:47 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
             router.append(filter_log_front);
 
             // put Virt db filter in router
-            mp::filter::Virt_db filter_virt_db;
+            mp::filter::VirtualDB filter_virt_db;
             filter_virt_db.add_map_db2target("gils", "indexdata.dk/gils",
                                             "");
             filter_virt_db.add_map_db2target("Default", "localhost:9999/Default",

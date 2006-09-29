@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.18 2006-08-30 12:27:34 adam Exp $
+/* $Id: util.hpp,v 1.19 2006-09-29 08:42:47 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -7,17 +7,36 @@
 #ifndef YP2_UTIL_HPP
 #define YP2_UTIL_HPP
 
+#include "package.hpp"
+
 #include <yaz/z-core.h>
-#include <string>
-#include <list>
-#include <vector>
 
 #include <boost/utility.hpp>
 #include <boost/scoped_ptr.hpp>
-#include "package.hpp"
+
+#include <string>
+#include <list>
+#include <vector>
+#include <sstream>
+#include <string>
+
 
 namespace metaproxy_1 {
     namespace util  {
+
+        
+        template<typename T> 
+        std::string to_string(const T& t)
+        {
+            std::ostringstream o;
+            if(o << t)
+                return o.str();    
+            return std::string();
+        };
+
+        std::string http_header_value(const Z_HTTP_Header* header, 
+                                               const std::string name);
+
         int memcmp2(const void *buf1, int len1, const void *buf2, int len2);
 
         std::string database_name_normalize(const std::string &s);

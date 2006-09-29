@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.14 2006-09-26 13:15:33 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.15 2006-09-29 08:42:47 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -25,37 +25,8 @@
 
 
 namespace mp = metaproxy_1;
+namespace mp_util = metaproxy_1::util;
 namespace yf = mp::filter;
-
-namespace metaproxy_1 
-{
-
-    template<typename T>
-    std::string to_string(const T& t)
-    {
-        std::ostringstream o;
-        if(o << t)
-            return o.str();
-        
-        return std::string();
-    }
-
-    std::string http_header_value(const Z_HTTP_Header* header, 
-                                  const std::string name)
-    {
-        while (header && header->name
-               && std::string(header->name) !=  name)
-            header = header->next;
-        
-        if (header && header->name && std::string(header->name) == name
-            && header->value)
-            return std::string(header->value);
-
-        return std::string();
-    }
-    
-
-}
 
 
 namespace metaproxy_1 {
@@ -292,18 +263,18 @@ bool yf::SRUtoZ3950::Rep::build_simple_explain(mp::Package &package,
 
     // building SRU explain record
     std::string explain_xml 
-        = mp::to_string(
+        = mp_util::to_string(
             "<explain>\n"
             "  <serverInfo protocol='SRU'>\n"
             "  <host>")
         + package.origin().server_host()
-        + mp::to_string("</host>\n"
+        + mp_util::to_string("</host>\n"
             "  <port>")
-        + mp::to_string(package.origin().server_port())
-        + mp::to_string("</port>\n"
+        + mp_util::to_string(package.origin().server_port())
+        + mp_util::to_string("</port>\n"
             "  <database>")
         + database
-        + mp::to_string("</database>\n"
+        + mp_util::to_string("</database>\n"
             "  </serverInfo>\n"
             "</explain>\n");
     
@@ -991,7 +962,7 @@ yf::SRUtoZ3950::Rep::sru_protocol(const Z_HTTP_Request &http_req) const
 
     const std::string http_method(http_req.method);
     const std::string http_type 
-        =  http_header_value(http_req.headers, "Content-Type");
+        =  mp_util::http_header_value(http_req.headers, "Content-Type");
 
     if (http_method == "GET")
         return "SRU GET";
@@ -1022,10 +993,10 @@ yf::SRUtoZ3950::Rep::debug_http(const Z_HTTP_Request &http_req) const
     message += "<b>Path:   </b> " + std::string(http_req.path) + "<br/>\n";
 
     message += "<b>Content-Type:</b>"
-        + http_header_value(http_req.headers, "Content-Type")
+        + mp_util::http_header_value(http_req.headers, "Content-Type")
         + "<br/>\n";
     message += "<b>Content-Length:</b>"
-        + http_header_value(http_req.headers, "Content-Length")
+        + mp_util::http_header_value(http_req.headers, "Content-Length")
         + "<br/>\n";
     message += "</p>\n";    
     

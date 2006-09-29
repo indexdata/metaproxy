@@ -1,4 +1,4 @@
-/* $Id: test_filter_virt_db.cpp,v 1.14 2006-09-28 11:56:54 marc Exp $
+/* $Id: test_filter_virt_db.cpp,v 1.15 2006-09-29 08:42:47 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -31,7 +31,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_virt_db_1 )
 {
     try 
     {
-        mp::filter::Virt_db vdb;
+        mp::filter::VirtualDB vdb;
     }
     catch ( ... ) {
         BOOST_CHECK (false);
@@ -44,7 +44,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_virt_db_2 )
     {
         mp::RouterChain router;
         
-        mp::filter::Virt_db vdb;
+        mp::filter::VirtualDB vdb;
         
         router.append(vdb);
         
@@ -201,7 +201,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_virt_db_3 )
         router.append(filter_log1);
 #endif
    
-        mp::filter::Virt_db vdb;        
+        mp::filter::VirtualDB vdb;        
         router.append(vdb);
         vdb.add_map_db2target("Default", "localhost:210", "");
         mp::filter::Log filter_log2("BACK");

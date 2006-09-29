@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.hpp,v 1.16 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_virt_db.hpp,v 1.17 2006-09-29 08:42:47 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -16,7 +16,7 @@
 
 namespace metaproxy_1 {
     namespace filter {
-        class Virt_db : public Base {
+        class VirtualDB : public Base {
             class Rep;
             struct Frontend;
             struct Map;
@@ -25,8 +25,8 @@ namespace metaproxy_1 {
             typedef boost::shared_ptr<Backend> BackendPtr;
             typedef boost::shared_ptr<Frontend> FrontendPtr;
         public:
-            ~Virt_db();
-            Virt_db();
+            ~VirtualDB();
+            VirtualDB();
             void process(metaproxy_1::Package & package) const;
             void configure(const xmlNode * ptr);
             void add_map_db2targets(std::string db,
