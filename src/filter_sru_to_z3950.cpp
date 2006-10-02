@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.17 2006-10-02 12:01:06 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.18 2006-10-02 12:17:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -153,6 +153,7 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package) const
                                             sru_pdu_res, soap,
                                             charset, stylesheet)))
     {
+        build_simple_explain(package, odr_en, sru_pdu_res, 0);
         build_sru_response(package, odr_en, soap, 
                            sru_pdu_res, charset, stylesheet);
         package.session().close();
@@ -258,12 +259,12 @@ bool yf::SRUtoZ3950::Impl::build_simple_explain(mp::Package &package,
 
     // z3950'fy recordPacking
     int record_packing = Z_SRW_recordPacking_XML;
-    if (er_req->recordPacking && 's' == *(er_req->recordPacking))
+    if (er_req && er_req->recordPacking && 's' == *(er_req->recordPacking))
         record_packing = Z_SRW_recordPacking_string;
 
     // getting database info
     std::string database("Default");
-    if (er_req->database)
+    if (er_req && er_req->database)
         database = er_req->database;
 
     // getting host and port info
