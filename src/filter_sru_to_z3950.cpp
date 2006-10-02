@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.16 2006-09-29 09:48:36 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.17 2006-10-02 12:01:06 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -254,6 +254,8 @@ bool yf::SRUtoZ3950::Impl::build_simple_explain(mp::Package &package,
                                                const *er_req) const
 {
 
+ 
+
     // z3950'fy recordPacking
     int record_packing = Z_SRW_recordPacking_XML;
     if (er_req->recordPacking && 's' == *(er_req->recordPacking))
@@ -264,16 +266,39 @@ bool yf::SRUtoZ3950::Impl::build_simple_explain(mp::Package &package,
     if (er_req->database)
         database = er_req->database;
 
+    // getting host and port info
+    std::string host = package.origin().listen_host();
+    std::string port = mp_util::to_string(package.origin().listen_port());
+
+    // overwriting host and port info if set from HTTP Host header
+    Z_GDU *zgdu_req = package.request().get();
+    if  (zgdu_req && zgdu_req->which == Z_GDU_HTTP_Request)
+    {
+        Z_HTTP_Request* http_req =  zgdu_req->u.HTTP_Request;
+        if (http_req)
+        {
+            std::string http_host_address
+                = mp_util::http_header_value(http_req->headers, "Host");
+
+            std::string::size_type i = http_host_address.rfind(":");
+            if (i != std::string::npos)
+            {
+                host.assign(http_host_address, 0, i);
+                port.assign(http_host_address, i + 1, std::string::npos);
+            }
+        }
+    }
+
     // building SRU explain record
     std::string explain_xml 
         = mp_util::to_string(
             "<explain>\n"
             "  <serverInfo protocol='SRU'>\n"
             "  <host>")
-        + package.origin().server_host()
+        + host
         + mp_util::to_string("</host>\n"
             "  <port>")
-        + mp_util::to_string(package.origin().server_port())
+        + port
         + mp_util::to_string("</port>\n"
             "  <database>")
         + database

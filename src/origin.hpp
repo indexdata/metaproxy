@@ -1,4 +1,4 @@
-/* $Id: origin.hpp,v 1.1 2006-09-26 13:04:07 marc Exp $
+/* $Id: origin.hpp,v 1.2 2006-10-02 12:01:06 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -22,14 +22,20 @@ namespace metaproxy_1 {
     
     class Origin {
     public:
-        Origin(std::string server_host = "", unsigned int server_port = 0);
+        Origin(std::string listen_host = "", unsigned int listen_port = 0);
         
         /// get function - right val in assignment
-        std::string server_host() const;
-        
+        std::string listen_host() const;
+
+        /// set function - left val in assignment
+        std::string & listen_host();
+ 
         /// get function - right val in assignment
-        unsigned int server_port() const;
+        unsigned int listen_port() const;
         
+        /// set function - left val in assignment
+        unsigned int & listen_port();
+ 
         /// set client IP info - left val in assignment
         void set_tcpip_address(std::string addr, unsigned long id);
 
@@ -43,9 +49,9 @@ namespace metaproxy_1 {
             TCPIP
         } m_type;
         std::string m_address; // UNIX+TCPIP
-        unsigned long m_origin_id;
-        std::string m_server_host;
-        unsigned int m_server_port;
+        unsigned int m_origin_id;
+        std::string m_listen_host;
+        unsigned int m_listen_port;
     };
 
 }
