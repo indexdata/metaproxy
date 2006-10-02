@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.18 2006-10-02 12:17:54 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.19 2006-10-02 13:44:48 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -39,7 +39,7 @@ namespace metaproxy_1 {
             union SRW_query {char * cql; char * xcql; char * pqf;};
             typedef const int& SRW_query_type;
         private:
-            std::string sru_protocol(const Z_HTTP_Request &http_req) const;
+            //std::string sru_protocol(const Z_HTTP_Request &http_req) const;
             std::string debug_http(const Z_HTTP_Request &http_req) const;
             void http_response(mp::Package &package, 
                                const std::string &content, 
@@ -238,13 +238,6 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package) const
     build_sru_response(package, odr_en, soap, 
                        sru_pdu_res, charset, stylesheet);
     return;
-
-
-
-
-
-
-
 }
 
 
@@ -254,9 +247,6 @@ bool yf::SRUtoZ3950::Impl::build_simple_explain(mp::Package &package,
                                                Z_SRW_explainRequest 
                                                const *er_req) const
 {
-
- 
-
     // z3950'fy recordPacking
     int record_packing = Z_SRW_recordPacking_XML;
     if (er_req && er_req->recordPacking && 's' == *(er_req->recordPacking))
@@ -333,7 +323,7 @@ bool yf::SRUtoZ3950::Impl::build_sru_debug_package(mp::Package &package) const
     if  (zgdu_req && zgdu_req->which == Z_GDU_HTTP_Request)
     {    
         Z_HTTP_Request* http_req =  zgdu_req->u.HTTP_Request;
-        std::string content = debug_http(*http_req);
+        std::string content = mp_util::http_headers_debug(*http_req);
         int http_code = 400;    
         http_response(package, content, http_code);
         return true;
@@ -982,66 +972,66 @@ bool yf::SRUtoZ3950::Impl::z3950_build_query(mp::odr &odr_en, Z_Query *z_query,
 }
 
 
-std::string 
-yf::SRUtoZ3950::Impl::sru_protocol(const Z_HTTP_Request &http_req) const
-{
-    const std::string mime_urlencoded("application/x-www-form-urlencoded");
-    const std::string mime_text_xml("text/xml");
-    const std::string mime_soap_xml("application/soap+xml");
+// std::string 
+// yf::SRUtoZ3950::Impl::sru_protocol(const Z_HTTP_Request &http_req) const
+// {
+//     const std::string mime_urlencoded("application/x-www-form-urlencoded");
+//     const std::string mime_text_xml("text/xml");
+//     const std::string mime_soap_xml("application/soap+xml");
 
-    const std::string http_method(http_req.method);
-    const std::string http_type 
-        =  mp_util::http_header_value(http_req.headers, "Content-Type");
+//     const std::string http_method(http_req.method);
+//     const std::string http_type 
+//         =  mp_util::http_header_value(http_req.headers, "Content-Type");
 
-    if (http_method == "GET")
-        return "SRU GET";
+//     if (http_method == "GET")
+//         return "SRU GET";
 
-    if (http_method == "POST"
-              && http_type  == mime_urlencoded)
-        return "SRU POST";
+//     if (http_method == "POST"
+//               && http_type  == mime_urlencoded)
+//         return "SRU POST";
     
-    if ( http_method == "POST"
-         && (http_type  == mime_text_xml
-             || http_type  == mime_soap_xml))
-        return "SRU SOAP";
+//     if ( http_method == "POST"
+//          && (http_type  == mime_text_xml
+//              || http_type  == mime_soap_xml))
+//         return "SRU SOAP";
 
-    return "HTTP";
-}
+//     return "HTTP";
+// }
 
-std::string 
-yf::SRUtoZ3950::Impl::debug_http(const Z_HTTP_Request &http_req) const
-{
-    std::string message("<html>\n<body>\n<h1>"
-                        "Metaproxy SRUtoZ3950 filter"
-                        "</h1>\n");
+// std::string 
+// yf::SRUtoZ3950::Impl::debug_http(const Z_HTTP_Request &http_req) const
+// {
+//     std::string message("<html>\n<body>\n<h1>"
+//                         "Metaproxy SRUtoZ3950 filter"
+//                         "</h1>\n");
     
-    message += "<h3>HTTP Info</h3><br/>\n";
-    message += "<p>\n";
-    message += "<b>Method: </b> " + std::string(http_req.method) + "<br/>\n";
-    message += "<b>Version:</b> " + std::string(http_req.version) + "<br/>\n";
-    message += "<b>Path:   </b> " + std::string(http_req.path) + "<br/>\n";
+//     message += "<h3>HTTP Info</h3><br/>\n";
+//     message += "<p>\n";
+//     message += "<b>Method: </b> " + std::string(http_req.method) + "<br/>\n";
+//     message += "<b>Version:</b> " + std::string(http_req.version) + "<br/>\n";
+//     message += "<b>Path:   </b> " + std::string(http_req.path) + "<br/>\n";
 
-    message += "<b>Content-Type:</b>"
-        + mp_util::http_header_value(http_req.headers, "Content-Type")
-        + "<br/>\n";
-    message += "<b>Content-Length:</b>"
-        + mp_util::http_header_value(http_req.headers, "Content-Length")
-        + "<br/>\n";
-    message += "</p>\n";    
+//     message += "<b>Content-Type:</b>"
+//         + mp_util::http_header_value(http_req.headers, "Content-Type")
+//         + "<br/>\n";
+//     message += "<b>Content-Length:</b>"
+//         + mp_util::http_header_value(http_req.headers, "Content-Length")
+//         + "<br/>\n";
+//     message += "</p>\n";    
     
-    message += "<h3>Headers</h3><br/>\n";
-    message += "<p>\n";    
-    Z_HTTP_Header* header = http_req.headers;
-    while (header){
-        message += "<b>Header: </b> <i>" 
-            + std::string(header->name) + ":</i> "
-            + std::string(header->value) + "<br/>\n";
-        header = header->next;
-    }
-    message += "</p>\n";    
-    message += "</body>\n</html>\n";
-    return message;
-}
+//     message += "<h3>Headers</h3><br/>\n";
+//     message += "<p>\n";    
+//     Z_HTTP_Header* header = http_req.headers;
+//     while (header){
+//         message += "<b>Header: </b> <i>" 
+//             + std::string(header->name) + ":</i> "
+//             + std::string(header->value) + "<br/>\n";
+//         header = header->next;
+//     }
+//     message += "</p>\n";    
+//     message += "</body>\n</html>\n";
+//     return message;
+// }
 
 void yf::SRUtoZ3950::Impl::http_response(metaproxy_1::Package &package, 
                                         const std::string &content, 

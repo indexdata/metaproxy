@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.19 2006-09-29 08:42:47 marc Exp $
+/* $Id: util.hpp,v 1.20 2006-10-02 13:44:48 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -14,7 +14,6 @@
 #include <boost/utility.hpp>
 #include <boost/scoped_ptr.hpp>
 
-#include <string>
 #include <list>
 #include <vector>
 #include <sstream>
@@ -36,6 +35,8 @@ namespace metaproxy_1 {
 
         std::string http_header_value(const Z_HTTP_Header* header, 
                                                const std::string name);
+
+        std::string http_headers_debug(const Z_HTTP_Request &http_req);        
 
         int memcmp2(const void *buf1, int len1, const void *buf2, int len2);
 

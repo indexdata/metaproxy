@@ -1,4 +1,4 @@
-/* $Id: sru_util.hpp,v 1.1 2006-09-26 13:15:33 marc Exp $
+/* $Id: sru_util.hpp,v 1.2 2006-10-02 13:44:48 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -12,6 +12,7 @@
 #include <yaz/srw.h>
 
 #include <iosfwd>
+#include <string>
 
 namespace std 
 {
@@ -21,7 +22,22 @@ namespace std
 
 
 namespace metaproxy_1 {
-    namespace sru  {
+    namespace util  {
+
+        class SRU 
+        {
+        public:
+            enum SRU_protocol_type { SRU_NONE, SRU_GET, SRU_POST, SRU_SOAP};
+            typedef const int& SRU_query_type;
+            union SRW_query {char * cql; char * xcql; char * pqf;};
+        private:
+            //bool decode(const Z_HTTP_Request &http_req);
+            SRU_protocol_type protocol(const Z_HTTP_Request &http_req) const;
+        private:
+            SRU_protocol_type m_protocol;
+            std::string m_charset;
+            std::string m_stylesheet;            
+        };
 
     }    
 }

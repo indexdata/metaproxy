@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.20 2006-09-29 08:42:47 marc Exp $
+/* $Id: util.cpp,v 1.21 2006-10-02 13:44:48 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -34,6 +34,39 @@ std::string mp_util::http_header_value(const Z_HTTP_Header* header,
     return std::string();
 }
     
+std::string mp_util::http_headers_debug(const Z_HTTP_Request &http_req)
+{
+    std::string message("<html>\n<body>\n<h1>"
+                        "Metaproxy SRUtoZ3950 filter"
+                        "</h1>\n");
+    
+    message += "<h3>HTTP Info</h3><br/>\n";
+    message += "<p>\n";
+    message += "<b>Method: </b> " + std::string(http_req.method) + "<br/>\n";
+    message += "<b>Version:</b> " + std::string(http_req.version) + "<br/>\n";
+    message += "<b>Path:   </b> " + std::string(http_req.path) + "<br/>\n";
+
+    message += "<b>Content-Type:</b>"
+        + mp_util::http_header_value(http_req.headers, "Content-Type")
+        + "<br/>\n";
+    message += "<b>Content-Length:</b>"
+        + mp_util::http_header_value(http_req.headers, "Content-Length")
+        + "<br/>\n";
+    message += "</p>\n";    
+    
+    message += "<h3>Headers</h3><br/>\n";
+    message += "<p>\n";    
+    Z_HTTP_Header* header = http_req.headers;
+    while (header){
+        message += "<b>Header: </b> <i>" 
+            + std::string(header->name) + ":</i> "
+            + std::string(header->value) + "<br/>\n";
+        header = header->next;
+    }
+    message += "</p>\n";    
+    message += "</body>\n</html>\n";
+    return message;
+}
 
 
 int mp_util::memcmp2(const void *buf1, int len1,

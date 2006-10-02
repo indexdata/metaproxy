@@ -1,22 +1,49 @@
-/* $Id: sru_util.cpp,v 1.1 2006-09-26 13:15:33 marc Exp $
+/* $Id: sru_util.cpp,v 1.2 2006-10-02 13:44:48 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
 */
 
 #include "sru_util.hpp"
-//#include "util.hpp"
+#include "util.hpp"
 
 //#include <yaz/wrbuf.h>
 //#include <yaz/querytowrbuf.h>
 
 #include <iostream>
-//#include <list>
+#include <string>
 
 namespace mp = metaproxy_1;
 
 // Doxygen doesn't like mp::gdu, so we use this instead
-namespace mp_sru = metaproxy_1::sru;
+namespace mp_util = metaproxy_1::util;
+
+
+mp_util::SRU::SRU_protocol_type
+mp_util::SRU::protocol(const Z_HTTP_Request &http_req) const
+{
+    const std::string mime_urlencoded("application/x-www-form-urlencoded");
+    const std::string mime_text_xml("text/xml");
+    const std::string mime_soap_xml("application/soap+xml");
+
+    const std::string http_method(http_req.method);
+    const std::string http_type 
+        =  mp_util::http_header_value(http_req.headers, "Content-Type");
+
+    if (http_method == "GET")
+        return SRU_GET;
+
+    if (http_method == "POST"
+              && http_type  == mime_urlencoded)
+        return SRU_POST;
+    
+    if ( http_method == "POST"
+         && (http_type  == mime_text_xml
+             || http_type  == mime_soap_xml))
+        return SRU_SOAP;
+
+    return SRU_NONE;
+}
 
 
 std::ostream& std::operator<<(std::ostream& os, Z_SRW_PDU& srw_pdu) 
