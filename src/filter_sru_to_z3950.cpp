@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.20 2006-10-03 07:57:40 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.21 2006-10-03 12:31:26 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -218,7 +218,14 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package) const
 
         sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_scan_response);
         
-        if (z3950_init_request(package))
+        // we do not do scan at the moment, therefore issuing a diagnostic
+        yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.scan_response->diagnostics), 
+                               &(sru_pdu_res->u.scan_response->num_diagnostics), 
+                               4, "scan");
+ 
+        // to be used when we do scan
+        if (false && z3950_init_request(package))
         {
             z3950_scan_request(package, odr_en, sru_pdu_res, sr_req);    
             z3950_close_request(package);
@@ -584,6 +591,9 @@ yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
                                           Z_SRW_searchRetrieveRequest 
                                           const *sr_req) const
 {
+
+    assert(sru_pdu_res->u.response);
+
     Package z3950_package(package.session(), package.origin());
     z3950_package.copy_filter(package);
 
@@ -668,6 +678,7 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
                                            const *sr_req)
     const
 {
+    assert(sru_pdu_res->u.response);
 
     if (!sr_req)
         return false;
@@ -676,8 +687,6 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
     // no need to work if nobody wants record ..
     if (!(sr_req->maximumRecords) || 0 == *(sr_req->maximumRecords))
         return true;
-
-
 
     bool send_z3950_present = true;
 
@@ -688,7 +697,7 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
         yaz_add_srw_diagnostic(odr_en,
                                &(sru_pdu_res->u.response->diagnostics), 
                                &(sru_pdu_res->u.response->num_diagnostics), 
-                               72, "RecordXPath not supported");
+                               72, 0);
     }
     
     // resultSetTTL unsupported.
@@ -712,18 +721,33 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
                                80, 0);
     }
     
-    // start record requested larger than number of records
+    // start record requested negative, or larger than number of records
     if (sr_req->startRecord 
-        && sru_pdu_res->u.response->numberOfRecords
-        && *(sr_req->startRecord) 
-           > *(sru_pdu_res->u.response->numberOfRecords))
+        && 
+        ((*(sr_req->startRecord) < 0)       // negative
+         ||
+         (sru_pdu_res->u.response->numberOfRecords  //out of range
+          && *(sr_req->startRecord) 
+          > *(sru_pdu_res->u.response->numberOfRecords))
+        ))
     {
-        //          = *(sr_req->startRecord);
         send_z3950_present = false;
         yaz_add_srw_diagnostic(odr_en,
                                &(sru_pdu_res->u.response->diagnostics), 
                                &(sru_pdu_res->u.response->num_diagnostics), 
                                61, 0);
+    }    
+
+    // maximumRecords requested negative
+    if (sr_req->maximumRecords
+        && *(sr_req->maximumRecords) < 0) 
+          
+    {
+        send_z3950_present = false;
+        yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.response->diagnostics), 
+                               &(sru_pdu_res->u.response->num_diagnostics), 
+                               6, "maximumRecords");
     }    
 
     // exit on all these above diagnostics
@@ -829,15 +853,16 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
                                           sru_res->num_records 
                                              * sizeof(Z_SRW_record));
         
+
         // srw'fy nextRecordPosition
-        // protecting for inserting one behind the last z3950 record
+        // next position never zero or behind the last z3950 record 
         if (pr->nextResultSetPosition
-            //&& *(pr->nextResultSetPosition) <= *(sr_req->maximumRecords)
+            && *(pr->nextResultSetPosition) > 0 
             && *(pr->nextResultSetPosition) 
                <= *(sru_pdu_res->u.response->numberOfRecords))
             sru_res->nextRecordPosition 
                 = odr_intdup(odr_en, *(pr->nextResultSetPosition));
-
+        
         // inserting all records
         for (int i = 0; i < sru_res->num_records; i++)
         {
@@ -890,6 +915,8 @@ yf::SRUtoZ3950::Impl::z3950_scan_request(mp::Package &package,
                                         Z_SRW_PDU *sru_pdu_res,
                                         Z_SRW_scanRequest const *sr_req) const 
 {
+    assert(sru_pdu_res->u.scan_response);
+
     Package z3950_package(package.session(), package.origin());
     z3950_package.copy_filter(package); 
     //mp::odr odr_en(ODR_ENCODE);
