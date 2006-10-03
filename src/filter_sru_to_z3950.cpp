@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.19 2006-10-02 13:44:48 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.20 2006-10-03 07:57:40 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -22,7 +22,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-
+#include <algorithm>
 
 namespace mp = metaproxy_1;
 namespace mp_util = metaproxy_1::util;
@@ -41,9 +41,9 @@ namespace metaproxy_1 {
         private:
             //std::string sru_protocol(const Z_HTTP_Request &http_req) const;
             std::string debug_http(const Z_HTTP_Request &http_req) const;
-            void http_response(mp::Package &package, 
-                               const std::string &content, 
-                               int http_code = 200) const;
+            //void http_response(mp::Package &package, 
+            //                   const std::string &content, 
+            //                   int http_code = 200) const;
             bool build_sru_debug_package(mp::Package &package) const;
             bool build_simple_explain(mp::Package &package, 
                                       mp::odr &odr_en,
@@ -325,7 +325,7 @@ bool yf::SRUtoZ3950::Impl::build_sru_debug_package(mp::Package &package) const
         Z_HTTP_Request* http_req =  zgdu_req->u.HTTP_Request;
         std::string content = mp_util::http_headers_debug(*http_req);
         int http_code = 400;    
-        http_response(package, content, http_code);
+        mp_util::http_response(package, content, http_code);
         return true;
     }
     package.session().close();
@@ -612,7 +612,10 @@ yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
                            (const SRW_query&)sr_req->query, 
                            sr_req->query_type))
     {    
-        //send_to_srw_client_error(7, "query");
+        yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.response->diagnostics), 
+                               &(sru_pdu_res->u.response->num_diagnostics), 
+                               7, "query");
         return false;
     }
 
@@ -674,12 +677,7 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
     if (!(sr_req->maximumRecords) || 0 == *(sr_req->maximumRecords))
         return true;
 
-    // creating Z3950 package
-    Package z3950_package(package.session(), package.origin());
-    z3950_package.copy_filter(package); 
-    Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_presentRequest);
 
-    assert(apdu->u.presentRequest);
 
     bool send_z3950_present = true;
 
@@ -690,7 +688,7 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
         yaz_add_srw_diagnostic(odr_en,
                                &(sru_pdu_res->u.response->diagnostics), 
                                &(sru_pdu_res->u.response->num_diagnostics), 
-                               72, 0);
+                               72, "RecordXPath not supported");
     }
     
     // resultSetTTL unsupported.
@@ -717,7 +715,8 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
     // start record requested larger than number of records
     if (sr_req->startRecord 
         && sru_pdu_res->u.response->numberOfRecords
-        && *(sr_req->startRecord) > *(sru_pdu_res->u.response->numberOfRecords))
+        && *(sr_req->startRecord) 
+           > *(sru_pdu_res->u.response->numberOfRecords))
     {
         //          = *(sr_req->startRecord);
         send_z3950_present = false;
@@ -732,6 +731,11 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
         return false;
 
     // now packaging the z3950 present request
+    Package z3950_package(package.session(), package.origin());
+    z3950_package.copy_filter(package); 
+    Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_presentRequest);
+
+    assert(apdu->u.presentRequest);
 
     // z3950'fy start record position
     if (sr_req->startRecord)
@@ -741,9 +745,13 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
         *(apdu->u.presentRequest->resultSetStartPoint) = 1;
     
     // z3950'fy number of records requested 
+    // protect against requesting records out of range
     if (sr_req->maximumRecords)
         *(apdu->u.presentRequest->numberOfRecordsRequested) 
-            = *(sr_req->maximumRecords);
+            = std::min(*(sr_req->maximumRecords), 
+                  *(sru_pdu_res->u.response->numberOfRecords)
+                  - *(apdu->u.presentRequest->resultSetStartPoint)
+                  + 1);
      
     // z3950'fy recordPacking
     int record_packing = Z_SRW_recordPacking_XML;
@@ -758,11 +766,13 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
      if (sr_req->recordSchema)
      {
          apdu->u.presentRequest->recordComposition 
-             = (Z_RecordComposition *) odr_malloc(odr_en, sizeof(Z_RecordComposition));
+             = (Z_RecordComposition *) 
+               odr_malloc(odr_en, sizeof(Z_RecordComposition));
          apdu->u.presentRequest->recordComposition->which 
              = Z_RecordComp_simple;
          apdu->u.presentRequest->recordComposition->u.simple 
-             = build_esn_from_schema(odr_en, (const char *) sr_req->recordSchema); 
+             = build_esn_from_schema(odr_en, 
+                                     (const char *) sr_req->recordSchema); 
      }
 
     // z3950'fy time to live - flagged as diagnostics above
@@ -802,7 +812,8 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
         && pr->records->u.nonSurrogateDiagnostic)
     {
         //int http_code =
-        z3950_to_srw_diag(odr_en, sru_res, pr->records->u.nonSurrogateDiagnostic);
+        z3950_to_srw_diag(odr_en, sru_res, 
+                          pr->records->u.nonSurrogateDiagnostic);
         return false;
     }
     
@@ -815,10 +826,15 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
         
         sru_res->records 
             = (Z_SRW_record *) odr_malloc(odr_en, 
-                                          sru_res->num_records *sizeof(Z_SRW_record));
+                                          sru_res->num_records 
+                                             * sizeof(Z_SRW_record));
         
         // srw'fy nextRecordPosition
-        if (pr->nextResultSetPosition)
+        // protecting for inserting one behind the last z3950 record
+        if (pr->nextResultSetPosition
+            //&& *(pr->nextResultSetPosition) <= *(sr_req->maximumRecords)
+            && *(pr->nextResultSetPosition) 
+               <= *(sru_pdu_res->u.response->numberOfRecords))
             sru_res->nextRecordPosition 
                 = odr_intdup(odr_en, *(pr->nextResultSetPosition));
 
@@ -829,7 +845,8 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
                 = pr->records->u.databaseOrSurDiagnostics->records[i];
             
             sru_res->records[i].recordPosition 
-                = odr_intdup(odr_en, i + *(apdu->u.presentRequest->resultSetStartPoint));
+                = odr_intdup(odr_en, 
+                             i + *(apdu->u.presentRequest->resultSetStartPoint));
             
             sru_res->records[i].recordPacking = record_packing;
             
@@ -1033,30 +1050,30 @@ bool yf::SRUtoZ3950::Impl::z3950_build_query(mp::odr &odr_en, Z_Query *z_query,
 //     return message;
 // }
 
-void yf::SRUtoZ3950::Impl::http_response(metaproxy_1::Package &package, 
-                                        const std::string &content, 
-                                        int http_code) const
-{
+// void yf::SRUtoZ3950::Impl::http_response(metaproxy_1::Package &package, 
+//                                         const std::string &content, 
+//                                         int http_code) const
+// {
 
-    Z_GDU *zgdu_req = package.request().get(); 
-    Z_GDU *zgdu_res = 0; 
-    mp::odr odr;
-    zgdu_res 
-       = odr.create_HTTP_Response(package.session(), 
-                                  zgdu_req->u.HTTP_Request, 
-                                  http_code);
+//     Z_GDU *zgdu_req = package.request().get(); 
+//     Z_GDU *zgdu_res = 0; 
+//     mp::odr odr;
+//     zgdu_res 
+//        = odr.create_HTTP_Response(package.session(), 
+//                                   zgdu_req->u.HTTP_Request, 
+//                                   http_code);
         
-    zgdu_res->u.HTTP_Response->content_len = content.size();
-    zgdu_res->u.HTTP_Response->content_buf 
-        = (char*) odr_malloc(odr, zgdu_res->u.HTTP_Response->content_len);
+//     zgdu_res->u.HTTP_Response->content_len = content.size();
+//     zgdu_res->u.HTTP_Response->content_buf 
+//         = (char*) odr_malloc(odr, zgdu_res->u.HTTP_Response->content_len);
     
-    strncpy(zgdu_res->u.HTTP_Response->content_buf, 
-            content.c_str(),  zgdu_res->u.HTTP_Response->content_len);
+//     strncpy(zgdu_res->u.HTTP_Response->content_buf, 
+//             content.c_str(),  zgdu_res->u.HTTP_Response->content_len);
     
-    //z_HTTP_header_add(odr, &hres->headers,
-    //                  "Content-Type", content_type.c_str());
-    package.response() = zgdu_res;
-}
+//     //z_HTTP_header_add(odr, &hres->headers,
+//     //                  "Content-Type", content_type.c_str());
+//     package.response() = zgdu_res;
+// }
 
 
 Z_ElementSetNames * 

@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.21 2006-10-02 13:44:48 marc Exp $
+/* $Id: util.cpp,v 1.22 2006-10-03 07:57:40 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -66,6 +66,32 @@ std::string mp_util::http_headers_debug(const Z_HTTP_Request &http_req)
     message += "</p>\n";    
     message += "</body>\n</html>\n";
     return message;
+}
+
+
+void mp_util::http_response(metaproxy_1::Package &package, 
+                     const std::string &content, 
+                     int http_code)
+{
+
+    Z_GDU *zgdu_req = package.request().get(); 
+    Z_GDU *zgdu_res = 0; 
+    mp::odr odr;
+    zgdu_res 
+       = odr.create_HTTP_Response(package.session(), 
+                                  zgdu_req->u.HTTP_Request, 
+                                  http_code);
+        
+    zgdu_res->u.HTTP_Response->content_len = content.size();
+    zgdu_res->u.HTTP_Response->content_buf 
+        = (char*) odr_malloc(odr, zgdu_res->u.HTTP_Response->content_len);
+    
+    strncpy(zgdu_res->u.HTTP_Response->content_buf, 
+            content.c_str(),  zgdu_res->u.HTTP_Response->content_len);
+    
+    //z_HTTP_header_add(odr, &hres->headers,
+    //                  "Content-Type", content_type.c_str());
+    package.response() = zgdu_res;
 }
 
 
