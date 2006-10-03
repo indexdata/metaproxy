@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.58 2006-09-28 10:38:00 marc Exp $
+## $Id: Makefile.am,v 1.59 2006-10-03 14:04:22 marc Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -23,6 +23,7 @@ libmetaproxy_la_SOURCES = \
 	filter_log.cpp filter_log.hpp \
 	filter_multi.cpp filter_multi.hpp \
 	filter_query_rewrite.cpp filter_query_rewrite.hpp \
+	filter_record_transform.cpp filter_record_transform.hpp \
 	filter_session_shared.cpp filter_session_shared.hpp \
         filter_sru_to_z3950.cpp  filter_sru_to_z3950.hpp \
 	filter_template.cpp filter_template.hpp \
@@ -78,6 +79,7 @@ check_PROGRAMS = \
 	test_filter_z3950_client \
 	test_filter_backend_test \
 	test_filter_bounce \
+	test_filter_record_transform \
 	test_filter_sru_to_z3950 \
 	test_filter_virt_db \
 	test_ses_map \
@@ -103,6 +105,7 @@ test_filter_query_rewrite_SOURCES = test_filter_query_rewrite.cpp
 test_filter_z3950_client_SOURCES = test_filter_z3950_client.cpp
 test_filter_backend_test_SOURCES = test_filter_backend_test.cpp
 test_filter_bounce_SOURCES = test_filter_bounce.cpp
+test_filter_record_transform_SOURCES = test_filter_record_transform.cpp
 test_filter_sru_to_z3950_SOURCES = test_filter_sru_to_z3950.cpp
 test_filter_virt_db_SOURCES = test_filter_virt_db.cpp
 test_ses_map_SOURCES = test_ses_map.cpp
@@ -127,6 +130,7 @@ test_filter_query_rewrite_LDADD = $(TESTLDADD)
 test_filter_z3950_client_LDADD = $(TESTLDADD)
 test_filter_backend_test_LDADD = $(TESTLDADD)
 test_filter_bounce_LDADD = $(TESTLDADD)
+test_filter_record_transform_LDADD = $(TESTLDADD)
 test_filter_sru_to_z3950_LDADD = $(TESTLDADD)
 test_filter_virt_db_LDADD = $(TESTLDADD)
 test_router_flexml_LDADD = $(TESTLDADD)
