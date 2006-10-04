@@ -1,4 +1,4 @@
-/* $Id: test_filter_record_transform.cpp,v 1.1 2006-10-03 14:04:22 marc Exp $
+/* $Id: test_filter_record_transform.cpp,v 1.2 2006-10-04 11:21:47 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -17,6 +17,9 @@
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/auto_unit_test.hpp>
+
+#include <iostream>
+
 
 using namespace boost::unit_test;
 
@@ -58,56 +61,67 @@ BOOST_AUTO_UNIT_TEST( test_filter_record_transform_2 )
 }
 
 
-// BOOST_AUTO_UNIT_TEST( test_filter_record_transform_3 )
-// {
+BOOST_AUTO_UNIT_TEST( test_filter_record_transform_3 )
+{
     
 
-//     try 
-//     {
-//         mp::RouterChain router;
+    try 
+    {
+        mp::RouterChain router;
         
 
-//         std::string xmlconf = 
-//             "<?xml version='1.0'?>\n"
-//             "<filter xmlns='http://indexdata.dk/yp2/config/1'\n"
-//             "        id='qrw1' type='sru_to_z3950'>\n"
-//             "</filter>\n"
-//             ;
+        std::string xmlconf = 
+            "<?xml version='1.0'?>\n"
+            "<filter xmlns='http://indexdata.dk/yp2/config/1'\n"
+            "        id='rec_trans_1' type='record_transform'>\n"
+            "<retrievalinfo>"
+            "<retrieval" 
+            " syntax=\"usmarc\""
+            " name=\"marcxml\""
+            " backendsyntax=\"usmarc\""
+            " backendname=\"marcxml\""
+            " identifier=\"info:srw/schema/1/marcxml-v1.1\""
+            ">"
+            "<convert/>"
+            "</retrieval>"
+            "</retrievalinfo>"
+            "</filter>\n"
+            ;
          
-//         //std::cout << xmlconf  << std::endl;
+        //std::cout << xmlconf  << std::endl;
 
-//         // reading and parsing XML conf
-//         xmlDocPtr doc = xmlParseMemory(xmlconf.c_str(), xmlconf.size());
-//         BOOST_CHECK(doc);
-//         xmlNode *root_element = xmlDocGetRootElement(doc);
+        // reading and parsing XML conf
+        xmlDocPtr doc = xmlParseMemory(xmlconf.c_str(), xmlconf.size());
+        BOOST_CHECK(doc);
+        xmlNode *root_element = xmlDocGetRootElement(doc);
 
-//         // creating and configuring filter
-//         mp::filter::RecordTransform f_rec_trans;
-//         f_rec_trans.configure(root_element);
+        // creating and configuring filter
+        mp::filter::RecordTransform f_rec_trans;
+        f_rec_trans.configure(root_element);
         
-//         // remeber to free XML DOM
-//         xmlFreeDoc(doc);
+        // remeber to free XML DOM
+        xmlFreeDoc(doc);
         
-//         // add only filter to router
-//         router.append(f_rec_trans);
+        // add only filter to router
+        router.append(f_rec_trans);
 
-//         // start testing
-//         check_sru_to_z3950_init(router);
-//         check_sru_to_z3950_search(router, 
-//                                    "@attrset Bib-1 @attr 1=4 the", 
-//                                    "@attrset Bib-1 @attr 1=4 the");
+        // start testing
+        //check_sru_to_z3950_init(router);
+        //check_sru_to_z3950_search(router, 
+        //                           "@attrset Bib-1 @attr 1=4 the", 
+        //                           "@attrset Bib-1 @attr 1=4 the");
 
-//     }
+    }
 
-//     catch (std::exception &e) {
-//         std::cout << e.what() << "\n";
-//         BOOST_CHECK (false);
-//     }
+    catch (std::exception &e) {
+        std::cout << e.what() << "\n";
+        BOOST_CHECK (false);
+    }
 
-//     catch ( ... ) {
-//         BOOST_CHECK (false);
-//     }
-// }
+    catch ( ... ) {
+        BOOST_CHECK (false);
+    }
+}
 
 /*
  * Local variables:

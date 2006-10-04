@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.13 2006-09-26 13:15:33 marc Exp $
+/* $Id: gduutil.cpp,v 1.14 2006-10-04 11:21:47 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -229,10 +229,11 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 os << " " << *(pr->numberOfRecordsRequested);
             else
                 os << " -";
-            //if (pr->preferredRecordSyntax)
-            //    os << " " << *(pr->preferredRecordSyntax);
-            //else
-            //    os << " -";
+            if (pr->preferredRecordSyntax)
+                //os << " " << pr->preferredRecordSyntax;
+                os << " " <<(oid_getentbyoid(pr->preferredRecordSyntax))->desc;
+            else
+                os << " -";
             //elements
             //if (pr->)
             //    os << " " << *(pr->);

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!-- $Id: config-record-transform.xml,v 1.1 2006-10-04 11:21:47 marc Exp $ -->
+<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+  <start route="start"/>
+  <filters>
+    <filter id="frontend" type="frontend_net">
+      <threads>10</threads>
+      <port>@:9000</port>
+    </filter>
+    <filter id="backend" type="z3950_client">
+     <timeout>30</timeout>
+    </filter>
+  </filters>
+  <routes>  
+    <route id="start">
+      <filter refid="frontend"/>
+      <filter type="log">
+        <message>Front</message>
+      </filter>
+      <filter type="record_transform">
+        <retrievalinfo>
+          <retrieval syntax="grs-1"/>
+          <retrieval syntax="usmarc" name="F"/>
+          <retrieval syntax="usmarc" name="B"/>
+          <retrieval syntax="xml" name="marcxml"
+                     identifier="info:srw/schema/1/marcxml-v1.1"
+                     backendsyntax="usmarc" backendname="F">
+            <convert>
+              <marc inputformat="marc" outputformat="marcxml"
+                    inputcharset="marc-8"/>
+            </convert>
+          </retrieval>
+          <retrieval syntax="xml" name="danmarc"
+                     backendsyntax="usmarc" backendname="F">
+            <convert>
+              <marc inputformat="marc" outputformat="marcxchange"
+                    inputcharset="marc-8"/>
+            </convert>
+          </retrieval>
+          <retrieval syntax="xml" name="dc"
+                     identifier="info:srw/schema/1/dc-v1.1"
+                     backendsyntax="usmarc" backendname="F">
+            <convert>
+              <marc inputformat="marc" outputformat="marcxml"
+                    inputcharset="marc-8"/>
+              <xslt stylesheet="xml/xslt/MARC21slim2DC.xsl"/>
+            </convert>
+          </retrieval>
+        </retrievalinfo>
+      </filter>
+      <filter type="log">
+        <message>Back</message>
+      </filter>
+      <filter refid="backend"/>
+      <filter type="bounce"/>
+    </route>
+  </routes>
+</yp2>
+

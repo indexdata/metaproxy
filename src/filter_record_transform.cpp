@@ -1,4 +1,4 @@
-/* $Id: filter_record_transform.cpp,v 1.1 2006-10-03 14:04:22 marc Exp $
+/* $Id: filter_record_transform.cpp,v 1.2 2006-10-04 11:21:47 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -10,8 +10,10 @@
 #include "package.hpp"
 #include "util.hpp"
 #include "gduutil.hpp"
+#include "xmlutil.hpp"
 
 #include <yaz/zgdu.h>
+#include <yaz/retrieval.h>
 
 //#include <boost/thread/mutex.hpp>
 
@@ -29,7 +31,7 @@ namespace metaproxy_1 {
             void process(metaproxy_1::Package & package) const;
             void configure(const xmlNode * xml_node);
         private:
-
+            yaz_retrieval_t m_retrieval;
         };
     }
 }
@@ -59,110 +61,109 @@ void yf::RecordTransform::process(mp::Package &package) const
 
 
 
-yf::RecordTransform::Impl::Impl()
+yf::RecordTransform::Impl::Impl() 
 {
+    m_retrieval = yaz_retrieval_create();
+    assert(m_retrieval);
 }
 
 yf::RecordTransform::Impl::~Impl()
 { 
+    if (m_retrieval)
+        yaz_retrieval_destroy(m_retrieval);
 }
 
 void yf::RecordTransform::Impl::configure(const xmlNode *xml_node)
 {
-//    for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next)
-//     {
-//         if (xml_node->type != XML_ELEMENT_NODE)
-//             continue;
-//         if (!strcmp((const char *) xml_node->name, "target"))
-//         {
-//             std::string route = mp::xml::get_route(xml_node);
-//             std::string target = mp::xml::get_text(xml_node);
-//             std::cout << "route=" << route << " target=" << target << "\n";
-//             m_p->m_target_route[target] = route;
-//         }
-//         else if (!strcmp((const char *) xml_node->name, "hideunavailable"))
-//         {
-//             m_p->m_hide_unavailable = true;
-//         }
-//         else
-//         {
-//             throw mp::filter::FilterException
-//                 ("Bad element " 
-//                  + std::string((const char *) xml_node->name)
-//                  + " in virt_db filter");
-//         }
-//     }
+    //const char *srcdir = getenv("srcdir");
+    //if (srcdir)
+    //    yaz_retrieval_set_path(m_retrieval, srcdir);
+
+    if (!xml_node)
+        throw mp::XMLError("RecordTransform filter config: empty XML DOM");
+
+    // parsing down to retrieval node, which can be any of the children nodes
+    xmlNode *retrieval_node;
+    for (retrieval_node = xml_node->children; 
+         retrieval_node; 
+         retrieval_node = retrieval_node->next)
+    {
+        if (retrieval_node->type != XML_ELEMENT_NODE)
+            continue;
+        if (0 == strcmp((const char *) retrieval_node->name, "retrievalinfo"))
+            break;
+    }
+    
+    // read configuration
+    if ( 0 != yaz_retrieval_configure(m_retrieval, retrieval_node)){
+        std::string msg("RecordTransform filter config: ");
+        msg += yaz_retrieval_get_error(m_retrieval);
+        throw mp::XMLError(msg);
+    }
 }
 
 void yf::RecordTransform::Impl::process(mp::Package &package) const
 {
 
-    Z_GDU *gdu = package.request().get();
+    Z_GDU *gdu_req = package.request().get();
     
     // only working on z3950 present packages
-    if (!gdu 
-        || !(gdu->which == Z_GDU_Z3950) 
-        || !(gdu->u.z3950->which == Z_APDU_presentRequest))
+    if (!gdu_req 
+        || !(gdu_req->which == Z_GDU_Z3950) 
+        || !(gdu_req->u.z3950->which == Z_APDU_presentRequest))
     {
         package.move();
         return;
     }
     
     // getting original present request
-    Z_PresentRequest *front_pr = gdu->u.z3950->u.presentRequest;
+    Z_PresentRequest *pr = gdu_req->u.z3950->u.presentRequest;
 
     // setting up ODR's for memory during encoding/decoding
-    mp::odr odr_de(ODR_DECODE);  
+    //mp::odr odr_de(ODR_DECODE);  
     mp::odr odr_en(ODR_ENCODE);
 
-    // now packaging the z3950 backend present request
-    Package back_package(package.session(), package.origin());
-    back_package.copy_filter(package);
- 
-    Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_presentRequest);
-
-    assert(apdu->u.presentRequest);
-
-    // z3950'fy start record position
-    //if ()
-    //    *(apdu->u.presentRequest->resultSetStartPoint) 
-    //        =
-    
-    // z3950'fy number of records requested 
-    //if ()
-    //    *(apdu->u.presentRequest->numberOfRecordsRequested) 
+    // now re-insructing the z3950 backend present request
      
     // z3950'fy record syntax
-    //if()
-    //(apdu->u.presentRequest->preferredRecordSyntax)
-    //    = yaz_oidval_to_z3950oid (odr_en, CLASS_RECSYN, VAL_TEXT_XML);
+    //Odr_oid odr_oid;
+    if(pr->preferredRecordSyntax){
+        (pr->preferredRecordSyntax)
+            = yaz_str_to_z3950oid(odr_en, CLASS_RECSYN, "xml");
+        
+        // = yaz_oidval_to_z3950oid (odr_en, CLASS_RECSYN, VAL_TEXT_XML);
+    }
+    // Odr_oid *yaz_str_to_z3950oid (ODR o, int oid_class,
+    //                                         const char *str);
+    // const char *yaz_z3950oid_to_str (Odr_oid *oid, int *oid_class);
+
 
     // z3950'fy record schema
     //if ()
     // {
-    //     apdu->u.presentRequest->recordComposition 
+    //     pr->recordComposition 
     //         = (Z_RecordComposition *) 
     //           odr_malloc(odr_en, sizeof(Z_RecordComposition));
-    //     apdu->u.presentRequest->recordComposition->which 
+    //     pr->recordComposition->which 
     //         = Z_RecordComp_simple;
-    //     apdu->u.presentRequest->recordComposition->u.simple 
+    //     pr->recordComposition->u.simple 
     //         = build_esn_from_schema(odr_en, 
     //                                 (const char *) sr_req->recordSchema); 
     // }
 
     // attaching Z3950 package to filter chain
-    back_package.request() = apdu;
+    package.request() = gdu_req;
 
     // std::cout << "z3950_present_request " << *apdu << "\n";   
 
-    // sending backend package
-    back_package.move();
+    // sending package
+    package.move();
 
    //check successful Z3950 present response
-    Z_GDU *back_gdu = back_package.response().get();
-    if (!back_gdu || back_gdu->which != Z_GDU_Z3950 
-        || back_gdu->u.z3950->which != Z_APDU_presentResponse
-        || !back_gdu->u.z3950->u.presentResponse)
+    Z_GDU *gdu_res = package.response().get();
+    if (!gdu_res || gdu_res->which != Z_GDU_Z3950 
+        || gdu_res->u.z3950->which != Z_APDU_presentResponse
+        || !gdu_res->u.z3950->u.presentResponse)
 
     {
         std::cout << "record-transform: error back present\n";
@@ -173,7 +174,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
 
     // everything fine, continuing
     // std::cout << "z3950_present_request OK\n";
-    // std::cout << "back z3950 " << *back_gdu << "\n";
+    // std::cout << "back z3950 " << *gdu_res << "\n";
 
 
     return;
