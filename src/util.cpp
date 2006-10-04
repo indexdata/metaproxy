@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.22 2006-10-03 07:57:40 marc Exp $
+/* $Id: util.cpp,v 1.23 2006-10-04 14:04:00 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -18,6 +18,24 @@ namespace mp = metaproxy_1;
 
 // Doxygen doesn't like mp::util, so we use this instead
 namespace mp_util = metaproxy_1::util;
+
+const char * 
+mp_util::record_composition_to_esn(Z_RecordComposition *comp)
+{
+    if (comp && comp->which == Z_RecordComp_complex)
+    {
+        if (comp->u.complex->generic 
+            && comp->u.complex->generic->elementSpec
+            && (comp->u.complex->generic->elementSpec->which == 
+                Z_ElementSpec_elementSetName))
+            return comp->u.complex->generic->elementSpec->u.elementSetName;
+    }
+    else if (comp && comp->which == Z_RecordComp_simple &&
+             comp->u.simple->which == Z_ElementSetNames_generic)
+        return comp->u.simple->u.generic;
+    return 0;
+}
+
 
 
 std::string mp_util::http_header_value(const Z_HTTP_Header* header, 

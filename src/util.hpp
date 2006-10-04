@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.21 2006-10-03 07:57:40 marc Exp $
+/* $Id: util.hpp,v 1.22 2006-10-04 14:04:00 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -32,6 +32,9 @@ namespace metaproxy_1 {
                 return o.str();    
             return std::string();
         };
+
+        const char * 
+        record_composition_to_esn(Z_RecordComposition *comp);
 
         std::string http_header_value(const Z_HTTP_Header* header, 
                                                const std::string name);

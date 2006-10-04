@@ -1,4 +1,4 @@
-/* $Id: filter_record_transform.cpp,v 1.2 2006-10-04 11:21:47 marc Exp $
+/* $Id: filter_record_transform.cpp,v 1.3 2006-10-04 14:04:00 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -21,6 +21,7 @@
 
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
+namespace mp_util = metaproxy_1::util;
 
 namespace metaproxy_1 {
     namespace filter {
@@ -123,16 +124,78 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     //mp::odr odr_de(ODR_DECODE);  
     mp::odr odr_en(ODR_ENCODE);
 
+    // setting up variables for conversion state
+    yaz_record_conv_t rc = 0;
+    int ret_code;
+
+    const char *input_schema = 0;
+    Odr_oid *input_syntax = 0;
+
+    if(pr->recordComposition){
+        input_schema 
+            = mp_util::record_composition_to_esn(pr->recordComposition);
+    }
+    if(pr->preferredRecordSyntax){
+        input_syntax = pr->preferredRecordSyntax;
+    }
+    
+    const char *match_schema = 0;
+    int *match_syntax = 0;
+
+    const char *backend_schema = 0;
+    Odr_oid *backend_syntax = 0;
+
+    ret_code 
+        = yaz_retrieval_request(m_retrieval,
+                                input_schema, input_syntax,
+                                &match_schema, &match_syntax,
+                                &rc,
+                                &backend_schema, &backend_syntax);
+
+    std::cout << "ret_code " <<  ret_code << "\n";
+    std::cout << "match   " << (oid_getentbyoid(match_syntax))->desc << " " <<  match_schema << "\n";
+    std::cout << "backend " << (oid_getentbyoid(backend_syntax))->desc << " " <<  backend_schema << "\n";
+    
+
+//         if (r == -1) /* error ? */
+//         {
+//             const char *details = yaz_retrieval_get_error(
+//                 assoc->server->retrieval);
+
+//             rr->errcode = YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS;
+//             if (details)
+//                 rr->errstring = odr_strdup(rr->stream, details);
+//             return -1;
+//         }
+//         else if (r == 1 || r == 3)
+//         {
+//             const char *details = input_schema;
+//             rr->errcode =  YAZ_BIB1_ELEMENT_SET_NAMES_UNSUPP;
+//             if (details)
+//                 rr->errstring = odr_strdup(rr->stream, details);
+//             return -1;
+//         }
+//         else if (r == 2)
+//         {
+//             rr->errcode = YAZ_BIB1_RECORD_SYNTAX_UNSUPP;
+//             if (input_syntax_raw)
+//             {
+//                 char oidbuf[OID_STR_MAX];
+//                 oid_to_dotstring(input_syntax_raw, oidbuf);
+//                 rr->errstring = odr_strdup(rr->stream, oidbuf);
+//             }
+//             return -1;
+//     }
+
+
     // now re-insructing the z3950 backend present request
      
     // z3950'fy record syntax
     //Odr_oid odr_oid;
-    if(pr->preferredRecordSyntax){
-        (pr->preferredRecordSyntax)
-            = yaz_str_to_z3950oid(odr_en, CLASS_RECSYN, "xml");
+
         
         // = yaz_oidval_to_z3950oid (odr_en, CLASS_RECSYN, VAL_TEXT_XML);
-    }
+    // }
     // Odr_oid *yaz_str_to_z3950oid (ODR o, int oid_class,
     //                                         const char *str);
     // const char *yaz_z3950oid_to_str (Odr_oid *oid, int *oid_class);
@@ -176,6 +239,52 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     // std::cout << "z3950_present_request OK\n";
     // std::cout << "back z3950 " << *gdu_res << "\n";
 
+//         if (backend_schema)
+//         {
+//             set_esn(&rr->comp, backend_schema, rr->stream->mem);
+//         }
+//         if (backend_syntax)
+//         {
+//             oident *oident_syntax = oid_getentbyoid(backend_syntax);
+
+//             rr->request_format_raw = backend_syntax;
+            
+//             if (oident_syntax)
+//                 rr->request_format = oident_syntax->value;
+//             else
+//                 rr->request_format = VAL_NONE;
+
+//        }
+//     }
+//     (*assoc->init->bend_fetch)(assoc->backend, rr);
+//     if (rc && rr->record && rr->errcode == 0 && rr->len > 0)
+//     {   /* post conversion must take place .. */
+//         WRBUF output_record = wrbuf_alloc();
+//         int r = yaz_record_conv_record(rc, rr->record, rr->len, output_record);
+//         if (r)
+//         {
+//             const char *details = yaz_record_conv_get_error(rc);
+//             rr->errcode = YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS;
+//             if (details)
+//                 rr->errstring = odr_strdup(rr->stream, details);
+//         }
+//         else
+//         {
+//             rr->len = wrbuf_len(output_record);
+//             rr->record = odr_malloc(rr->stream, rr->len);
+//             memcpy(rr->record, wrbuf_buf(output_record), rr->len);
+//         }
+//         wrbuf_free(output_record, 1);
+//     }
+//     if (match_syntax)
+//     {
+//         struct oident *oi = oid_getentbyoid(match_syntax);
+//         rr->output_format = oi ? oi->value : VAL_NONE;
+//         rr->output_format_raw = match_syntax;
+//     }
+//     if (match_schema)
+//         rr->schema = odr_strdup(rr->stream, match_schema);
+//     return 0;
 
     return;
 }

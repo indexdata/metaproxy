@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.14 2006-10-04 11:21:47 marc Exp $
+/* $Id: gduutil.cpp,v 1.15 2006-10-04 14:04:00 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -16,7 +16,10 @@
 namespace mp = metaproxy_1;
 
 // Doxygen doesn't like mp::gdu, so we use this instead
-namespace mp_gdu = metaproxy_1::gdu;
+namespace mp_util = metaproxy_1::util;
+
+
+
 
 std::ostream& std::operator<<(std::ostream& os,  Z_GDU& zgdu)
 {
@@ -234,11 +237,10 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 os << " " <<(oid_getentbyoid(pr->preferredRecordSyntax))->desc;
             else
                 os << " -";
-            //elements
-            //if (pr->)
-            //    os << " " << *(pr->);
-            //else
-            //    os << " -";
+            if (pr->recordComposition)
+                os << " " << mp_util::record_composition_to_esn(pr->recordComposition);
+            else
+                os << " -";
         }
         break;
     case Z_APDU_presentResponse:
