@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.15 2006-10-04 14:04:00 marc Exp $
+/* $Id: gduutil.cpp,v 1.16 2006-10-05 12:17:24 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -237,8 +237,10 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 os << " " <<(oid_getentbyoid(pr->preferredRecordSyntax))->desc;
             else
                 os << " -";
-            if (pr->recordComposition)
-                os << " " << mp_util::record_composition_to_esn(pr->recordComposition);
+            const char * msg = 0;
+            if (pr->recordComposition 
+                && (msg = mp_util::record_composition_to_esn(pr->recordComposition)))
+                os << " " << msg;
             else
                 os << " -";
         }

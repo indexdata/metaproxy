@@ -1,4 +1,4 @@
-/* $Id: filter_record_transform.cpp,v 1.3 2006-10-04 14:04:00 marc Exp $
+/* $Id: filter_record_transform.cpp,v 1.4 2006-10-05 12:17:24 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -145,6 +145,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     const char *backend_schema = 0;
     Odr_oid *backend_syntax = 0;
 
+    std::cout << "yaz_retrieval_request" << "\n";
     ret_code 
         = yaz_retrieval_request(m_retrieval,
                                 input_schema, input_syntax,
@@ -153,44 +154,89 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
                                 &backend_schema, &backend_syntax);
 
     std::cout << "ret_code " <<  ret_code << "\n";
-    std::cout << "match   " << (oid_getentbyoid(match_syntax))->desc << " " <<  match_schema << "\n";
-    std::cout << "backend " << (oid_getentbyoid(backend_syntax))->desc << " " <<  backend_schema << "\n";
+    std::cout << "input   " << input_syntax << " ";
+    if (input_syntax)
+        std::cout << (oid_getentbyoid(input_syntax))->desc << " ";
+    else
+        std::cout << "- ";
+    if (input_schema)
+        std::cout   <<  input_schema << "\n";
+    else
+        std::cout   <<  "-\n";
+    std::cout << "match   " << match_syntax << " ";
+    if (match_syntax)
+        std::cout << (oid_getentbyoid(match_syntax))->desc << " ";
+    else
+        std::cout << "- ";
+    if (match_schema)
+        std::cout   <<  match_schema << "\n";
+    else
+        std::cout   <<  "-\n";
+    std::cout << "backend " << backend_syntax << " ";
+    if (backend_syntax)
+        std::cout << (oid_getentbyoid(backend_syntax))->desc << " ";
+    else
+        std::cout << "- ";
+    if (backend_schema)
+        std::cout   <<  backend_schema << "\n";
+    else
+        std::cout   <<  "-\n";
     
+    // error handeling
+    if (ret_code != 0)
+    {
 
-//         if (r == -1) /* error ? */
-//         {
-//             const char *details = yaz_retrieval_get_error(
-//                 assoc->server->retrieval);
+        // need to construct present error package and send back
 
-//             rr->errcode = YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS;
-//             if (details)
-//                 rr->errstring = odr_strdup(rr->stream, details);
-//             return -1;
-//         }
-//         else if (r == 1 || r == 3)
-//         {
-//             const char *details = input_schema;
-//             rr->errcode =  YAZ_BIB1_ELEMENT_SET_NAMES_UNSUPP;
-//             if (details)
-//                 rr->errstring = odr_strdup(rr->stream, details);
-//             return -1;
-//         }
-//         else if (r == 2)
-//         {
-//             rr->errcode = YAZ_BIB1_RECORD_SYNTAX_UNSUPP;
-//             if (input_syntax_raw)
-//             {
-//                 char oidbuf[OID_STR_MAX];
-//                 oid_to_dotstring(input_syntax_raw, oidbuf);
-//                 rr->errstring = odr_strdup(rr->stream, oidbuf);
-//             }
-//             return -1;
-//     }
+        const char *details = 0;
+        if (ret_code == -1) /* error ? */
+        {
+           details = yaz_retrieval_get_error(m_retrieval);
+           std::cout << "ERROR: YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS"
+                     << details << "\n";
+           //rr->errcode = YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS;
+           // if (details)
+           //     rr->errstring = odr_strdup(rr->stream, details);
+        }
+        else if (ret_code == 1 || ret_code == 3)
+        {
+            details = input_schema;
+            std::cout << "ERROR: YAZ_BIB1_ELEMENT_SET_NAMES_UNSUPP"
+                      << details << "\n";
+            //rr->errcode =  YAZ_BIB1_ELEMENT_SET_NAMES_UNSUPP;
+            //if (details)
+            //    rr->errstring = odr_strdup(rr->stream, details);
+        }
+        else if (ret_code == 2)
+        {
+            std::cout << "ERROR: YAZ_BIB1_RECORD_SYNTAX_UNSUPP"
+                      << details << "\n";
+            //rr->errcode = YAZ_BIB1_RECORD_SYNTAX_UNSUPP;
+            //if (input_syntax_raw)
+            //{
+            //    char oidbuf[OID_STR_MAX];
+            //    oid_to_dotstring(input_syntax_raw, oidbuf);
+            //    rr->errstring = odr_strdup(rr->stream, oidbuf);
+            //}
+        }
+        //package.session().close();
+        return;
+    }
 
 
-    // now re-insructing the z3950 backend present request
+
+    // now re-coding the z3950 backend present request
      
     // z3950'fy record syntax
+
+     if (backend_syntax)
+         pr->preferredRecordSyntax
+             = yaz_oidval_to_z3950oid(odr_en, CLASS_RECSYN, *backend_syntax);
+     else
+         pr->preferredRecordSyntax
+             = yaz_oidval_to_z3950oid(odr_en, CLASS_RECSYN, VAL_NONE);
+
+        
     //Odr_oid odr_oid;
 
         
@@ -200,19 +246,33 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     //                                         const char *str);
     // const char *yaz_z3950oid_to_str (Odr_oid *oid, int *oid_class);
 
+         //   oident *oident_syntax = oid_getentbyoid(backend_syntax);
+         //
+         //   rr->request_format_raw = backend_syntax;
+         //   
+         //   if (oident_syntax)
+         //       rr->request_format = oident_syntax->value;
+         //   else
+         //       rr->request_format = VAL_NONE;
+         
+
+
 
     // z3950'fy record schema
-    //if ()
-    // {
-    //     pr->recordComposition 
-    //         = (Z_RecordComposition *) 
-    //           odr_malloc(odr_en, sizeof(Z_RecordComposition));
-    //     pr->recordComposition->which 
-    //         = Z_RecordComp_simple;
-    //     pr->recordComposition->u.simple 
-    //         = build_esn_from_schema(odr_en, 
-    //                                 (const char *) sr_req->recordSchema); 
-    // }
+    if (backend_schema)
+    {
+        pr->recordComposition 
+            = (Z_RecordComposition *) 
+              odr_malloc(odr_en, sizeof(Z_RecordComposition));
+        pr->recordComposition->which 
+            = Z_RecordComp_simple;
+        pr->recordComposition->u.simple 
+            = (Z_ElementSetNames *)
+               odr_malloc(odr_en, sizeof(Z_ElementSetNames));
+        pr->recordComposition->u.simple->which = Z_ElementSetNames_generic;
+        pr->recordComposition->u.simple->u.generic 
+            = odr_strdup(odr_en, backend_schema);
+    }
 
     // attaching Z3950 package to filter chain
     package.request() = gdu_req;
