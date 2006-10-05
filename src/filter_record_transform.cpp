@@ -1,4 +1,4 @@
-/* $Id: filter_record_transform.cpp,v 1.4 2006-10-05 12:17:24 marc Exp $
+/* $Id: filter_record_transform.cpp,v 1.5 2006-10-05 20:19:50 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -118,7 +118,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     }
     
     // getting original present request
-    Z_PresentRequest *pr = gdu_req->u.z3950->u.presentRequest;
+    Z_PresentRequest *pr_req = gdu_req->u.z3950->u.presentRequest;
 
     // setting up ODR's for memory during encoding/decoding
     //mp::odr odr_de(ODR_DECODE);  
@@ -131,12 +131,12 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     const char *input_schema = 0;
     Odr_oid *input_syntax = 0;
 
-    if(pr->recordComposition){
+    if(pr_req->recordComposition){
         input_schema 
-            = mp_util::record_composition_to_esn(pr->recordComposition);
+            = mp_util::record_composition_to_esn(pr_req->recordComposition);
     }
-    if(pr->preferredRecordSyntax){
-        input_syntax = pr->preferredRecordSyntax;
+    if(pr_req->preferredRecordSyntax){
+        input_syntax = pr_req->preferredRecordSyntax;
     }
     
     const char *match_schema = 0;
@@ -145,7 +145,6 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     const char *backend_schema = 0;
     Odr_oid *backend_syntax = 0;
 
-    std::cout << "yaz_retrieval_request" << "\n";
     ret_code 
         = yaz_retrieval_request(m_retrieval,
                                 input_schema, input_syntax,
@@ -153,6 +152,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
                                 &rc,
                                 &backend_schema, &backend_syntax);
 
+    // debug output - to be removed later
     std::cout << "ret_code " <<  ret_code << "\n";
     std::cout << "input   " << input_syntax << " ";
     if (input_syntax)
@@ -192,7 +192,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         if (ret_code == -1) /* error ? */
         {
            details = yaz_retrieval_get_error(m_retrieval);
-           std::cout << "ERROR: YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS"
+           std::cout << "ERROR: YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS "
                      << details << "\n";
            //rr->errcode = YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS;
            // if (details)
@@ -201,7 +201,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         else if (ret_code == 1 || ret_code == 3)
         {
             details = input_schema;
-            std::cout << "ERROR: YAZ_BIB1_ELEMENT_SET_NAMES_UNSUPP"
+            std::cout << "ERROR: YAZ_BIB1_ELEMENT_SET_NAMES_UNSUPP "
                       << details << "\n";
             //rr->errcode =  YAZ_BIB1_ELEMENT_SET_NAMES_UNSUPP;
             //if (details)
@@ -212,10 +212,10 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
             std::cout << "ERROR: YAZ_BIB1_RECORD_SYNTAX_UNSUPP"
                       << details << "\n";
             //rr->errcode = YAZ_BIB1_RECORD_SYNTAX_UNSUPP;
-            //if (input_syntax_raw)
+            //if (input_syntax)
             //{
             //    char oidbuf[OID_STR_MAX];
-            //    oid_to_dotstring(input_syntax_raw, oidbuf);
+            //    oid_to_dotstring(input_syntax, oidbuf);
             //    rr->errstring = odr_strdup(rr->stream, oidbuf);
             //}
         }
@@ -229,17 +229,18 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
      
     // z3950'fy record syntax
 
-     if (backend_syntax)
-         pr->preferredRecordSyntax
+    if (backend_syntax)  // TODO: this seems not to work - why ??
+         pr_req->preferredRecordSyntax
              = yaz_oidval_to_z3950oid(odr_en, CLASS_RECSYN, *backend_syntax);
      else
-         pr->preferredRecordSyntax
+         pr_req->preferredRecordSyntax
              = yaz_oidval_to_z3950oid(odr_en, CLASS_RECSYN, VAL_NONE);
 
+     //pr_req->preferredRecordSyntax 
+     //    = yaz_oidval_to_z3950oid (odr_en, CLASS_RECSYN, VAL_TEXT_XML);
         
-    //Odr_oid odr_oid;
 
-        
+    //Odr_oid odr_oid;   
         // = yaz_oidval_to_z3950oid (odr_en, CLASS_RECSYN, VAL_TEXT_XML);
     // }
     // Odr_oid *yaz_str_to_z3950oid (ODR o, int oid_class,
@@ -261,16 +262,16 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     // z3950'fy record schema
     if (backend_schema)
     {
-        pr->recordComposition 
+        pr_req->recordComposition 
             = (Z_RecordComposition *) 
               odr_malloc(odr_en, sizeof(Z_RecordComposition));
-        pr->recordComposition->which 
+        pr_req->recordComposition->which 
             = Z_RecordComp_simple;
-        pr->recordComposition->u.simple 
+        pr_req->recordComposition->u.simple 
             = (Z_ElementSetNames *)
                odr_malloc(odr_en, sizeof(Z_ElementSetNames));
-        pr->recordComposition->u.simple->which = Z_ElementSetNames_generic;
-        pr->recordComposition->u.simple->u.generic 
+        pr_req->recordComposition->u.simple->which = Z_ElementSetNames_generic;
+        pr_req->recordComposition->u.simple->u.generic 
             = odr_strdup(odr_en, backend_schema);
     }
 
@@ -299,26 +300,60 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     // std::cout << "z3950_present_request OK\n";
     // std::cout << "back z3950 " << *gdu_res << "\n";
 
-//         if (backend_schema)
-//         {
-//             set_esn(&rr->comp, backend_schema, rr->stream->mem);
-//         }
-//         if (backend_syntax)
-//         {
-//             oident *oident_syntax = oid_getentbyoid(backend_syntax);
+    Z_PresentResponse * pr_res = gdu_res->u.z3950->u.presentResponse;
 
-//             rr->request_format_raw = backend_syntax;
-            
-//             if (oident_syntax)
-//                 rr->request_format = oident_syntax->value;
-//             else
-//                 rr->request_format = VAL_NONE;
+    // let non surrogate dioagnostics in Z3950 present response package
+    // pass to frontend - just return
+    if (pr_res->records 
+        && pr_res->records->which == Z_Records_NSD
+        && pr_res->records->u.nonSurrogateDiagnostic)
+        return;
 
-//        }
-//     }
-//     (*assoc->init->bend_fetch)(assoc->backend, rr);
-//     if (rc && rr->record && rr->errcode == 0 && rr->len > 0)
-//     {   /* post conversion must take place .. */
+    // record transformation must take place 
+    if (rc && pr_res 
+        && pr_res->numberOfRecordsReturned 
+        && *(pr_res->numberOfRecordsReturned)
+        && pr_res->records
+        && pr_res->records->which == Z_Records_DBOSD
+        && pr_res->records->u.databaseOrSurDiagnostics->num_records)
+    {
+        //transform all records
+         for (int i = 0; 
+              i < pr_res->records->u.databaseOrSurDiagnostics->num_records; 
+              i++)
+         {
+             Z_NamePlusRecord *npr 
+                 = pr_res->records->u.databaseOrSurDiagnostics->records[i];
+             if (npr->which != Z_NamePlusRecord_databaseRecord)
+             {
+                 std::cout  << "TODO: surrogate diag to be set\n";
+             }
+             else
+             {
+                 std::cout  << "TODO: record transform to be done\n";
+                 WRBUF output_record = wrbuf_alloc();
+                 Z_External *r = npr->u.databaseRecord;
+                 //oident *ent = oid_getentbyoid(r->direct_reference);
+                 std::cout 
+                     << "database record type: " << r->which << "\n";
+                 if (r->which == Z_External_octet) 
+                     //&& ent->value == *backend_schema)
+                 {
+                     int ret_trans 
+                         =  yaz_record_conv_record(rc, 
+                                                   (const char *)
+                                                   r->u.octet_aligned->buf, 
+                                                   r->u.octet_aligned->len,
+                                                   output_record);
+                     std::cout 
+                         << "TODO: record transformation error checking\n";
+                }
+                
+             }
+         }
+//&& rr->record && rr->errcode == 0 && rr->len > 0)
+    }
+    
 //         WRBUF output_record = wrbuf_alloc();
 //         int r = yaz_record_conv_record(rc, rr->record, rr->len, output_record);
 //         if (r)
