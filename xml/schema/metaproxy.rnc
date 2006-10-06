@@ -1,21 +1,21 @@
 # Metaproxy XML config file schemas
-#  $Id: metaproxy.rnc,v 1.3 2006-10-06 22:42:24 marc Exp $
-#
+#  $Id: metaproxy.rnc,v 1.4 2006-10-06 22:51:40 marc Exp $
+# 
 #   Copyright (c) 2005-2006, Index Data.
-#
+# 
 #   See the LICENSE file for details
-#
-#
+# 
+# 
 # The RelaxNG Compact Syntax file 'metaproxy.rnc' is the master copy.
-#
+# 
 # The RelaxNG XML Syntax and XML Schema are generated using 'trang':
 # trang metaproxy.rnc metaproxy.rng 
 # trang metaproxy.rnc metaproxy.xsd 
-#
+# 
 # Config file validation is done using 'xmllint':
 # xmllint -/-relaxng metaproxy.rng ../../../etc/config1.xml 
-# xmllint --schema metaproxy.xsd config-bytarget.xml
-#
+# xmllint -/-schema metaproxy.xsd config-bytarget.xml
+# 
 # For information on RelaxNG see http://relaxng.org 
 # see also http://books.xmlschemata.org/relaxng/
 
@@ -23,117 +23,114 @@ default namespace = "http://indexdata.dk/yp2/config/1"
 
 start = metaproxy
 
-metaproxy = 
+metaproxy =
   element yp2 {
     element start {
       attribute route { xsd:NCName }
     },
     element filters { filter+ }?,
-    element routes {
-        route+
-    }
+    element routes { route+ }
   }
 
-route =  element route {
+route =
+  element route {
     attribute id { xsd:NCName },
     filter+
-}
+  }
 
-filter = 
+filter =
   element filter {
-   ( filter_refid
-   | filter_auth_simple
-   | filter_backend_test
-   | filter_bounce
-   | filter_frontend_net
-   | filter_http_file
-   | filter_log
-   | filter_multi
-   | filter_query_rewrite
-   | filter_virt_db
-   | filter_z3950_client
-   )
-}
+    filter_refid
+    | filter_auth_simple
+    | filter_backend_test
+    | filter_bounce
+    | filter_frontend_net
+    | filter_http_file
+    | filter_log
+    | filter_multi
+    | filter_query_rewrite
+    | filter_virt_db
+    | filter_z3950_client
+  }
 
 filter_refid = attribute refid { xsd:NCName }
 
-filter_auth_simple = 
-    attribute type { "auth_simple" },
-    attribute id { xsd:NCName }?,
-    attribute name { xsd:NCName }?,
-    element userRegister { xsd:string }?,
-    element targetRegister { xsd:string }?,
-    element discardUnauthorisedTargets { empty }?
+filter_auth_simple =
+  attribute type { "auth_simple" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element userRegister { xsd:string }?,
+  element targetRegister { xsd:string }?,
+  element discardUnauthorisedTargets { empty }?
 
-filter_backend_test = 
-    attribute type { "backend_test" },
-    attribute id { xsd:NCName }?,
-    attribute name { xsd:NCName }?
+filter_backend_test =
+  attribute type { "backend_test" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?
 
-filter_bounce = 
-    attribute type { "bounce" },
-    attribute id { xsd:NCName }?,
-    attribute name { xsd:NCName }?
+filter_bounce =
+  attribute type { "bounce" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?
 
-filter_frontend_net = 
-    attribute type { "frontend_net" },
-    attribute id { xsd:NCName }?,
-    attribute name { xsd:NCName }?,
-    element threads { xsd:integer }?,
-    element port { xsd:string }
+filter_frontend_net =
+  attribute type { "frontend_net" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element threads { xsd:integer }?,
+  element port { xsd:string }
 
-filter_http_file = 
-    attribute type { "http_file" },
-    attribute id { xsd:NCName }?,
-    attribute name { xsd:NCName }?,
-    element mimetypes { xsd:string },
-    element area { 
-        element documentroot { xsd:string },
-        element prefix { xsd:string }
-    }
+filter_http_file =
+  attribute type { "http_file" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element mimetypes { xsd:string },
+  element area {
+    element documentroot { xsd:string },
+    element prefix { xsd:string }
+  }
 
-filter_log = 
-    attribute type { "log" },
-    attribute id { xsd:NCName }?,
-    attribute name { xsd:NCName }?,
-    element message { xsd:NCName },
-    element filename { xsd:string }?,
-    element category {
-        attribute request-session { xsd:boolean }?, 
-        attribute response-session { xsd:boolean }?, 
-        attribute request-apdu { xsd:boolean }?, 
-        attribute response-apdu { xsd:boolean }? 
-    }?
+filter_log =
+  attribute type { "log" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element message { xsd:NCName },
+  element filename { xsd:string }?,
+  element category {
+    attribute request-session { xsd:boolean }?,
+    attribute response-session { xsd:boolean }?,
+    attribute request-apdu { xsd:boolean }?,
+    attribute response-apdu { xsd:boolean }?
+  }?
 
-filter_multi = 
-    attribute type { "multi" },
-    attribute id { xsd:NCName }?,
-    attribute name { xsd:NCName }?,
-    element target {
-        attribute route { xsd:string },
-        xsd:string
-    }*,
-    element hideunavailable { empty }?
+filter_multi =
+  attribute type { "multi" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element target {
+    attribute route { xsd:string },
+    xsd:string
+  }*,
+  element hideunavailable { empty }?
 
-filter_query_rewrite = 
-    attribute type { "query_rewrite" },
-    attribute id { xsd:NCName }?,
-    attribute name { xsd:NCName }?,
-    element xslt { xsd:string }
+filter_query_rewrite =
+  attribute type { "query_rewrite" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element xslt { xsd:string }
 
-filter_virt_db = 
-    attribute type { "virt_db" },
-    attribute id { xsd:NCName }?,
-    attribute name { xsd:NCName }?,
-    element virtual {
-       attribute route { xsd:NCName }?,
-       element database { xsd:NCName },
-       element target  { xsd:string }+
-    }+
+filter_virt_db =
+  attribute type { "virt_db" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element virtual {
+    attribute route { xsd:NCName }?,
+    element database { xsd:NCName },
+    element target { xsd:string }+
+  }+
 
-filter_z3950_client = 
-    attribute type { "z3950_client" },
-    attribute id { xsd:NCName }?,
-    attribute name { xsd:NCName }?,
-    element timeout { xsd:integer }
-
+filter_z3950_client =
+  attribute type { "z3950_client" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element timeout { xsd:integer }
