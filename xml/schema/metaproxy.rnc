@@ -1,0 +1,71 @@
+# The RelaxNG Compact Syntax file is the master copy
+# trang metaproxy.rnc metaproxy.rng 
+# xmllint --relaxng metaproxy.rng ../../../etc/config1.xml 
+# see also http://books.xmlschemata.org/relaxng/relax-CHP-16-SECT-2.html
+
+default namespace = "http://indexdata.dk/yp2/config/1"
+
+start = metaproxy
+
+metaproxy = 
+  element yp2 {
+    element start {
+      attribute route { xsd:NCName }
+    },
+    element filters { filter+ }?,
+    element routes {
+        route+
+    }
+  }
+
+route =  element route {
+    attribute id { xsd:NCName },
+    (filter
+     | filter_ref_id
+     )+
+}
+
+filter = 
+    (filter_log
+    | filter_bounce
+    | filter_frontend_net
+    | filter_z3950_client 
+    )
+
+filter_ref_id =
+  element filter {
+    attribute refid { xsd:NCName }
+  }
+
+filter_bounce =
+  element filter {
+    attribute type { "bounce" },
+    attribute id { xsd:NCName }?,
+    attribute name { xsd:NCName }
+  }
+
+filter_log =
+  element filter {
+    attribute type { "log" },
+    attribute id { xsd:NCName }?,
+    attribute name { xsd:NCName }?,
+    element message { xsd:NCName }?
+  }
+
+filter_frontend_net =
+  element filter {
+    attribute type { "frontend_net" },
+    attribute id { xsd:NCName }?,
+    attribute name { xsd:NCName }?,
+    element threads { xsd:integer },
+    element port { xsd:string }
+  }
+
+filter_z3950_client =
+  element filter {
+    attribute type { "z3950_client" },
+    attribute id { xsd:NCName }?,
+    attribute name { xsd:NCName }?,
+    element timeout { xsd:integer }
+  }
+
