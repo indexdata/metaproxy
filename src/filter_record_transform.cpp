@@ -1,4 +1,4 @@
-/* $Id: filter_record_transform.cpp,v 1.5 2006-10-05 20:19:50 marc Exp $
+/* $Id: filter_record_transform.cpp,v 1.6 2006-10-10 09:17:24 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -12,6 +12,7 @@
 #include "gduutil.hpp"
 #include "xmlutil.hpp"
 
+#include <yaz/diagbib1.h>
 #include <yaz/zgdu.h>
 #include <yaz/retrieval.h>
 
@@ -152,74 +153,39 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
                                 &rc,
                                 &backend_schema, &backend_syntax);
 
-    // debug output - to be removed later
-    std::cout << "ret_code " <<  ret_code << "\n";
-    std::cout << "input   " << input_syntax << " ";
-    if (input_syntax)
-        std::cout << (oid_getentbyoid(input_syntax))->desc << " ";
-    else
-        std::cout << "- ";
-    if (input_schema)
-        std::cout   <<  input_schema << "\n";
-    else
-        std::cout   <<  "-\n";
-    std::cout << "match   " << match_syntax << " ";
-    if (match_syntax)
-        std::cout << (oid_getentbyoid(match_syntax))->desc << " ";
-    else
-        std::cout << "- ";
-    if (match_schema)
-        std::cout   <<  match_schema << "\n";
-    else
-        std::cout   <<  "-\n";
-    std::cout << "backend " << backend_syntax << " ";
-    if (backend_syntax)
-        std::cout << (oid_getentbyoid(backend_syntax))->desc << " ";
-    else
-        std::cout << "- ";
-    if (backend_schema)
-        std::cout   <<  backend_schema << "\n";
-    else
-        std::cout   <<  "-\n";
-    
-    // error handeling
+    // error handling
     if (ret_code != 0)
     {
-
         // need to construct present error package and send back
+
+        Z_APDU *apdu = 0;
 
         const char *details = 0;
         if (ret_code == -1) /* error ? */
         {
            details = yaz_retrieval_get_error(m_retrieval);
-           std::cout << "ERROR: YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS "
-                     << details << "\n";
-           //rr->errcode = YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS;
-           // if (details)
-           //     rr->errstring = odr_strdup(rr->stream, details);
+           apdu = odr_en.create_presentResponse(
+               gdu_req->u.z3950,
+               YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS, details);
         }
         else if (ret_code == 1 || ret_code == 3)
         {
             details = input_schema;
-            std::cout << "ERROR: YAZ_BIB1_ELEMENT_SET_NAMES_UNSUPP "
-                      << details << "\n";
-            //rr->errcode =  YAZ_BIB1_ELEMENT_SET_NAMES_UNSUPP;
-            //if (details)
-            //    rr->errstring = odr_strdup(rr->stream, details);
+            apdu = odr_en.create_presentResponse(
+                gdu_req->u.z3950,
+                YAZ_BIB1_ELEMENT_SET_NAMES_UNSUPP, details);
         }
         else if (ret_code == 2)
         {
-            std::cout << "ERROR: YAZ_BIB1_RECORD_SYNTAX_UNSUPP"
-                      << details << "\n";
-            //rr->errcode = YAZ_BIB1_RECORD_SYNTAX_UNSUPP;
-            //if (input_syntax)
-            //{
-            //    char oidbuf[OID_STR_MAX];
-            //    oid_to_dotstring(input_syntax, oidbuf);
-            //    rr->errstring = odr_strdup(rr->stream, oidbuf);
-            //}
+            char oidbuf[OID_STR_MAX];
+            oid_to_dotstring(input_syntax, oidbuf);
+            details = odr_strdup(odr_en, oidbuf);
+            
+            apdu = odr_en.create_presentResponse(
+                gdu_req->u.z3950,
+                YAZ_BIB1_RECORD_SYNTAX_UNSUPP, details);
         }
-        //package.session().close();
+        package.response() = apdu;
         return;
     }
 
@@ -228,36 +194,12 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     // now re-coding the z3950 backend present request
      
     // z3950'fy record syntax
-
     if (backend_syntax)  // TODO: this seems not to work - why ??
-         pr_req->preferredRecordSyntax
-             = yaz_oidval_to_z3950oid(odr_en, CLASS_RECSYN, *backend_syntax);
-     else
-         pr_req->preferredRecordSyntax
-             = yaz_oidval_to_z3950oid(odr_en, CLASS_RECSYN, VAL_NONE);
-
-     //pr_req->preferredRecordSyntax 
-     //    = yaz_oidval_to_z3950oid (odr_en, CLASS_RECSYN, VAL_TEXT_XML);
-        
-
-    //Odr_oid odr_oid;   
-        // = yaz_oidval_to_z3950oid (odr_en, CLASS_RECSYN, VAL_TEXT_XML);
-    // }
-    // Odr_oid *yaz_str_to_z3950oid (ODR o, int oid_class,
-    //                                         const char *str);
-    // const char *yaz_z3950oid_to_str (Odr_oid *oid, int *oid_class);
-
-         //   oident *oident_syntax = oid_getentbyoid(backend_syntax);
-         //
-         //   rr->request_format_raw = backend_syntax;
-         //   
-         //   if (oident_syntax)
-         //       rr->request_format = oident_syntax->value;
-         //   else
-         //       rr->request_format = VAL_NONE;
-         
-
-
+        pr_req->preferredRecordSyntax = backend_syntax;
+    else
+        pr_req->preferredRecordSyntax
+            = yaz_oidval_to_z3950oid(odr_en, CLASS_RECSYN, VAL_NONE);
+    
 
     // z3950'fy record schema
     if (backend_schema)
@@ -278,9 +220,6 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     // attaching Z3950 package to filter chain
     package.request() = gdu_req;
 
-    // std::cout << "z3950_present_request " << *apdu << "\n";   
-
-    // sending package
     package.move();
 
    //check successful Z3950 present response
@@ -307,80 +246,65 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     if (pr_res->records 
         && pr_res->records->which == Z_Records_NSD
         && pr_res->records->u.nonSurrogateDiagnostic)
-        return;
+    {
+        // we might do more clever tricks to "reverse"
+        // these error(s).
+
+        //*pr_res->records->u.nonSurrogateDiagnostic->condition = 
+        // YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS;
+    }
 
     // record transformation must take place 
     if (rc && pr_res 
         && pr_res->numberOfRecordsReturned 
-        && *(pr_res->numberOfRecordsReturned)
+        && *(pr_res->numberOfRecordsReturned) > 0
         && pr_res->records
         && pr_res->records->which == Z_Records_DBOSD
         && pr_res->records->u.databaseOrSurDiagnostics->num_records)
     {
-        //transform all records
+         //transform all records
          for (int i = 0; 
               i < pr_res->records->u.databaseOrSurDiagnostics->num_records; 
               i++)
          {
              Z_NamePlusRecord *npr 
                  = pr_res->records->u.databaseOrSurDiagnostics->records[i];
-             if (npr->which != Z_NamePlusRecord_databaseRecord)
+             if (npr->which == Z_NamePlusRecord_databaseRecord)
              {
-                 std::cout  << "TODO: surrogate diag to be set\n";
-             }
-             else
-             {
-                 std::cout  << "TODO: record transform to be done\n";
-                 WRBUF output_record = wrbuf_alloc();
                  Z_External *r = npr->u.databaseRecord;
                  //oident *ent = oid_getentbyoid(r->direct_reference);
-                 std::cout 
-                     << "database record type: " << r->which << "\n";
                  if (r->which == Z_External_octet) 
-                     //&& ent->value == *backend_schema)
                  {
+                     WRBUF output_record = wrbuf_alloc();
                      int ret_trans 
-                         =  yaz_record_conv_record(rc, 
+                         =  yaz_record_conv_record(rc,
                                                    (const char *)
                                                    r->u.octet_aligned->buf, 
                                                    r->u.octet_aligned->len,
                                                    output_record);
-                     std::cout 
-                         << "TODO: record transformation error checking\n";
-                }
-                
+                     if (ret_trans == 0)
+                     {
+                         struct oident *ident = oid_getentbyoid(match_syntax);
+                         npr->u.databaseRecord =
+                             z_ext_record(odr_en, ident->value,
+                                          wrbuf_buf(output_record),
+                                          wrbuf_len(output_record));
+                     }
+                     else
+                     {
+                         pr_res->records->
+                             u.databaseOrSurDiagnostics->records[i] 
+                             =  zget_surrogateDiagRec(
+                                 odr_en, npr->databaseName,
+                                 YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                                 yaz_record_conv_get_error(rc));
+                     }
+                     wrbuf_free(output_record, 1);
+                 }
              }
          }
-//&& rr->record && rr->errcode == 0 && rr->len > 0)
     }
-    
-//         WRBUF output_record = wrbuf_alloc();
-//         int r = yaz_record_conv_record(rc, rr->record, rr->len, output_record);
-//         if (r)
-//         {
-//             const char *details = yaz_record_conv_get_error(rc);
-//             rr->errcode = YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS;
-//             if (details)
-//                 rr->errstring = odr_strdup(rr->stream, details);
-//         }
-//         else
-//         {
-//             rr->len = wrbuf_len(output_record);
-//             rr->record = odr_malloc(rr->stream, rr->len);
-//             memcpy(rr->record, wrbuf_buf(output_record), rr->len);
-//         }
-//         wrbuf_free(output_record, 1);
-//     }
-//     if (match_syntax)
-//     {
-//         struct oident *oi = oid_getentbyoid(match_syntax);
-//         rr->output_format = oi ? oi->value : VAL_NONE;
-//         rr->output_format_raw = match_syntax;
-//     }
-//     if (match_schema)
-//         rr->schema = odr_strdup(rr->stream, match_schema);
-//     return 0;
-
+    package.response() = gdu_res;
     return;
 }
 
