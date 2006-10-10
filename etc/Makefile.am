@@ -1,26 +1,41 @@
-# $Id: Makefile.am,v 1.3 2006-06-19 13:29:30 adam Exp $
+# $Id: Makefile.am,v 1.4 2006-10-10 15:10:16 marc Exp $
 
 # This doesn't actually build anything, it just tests whether the
 # configuration files here correspond with the schema.
 
 etcdatadir = $(pkgdatadir)/etc
 
-config = config0.xml config1.xml config2.xml \
-	config3.xml config4.xml config5.xml \
-	config-simple-multi.xml config-local.xml \
-	config-shared1.xml
+xmlconfig = config-bytarget.xml \
+    config-local.xml \
+    config-record-transform.xml \
+    config-shared1.xml \
+    config-simple-multi.xml \
+    config-sru-to-z3950.xml \
+    config-zurg.xml \
+    config0.xml \
+    config1.xml \
+    config2.xml \
+    config3.xml \
+    config4.xml \
+    config5.xml
 
-misc = example.simple-auth example.target-auth pqf2pqf.xsl
+config = example.simple-auth example.target-auth pqf2pqf.xsl
 
-etcdata_DATA = $(config) $(misc)
+
+rng = ../xml/schema/metaproxy.rng
+xsd = ../xml/schema/metaproxy.xsd
+
+etcdata_DATA = $(xmlconfig) $(config)
 
 EXTRA_DIST = $(etcdata_DATA)
 
-test: test-config0 test-config1 test-config2 \
-      test-config3 test-config4 test-config5 \
-      test-config-simple-multi test-config-local \
-	test-config-shared1
+.PHONY: check_rng
+check_rng: 
+	xmllint --noout --relaxng $(rng) $(xmlconfig)
 
-test-%: %.xml config.xsd 
-	xmllint --noout --schema config.xsd $<
+.PHONY: check_xsd
+check_xsd: 
+	xmllint --noout --schema $(xsd) $(xmlconfig)
+
+
 

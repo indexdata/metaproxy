@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-sru-to-z3950.xml,v 1.3 2006-09-26 11:33:40 marc Exp $ -->
+<!-- $Id: config-sru-to-z3950.xml,v 1.4 2006-10-10 15:10:16 marc Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <filters>
@@ -17,7 +17,7 @@
       <filter type="log">
         <message>SRU/W</message>
       </filter>
-      <filter type="SRUtoZ3950"/>
+      <filter type="sru_z3950"/>
       <filter type="log">
         <message>Z3950</message>
       </filter>

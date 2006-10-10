@@ -105,6 +105,9 @@ AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
 	src/Jamfile
+	xml/Makefile
+	xml/schema/Makefile
+	xml/xslt/Makefile
 	doc/Makefile
 	doc/local.ent
         doc/common/Makefile

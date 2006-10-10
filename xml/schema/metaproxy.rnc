@@ -1,5 +1,5 @@
 # Metaproxy XML config file schemas
-#  $Id: metaproxy.rnc,v 1.4 2006-10-06 22:51:40 marc Exp $
+#  $Id: metaproxy.rnc,v 1.5 2006-10-10 15:10:18 marc Exp $
 # 
 #   Copyright (c) 2005-2006, Index Data.
 # 
@@ -49,6 +49,9 @@ filter =
     | filter_log
     | filter_multi
     | filter_query_rewrite
+    | filter_record_transform
+    | filter_session_shared
+    | filter_sru_z3950
     | filter_virt_db
     | filter_z3950_client
   }
@@ -94,11 +97,13 @@ filter_log =
   attribute type { "log" },
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
-  element message { xsd:NCName },
+  element message { xsd:string }?,
   element filename { xsd:string }?,
   element category {
+    attribute init-options { xsd:boolean }?,
     attribute request-session { xsd:boolean }?,
     attribute response-session { xsd:boolean }?,
+    attribute apdu { xsd:boolean }?,
     attribute request-apdu { xsd:boolean }?,
     attribute response-apdu { xsd:boolean }?
   }?
@@ -119,6 +124,29 @@ filter_query_rewrite =
   attribute name { xsd:NCName }?,
   element xslt { xsd:string }
 
+filter_record_transform =
+  attribute type { "record_transform" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  retrievalinfo 
+
+filter_session_shared =
+  attribute type { "session_shared" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element resultset {
+    attribute max { xsd:integer },
+    attribute ttl { xsd:integer }
+  },
+  element session {
+    attribute ttl { xsd:integer }
+  }
+
+filter_sru_z3950 =
+  attribute type { "sru_z3950" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?
+
 filter_virt_db =
   attribute type { "virt_db" },
   attribute id { xsd:NCName }?,
@@ -133,4 +161,25 @@ filter_z3950_client =
   attribute type { "z3950_client" },
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
-  element timeout { xsd:integer }
+  element timeout { xsd:integer }?
+
+retrievalinfo = 
+  element retrievalinfo { 
+    element retrieval {
+      attribute syntax { xsd:string },
+      attribute name { xsd:string }?,
+      attribute identifier { xsd:string }?,
+      attribute backendsyntax { xsd:string }?,
+      attribute backendname { xsd:string }?,
+      element convert {
+        element marc {
+          attribute inputformat { xsd:string },
+          attribute outputformat { xsd:string },
+          attribute inputcharset { xsd:string }
+        },
+        element xslt {
+          attribute stylesheet { xsd:string }
+        }?
+      }?
+    }+
+  }
