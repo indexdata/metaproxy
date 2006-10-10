@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.20 2006-09-28 11:56:54 marc Exp $
+/* $Id: filter_backend_test.cpp,v 1.21 2006-10-10 09:47:50 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -37,6 +37,7 @@ namespace metaproxy_1 {
 
             Z_Records *fetch(
                 ODR odr, Odr_oid *preferredRecordSyntax,
+                Z_ElementSetNames *esn,
                 int start, int number, int &error_code, std::string &addinfo,
                 int *number_returned, int *next_position);
 
@@ -86,6 +87,7 @@ yf::BackendTest::~BackendTest() {
 
 Z_Records *yf::BackendTest::Rep::fetch(
     ODR odr, Odr_oid *preferredRecordSyntax,
+    Z_ElementSetNames *esn,
     int start, int number, int &error_code, std::string &addinfo,
     int *number_returned, int *next_position)
 {
@@ -111,7 +113,25 @@ Z_Records *yf::BackendTest::Rep::fetch(
         error_code = YAZ_BIB1_RECORD_SYNTAX_UNSUPP;
         return 0;
     }
-    
+
+    // no element set, "B" and "F" are supported
+    if (esn)
+    {
+        if (esn->which != Z_ElementSetNames_generic)
+        {
+            error_code 
+                = YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_;
+            return 0;
+        }
+        const char *name = esn->u.generic;
+        if (strcmp(name, "B") && strcmp(name, "F"))
+        {
+            error_code 
+                = YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_;
+            addinfo = std::string(name);
+            return 0;
+        }
+    }
     Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
     rec->which = Z_Records_DBOSD;
     rec->u.databaseOrSurDiagnostics = (Z_NamePlusRecordList *)
@@ -218,15 +238,20 @@ void yf::BackendTest::process(Package &package) const
                 
                 int number = 0;
                 mp::util::piggyback(*req->smallSetUpperBound,
-                                     *req->largeSetLowerBound,
-                                     *req->mediumSetPresentNumber,
-                                     result_set_size,
-                                     number);
-
-                if (number)
-                {
+                                    *req->largeSetLowerBound,
+                                    *req->mediumSetPresentNumber,
+                                    result_set_size,
+                                    number);
+                
+                if (number) 
+                {   // not a large set for sure 
+                    Z_ElementSetNames *esn;
+                    if (number > *req->smallSetUpperBound)
+                        esn = req->mediumSetElementSetNames;
+                    else
+                        esn = req->smallSetElementSetNames;
                     records = m_p->fetch(
-                        odr, req->preferredRecordSyntax,
+                        odr, req->preferredRecordSyntax, esn,
                         1, number,
                         error_code, addinfo,
                         &number_returned,
@@ -259,8 +284,25 @@ void yf::BackendTest::process(Package &package) const
             int next_position = 0;
             int error_code = 0;
             std::string addinfo;
+            Z_ElementSetNames *esn = 0;
+
+            if (req->recordComposition)
+            {
+                if (req->recordComposition->which == Z_RecordComp_simple)
+                    esn = req->recordComposition->u.simple;
+                else
+                {
+                    apdu_res =
+                        odr.create_presentResponse(
+                            apdu_req,
+                            YAZ_BIB1_ONLY_A_SINGLE_ELEMENT_SET_NAME_SUPPORTED,
+                            0);
+                    package.response() = apdu_res;
+                    return;
+                }
+            }
             Z_Records *records = m_p->fetch(
-                odr, req->preferredRecordSyntax,
+                odr, req->preferredRecordSyntax, esn,
                 *req->resultSetStartPoint, *req->numberOfRecordsRequested,
                 error_code, addinfo,
                 &number_returned,
