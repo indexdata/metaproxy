@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.21 2006-10-03 12:31:26 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.22 2006-10-10 14:20:16 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -1144,7 +1144,7 @@ static mp::filter::Base* filter_creator()
 extern "C" {
     struct metaproxy_1_filter_struct metaproxy_1_filter_sru_to_z3950 = {
         0,
-        "SRUtoZ3950",
+        "sru_z3950",
         filter_creator
     };
 }
