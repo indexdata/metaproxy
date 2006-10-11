@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.1 2006-10-10 15:10:18 marc Exp $
+# $Id: Makefile.am,v 1.2 2006-10-11 13:21:52 marc Exp $
 
 xmlschemadatadir = $(pkgdatadir)/xml/schema
 
@@ -11,10 +11,10 @@ EXTRA_DIST = $(xmlschemadata_DATA)
 
 
 # pattern compile RelaxNG Compact to RelaxNG XML
-%.rng : %.rnc
+.rnc.rng:
 	trang $< $@  
 
 # pattern compile RelaxNG Compact to XML Schema
-%.xsd : %.rnc 
+.rnc.xsd:
 	trang $< $@  
 

@@ -1,29 +1,29 @@
-# $Id: Makefile.am,v 1.5 2006-10-10 15:41:51 marc Exp $
+# $Id: Makefile.am,v 1.6 2006-10-11 13:21:51 marc Exp $
 
 # This doesn't actually build anything, it just tests whether the
 # configuration files here correspond with the schema.
 
 etcdatadir = $(pkgdatadir)/etc
 
-xmlconfig = config-bytarget.xml \
-    config-local.xml \
-    config-record-transform.xml \
-    config-shared1.xml \
-    config-simple-multi.xml \
-    config-sru-to-z3950.xml \
-    config-zurg.xml \
-    config0.xml \
-    config1.xml \
-    config2.xml \
-    config3.xml \
-    config4.xml \
-    config5.xml
+xmlconfig = $(srcdir)/config-bytarget.xml \
+    $(srcdir)/config-local.xml \
+    $(srcdir)/config-record-transform.xml \
+    $(srcdir)/config-shared1.xml \
+    $(srcdir)/config-simple-multi.xml \
+    $(srcdir)/config-sru-to-z3950.xml \
+    $(srcdir)/config-zurg.xml \
+    $(srcdir)/config0.xml \
+    $(srcdir)/config1.xml \
+    $(srcdir)/config2.xml \
+    $(srcdir)/config3.xml \
+    $(srcdir)/config4.xml \
+    $(srcdir)/config5.xml
 
 config = example.simple-auth example.target-auth pqf2pqf.xsl
 
 
-rng = ../xml/schema/metaproxy.rng
-xsd = ../xml/schema/metaproxy.xsd
+rng = $(srcdir)/../xml/schema/metaproxy.rng
+xsd = $(srcdir)/../xml/schema/metaproxy.xsd
 
 etcdata_DATA = $(xmlconfig) $(config)
 

@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.28 2006-09-08 14:12:28 marc Exp $
+## $Id: Makefile.am,v 1.29 2006-10-11 13:21:51 marc Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -23,14 +23,17 @@ MANFILES = auth_simple.3mp backend_test.3mp  bounce.3mp \
 
 HTMLFILES = index.html
 
+# testing if this does the job of collecting up the unnamed '*.html' files 
+#UNLISTEDHTML = $(wildcard *.html)
+
 PNGFILES = multi.png
 
 doc_DATA = $(HTMLFILES) $(PNGFILES)
 man_MANS = $(MANFILES)
 
-EXTRA_DIST = $(XMLFILES) $(XMLMAN) $(doc_DATA) $(man_MANS) multi.svg
+EXTRA_DIST = $(XMLFILES) $(XMLMAN) $(doc_DATA) $(man_MANS) multi.svg 
 
-$(HTMLFILES): $(XMLFILES) multi.png
+$(HTMLFILES): $(XMLFILES) $(PNGFILES)
 	rm -f *.html
 	$(HTML_COMPILE) $(MAINXML)
 
@@ -66,8 +69,9 @@ multi.png: multi.svg
 multi.eps: multi.svg
 	inkscape --export-eps=$@ --export-bbox-page $?
 
-%.pdf: %.eps
+.eps.pdf:
 	epstopdf -hires $?
+
 
 clean-data-hook:
 	rm -f [0-9]* *.bak
@@ -83,3 +87,7 @@ install-data-hook:
 	for p in $$d/*.html; do \
 		$(docDATA_INSTALL) $$p $(DESTDIR)/$(docdir); \
 	done
+
+uninstall-hook:
+	rm -r $(DESTDIR)/$(docdir)
+
