@@ -17,7 +17,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.38 2006-09-08 14:12:28 marc Exp $ -->
+<!-- $Id: book.xml,v 1.39 2006-10-12 08:27:35 marc Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -637,6 +637,7 @@
     <literal>log</literal>,
     <literal>multi</literal>,
     <literal>query_rewrite</literal>,
+    <literal>record_transform</literal>,
     <literal>session_shared</literal>,
     <literal>template</literal>,
     <literal>virt_db</literal>).
@@ -799,6 +800,21 @@ Figure out what additional information we need in:
     </para>
    </section>
    
+   
+   <section>
+    <title><literal>record_transform</literal>
+    (mp::filter::RecordTransform)</title>
+    <para>
+     This filter acts only on Z3950 present requests, and let all
+     other types of packages and requests pass untouched. It's use is
+     twofold: blocking Z3950  present requests, which the backend
+     server does not understand and can not honour, and transforming
+     the present syntax and elementset name according to the rules
+     specified, to fetch only exisitng record formats, and transform
+     them on the fly to requested record syntaxes.
+    </para>
+   </section>
+
    <section>
     <title><literal>session_shared</literal>
      (mp::filter::SessionShared)</title>
@@ -832,7 +848,7 @@ Figure out what additional information we need in:
    
    <section>
     <title><literal>virt_db</literal>
-     (mp::filter::Virt_db)</title>
+     (mp::filter::VirtualDB)</title>
     <para>
      Performs virtual database selection: based on the name of the
      database in the search request, a server is selected, and its
@@ -948,26 +964,10 @@ Figure out what additional information we need in:
     implementation detail - they could just as well have been written
     in YAML or Lisp-like S-expressions, or in a custom syntax.)
    </para>
-   <para>
-    Since XML has been chosen, an XML schema,
-    <filename>config.xsd</filename>, is provided for validating
-    configuration files.  This file is supplied in the
-    <filename>etc</filename> directory of the Metaproxy distribution.  It
-    can be used by (among other tools) the <command>xmllint</command>
-    program supplied as part of the <literal>libxml2</literal>
-    distribution:
-   </para>
-   <screen>
-    xmllint --noout --schema etc/config.xsd my-config-file.xml
-   </screen>
-   <para>
-    (A recent version of <literal>libxml2</literal> is required, as
-    support for XML Schemas is a relatively recent addition.)
-   </para>
   </section>
   
   <section id="overview.xml.structure">
-   <title>Overview of XML structure</title>
+   <title>Overview of the config file XML structure</title>
    <para>
     All elements and attributes are in the namespace
     <ulink url="http://indexdata.dk/yp2/config/1"/>.
@@ -1082,6 +1082,32 @@ Figure out what additional information we need in:
     which returns the response to the client.
    </para>
   </section>
+  <section id="checking.xml.syntax">
+   <title>Config file syntax checking</title>
+   <para>
+    The distribution contains RelaxNG Compact and XML syntax checking
+    files, as well as XML Schema files. These are found in the
+    distribution pathes 
+   <screen>
+    xml/schema/metaproxy.rnc
+    xml/schema/metaproxy.rng
+    xml/schema/metaproxy.xsd
+   </screen>
+    and can be used to verify or debug the XML structure of
+    configuration files. For example, using the utility
+    <filename>xmllint</filename>, syntax checking is done like this:
+   <screen>
+    xmllint --noout --schema xml/schema/metaproxy.xsd etc/config-local.xml 
+    xmllint --noout --relaxng xml/schema/metaproxy.rng etc/config-local.xml 
+   </screen>
+    (A recent version of <literal>libxml2</literal> is required, as
+    support for XML Schemas is a relatively recent addition.)
+   </para>
+   <para>
+    You can of course use any other RelaxNG or XML Schema compliant tool
+    you wish.
+   </para>
+   </section>
  </chapter>
 
 

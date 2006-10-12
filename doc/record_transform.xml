@@ -1,0 +1,131 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" 
+    "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
+ <!ENTITY copyright SYSTEM "copyright.xml">
+]>
+<!-- $Id: record_transform.xml,v 1.1 2006-10-12 08:27:35 marc Exp $ -->
+<refentry>
+ <refmeta>
+  <refentrytitle>record_transform</refentrytitle>
+  <manvolnum>3mp</manvolnum>
+   <refmiscinfo>Metaproxy Module</refmiscinfo>
+</refmeta>
+ 
+ <refnamediv>
+  <refname>record_transform</refname>
+  <refpurpose>Z3950 present package record transformation</refpurpose>
+ </refnamediv>
+
+ <refsect1><title>DESCRIPTION</title>
+  <para>
+   This filter acts only on Z3950 present requests, and let all
+   other types of packages and requests pass untouched. It's use is
+   twofold: blocking Z3950  present requests, which the backend
+   server does not understand and can not honour, and transforming
+   the present syntax and elementset name according to the rules
+   specified, to fetch only exisitng record formats, and transform
+   them on the fly to requested record syntaxes.
+  </para> 
+  <para>
+   The allowed record present syntax and 
+   element name are described in multiple
+   <literal>&lt;retrieval&gt;</literal> elements inside the 
+   <literal>&lt;retrievalinfo&gt;</literal>
+   element. The <literal>syntax</literal> attribute is mandatory, but
+   the <literal>name</literal> attribute
+   may be omitted, in which case any 
+   element name is accepted. An additonal
+   <literal>identifier</literal> attribute can be added to explicetly
+   describe the Z3950 identifier string.
+  </para>
+  <para>
+  Record transformations are invoked when the optional attributes
+  <literal>backendsyntax</literal> and <literal>backendname</literal>
+  as well as the <literal>&lt;convert&gt;</literal> element are specified.  
+  Record conversions come in two flavours:
+  <literal>&lt;marc&gt;</literal> binary conversions between different
+  binary MARC formats and MarcXML formats, and
+  <literal>&lt;xslt&gt;</literal> stylesheet transformations performed
+  on any kind of XML records. These conversions can be stacked in any
+  order, and are performed linearly in file order. 
+  </para>
+  <para>
+   The binary MARC record transformations
+ <literal>&lt;marc&gt;</literal> are defined using the following
+   attributes: <literal>inputformat</literal>, <literal>outputformat</literal>,
+   <literal>inputcharset</literal> and  <literal>outputcharset</literal>.
+  </para>
+  <para>
+   XML <literal>&lt;xslt&gt;</literal> transformation instructions
+   accept only one mandatory <literal>stylesheet</literal> attribute,
+   which is either an absolute path, or a relative path from the
+   working directory of <literal>metaproxy</literal> to the location
+   of the requested XSLT stylesheet.
+  </para>
+ </refsect1>
+ 
+ <refsect1><title>EXAMPLES</title>
+  <para>
+   A typical configuration looks like this:
+   <screen><![CDATA[
+   <filter type="record_transform">
+     <retrievalinfo>
+        <retrieval syntax="grs-1"/>
+        <retrieval syntax="usmarc" name="F"/>
+        <retrieval syntax="usmarc" name="B"/>
+        <retrieval syntax="xml" name="marcxml"
+                   identifier="info:srw/schema/1/marcxml-v1.1"
+                   backendsyntax="usmarc" backendname="F">
+          <convert>
+            <marc inputformat="marc" outputformat="marcxml"
+                  inputcharset="marc-8"/>
+          </convert>
+        </retrieval>
+        <retrieval syntax="xml" name="danmarc"
+                   backendsyntax="usmarc" backendname="F">
+          <convert>
+            <marc inputformat="marc" outputformat="marcxchange"
+                  inputcharset="marc-8"/>
+          </convert>
+        </retrieval>
+        <retrieval syntax="xml" name="dc"
+                   identifier="info:srw/schema/1/dc-v1.1"
+                   backendsyntax="usmarc" backendname="F">
+          <convert>
+            <marc inputformat="marc" outputformat="marcxml"
+                  inputcharset="marc-8"/>
+            <xslt stylesheet="xml/xslt/MARC21slim2DC.xsl"/>
+          </convert>
+        </retrieval>
+      </retrievalinfo>
+   </filter>
+]]>
+   </screen>
+  </para>
+ </refsect1> 
+ 
+ <refsect1><title>SEE ALSO</title>
+  <para>
+   <citerefentry>
+    <refentrytitle>metaproxy</refentrytitle>
+    <manvolnum>1</manvolnum>
+   </citerefentry>
+  </para>
+ </refsect1>
+ 
+ &copyright;
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:1
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-local-catalogs: nil
+sgml-namecase-general:t
+End:
+-->
