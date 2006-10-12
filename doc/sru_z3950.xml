@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: sru_z3950.xml,v 1.1 2006-10-12 11:31:11 marc Exp $ -->
+<!-- $Id: sru_z3950.xml,v 1.2 2006-10-12 12:02:19 marc Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>sru_z3950</refentrytitle>
@@ -12,14 +12,14 @@
  
  <refnamediv>
   <refname>sru_z3950</refname>
-  <refpurpose>transforming SRU webservice requests to Z3950 metaproxy packages</refpurpose>
+  <refpurpose>transforming SRU web service requests to Z3950 metaproxy packages</refpurpose>
  </refnamediv>
  
  <refsect1><title>DESCRIPTION</title>
   <para>
    The <literal>sru_z3950</literal> metaproxy filter transforms valid
    SRU/GET or SRU/SOAP requests to Z3950 requests, and wraps the
-   recieved hit counts and XML records into suitable SRU response messages. 
+   received hit counts and XML records into suitable SRU response messages. 
   </para>
   <para>
    It supports only the SRU <literal>searchRetrieve</literal> operation, which

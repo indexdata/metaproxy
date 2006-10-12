@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: metaproxy.xml,v 1.4 2006-04-25 12:48:52 marc Exp $ -->
+<!-- $Id: metaproxy.xml,v 1.5 2006-10-12 12:02:19 marc Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>metaproxy</refentrytitle>
@@ -43,7 +43,7 @@
    <varlistentry>
     <term>--config <replaceable>config</replaceable></term>
     <listitem><para>
-      Specify the configuation.
+      Specify the configuration.
      </para></listitem>
    </varlistentry>
 
@@ -76,6 +76,10 @@
     <manvolnum>3mp</manvolnum>
    </citerefentry>,
    <citerefentry>
+    <refentrytitle>bounce</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>,
+   <citerefentry>
     <refentrytitle>frontend_net</refentrytitle>
     <manvolnum>3mp</manvolnum>
    </citerefentry>,
@@ -96,7 +100,15 @@
     <manvolnum>3mp</manvolnum>
    </citerefentry>,
    <citerefentry>
+    <refentrytitle>record_transform</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>,
+   <citerefentry>
     <refentrytitle>session_shared</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>,
+   <citerefentry>
+    <refentrytitle>sru_z3950</refentrytitle>
     <manvolnum>3mp</manvolnum>
    </citerefentry>,
    <citerefentry>

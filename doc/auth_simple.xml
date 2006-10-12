@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: auth_simple.xml,v 1.6 2006-04-25 12:48:52 marc Exp $ -->
+<!-- $Id: auth_simple.xml,v 1.7 2006-10-12 12:02:19 marc Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>auth_simple</refentrytitle>
@@ -12,12 +12,12 @@
  
  <refnamediv>
   <refname>auth_simple</refname>
-  <refpurpose>simple authentication and authorisation.</refpurpose>
+  <refpurpose>simple authentication and authorization.</refpurpose>
  </refnamediv>
  
  <refsect1><title>DESCRIPTION</title>
   <para>
-   Simple authentication and authorisation.  The configuration
+   Simple authentication and authorization.  The configuration
    specifies the name of a file that is the user register, which
    lists <varname>username</varname>:<varname>password</varname>
    pairs, one per line, colon separated. When a session begins, it
@@ -25,7 +25,7 @@
    a pair in the register.
   </para>
   <para>
-   ### discuss authorisation phase
+   ### discuss authorization phase
   </para>
  </refsect1>
  

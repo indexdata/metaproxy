@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: record_transform.xml,v 1.1 2006-10-12 08:27:35 marc Exp $ -->
+<!-- $Id: record_transform.xml,v 1.2 2006-10-12 12:02:19 marc Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>record_transform</refentrytitle>
@@ -20,9 +20,9 @@
    This filter acts only on Z3950 present requests, and let all
    other types of packages and requests pass untouched. It's use is
    twofold: blocking Z3950  present requests, which the backend
-   server does not understand and can not honour, and transforming
+   server does not understand and can not honor, and transforming
    the present syntax and elementset name according to the rules
-   specified, to fetch only exisitng record formats, and transform
+   specified, to fetch only existing record formats, and transform
    them on the fly to requested record syntaxes.
   </para> 
   <para>
@@ -33,15 +33,15 @@
    element. The <literal>syntax</literal> attribute is mandatory, but
    the <literal>name</literal> attribute
    may be omitted, in which case any 
-   element name is accepted. An additonal
-   <literal>identifier</literal> attribute can be added to explicetly
+   element name is accepted. An additional
+   <literal>identifier</literal> attribute can be added to explicitly
    describe the Z3950 identifier string.
   </para>
   <para>
   Record transformations are invoked when the optional attributes
   <literal>backendsyntax</literal> and <literal>backendname</literal>
   as well as the <literal>&lt;convert&gt;</literal> element are specified.  
-  Record conversions come in two flavours:
+  Record conversions come in two flavors:
   <literal>&lt;marc&gt;</literal> binary conversions between different
   binary MARC formats and MarcXML formats, and
   <literal>&lt;xslt&gt;</literal> stylesheet transformations performed

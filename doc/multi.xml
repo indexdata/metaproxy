@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: multi.xml,v 1.5 2006-05-16 10:36:51 mike Exp $ -->
+<!-- $Id: multi.xml,v 1.6 2006-10-12 12:02:19 marc Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>multi</refentrytitle>
@@ -37,7 +37,7 @@
    <literal>multi</literal>
    filter, then unavailable databases are not reported to the client,
    but simply ignored (unless every one of the databases is
-   unanavailable).
+   unavailable).
   </para>
  </refsect1> 
  

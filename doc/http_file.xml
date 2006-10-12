@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: http_file.xml,v 1.4 2006-04-25 12:48:52 marc Exp $ -->
+<!-- $Id: http_file.xml,v 1.5 2006-10-12 12:02:19 marc Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>http_file</refentrytitle>
@@ -19,7 +19,7 @@
   <para>
    This module enables file access via the HTTP protocol.
    All URLs with a given prefix are directed to a specific
-   documentroot (on local file storage). The module only serves
+   document root (on local file storage). The module only serves
    static content.
   </para>
  </refsect1>
