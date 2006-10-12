@@ -17,7 +17,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.41 2006-10-12 11:34:07 marc Exp $ -->
+<!-- $Id: book.xml,v 1.42 2006-10-12 11:52:24 marc Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -79,7 +79,7 @@
   
   <para>
    <ulink url="&url.metaproxy;">Metaproxy</ulink>
-   is a standalone program that acts as a universal router, proxy and
+   is a stand alone program that acts as a universal router, proxy and
    encapsulated metasearcher for information retrieval protocols such
    as <ulink url="&url.z39.50;">Z39.50</ulink>, and in the future
    <ulink url="&url.sru;">SRU</ulink> and <ulink url="&url.srw;">SRW</ulink>.
@@ -107,7 +107,7 @@
    being more powerful, flexible, configurable and extensible.  Among
    its many advantages over the older, more pedestrian work are
    support for multiplexing (encapsulated metasearching), routing by
-   database name, authentication and authorisation and serving local
+   database name, authentication and authorization and serving local
    files via HTTP.  Equally significant, its modular architecture
    facilitites the creation of pluggable modules implementing further
    functionality.
@@ -221,7 +221,7 @@
    for more information.
   </para>
   <para>
-   We have succesfully built Metaproxy using the compilers
+   We have successfully built Metaproxy using the compilers
    <ulink url="&url.gcc;">GCC</ulink> version 4.0 and
    <ulink url="&url.vstudio;">Microsoft Visual Studio</ulink> 2003/2005.
   </para>
@@ -378,7 +378,7 @@
      <literal>\boost\lib</literal>, <literal>\boost\include</literal>.
     </para>
     <para>
-     For more informatation about installing Boost refer to the
+     For more information about installing Boost refer to the
      <ulink url="&url.boost.getting.started;">getting started</ulink>
      pages.
     </para>
@@ -392,7 +392,7 @@
      <ulink url="&url.libxml2.download.win32;">here</ulink>.
     </para>
     <para>
-     Libxslt has other dependencies, but thes can all be downloaded
+     Libxslt has other dependencies, but these can all be downloaded
      from the same site. Get the following:
      iconv, zlib, libxml2, libxslt.
     </para>
@@ -424,7 +424,7 @@
    <section id="installation.windows.metaproxy">
     <title>Metaproxy</title>
     <para>
-     Metaproxy is shipped with NMAKE makfiles as well - similar
+     Metaproxy is shipped with NMAKE makefiles as well - similar
      to those found in the YAZ++/YAZ packages. Adjust this Makefile
      to point to the proper locations of Boost, Libxslt, Libxml2,
      zlib, iconv, yaz and yazpp.
@@ -482,7 +482,7 @@
     </variablelist>
     
     <para>
-     After succesful compilation you'll find
+     After successful compilation you'll find
      <literal>metaproxy.exe</literal> in the
      <literal>bin</literal> directory.
     </para>
@@ -519,7 +519,7 @@
      <para>
       In general, packages are doctored as they pass through
       Metaproxy.  For example, when the proxy performs authentication
-      and authorisation on a Z39.50 Init request, it removes the
+      and authorization on a Z39.50 Init request, it removes the
       authentication credentials from the package so that they are not
       passed onto the back-end server; and when search-response
       packages are obtained from multiple servers, they are merged
@@ -651,7 +651,7 @@
    <para>
     We now briefly consider each of the types of filter supported by
     the core Metaproxy binary.  This overview is intended to give a
-    flavour of the available functionality; more detailed information
+    flavor of the available functionality; more detailed information
     about each type of filter is included below in
     <link linkend="filterref"
 	  >the reference guide to Metaproxy filters</link>.
@@ -696,7 +696,7 @@ Figure out what additional information we need in:
     <title><literal>auth_simple</literal>
      (mp::filter::AuthSimple)</title>
     <para>
-     Simple authentication and authorisation.  The configuration
+     Simple authentication and authorization.  The configuration
      specifies the name of a file that is the user register, which
      lists <varname>username</varname>:<varname>password</varname>
      pairs, one per line, colon separated. When a session begins, it
@@ -747,7 +747,7 @@ Figure out what additional information we need in:
      A source that accepts Z39.50 connections from a port
      specified in the configuration, reads protocol units, and
      feeds them into the next filter in the route.  When the result is
-     revceived, it is returned to the original origin.
+     received, it is returned to the original origin.
     </para>
    </section>
 
@@ -809,9 +809,9 @@ Figure out what additional information we need in:
      This filter acts only on Z3950 present requests, and let all
      other types of packages and requests pass untouched. It's use is
      twofold: blocking Z3950  present requests, which the backend
-     server does not understand and can not honour, and transforming
+     server does not understand and can not honor, and transforming
      the present syntax and elementset name according to the rules
-     specified, to fetch only exisitng record formats, and transform
+     specified, to fetch only existing record formats, and transform
      them on the fly to requested record syntaxes.
     </para>
    </section>
@@ -840,7 +840,7 @@ Figure out what additional information we need in:
     <para>
      This filter transforms valid
      SRU/GET or SRU/SOAP requests to Z3950 requests, and wraps the
-     recieved hit counts and XML records into suitable SRU response messages.
+     received hit counts and XML records into suitable SRU response messages.
     </para>
    </section>
    
@@ -1084,7 +1084,7 @@ Figure out what additional information we need in:
     <literal>z3950_client</literal> filter, with the response data
     filled by the external Z39.50 server targeted.
     All non-Z39.50 packages are passed through to the
-    <literal>bounce</literal> filter, which defitely bounces
+    <literal>bounce</literal> filter, which definitely bounces
     everything, including fish, bananas, cold pyjamas,
     mutton, beef and trout packages.
     When the response arrives, it is handed
@@ -1098,7 +1098,7 @@ Figure out what additional information we need in:
    <para>
     The distribution contains RelaxNG Compact and XML syntax checking
     files, as well as XML Schema files. These are found in the
-    distribution pathes 
+    distribution paths 
    <screen>
     xml/schema/metaproxy.rnc
     xml/schema/metaproxy.rng
@@ -1141,14 +1141,14 @@ Figure out what additional information we need in:
     The interaction between
     these two filters is necessarily complex: it reflects the real,
     irreducible complexity of multi-database searching in a protocol such
-    as Z39.50 that separates initialisation from searching, and in
-    which the database to be searched is not known at initialisation
+    as Z39.50 that separates initialization from searching, and in
+    which the database to be searched is not known at initialization
     time.
    </para>
    <para>
     It's possible to use these filters without understanding the
     details of their functioning and the interaction between them; the
-    next two sections of this chapter are ``HOWTO'' guides for doing
+    next two sections of this chapter are ``HOW-TO'' guides for doing
     just that.  However, debugging complex configurations will require
     a deeper understanding, which the last two sections of this
     chapters attempt to provide.
@@ -1345,7 +1345,7 @@ Z>
     can be inconvenient in deployment, when users typically don't want
     to be bothered with problems of this kind and prefer just to get
     the records from the databases that are available.  To obtain this
-    latter behaviour add an empty
+    latter behavior add an empty
     <literal>&lt;hideunavailable&gt;</literal>
     element inside the
     <literal>multi</literal> filter:
@@ -1480,9 +1480,8 @@ Z>
        [Here there should be a diagram showing the progress of
        packages through the filters during a simple virtual-database
        search and a multi-database search, but is seems that your
-       toolchain has not been able to include the diagram in this
-       document.  This is because of LaTeX suckage.  Time to move to
-       OpenOffice.  Yes, really.]
+       tool chain has not been able to include the diagram in this
+       document.]
       </phrase>
      </textobject>
 <!-- ### This used to work with an older version of DocBook
@@ -1529,7 +1528,7 @@ Z>
    <para>
     This chapter contains documentation of the Metaproxy source code, and is
     of interest only to maintainers and developers.  If you need to
-    change Metaproxy's behaviour or write a new filter, then you will most
+    change Metaproxy's behavior or write a new filter, then you will most
     likely find this chapter helpful.  Otherwise it's a waste of your
     good time.  Seriously: go and watch a film or something.
     <citetitle>This is Spinal Tap</citetitle> is particularly good.
@@ -1595,7 +1594,7 @@ Z>
      that part of the configuration file that pertains to this filter
      instance, and is expected to walk that tree extracting relevant
      information.  And <literal>process()</literal> processes a
-     package (see below).  That surface simplicitly is a bit
+     package (see below).  That surface simplicity is a bit
      misleading, as <literal>process()</literal> needs to know a lot
      about the <literal>Package</literal> class in order to do
      anything useful.
@@ -1613,12 +1612,7 @@ Z>
      <filename>filter_*.cpp</filename> respectively.  All the header
      files should be pretty much identical, in that they declare the
      class, including a private <literal>Rep</literal> class and a
-     member pointer to it, and the two public methods.  The only extra
-     information in any filter header is additional private types and
-     members (which should really all be in the <literal>Rep</literal>
-     anyway) and private methods (which should also remain known only
-     to the source file, but C++'s brain-damaged design requires this
-     dirty laundry to be exhibited in public.  Thanks, Bjarne!)
+     member pointer to it, and the two public methods.
     </para>
     <para>
      The source file for each filter needs to supply:
