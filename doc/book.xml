@@ -17,7 +17,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.39 2006-10-12 08:27:35 marc Exp $ -->
+<!-- $Id: book.xml,v 1.40 2006-10-12 11:31:11 marc Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -639,6 +639,7 @@
     <literal>query_rewrite</literal>,
     <literal>record_transform</literal>,
     <literal>session_shared</literal>,
+    <literal>sru_z3950</literal>,
     <literal>template</literal>,
     <literal>virt_db</literal>).
    </para>
@@ -812,6 +813,16 @@ Figure out what additional information we need in:
      the present syntax and elementset name according to the rules
      specified, to fetch only exisitng record formats, and transform
      them on the fly to requested record syntaxes.
+    </para>
+   </section>
+
+   <section>
+    <title><literal>sru_z3950</literal>
+    (mp::filter::SRUtoZ3950)</title>
+    <para>
+     This filter transforms valid
+     SRU/GET or SRU/SOAP requests to Z3950 requests, and wraps the
+     recieved hit counts and XML records into suitable SRU response messages.
     </para>
    </section>
 
