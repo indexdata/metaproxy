@@ -17,7 +17,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.42 2006-10-12 11:52:24 marc Exp $ -->
+<!-- $Id: book.xml,v 1.43 2006-10-12 12:04:23 marc Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -910,34 +910,10 @@ Figure out what additional information we need in:
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>frontend_sru</literal> (source)</term>
-     <listitem>
-      <para>
-       Receive SRU (and perhaps SRW) requests.
-     </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><literal>sru2z3950</literal> (filter)</term>
-     <listitem>
-      <para>
-       Translate SRU requests into Z39.50 requests.
-     </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
      <term><literal>sru_client</literal> (sink)</term>
      <listitem>
       <para>
-       SRU searching and retrieval.
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><literal>srw_client</literal> (sink)</term>
-     <listitem>
-      <para>
-       SRW searching and retrieval.
+       SRU/GET and SRU/SOAP searching and retrieval.
       </para>
      </listitem>
     </varlistentry>
