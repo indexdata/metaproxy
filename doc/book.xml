@@ -17,7 +17,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.40 2006-10-12 11:31:11 marc Exp $ -->
+<!-- $Id: book.xml,v 1.41 2006-10-12 11:34:07 marc Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -817,16 +817,6 @@ Figure out what additional information we need in:
    </section>
 
    <section>
-    <title><literal>sru_z3950</literal>
-    (mp::filter::SRUtoZ3950)</title>
-    <para>
-     This filter transforms valid
-     SRU/GET or SRU/SOAP requests to Z3950 requests, and wraps the
-     recieved hit counts and XML records into suitable SRU response messages.
-    </para>
-   </section>
-
-   <section>
     <title><literal>session_shared</literal>
      (mp::filter::SessionShared)</title>
     <para>
@@ -842,6 +832,16 @@ Figure out what additional information we need in:
       This filter is not yet completed.
      </para>
     </warning>
+   </section>
+
+   <section>
+    <title><literal>sru_z3950</literal>
+    (mp::filter::SRUtoZ3950)</title>
+    <para>
+     This filter transforms valid
+     SRU/GET or SRU/SOAP requests to Z3950 requests, and wraps the
+     recieved hit counts and XML records into suitable SRU response messages.
+    </para>
    </section>
    
    <section>
