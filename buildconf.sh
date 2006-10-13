@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: buildconf.sh,v 1.12 2006-10-13 09:53:51 adam Exp $
+# $Id: buildconf.sh,v 1.13 2006-10-13 10:31:54 adam Exp $
 
 automake=automake
 aclocal=aclocal
@@ -89,7 +89,7 @@ Or just build the Debian packages without configuring
 
 When building from a CVS checkout, you need these Debian tools:
   autoconf, automake, libtool, gcc, g++, make,
-  xsltproc, docbook, docbook-xml, docbook-xsl,
+  xsltproc, docbook, docbook-xml, docbook-xsl, trang,
   libxslt1-dev, libyazpp-dev,
   libboost-thread-dev, libboost-date-time-dev,
   libboost-program-options-dev, libboost-test-dev
