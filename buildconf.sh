@@ -1,7 +1,22 @@
 #!/bin/sh
-# $Id: buildconf.sh,v 1.11 2006-05-27 08:07:08 adam Exp $
+# $Id: buildconf.sh,v 1.12 2006-10-13 09:53:51 adam Exp $
 
-if automake --version|head -1 |grep '1\.[4-7]'; then
+automake=automake
+aclocal=aclocal
+autoconf=autoconf
+libtoolize=libtoolize
+autoheader=autoheader
+
+if [ "`uname -s`" = FreeBSD ]; then
+    # FreeBSD intalls the various auto* tools with version numbers
+    echo "Using special configuration for FreeBSD ..."
+    automake=automake19
+    aclocal="aclocal19 -I /usr/local/share/aclocal"
+    autoconf=autoconf259
+    libtoolize=libtoolize15
+    autoheader=autoheader259
+fi
+if $automake --version|head -1 |grep '1\.[4-7]'; then
     echo "automake 1.4-1.7 is active. You should use automake 1.8 or later"
     if test -f /etc/debian_version; then
 	echo " sudo apt-get install automake1.9"
@@ -13,14 +28,14 @@ fi
 set -x
 
 # I am tired of underquoted warnings for Tcl macros
-aclocal -I m4 2>&1 | grep -v aclocal/tcl.m4
-autoheader
-libtoolize --automake --force 
-automake --add-missing 
-autoconf
+$aclocal -I m4 2>&1 | grep -v aclocal/tcl.m4
+$autoheader
+$libtoolize --automake --force 
+$automake --add-missing 
+$autoconf
 set -
 if [ -f config.cache ]; then
-	rm config.cache
+    rm config.cache
 fi
 
 enable_configure=false
@@ -29,17 +44,17 @@ sh_flags=""
 conf_flags=""
 case $1 in
     -d)
-	sh_flags="-g -Wall"
-	enable_configure=true
-	enable_help=false
-	shift
-	;;
+    sh_flags="-g -Wall"
+    enable_configure=true
+    enable_help=false
+    shift
+    ;;
     -c)
-	sh_flags=""
-	enable_configure=true
-	enable_help=false
-	shift
-	;;
+    sh_flags=""
+    enable_configure=true
+    enable_help=false
+    shift
+    ;;
 esac
 
 if $enable_configure; then
@@ -51,10 +66,10 @@ if $enable_configure; then
 fi
 if $enable_help; then
     cat <<EOF
-
+    
 Build the Makefiles with the configure command.
   ./configure [--someoption=somevalue ...]
-
+  
 For help on options or configuring run
   ./configure --help
 
@@ -83,3 +98,8 @@ and for the image-processing needed to build the documentation:
 
 EOF
 fi
+# Local Variables:
+# mode:shell-script
+# sh-indentation: 2
+# sh-basic-offset: 4
+# End:
