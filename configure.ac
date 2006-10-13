@@ -34,6 +34,16 @@ fi
 # Checks for libraries.
 AC_CHECK_LIB(dl,dlopen)
 
+boostdir="yes"
+AC_ARG_WITH(boost, [ ---with-boost=PREFIX     Boost library in PREFIX],[boostdir=$withval])
+
+if test "$openssl" != "yes"; then
+	CPPFLAGS="-I${boostdir}/include"
+	LIBS="-L${boostdir}/lib"
+fi
+
+AC_CHECK_LIB(pthread, main)
+
 AC_CHECK_LIB(boost_thread, main, [],[
 	AC_MSG_NOTICE([boost thread library not found.])
 	AC_MSG_ERROR([Install libboost-thread-dev (or similar)])
