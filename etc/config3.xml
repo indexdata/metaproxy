@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config3.xml,v 1.8 2006-08-31 13:01:09 marc Exp $ -->
+<!-- $Id: config3.xml,v 1.9 2006-11-17 14:03:46 adam Exp $ -->
 <yp2 xmlns="http://indexdata.dk/yp2/config/1">
   <start route="start"/>
   <routes>
@@ -7,6 +7,7 @@
       <filter type="frontend_net">
         <threads>10</threads>
         <port>@:9000</port>
+	<timeout>30</timeout>
       </filter>
       <filter type="log">
         <message>F</message>
@@ -18,7 +19,7 @@
         </virtual>
         <virtual>
           <database>db2</database>
-          <target>localhost:9999/Default</target>
+          <target>localhost:9998/Default</target>
         </virtual>
         <virtual>
           <database>db3</database>
