@@ -1,3 +1,5 @@
+--- 1.0.7 2006/11/07
+
 Added 'timeout' setting for filter frontend_net which specifies the number
 of seconds a session is idle before it is closed. Default timeout is
 300 (5 minutes).
