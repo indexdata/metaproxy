@@ -1,6 +1,6 @@
 # Copyright (C) 2005-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.24 2006-11-17 17:30:53 adam Exp $
+# $Id: makefile,v 1.25 2006-11-17 17:58:07 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
@@ -235,6 +235,7 @@ PROJECT_DLL_OBJS = \
 	$(OBJDIR)\filter_multi.obj \
 	$(OBJDIR)\filter_query_rewrite.obj \
         $(OBJDIR)\filter_session_shared.obj \
+        $(OBJDIR)\filter_record_transform.obj \
         $(OBJDIR)\filter_sru_to_z3950.obj \
         $(OBJDIR)\filter_template.obj \
         $(OBJDIR)\filter_virt_db.obj \
@@ -333,7 +334,6 @@ clean:
 	-del $(BINDIR)\*.exe
 	-del $(BINDIR)\*.dll
 	-del $(TMPDIR)\*.
-	-del $(LIBDIR)\*.MAP
 	-del $(LIBDIR)\*.LIB
 	-del $(OBJDIR)\*.OBJ
 
