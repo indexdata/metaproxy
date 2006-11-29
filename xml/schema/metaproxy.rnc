@@ -1,5 +1,5 @@
 # Metaproxy XML config file schemas
-#  $Id: metaproxy.rnc,v 1.8 2006-11-29 14:49:20 marc Exp $
+#  $Id: metaproxy.rnc,v 1.9 2006-11-29 21:45:04 marc Exp $
 # 
 #   Copyright (c) 2005-2006, Index Data.
 # 
@@ -28,7 +28,7 @@ start = metaproxy
 
 metaproxy =
   element mp:metaproxy {
-    attribute version { xsd:float },
+    attribute version { "1.0" },
     element mp:start {
             attribute route { xsd:NCName }
     },
