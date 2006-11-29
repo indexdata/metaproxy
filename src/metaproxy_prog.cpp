@@ -1,4 +1,4 @@
-/* $Id: metaproxy_prog.cpp,v 1.6 2006-06-10 14:29:12 adam Exp $
+/* $Id: metaproxy_prog.cpp,v 1.7 2006-11-29 22:37:08 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -11,6 +11,7 @@ namespace po = boost::program_options;
 
 #include <iostream>
 #include <stdexcept>
+#include <libxml/xinclude.h>
 
 #include "filter.hpp"
 #include "package.hpp"
@@ -58,10 +59,22 @@ int main(int argc, char **argv)
                 std::exit(1);
             }
             
-            doc = xmlParseFile(config_fnames[0].c_str());
+            // need to parse with xinclude tags 
+            // XML_PARSE_XINCLUDE XML_PARSE_NOBLANKS  
+            // XML_PARSE_NSCLEAN XML_PARSE_NONET 
+            doc = xmlReadFile(config_fnames[0].c_str(), 
+                              NULL, 
+                              XML_PARSE_XINCLUDE + XML_PARSE_NOBLANKS
+                              + XML_PARSE_NSCLEAN + XML_PARSE_NONET );
+
             if (!doc)
             {
-                std::cerr << "xmlParseFile failed\n";
+                std::cerr << "XML parsing failed\n";
+                std::exit(1);
+            }
+            // and perform Xinclude then
+            if (xmlXIncludeProcess(doc) <= 0) {
+                std::cerr << "XInclude processing failed\n";
                 std::exit(1);
             }
         }
