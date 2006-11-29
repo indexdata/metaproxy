@@ -17,7 +17,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.43 2006-10-12 12:04:23 marc Exp $ -->
+<!-- $Id: book.xml,v 1.44 2006-11-29 13:00:53 marc Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -957,15 +957,15 @@ Figure out what additional information we need in:
    <title>Overview of the config file XML structure</title>
    <para>
     All elements and attributes are in the namespace
-    <ulink url="http://indexdata.dk/yp2/config/1"/>.
+    <ulink url="http://indexdata.com/metaproxy"/>.
      This is most easily achieved by setting the default namespace on
      the top-level element, as here:
    </para>
    <screen>
-    &lt;yp2 xmlns="http://indexdata.dk/yp2/config/1"&gt;
+    &lt;metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0"&gt;
    </screen>
    <para>
-    The top-level element is &lt;yp2&gt;.  This contains a
+    The top-level element is &lt;metaproxy&gt;.  This contains a
     &lt;start&gt; element, a &lt;filters&gt; element and a
     &lt;routes&gt; element, in that order.  &lt;filters&gt; is
     optional; the other two are mandatory.  All three are
@@ -1021,7 +1021,7 @@ Figure out what additional information we need in:
     client-server dialogues.
    </para>
    <screen><![CDATA[<?xml version="1.0"?>
-<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <filters>
     <filter id="frontend" type="frontend_net">
@@ -1038,7 +1038,7 @@ Figure out what additional information we need in:
       <filter type="bounce"/>
     </route>
   </routes>
-</yp2>
+</metaproxy>
 ]]></screen>
    <para>
     It works by defining a single route, called
@@ -1162,7 +1162,7 @@ Figure out what additional information we need in:
   </virtual>
   <virtual>
     <database>marc</database>
-    <target>indexdata.dk/marc</target>
+    <target>indexdata.com/marc</target>
   </virtual>
 </filter>]]></screen>
    <para>
@@ -1187,7 +1187,7 @@ Figure out what additional information we need in:
     Index Data's tiny testing database of MARC records:
    </para>
    <screen><![CDATA[<?xml version="1.0"?>
-<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <routes>
     <route id="start">
@@ -1202,12 +1202,12 @@ Figure out what additional information we need in:
         </virtual>
         <virtual>
           <database>marc</database>
-          <target>indexdata.dk/marc</target>
+          <target>indexdata.com/marc</target>
         </virtual>
         <virtual>
           <database>all</database>
           <target>z3950.loc.gov:7090/voyager</target>
-          <target>indexdata.dk/marc</target>
+          <target>indexdata.com/marc</target>
         </virtual>
       </filter>
       <filter type="multi"/>
@@ -1217,7 +1217,7 @@ Figure out what additional information we need in:
       <filter type="bounce"/>
     </route>
   </routes>
-</yp2>]]></screen>
+</metaproxy>]]></screen>
    <para>
     (Using a
     <literal>virt_db</literal>

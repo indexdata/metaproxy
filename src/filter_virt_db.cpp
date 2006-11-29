@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.46 2006-09-29 08:42:47 marc Exp $
+/* $Id: filter_virt_db.cpp,v 1.47 2006-11-29 13:00:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -783,9 +783,9 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr)
                 if (v_node->type != XML_ELEMENT_NODE)
                     continue;
                 
-                if (mp::xml::is_element_yp2(v_node, "database"))
+                if (mp::xml::is_element_mp(v_node, "database"))
                     database = mp::xml::get_text(v_node);
-                else if (mp::xml::is_element_yp2(v_node, "target"))
+                else if (mp::xml::is_element_mp(v_node, "target"))
                     targets.push_back(mp::xml::get_text(v_node));
                 else
                     throw mp::filter::FilterException

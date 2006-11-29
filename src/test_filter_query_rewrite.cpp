@@ -1,4 +1,4 @@
-/* $Id: test_filter_query_rewrite.cpp,v 1.10 2006-06-10 14:29:12 adam Exp $
+/* $Id: test_filter_query_rewrite.cpp,v 1.11 2006-11-29 13:00:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -187,7 +187,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite3 )
 
         std::string xmlconf = 
             "<?xml version='1.0'?>\n"
-            "<filter xmlns='http://indexdata.dk/yp2/config/1'\n"
+            "<filter xmlns='http://indexdata.com/metaproxy'\n"
             "        id='qrw1' type='query_rewrite'>\n"
             "</filter>\n"
             ;

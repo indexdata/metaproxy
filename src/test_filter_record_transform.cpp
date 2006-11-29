@@ -1,4 +1,4 @@
-/* $Id: test_filter_record_transform.cpp,v 1.2 2006-10-04 11:21:47 marc Exp $
+/* $Id: test_filter_record_transform.cpp,v 1.3 2006-11-29 13:00:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -72,7 +72,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_record_transform_3 )
 
         std::string xmlconf = 
             "<?xml version='1.0'?>\n"
-            "<filter xmlns='http://indexdata.dk/yp2/config/1'\n"
+            "<filter xmlns='http://indexdata.com/metaproxy'\n"
             "        id='rec_trans_1' type='record_transform'>\n"
             "<retrievalinfo>"
             "<retrieval" 

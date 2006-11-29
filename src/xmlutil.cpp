@@ -1,4 +1,4 @@
-/* $Id: xmlutil.cpp,v 1.9 2006-06-21 09:16:54 adam Exp $
+/* $Id: xmlutil.cpp,v 1.10 2006-11-29 13:00:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -10,6 +10,8 @@
 namespace mp = metaproxy_1;
 // Doxygen doesn't like mp::xml, so we use this instead
 namespace mp_xml = metaproxy_1::xml;
+
+static const std::string metaproxy_ns = "http://indexdata.com/metaproxy";
 
 std::string mp_xml::get_text(const xmlNode *ptr)
 {
@@ -52,18 +54,32 @@ bool mp_xml::is_element(const xmlNode *ptr,
     return false;
 }
 
-bool mp_xml::is_element_yp2(const xmlNode *ptr, 
-                              const std::string &name)
+bool mp_xml::is_element_mp(const xmlNode *ptr, 
+                           const std::string &name)
 {
-    return mp::xml::is_element(ptr, "http://indexdata.dk/yp2/config/1", name);
+    return mp::xml::is_element(ptr, metaproxy_ns, name);
 }
 
 
-bool mp_xml::check_element_yp2(const xmlNode *ptr, 
-                                 const std::string &name)
+bool mp_xml::check_element_mp(const xmlNode *ptr, 
+                              const std::string &name)
 {
-    if (!mp::xml::is_element_yp2(ptr, name))
-        throw mp::XMLError("Expected element name " + name);
+    if (!mp::xml::is_element_mp(ptr, name))
+    {
+        std::string got_element = "<";
+        if (ptr && ptr->name)
+            got_element += std::string((const char *)ptr->name);
+        if (ptr && ptr->ns && ptr->ns->href){
+            got_element += " xmlns=\"";
+            got_element += std::string((const char *)ptr->ns->href);
+            got_element += "\"";
+        }
+        got_element += ">";
+
+        throw mp::XMLError("Expected XML element <" + name 
+                           + " xmlns=\"" + metaproxy_ns + "\">"
+                           + ", not " + got_element);
+    }
     return true;
 }
 

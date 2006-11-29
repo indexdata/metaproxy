@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.17 2006-06-10 14:29:13 adam Exp $
+/* $Id: test_router_flexml.cpp,v 1.18 2006-11-29 13:00:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -38,7 +38,8 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
     try
     {
         std::string xmlconf = "<?xml version=\"1.0\"?>\n"
-            "<yp2 xmlns=\"http://indexdata.dk/yp2/config/1\">\n"
+            "<metaproxy xmlns=\"http://indexdata.com/metaproxy\""
+            " version=\"1.0\">\n"
             "  <start route=\"start\"/>\n"
             "  <filters>\n"
             "    <filter id=\"front_default\" type=\"frontend_net\">\n"
@@ -62,7 +63,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
             "      </filter>\n"
             "    </route>\n"
             "  </routes>\n"
-            "</yp2>\n";
+            "</metaproxy>\n";
 
         mp::FactoryStatic factory;
         factory.add_creator("tfilter", filter_creator);
@@ -86,7 +87,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_2 )
     try
     {
         std::string xmlconf_invalid = "<?xml version=\"1.0\"?>\n"
-            "<y:yp2 xmlns:y=\"http://indexdata.dk/yp2/config/1\">\n"
+            "<mp:metaproxy xmlns:mp=\"http://indexdata.com/metaproxy\" version=\"1.0\">\n"
             "  <start route=\"start\"/>\n"
             "  <filters>\n"
             "    <filter id=\"front_default\" type=\"frontend_net\">\n"
@@ -114,23 +115,24 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_3 )
     try
     {
         std::string xmlconf = "<?xml version=\"1.0\"?>\n"
-            "<y:yp2 xmlns:y=\"http://indexdata.dk/yp2/config/1\">\n"
-            "  <y:start route=\"start\"/>\n"
-            "  <y:filters>\n"
-            "    <y:filter id=\"front_default\" type=\"frontend_net\">\n"
+            "<mp:metaproxy xmlns:mp=\"http://indexdata.com/metaproxy\""
+            "  version=\"1.0\">\n"
+            "  <mp:start route=\"start\"/>\n"
+            "  <mp:filters>\n"
+            "    <mp:filter id=\"front_default\" type=\"frontend_net\">\n"
             "      <port>@:210</port>\n"
-            "    </y:filter>\n"
-            "    <y:filter id=\"log_cout\" type=\"log\">\n"
+            "    </mp:filter>\n"
+            "    <mp:filter id=\"log_cout\" type=\"log\">\n"
             "      <message>my msg</message>\n"
-            "    </y:filter>\n"
-            "  </y:filters>\n"
-            "  <y:routes>\n"  
-            "    <y:route id=\"start\">\n"
-            "      <y:filter refid=\"front_default\"/>\n"
-            "      <y:filter refid=\"log_cout\"/>\n"
-            "    </y:route>\n"
-            "  </y:routes>\n"
-            "</y:yp2>\n";
+            "    </mp:filter>\n"
+            "  </mp:filters>\n"
+            "  <mp:routes>\n"  
+            "    <mp:route id=\"start\">\n"
+            "      <mp:filter refid=\"front_default\"/>\n"
+            "      <mp:filter refid=\"log_cout\"/>\n"
+            "    </mp:route>\n"
+            "  </mp:routes>\n"
+            "</mp:metaproxy>\n";
        
         mp::FactoryStatic factory;
         mp::RouterFleXML rflexml(xmlconf, factory);
@@ -151,8 +153,9 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_4 )
     try
     {
         std::string xmlconf = "<?xml version=\"1.0\"?>\n"
-            "<yp2 xmlns=\"http://indexdata.dk/yp2/config/1\">\n"
-            "  <start route=\"start\"/>\n"
+            "<metaproxy xmlns=\"http://indexdata.com/metaproxy\""
+            " version=\"1.0\">\n"
+            "  <start route=\"start\"/>\n" 
             "  <filters>\n"
             "    <filter id=\"front_default\" type=\"notknown\">\n"
             "      <port>@:210</port>\n"
@@ -163,7 +166,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_4 )
             "      <filter refid=\"front_default\"/>\n"
             "    </route>\n"
             "  </routes>\n"
-            "</yp2>\n";
+            "</metaproxy>\n";
 
         mp::FactoryStatic factory;
         factory.add_creator("tfilter", filter_creator);

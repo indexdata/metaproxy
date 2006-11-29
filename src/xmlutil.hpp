@@ -1,4 +1,4 @@
-/* $Id: xmlutil.hpp,v 1.8 2006-06-21 09:16:54 adam Exp $
+/* $Id: xmlutil.hpp,v 1.9 2006-11-29 13:00:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -19,8 +19,8 @@ namespace metaproxy_1 {
         bool is_element(const xmlNode *ptr, 
                         const std::string &ns,
                         const std::string &name);
-        bool is_element_yp2(const xmlNode *ptr, const std::string &name);
-        bool check_element_yp2(const xmlNode *ptr, 
+        bool is_element_mp(const xmlNode *ptr, const std::string &name);
+        bool check_element_mp(const xmlNode *ptr, 
                                const std::string &name);
         std::string get_route(const xmlNode *node);
 

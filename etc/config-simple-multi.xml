@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <routes>
     <route id="start">
@@ -29,4 +29,4 @@
       <filter type="bounce"/>
     </route>
   </routes>
-</yp2>
+</metaproxy>

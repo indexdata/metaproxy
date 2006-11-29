@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!-- $Id: config-zurg.xml,v 1.10 2006-10-10 15:10:16 marc Exp $ -->
-<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+<!-- $Id: config-zurg.xml,v 1.11 2006-11-29 13:00:53 marc Exp $ -->
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <routes>
     <route id="start">
@@ -79,5 +79,5 @@
       <filter type="bounce"/>
     </route>
   </routes>
-</yp2>
+</metaproxy>
 

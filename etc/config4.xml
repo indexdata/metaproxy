@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!-- $Id: config4.xml,v 1.2 2006-08-31 13:01:09 marc Exp $ -->
-<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+<!-- $Id: config4.xml,v 1.3 2006-11-29 13:00:54 marc Exp $ -->
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <!-- sample config which illustrates the use of http_file filter.. -->
   <routes>  
@@ -22,5 +22,5 @@
       <filter type="bounce"/>
     </route>
   </routes>
-</yp2>
+</metaproxy>
 

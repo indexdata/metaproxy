@@ -1,4 +1,4 @@
-/* $Id: router_flexml.cpp,v 1.18 2006-06-10 14:29:12 adam Exp $
+/* $Id: router_flexml.cpp,v 1.19 2006-11-29 13:00:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -75,7 +75,7 @@ void mp::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
                                                const xmlNode *node)
 {
     unsigned int filter_nr = 0;
-    while(node && mp::xml::check_element_yp2(node, "filter"))
+    while(node && mp::xml::check_element_mp(node, "filter"))
     {
         filter_nr++;
 
@@ -122,10 +122,10 @@ void mp::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
 void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
                                               const xmlNode *node)
 {
-    mp::xml::check_element_yp2(node, "route");
+    mp::xml::check_element_mp(node, "route");
 
     unsigned int route_nr = 0;
-    while(mp::xml::is_element_yp2(node, "route"))
+    while(mp::xml::is_element_mp(node, "route"))
     {
         route_nr++;
 
@@ -153,7 +153,7 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
         const xmlNode* node3 = mp::xml::jump_to_children(node, XML_ELEMENT_NODE);
 
         unsigned int filter3_nr = 0;
-        while(node3 && mp::xml::check_element_yp2(node3, "filter"))
+        while(node3 && mp::xml::check_element_mp(node3, "filter"))
         {
             filter3_nr++;
             
@@ -224,17 +224,17 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
     
     const xmlNode* root = xmlDocGetRootElement(doc);
     
-    mp::xml::check_element_yp2(root,  "yp2");
+    mp::xml::check_element_mp(root,  "metaproxy");
 
     const xmlNode* node = mp::xml::jump_to_children(root, XML_ELEMENT_NODE);
 
-    if (mp::xml::is_element_yp2(node, "dlpath"))
+    if (mp::xml::is_element_mp(node, "dlpath"))
     {
         m_dl_path = mp::xml::get_text(node);
         node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
     }
     // process <start> node which is expected first element node
-    if (mp::xml::check_element_yp2(node, "start"))
+    if (mp::xml::check_element_mp(node, "start"))
     {
         const struct _xmlAttr *attr;
         std::string id_value;
@@ -255,7 +255,7 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
         node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
     }
     // process <filters> node if given
-    if (mp::xml::is_element_yp2(node, "filters"))
+    if (mp::xml::is_element_mp(node, "filters"))
     {
         parse_xml_filters(doc, mp::xml::jump_to_children(node,
                                                           XML_ELEMENT_NODE));
@@ -263,7 +263,7 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
         node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
     }
     // process <routes> node which is expected third element node
-    mp::xml::check_element_yp2(node, "routes");
+    mp::xml::check_element_mp(node, "routes");
     
     parse_xml_routes(doc, mp::xml::jump_to_children(node, XML_ELEMENT_NODE));
 

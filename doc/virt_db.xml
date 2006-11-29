@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: virt_db.xml,v 1.4 2006-04-25 12:48:52 marc Exp $ -->
+<!-- $Id: virt_db.xml,v 1.5 2006-11-29 13:00:53 marc Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>virt_db</refentrytitle>
@@ -33,11 +33,11 @@
       </virtual>
       <virtual>
         <database>db2</database>
-        <target>indexdata.dk/gils</target>
+        <target>indexdata.com/gils</target>
       </virtual>
       <virtual>
         <database>combined</database>
-        <target>indexdata.dk/gils</target>
+        <target>indexdata.com/gils</target>
         <target>localhost:9999/Default</target>
       </virtual>
     </filter>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!-- $Id: config-shared1.xml,v 1.4 2006-08-31 13:01:09 marc Exp $ -->
-<yp2 xmlns="http://indexdata.dk/yp2/config/1">
+<!-- $Id: config-shared1.xml,v 1.5 2006-11-29 13:00:53 marc Exp $ -->
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <filters>
     <filter id="frontend" type="frontend_net">
@@ -28,5 +28,5 @@
       <filter type="bounce"/>
     </route>
   </routes>
-</yp2>
+</metaproxy>
 

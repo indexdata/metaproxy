@@ -1,4 +1,4 @@
-/* $Id: filter_http_file.cpp,v 1.6 2006-08-29 10:34:32 marc Exp $
+/* $Id: filter_http_file.cpp,v 1.7 2006-11-29 13:00:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -235,9 +235,9 @@ void mp::filter::HttpFile::configure(const xmlNode * ptr)
                 if (a_node->type != XML_ELEMENT_NODE)
                     continue;
                 
-                if (mp::xml::is_element_yp2(a_node, "documentroot"))
+                if (mp::xml::is_element_mp(a_node, "documentroot"))
                     a.m_file_root = mp::xml::get_text(a_node);
-                else if (mp::xml::is_element_yp2(a_node, "prefix"))
+                else if (mp::xml::is_element_mp(a_node, "prefix"))
                     a.m_url_path_prefix = mp::xml::get_text(a_node);
                 else
                     throw mp::filter::FilterException
