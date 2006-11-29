@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-record-transform.xml,v 1.2 2006-11-29 13:00:53 marc Exp $ -->
+<!-- $Id: config-record-transform.xml,v 1.3 2006-11-29 21:43:37 marc Exp $ -->
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <filters>
@@ -18,6 +18,9 @@
         <message>Front</message>
       </filter>
       <filter type="record_transform">
+         <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+                      href="retrieval-info.xml"/>
+        <!--
         <retrievalinfo>
           <retrieval syntax="grs-1"/>
           <retrieval syntax="usmarc" name="F"/>
@@ -46,7 +49,7 @@
               <xslt stylesheet="xml/xslt/MARC21slim2DC.xsl"/>
             </convert>
           </retrieval>
-        </retrievalinfo>
+        </retrievalinfo> -->
       </filter>
       <filter type="log">
         <message>Back</message>

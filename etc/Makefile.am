@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.6 2006-10-11 13:21:51 marc Exp $
+# $Id: Makefile.am,v 1.7 2006-11-29 21:43:37 marc Exp $
 
 # This doesn't actually build anything, it just tests whether the
 # configuration files here correspond with the schema.
@@ -31,11 +31,11 @@ EXTRA_DIST = $(etcdata_DATA)
 
 .PHONY: check_rng
 check_rng: 
-	xmllint --noout --relaxng $(rng) $(xmlconfig)
+	xmllint --noout --xinclude --relaxng $(rng) $(xmlconfig)
 
 .PHONY: check_xsd
 check_xsd: 
-	xmllint --noout --schema $(xsd) $(xmlconfig)
+	xmllint --noout --xinclude --schema $(xsd) $(xmlconfig)
 
 
 check-local:

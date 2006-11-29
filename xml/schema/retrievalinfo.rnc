@@ -1,5 +1,5 @@
 # Metaproxy XML config file schemas
-#  $Id: retrievalinfo.rnc,v 1.1 2006-11-29 14:49:20 marc Exp $
+#  $Id: retrievalinfo.rnc,v 1.2 2006-11-29 21:43:38 marc Exp $
 # 
 #   Copyright (c) 2005-2006, Index Data.
 # 
@@ -26,6 +26,7 @@ namespace y = "http://indexdata.com/metaproxy"
 
 retrievalinfo = 
   element y:retrievalinfo { 
+    attribute version { "1.0" },
     element y:retrieval {
       attribute syntax { xsd:string },
       attribute name { xsd:string }?,
