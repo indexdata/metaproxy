@@ -1,8 +1,9 @@
-# $Id: Makefile.am,v 1.2 2006-10-11 13:21:52 marc Exp $
+# $Id: Makefile.am,v 1.3 2006-11-29 14:49:20 marc Exp $
 
 xmlschemadatadir = $(pkgdatadir)/xml/schema
 
-schemas =  metaproxy.rnc  metaproxy.rng  metaproxy.xsd
+schemas =  metaproxy.rnc  metaproxy.rng  metaproxy.xsd \
+   retrievalinfo.rnc  retrievalinfo.rng  retrievalinfo.xsd
 
 xmlschemadata_DATA = $(schemas)
 
@@ -18,3 +19,8 @@ EXTRA_DIST = $(xmlschemadata_DATA)
 .rnc.xsd:
 	trang $< $@  
 
+
+# needed to get dependencies correct
+metaproxy.rng:metaproxy.rnc retrievalinfo.rnc
+
+metaproxy.xsd:metaproxy.rnc retrievalinfo.rnc

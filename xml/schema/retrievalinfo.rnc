@@ -1,0 +1,46 @@
+# Metaproxy XML config file schemas
+#  $Id: retrievalinfo.rnc,v 1.1 2006-11-29 14:49:20 marc Exp $
+# 
+#   Copyright (c) 2005-2006, Index Data.
+# 
+#   See the LICENSE file for details
+# 
+# 
+# The RelaxNG Compact Syntax file 'retrievalinfo.rnc' is the master copy.
+# 
+# The RelaxNG XML Syntax and XML Schema are generated using 'trang':
+# trang retrievalinfo.rnc retrievalinfo.rng 
+# trang retrievalinfo.rnc retrievalinfo.xsd 
+# 
+# Config file validation is done using 'xmllint':
+# xmllint -/-relaxng retrievalinfo.rng retrievalinfo.xml 
+# xmllint -/-schema retrievalinfo.xsd retirevalinfo.xml
+# 
+# For information on RelaxNG see http://relaxng.org 
+# see also http://books.xmlschemata.org/relaxng/
+
+#namespace y = "http://indexdata.com/yaz"
+namespace y = "http://indexdata.com/metaproxy"
+
+#start = retrievalinfo
+
+retrievalinfo = 
+  element y:retrievalinfo { 
+    element y:retrieval {
+      attribute syntax { xsd:string },
+      attribute name { xsd:string }?,
+      attribute identifier { xsd:string }?,
+      attribute backendsyntax { xsd:string }?,
+      attribute backendname { xsd:string }?,
+      element y:convert {
+        element y:marc {
+          attribute inputformat { xsd:string },
+          attribute outputformat { xsd:string },
+          attribute inputcharset { xsd:string }
+        },
+        element y:xslt {
+          attribute stylesheet { xsd:string }
+        }?
+      }?
+    }+
+  }

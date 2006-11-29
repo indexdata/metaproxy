@@ -2,3 +2,5 @@ Makefile
 Makefile.in
 metaproxy.rng
 metaproxy.xsd
+retrievalinfo.rng
+retrievalinfo.xsd
