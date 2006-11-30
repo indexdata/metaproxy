@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!-- $Id: retrieval-info.xml,v 1.1 2006-11-29 21:43:37 marc Exp $ -->
-<retrievalinfo  xmlns="http://indexdata.com/metaproxy" version="1.0">
+<!-- $Id: retrieval-info.xml,v 1.2 2006-11-30 23:10:26 marc Exp $ -->
+<retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
   <retrieval syntax="grs-1"/>
   <retrieval syntax="usmarc" name="F"/>
   <retrieval syntax="usmarc" name="B"/>
