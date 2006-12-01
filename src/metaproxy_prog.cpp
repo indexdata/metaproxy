@@ -1,4 +1,4 @@
-/* $Id: metaproxy_prog.cpp,v 1.7 2006-11-29 22:37:08 marc Exp $
+/* $Id: metaproxy_prog.cpp,v 1.8 2006-12-01 12:37:26 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -73,9 +73,8 @@ int main(int argc, char **argv)
                 std::exit(1);
             }
             // and perform Xinclude then
-            if (xmlXIncludeProcess(doc) <= 0) {
-                std::cerr << "XInclude processing failed\n";
-                std::exit(1);
+            if (xmlXIncludeProcess(doc) > 0) {
+                std::cerr << "processing XInclude directive\n";
             }
         }
         else

@@ -1,17 +1,26 @@
-/* $Id: xmlutil.cpp,v 1.10 2006-11-29 13:00:54 marc Exp $
+/* $Id: xmlutil.cpp,v 1.11 2006-12-01 12:37:26 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
  */
 
-#include <string.h>
 #include "xmlutil.hpp"
+
+#include <string.h>
+
 
 namespace mp = metaproxy_1;
 // Doxygen doesn't like mp::xml, so we use this instead
 namespace mp_xml = metaproxy_1::xml;
 
 static const std::string metaproxy_ns = "http://indexdata.com/metaproxy";
+
+std::string mp_xml::get_text(const struct _xmlAttr  *ptr)
+{
+    if (ptr->children->type == XML_TEXT_NODE)
+        return std::string((const char *) (ptr->children->content));
+    return std::string();
+}
 
 std::string mp_xml::get_text(const xmlNode *ptr)
 {
@@ -42,6 +51,45 @@ int mp_xml::get_int(const xmlNode *ptr, int default_value)
     }
     return default_value;
 }
+
+bool mp_xml::check_attribute(const _xmlAttr *ptr, 
+                             const std::string &ns,
+                             const std::string &name)
+{
+
+    if (!mp::xml::is_attribute(ptr, ns, name))
+    {   
+        std::string got_attr = "'";
+        if (ptr && ptr->name)
+            got_attr += std::string((const char *)ptr->name);
+        if (ns.size() && ptr && ptr->ns && ptr->ns->href){
+            got_attr += " ";
+            got_attr += std::string((const char *)ptr->ns->href);
+         }
+        got_attr += "'";
+        
+        throw mp::XMLError("Expected XML attribute '" + name 
+                           + " " + ns + "'"
+                           + ", not " + got_attr);
+    }
+    return true;
+}
+
+bool mp_xml::is_attribute(const _xmlAttr *ptr, 
+                          const std::string &ns,
+                          const std::string &name)
+{
+    if (0 != xmlStrcmp(BAD_CAST name.c_str(), ptr->name))
+        return false;
+
+    if (ns.size() 
+        && (!ptr->ns || !ptr->ns->href 
+            || 0 != xmlStrcmp(BAD_CAST ns.c_str(), ptr->ns->href)))
+        return false;
+
+    return true;
+}
+
 
 bool mp_xml::is_element(const xmlNode *ptr, 
                           const std::string &ns,

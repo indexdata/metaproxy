@@ -1,4 +1,4 @@
-/* $Id: filter_query_rewrite.cpp,v 1.8 2006-06-10 14:29:12 adam Exp $
+/* $Id: filter_query_rewrite.cpp,v 1.9 2006-12-01 12:37:26 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -10,6 +10,7 @@
 #include "package.hpp"
 
 #include "util.hpp"
+#include "xmlutil.hpp"
 #include "filter_query_rewrite.hpp"
 
 #include <yaz/zgdu.h>
@@ -127,7 +128,8 @@ void mp::filter::QueryRewrite::Rep::configure(const xmlNode *ptr)
     {
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
-        if (!strcmp((const char *) ptr->name, "xslt"))
+
+        if (mp::xml::check_element_mp(ptr, "xslt"))
         {
             if (m_stylesheet)
             {
@@ -135,14 +137,29 @@ void mp::filter::QueryRewrite::Rep::configure(const xmlNode *ptr)
                     ("Only one xslt element allowed in query_rewrite filter");
             }
 
-            std::string fname = mp::xml::get_text(ptr);
+            std::string fname;// = mp::xml::get_text(ptr);
+
+            for (struct _xmlAttr *attr = ptr->properties; 
+                 attr; attr = attr->next)
+            {
+                mp::xml::check_attribute(attr, "", "stylesheet");
+                fname = mp::xml::get_text(attr);            
+            }
+
+            if (0 == fname.size())
+                throw mp::filter::FilterException
+                    ("Attribute <xslt stylesheet=\"" 
+                     + fname
+                     + "\"> needs XSLT stylesheet path content"
+                     + " in query_rewrite filter");
+            
             m_stylesheet = xsltParseStylesheetFile(BAD_CAST fname.c_str());
             if (!m_stylesheet)
             {
                 throw mp::filter::FilterException
-                    ("Failed to read stylesheet " 
+                    ("Failed to read XSLT stylesheet '" 
                      + fname
-                     + " in query_rewrite filter");
+                     + "' in query_rewrite filter");
             }
         }
         else
