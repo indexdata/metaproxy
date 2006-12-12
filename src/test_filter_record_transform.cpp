@@ -1,4 +1,4 @@
-/* $Id: test_filter_record_transform.cpp,v 1.3 2006-11-29 13:00:54 marc Exp $
+/* $Id: test_filter_record_transform.cpp,v 1.4 2006-12-12 14:48:13 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -77,12 +77,10 @@ BOOST_AUTO_UNIT_TEST( test_filter_record_transform_3 )
             "<retrievalinfo>"
             "<retrieval" 
             " syntax=\"usmarc\""
+            " name=\"marcxml\">"
+            "<backend syntax=\"usmarc\""
             " name=\"marcxml\""
-            " backendsyntax=\"usmarc\""
-            " backendname=\"marcxml\""
-            " identifier=\"info:srw/schema/1/marcxml-v1.1\""
-            ">"
-            "<convert/>"
+            "/>"
             "</retrieval>"
             "</retrievalinfo>"
             "</filter>\n"
