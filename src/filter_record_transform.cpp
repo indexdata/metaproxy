@@ -1,4 +1,4 @@
-/* $Id: filter_record_transform.cpp,v 1.6 2006-10-10 09:17:24 adam Exp $
+/* $Id: filter_record_transform.cpp,v 1.7 2006-12-12 11:01:40 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -95,7 +95,7 @@ void yf::RecordTransform::Impl::configure(const xmlNode *xml_node)
         if (0 == strcmp((const char *) retrieval_node->name, "retrievalinfo"))
             break;
     }
-    
+
     // read configuration
     if ( 0 != yaz_retrieval_configure(m_retrieval, retrieval_node)){
         std::string msg("RecordTransform filter config: ");
