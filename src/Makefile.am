@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.59 2006-10-03 14:04:22 marc Exp $
+## $Id: Makefile.am,v 1.60 2006-12-28 14:59:44 marc Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -29,6 +29,7 @@ libmetaproxy_la_SOURCES = \
 	filter_template.cpp filter_template.hpp \
 	filter_virt_db.cpp filter_virt_db.hpp \
 	filter_z3950_client.cpp filter_z3950_client.hpp \
+	filter_zeerex_explain.cpp  filter_zeerex_explain.hpp \
 	gduutil.cpp gduutil.hpp \
 	origin.cpp origin.hpp \
 	package.cpp package.hpp \

@@ -1,4 +1,4 @@
-/* $Id: factory_static.cpp,v 1.13 2006-10-03 14:04:22 marc Exp $
+/* $Id: factory_static.cpp,v 1.14 2006-12-28 14:59:44 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -29,6 +29,7 @@
 #include "filter_template.hpp"
 #include "filter_virt_db.hpp"
 #include "filter_z3950_client.hpp"
+#include "filter_zeerex_explain.hpp"
 
 namespace mp = metaproxy_1;
 
@@ -49,6 +50,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_template,
         &metaproxy_1_filter_virt_db,
         &metaproxy_1_filter_z3950_client,
+        &metaproxy_1_filter_zeerex_explain,
         0
     };
     int i;
