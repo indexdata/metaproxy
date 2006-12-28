@@ -1,11 +1,14 @@
-/* $Id: sru_util.hpp,v 1.3 2006-10-03 07:57:40 marc Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: sru_util.hpp,v 1.4 2006-12-28 13:26:06 marc Exp $
+-   Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
  */
 
 #ifndef YP2_SDU_UTIL_HPP
 #define YP2_SDU_UTIL_HPP
+
+#include "util.hpp"
+#include "package.hpp"
 
 //#include <yaz/zgdu.h>
 //#include <yaz/z-core.h>
@@ -24,20 +27,58 @@ namespace std
 namespace metaproxy_1 {
     namespace util  {
 
-        class SRU 
-        {
-        public:
-            enum SRU_protocol_type { SRU_NONE, SRU_GET, SRU_POST, SRU_SOAP};
-            typedef const int SRU_query_type;
-            union SRW_query {char * cql; char * xcql; char * pqf;};
-        private:
-            //bool decode(const Z_HTTP_Request &http_req);
-            SRU_protocol_type protocol(const Z_HTTP_Request &http_req) const;
-        private:
-            SRU_protocol_type m_protocol;
-            std::string m_charset;
-            std::string m_stylesheet;            
-        };
+        // std::string sru_protocol(const Z_HTTP_Request &http_req);
+        // std::string debug_http(const Z_HTTP_Request &http_req);
+        // void http_response(mp::Package &package, 
+        //                   const std::string &content, 
+        //                   int http_code = 200);
+
+        bool build_sru_debug_package(metaproxy_1::Package &package);
+
+        bool build_simple_explain(metaproxy_1::Package &package, 
+                                  metaproxy_1::odr &odr_en,
+                                  Z_SRW_PDU *sru_pdu_res,
+                                  Z_SRW_explainRequest const *er_req);
+        
+        bool build_sru_response(metaproxy_1::Package &package, 
+                                metaproxy_1::odr &odr_en,
+                                Z_SOAP *soap,
+                                const Z_SRW_PDU *sru_pdu_res,
+                                char *charset,
+                                const char *stylesheet);        
+        
+        Z_SRW_PDU * decode_sru_request(metaproxy_1::Package &package,   
+                                       metaproxy_1::odr &odr_de,
+                                       metaproxy_1::odr &odr_en,
+                                       Z_SRW_PDU *sru_pdu_res,
+                                       Z_SOAP *&soap,
+                                       char *charset,
+                                       char *stylesheet);
+
+        bool check_sru_query_exists(metaproxy_1::Package &package,
+                                    metaproxy_1::odr &odr_en,
+                                    Z_SRW_PDU *sru_pdu_res,
+                                    Z_SRW_searchRetrieveRequest
+                                    const *sr_req);
+        
+        Z_ElementSetNames * build_esn_from_schema(metaproxy_1::odr &odr_en, 
+                                                  const char *schema);
+        
+
+//         class SRU 
+//         {
+//         public:
+//             enum SRU_protocol_type { SRU_NONE, SRU_GET, SRU_POST, SRU_SOAP};
+//             typedef const int SRU_query_type;
+//             union SRW_query {char * cql; char * xcql; char * pqf;};
+//         private:
+//             //bool decode(const Z_HTTP_Request &http_req);
+//             SRU_protocol_type protocol(const Z_HTTP_Request &http_req) const;
+//         private:
+//             SRU_protocol_type m_protocol;
+//             std::string m_charset;
+//             std::string m_stylesheet;            
+//         };
     }    
 }
 
