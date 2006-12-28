@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.22 2006-10-10 14:20:16 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.23 2006-12-28 12:18:01 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -162,10 +162,10 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package) const
     
     
     // SRU request package translation to Z3950 package
-    if (sru_pdu_req)
-        std::cout << *sru_pdu_req << "\n";
-    else
-        std::cout << "SRU empty\n";
+    //if (sru_pdu_req)
+    //    std::cout << *sru_pdu_req << "\n";
+    //else
+    //    std::cout << "SRU empty\n";
     
 
     // explain
@@ -233,7 +233,7 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package) const
     }
     else
     {
-        std::cout << "SRU OPERATION NOT SUPPORTED \n";
+        //std::cout << "SRU OPERATION NOT SUPPORTED \n";
         sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
         
         // TODO: make nice diagnostic return package 
@@ -350,10 +350,10 @@ bool yf::SRUtoZ3950::Impl::build_sru_response(mp::Package &package,
 {
 
     // SRU request package translation to Z3950 package
-    if (sru_pdu_res)
-        std::cout << *(const_cast<Z_SRW_PDU *>(sru_pdu_res)) << "\n";
-    else
-        std::cout << "SRU empty\n";
+    //if (sru_pdu_res)
+    //    std::cout << *(const_cast<Z_SRW_PDU *>(sru_pdu_res)) << "\n";
+    //else
+    //    std::cout << "SRU empty\n";
 
     
     Z_GDU *zgdu_req = package.request().get();
