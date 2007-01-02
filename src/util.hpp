@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.22 2006-10-04 14:04:00 marc Exp $
+/* $Id: util.hpp,v 1.23 2007-01-02 15:35:36 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -71,6 +71,11 @@ namespace metaproxy_1 {
         
         int remove_vhost_otherinfo(Z_OtherInformation **otherInformation,
                                    std::list<std::string> &vhosts);
+
+        void set_vhost_otherinfo(Z_OtherInformation **otherInformation, 
+                                 ODR odr,
+                                 const std::string vhost, 
+                                 const int cat = 1 );
 
         void set_vhost_otherinfo(Z_OtherInformation **otherInformation,
                                  ODR odr,

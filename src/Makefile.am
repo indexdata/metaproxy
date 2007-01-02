@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.60 2006-12-28 14:59:44 marc Exp $
+## $Id: Makefile.am,v 1.61 2007-01-02 15:35:36 marc Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -20,6 +20,7 @@ libmetaproxy_la_SOURCES = \
 	filter_bounce.cpp filter_bounce.hpp \
 	filter_frontend_net.cpp filter_frontend_net.hpp \
 	filter_http_file.cpp filter_http_file.hpp \
+	filter_load_balance.cpp filter_load_balance.hpp \
 	filter_log.cpp filter_log.hpp \
 	filter_multi.cpp filter_multi.hpp \
 	filter_query_rewrite.cpp filter_query_rewrite.hpp \

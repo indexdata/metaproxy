@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.7 2006-11-29 21:43:37 marc Exp $
+# $Id: Makefile.am,v 1.8 2007-01-02 15:35:36 marc Exp $
 
 # This doesn't actually build anything, it just tests whether the
 # configuration files here correspond with the schema.
@@ -7,6 +7,7 @@ etcdatadir = $(pkgdatadir)/etc
 
 xmlconfig = $(srcdir)/config-bytarget.xml \
     $(srcdir)/config-local.xml \
+    $(srcdir)/config-load-balance.xml \
     $(srcdir)/config-record-transform.xml \
     $(srcdir)/config-shared1.xml \
     $(srcdir)/config-simple-multi.xml \

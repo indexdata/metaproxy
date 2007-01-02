@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.23 2006-10-04 14:04:00 marc Exp $
+/* $Id: util.cpp,v 1.24 2007-01-02 15:35:36 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -332,6 +332,14 @@ void mp_util::set_vhost_otherinfo(
         yaz_oi_set_string_oidval(otherInformation, odr,
                                  VAL_PROXY, cat, it->c_str());
     }
+}
+
+void mp_util::set_vhost_otherinfo(
+    Z_OtherInformation **otherInformation, ODR odr,
+    const std::string vhost, const int cat)
+{
+        yaz_oi_set_string_oidval(otherInformation, odr,
+                                 VAL_PROXY, cat, vhost.c_str());
 }
 
 void mp_util::split_zurl(std::string zurl, std::string &host,

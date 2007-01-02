@@ -1,5 +1,5 @@
 # Metaproxy XML config file schemas
-#  $Id: metaproxy.rnc,v 1.12 2006-12-28 14:59:44 marc Exp $
+#  $Id: metaproxy.rnc,v 1.13 2007-01-02 15:35:36 marc Exp $
 # 
 #   Copyright (c) 2005-2006, Index Data.
 # 
@@ -50,6 +50,7 @@ filter =
     | filter_bounce
     | filter_frontend_net
     | filter_http_file
+    | filter_load_balance
     | filter_log
     | filter_multi
     | filter_query_rewrite
@@ -98,6 +99,11 @@ filter_http_file =
     element mp:documentroot { xsd:string },
     element mp:prefix { xsd:string }
   }
+
+filter_load_balance =
+  attribute type { "load_balance" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?
 
 filter_log =
   attribute type { "log" },
