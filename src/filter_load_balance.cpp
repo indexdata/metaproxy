@@ -1,4 +1,4 @@
-/* $Id: filter_load_balance.cpp,v 1.2 2007-01-03 15:03:55 marc Exp $
+/* $Id: filter_load_balance.cpp,v 1.3 2007-01-03 16:25:24 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -54,7 +54,7 @@ namespace metaproxy_1 {
                 unsigned int deads;
                 unsigned int cost() {
                     unsigned int c = sessions + packages + deads;
-                    std::cout << "cost  c:" << c 
+                    std::cout << "stats  c:" << c 
                               << " s:" << sessions 
                               << " p:" << packages 
                               << " d:" << deads 
@@ -235,9 +235,18 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
 // statistic manipulating functions, 
 void yf::LoadBalance::Impl::add_dead(unsigned long session_id){
 
+    
     std::string target = find_session_target(session_id);
 
-    std::cout << "add_dead " << session_id << "\n";
+    if (target.size() != 0){
+        std::map<std::string, TargetStat>::iterator itarg;        
+        itarg = m_target_stat.find(target);
+        if (itarg != m_target_stat.end()){
+            itarg->second.deads += 1;
+            std::cout << "add_dead " << session_id << " " << target 
+                      << " d:" << itarg->second.deads << "\n";
+        }
+    }
 };
 
 //void yf::LoadBalance::Impl::clear_dead(unsigned long session_id){
@@ -265,7 +274,8 @@ void yf::LoadBalance::Impl::remove_package(unsigned long session_id){
     if (target.size() != 0){
         std::map<std::string, TargetStat>::iterator itarg;        
         itarg = m_target_stat.find(target);
-        if (itarg != m_target_stat.end()){
+        if (itarg != m_target_stat.end()
+            && itarg->second.packages > 0){
             itarg->second.packages -= 1;
             std::cout << "remove_package " << session_id << " " << target 
                       << " p:" << itarg->second.packages << "\n";
@@ -289,7 +299,9 @@ void yf::LoadBalance::Impl::add_session(unsigned long session_id,
     if (itarg == m_target_stat.end()){
         TargetStat stat;
         stat.sessions = 1;
-        m_target_stat.insert(std::make_pair(target, stat));
+        stat.packages = 0;  // no idea why the defaut constructor TargetStat()
+        stat.deads = 0;     // is not initializig this correctly to zero ??
+       m_target_stat.insert(std::make_pair(target, stat));
         std::cout << "add_session " << session_id << " " << target 
                   << " s:1\n";
     } else {
@@ -322,13 +334,14 @@ void yf::LoadBalance::Impl::remove_session(unsigned long session_id){
     }
     
     // counting session down
-    itarg->second.sessions -= 1;
+    if (itarg->second.sessions > 0)
+        itarg->second.sessions -= 1;
 
     std::cout << "remove_session " << session_id << " " << target 
               << " s:" << itarg->second.sessions << "\n";
     
     // clearing empty sessions and targets
-    if (itarg->second.sessions == 0){
+    if (itarg->second.sessions == 0 && itarg->second.deads == 0 ){
         m_target_stat.erase(itarg);
         m_session_target.erase(isess);
     }

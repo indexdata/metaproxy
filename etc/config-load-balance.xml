@@ -34,12 +34,14 @@
       <filter type="log">
         <message>LOAD</message>
       </filter>
-      <filter type="backend_test"/>
       <!--
+      <filter type="backend_test"/>
+      -->
+      
       <filter type="z3950_client">
         <timeout>30</timeout>
       </filter>
-      -->
+     
       <filter type="bounce"/>
     </route>
   </routes>
