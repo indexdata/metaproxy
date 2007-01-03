@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.32 2006-10-13 10:21:58 adam Exp $
+## $Id: Makefile.am,v 1.33 2007-01-03 15:34:50 marc Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -12,14 +12,20 @@ MAINXML = $(srcdir)/book.xml
 XMLMAN = metaproxy.xml \
 	auth_simple.xml backend_test.xml bounce.xml \
 	frontend_net.xml \
-	http_file.xml log.xml multi.xml query_rewrite.xml \
+	http_file.xml \
+	load_balance.xml \
+	log.xml \
+	multi.xml query_rewrite.xml \
         record_transform.xml\
         sru_z3950.xml\
 	session_shared.xml template.xml virt_db.xml z3950_client.xml
 
 MANFILES = auth_simple.3mp backend_test.3mp  bounce.3mp \
         frontend_net.3mp \
-	http_file.3mp log.3mp multi.3mp query_rewrite.3mp \
+	http_file.3mp \
+	load_balance.3mp \
+	log.3mp \
+	multi.3mp query_rewrite.3mp \
         record_transform.3mp\
         sru_z3950.xml\
 	session_shared.3mp template.3mp virt_db.3mp z3950_client.3mp \

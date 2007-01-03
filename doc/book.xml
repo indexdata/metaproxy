@@ -17,7 +17,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.44 2006-11-29 13:00:53 marc Exp $ -->
+<!-- $Id: book.xml,v 1.45 2007-01-03 15:34:50 marc Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -774,6 +774,20 @@ Figure out what additional information we need in:
      Writes logging information to standard output, and passes on
      the package unchanged. A log file name can be specified, as well
      as multiple different logging formats.
+   </para>
+   </section>
+   
+   <section>
+    <title><literal>load_balance</literal>
+     (mp::filter::LoadBalance)</title>
+    <para>
+     Performs load balancing for incoming Z39.50 init requests.
+     It is used together with the <literal>virt_db</literal> filter,
+     but unlike the <literal>multi</literal> filter it does send an
+     entire session to only one of the virtual backends. The 
+     <literal>load_balance</literal> filter is assuming that
+     all backend targets have equal content, and chooses the backend
+     with least load cost for a new session.
    </para>
    </section>
    
