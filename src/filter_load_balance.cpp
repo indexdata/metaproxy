@@ -1,4 +1,4 @@
-/* $Id: filter_load_balance.cpp,v 1.4 2007-01-04 13:03:17 marc Exp $
+/* $Id: filter_load_balance.cpp,v 1.5 2007-01-04 13:22:56 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -16,7 +16,7 @@
 
 #include <yaz/zgdu.h>
 
-#include <iostream>
+//#include <iostream>
 #include <list>
 #include <map>
 #include <limits>
@@ -54,11 +54,11 @@ namespace metaproxy_1 {
                 unsigned int deads;
                 unsigned int cost() {
                     unsigned int c = sessions + packages + deads;
-                    std::cout << "stats  c:" << c 
-                              << " s:" << sessions 
-                              << " p:" << packages 
-                              << " d:" << deads 
-                              <<"\n";
+                    //std::cout << "stats  c:" << c 
+                    //          << " s:" << sessions 
+                    //          << " p:" << packages 
+                    //          << " d:" << deads 
+                    //          <<"\n";
                     return c;
                 }
             };
@@ -247,8 +247,8 @@ void yf::LoadBalance::Impl::add_dead(unsigned long session_id){
         if (itarg != m_target_stat.end()
             && itarg->second.deads < std::numeric_limits<unsigned int>::max()){
             itarg->second.deads += 1;
-            std::cout << "add_dead " << session_id << " " << target 
-                      << " d:" << itarg->second.deads << "\n";
+            // std:.cout << "add_dead " << session_id << " " << target 
+            //          << " d:" << itarg->second.deads << "\n";
         }
     }
 };
@@ -268,8 +268,8 @@ void yf::LoadBalance::Impl::add_package(unsigned long session_id){
             && itarg->second.packages 
                < std::numeric_limits<unsigned int>::max()){
             itarg->second.packages += 1;
-            std::cout << "add_package " << session_id << " " << target 
-                      << " p:" << itarg->second.packages << "\n";
+            // std:.cout << "add_package " << session_id << " " << target 
+            //          << " p:" << itarg->second.packages << "\n";
         }
     }
 };
@@ -283,8 +283,8 @@ void yf::LoadBalance::Impl::remove_package(unsigned long session_id){
         if (itarg != m_target_stat.end()
             && itarg->second.packages > 0){
             itarg->second.packages -= 1;
-            std::cout << "remove_package " << session_id << " " << target 
-                      << " p:" << itarg->second.packages << "\n";
+            // std:.cout << "remove_package " << session_id << " " << target 
+            //          << " p:" << itarg->second.packages << "\n";
         }
     }
 };
@@ -308,14 +308,14 @@ void yf::LoadBalance::Impl::add_session(unsigned long session_id,
         stat.packages = 0;  // no idea why the defaut constructor TargetStat()
         stat.deads = 0;     // is not initializig this correctly to zero ??
        m_target_stat.insert(std::make_pair(target, stat));
-        std::cout << "add_session " << session_id << " " << target 
-                  << " s:1\n";
+        // std:.cout << "add_session " << session_id << " " << target 
+        //          << " s:1\n";
     } 
     else if (itarg->second.sessions < std::numeric_limits<unsigned int>::max())
     {
         itarg->second.sessions += 1;
-        std::cout << "add_session " << session_id << " " << target 
-                  << " s:" << itarg->second.sessions << "\n";
+        // std:.cout << "add_session " << session_id << " " << target 
+        //          << " s:" << itarg->second.sessions << "\n";
     }
 };
 
@@ -343,8 +343,8 @@ void yf::LoadBalance::Impl::remove_session(unsigned long session_id){
     if (itarg->second.sessions > 0)
         itarg->second.sessions -= 1;
 
-    std::cout << "remove_session " << session_id << " " << target 
-              << " s:" << itarg->second.sessions << "\n";
+    // std:.cout << "remove_session " << session_id << " " << target 
+    //          << " s:" << itarg->second.sessions << "\n";
     
     // clearing empty sessions and targets
     if (itarg->second.sessions == 0 && itarg->second.deads == 0 ){
