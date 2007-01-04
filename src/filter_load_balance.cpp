@@ -1,4 +1,4 @@
-/* $Id: filter_load_balance.cpp,v 1.3 2007-01-03 16:25:24 marc Exp $
+/* $Id: filter_load_balance.cpp,v 1.4 2007-01-04 13:03:17 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -112,6 +112,7 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
 {
 
     bool is_closed_front = false;
+    bool is_closed_back = false;
 
     // checking for closed front end packages
     if (package.session().is_closed()){
@@ -190,15 +191,8 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
 
 
     // checking for closed back end packages
-    if (package.session().is_closed()) {
-        boost::mutex::scoped_lock scoped_lock(m_mutex);
-
-        // marking backend dead if backend closed without fronted close 
-        if (is_closed_front == false)
-            add_dead(package.session().id());
-
-        remove_session(package.session().id());
-    }
+    if (package.session().is_closed())
+        is_closed_back = true;
 
     Z_GDU *gdu_res = package.response().get();
 
@@ -207,20 +201,29 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
 
         // session closing only on Z39.50 close response
         if (gdu_res->u.z3950->which == Z_APDU_close){
+            is_closed_back = true;
             boost::mutex::scoped_lock scoped_lock(m_mutex);
             remove_package(package.session().id());
-            
-            // marking backend dead if backend closed without fronted close 
-            if (is_closed_front == false)
-                add_dead(package.session().id());
-            
-            //remove_session(package.session().id());
         } 
         // any other Z39.50 package is removed from statistics
         else {
             boost::mutex::scoped_lock scoped_lock(m_mutex);
             remove_package(package.session().id());
         }
+    }
+
+    // finally removing sessions and marking deads
+    if (is_closed_back || is_closed_front){        
+        boost::mutex::scoped_lock scoped_lock(m_mutex);
+
+        // marking backend dead if backend closed without fronted close 
+        if (is_closed_front == false)
+            add_dead(package.session().id());
+
+        remove_session(package.session().id());
+
+        // making sure that package is closed
+        package.session().close();
     }
 }
             
@@ -241,7 +244,8 @@ void yf::LoadBalance::Impl::add_dead(unsigned long session_id){
     if (target.size() != 0){
         std::map<std::string, TargetStat>::iterator itarg;        
         itarg = m_target_stat.find(target);
-        if (itarg != m_target_stat.end()){
+        if (itarg != m_target_stat.end()
+            && itarg->second.deads < std::numeric_limits<unsigned int>::max()){
             itarg->second.deads += 1;
             std::cout << "add_dead " << session_id << " " << target 
                       << " d:" << itarg->second.deads << "\n";
@@ -260,7 +264,9 @@ void yf::LoadBalance::Impl::add_package(unsigned long session_id){
     if (target.size() != 0){
         std::map<std::string, TargetStat>::iterator itarg;        
         itarg = m_target_stat.find(target);
-        if (itarg != m_target_stat.end()){
+        if (itarg != m_target_stat.end()
+            && itarg->second.packages 
+               < std::numeric_limits<unsigned int>::max()){
             itarg->second.packages += 1;
             std::cout << "add_package " << session_id << " " << target 
                       << " p:" << itarg->second.packages << "\n";
@@ -304,13 +310,13 @@ void yf::LoadBalance::Impl::add_session(unsigned long session_id,
        m_target_stat.insert(std::make_pair(target, stat));
         std::cout << "add_session " << session_id << " " << target 
                   << " s:1\n";
-    } else {
+    } 
+    else if (itarg->second.sessions < std::numeric_limits<unsigned int>::max())
+    {
         itarg->second.sessions += 1;
         std::cout << "add_session " << session_id << " " << target 
                   << " s:" << itarg->second.sessions << "\n";
     }
-    
-    
 };
 
 void yf::LoadBalance::Impl::remove_session(unsigned long session_id){
@@ -372,13 +378,24 @@ unsigned int yf::LoadBalance::Impl::cost(std::string target){
         }
     }
     
-    std::cout << "cost " << target << " c:" << cost << "\n";
+    //std::cout << "cost " << target << " c:" << cost << "\n";
     return cost;
 };
 
 unsigned int yf::LoadBalance::Impl::dead(std::string target){
-    std::cout << "dead " << target << "\n";
-    return 0;
+
+    unsigned int dead;
+
+    if (target.size() != 0){
+        std::map<std::string, TargetStat>::iterator itarg;        
+        itarg = m_target_stat.find(target);
+        if (itarg != m_target_stat.end()){
+            dead = itarg->second.deads;
+        }
+    }
+    
+    //std::cout << "dead " << target << " d:" << dead << "\n";
+    return dead;
 };
 
 
