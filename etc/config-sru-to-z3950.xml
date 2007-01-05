@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-sru-to-z3950.xml,v 1.9 2007-01-05 10:58:30 marc Exp $ -->
+<!-- $Id: config-sru-to-z3950.xml,v 1.10 2007-01-05 12:27:23 marc Exp $ -->
 <metaproxy 
     xmlns="http://indexdata.com/metaproxy" 
     version="1.0">
@@ -41,7 +41,10 @@
           <target>localhost:9999/Default</target>
         </virtual>
       </filter>
+      <filter type="backend_test"/>
+      <!--
       <filter refid="backend"/>
+      -->
       <filter type="bounce"/>
     </route>
   </routes>
