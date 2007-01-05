@@ -1,0 +1,93 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" 
+    "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
+ <!ENTITY copyright SYSTEM "copyright.xml">    
+ <!ENTITY % common SYSTEM "common/common.ent">
+     %common;
+]>
+<!-- $Id: zeerex_explain.xml,v 1.1 2007-01-05 10:56:17 marc Exp $ -->
+<refentry>
+ <refmeta>
+  <refentrytitle>zeerex_explain</refentrytitle>
+  <manvolnum>3mp</manvolnum>
+  <refmiscinfo>Metaproxy Module</refmiscinfo>
+ </refmeta>
+ 
+ <refnamediv>
+  <refname>zeerex_explain</refname>
+  <refpurpose>answering SRU web service explain requests</refpurpose>
+ </refnamediv>
+ 
+ <refsect1><title>DESCRIPTION</title>
+  <para>
+   The <literal>zeerex_explain</literal> metaproxy filter 
+   answers valid SRU GET/POST/SOAP explain requests, returning a
+   static ZeeReX Explain XML record from the config section. All other
+   packages are passed through. 
+  </para>
+  <para>
+   Multiple database elements defining the names of the accepted
+   databases are allowed in the configuration file. Each
+   of them must contain their own explain record. Notice that explain
+   records come in SRU and Z3950 flavours, and this filter requires
+   the SRU version. See the 
+   <ulink url="&url.zeerex.explain;">ZeeReX Explain</ulink>
+   standard pages and the 
+   <ulink url="&url.sru.explain;">SRU Explain</ulink> pages
+   for more information. 
+  </para>
+  <para> 
+   A configuration for a full SRU server needs to line up a 
+   <literal>zeerex_explain</literal> filter, a
+   <literal>cql_pqf</literal> (not implemented yet) filter, and a  
+   <literal>sru_z3950</literal> after each other.
+   </para>
+ </refsect1>
+
+ <refsect1><title>EXAMPLES</title>
+  <para>
+   A typical configuration looks like this:
+   <screen><![CDATA[
+    <filter type="zeerex_explain">
+      <database name="Default">
+        <explain xmlns="http://explain.z3950.org/dtd/2.0/">
+          ...
+        </explain>
+      </database>
+    </filter>
+]]>
+   </screen>
+  </para>
+ </refsect1> 
+ 
+ <refsect1><title>SEE ALSO</title>
+  <para>
+   <citerefentry>
+    <refentrytitle>metaproxy</refentrytitle>
+    <manvolnum>1</manvolnum>
+   </citerefentry>
+  </para>
+  <para> 
+   <ulink url="&url.zeerex.explain;">ZeeReX Explain</ulink>
+  </para>
+  <para>   
+   <ulink url="&url.sru.explain;">SRU Explain</ulink> 
+   </para>
+ </refsect1>
+ 
+ &copyright;
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:1
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-local-catalogs: nil
+sgml-namecase-general:t
+End:
+-->

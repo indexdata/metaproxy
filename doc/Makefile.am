@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.33 2007-01-03 15:34:50 marc Exp $
+## $Id: Makefile.am,v 1.34 2007-01-05 10:56:17 marc Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -10,26 +10,40 @@ XMLFILES = book.xml manref.xml copyright.xml
 MAINXML = $(srcdir)/book.xml
 
 XMLMAN = metaproxy.xml \
-	auth_simple.xml backend_test.xml bounce.xml \
+	auth_simple.xml \
+	backend_test.xml \
+	bounce.xml \
 	frontend_net.xml \
 	http_file.xml \
 	load_balance.xml \
 	log.xml \
-	multi.xml query_rewrite.xml \
+	multi.xml \
+	query_rewrite.xml \
         record_transform.xml\
+	session_shared.xml \
         sru_z3950.xml\
-	session_shared.xml template.xml virt_db.xml z3950_client.xml
+	template.xml \
+	virt_db.xml \
+	z3950_client.xml \
+        zeerex_explain.xml
 
-MANFILES = auth_simple.3mp backend_test.3mp  bounce.3mp \
+MANFILES = metaproxy.1 \
+	auth_simple.3mp \
+	backend_test.3mp  \
+	bounce.3mp \
         frontend_net.3mp \
 	http_file.3mp \
 	load_balance.3mp \
 	log.3mp \
 	multi.3mp query_rewrite.3mp \
         record_transform.3mp\
+	session_shared.3mp \
         sru_z3950.xml\
-	session_shared.3mp template.3mp virt_db.3mp z3950_client.3mp \
-	metaproxy.1
+	template.3mp \
+	virt_db.3mp \
+	z3950_client.3mp \
+	zeerex_explain.3mp
+
 
 HTMLFILES = index.html
 

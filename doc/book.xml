@@ -17,7 +17,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.45 2007-01-03 15:34:50 marc Exp $ -->
+<!-- $Id: book.xml,v 1.46 2007-01-05 10:56:17 marc Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -31,7 +31,7 @@
    <firstname>Mike</firstname><surname>Taylor</surname>
   </author>
   <copyright>
-   <year>2006</year>
+   <year>2005-2007</year>
    <holder>Index Data ApS</holder>
   </copyright>
   <abstract>
@@ -155,7 +155,7 @@
      You may modify your copy of the software (fix bugs, add features)
      if you need to.  We encourage you to send your changes back to us for
      integration into the master copy, but you are not obliged to do so.  You
-      may NOT pass your changes on to any other party.
+     may NOT pass your changes on to any other party.
     </para>
    </listitem>
    <listitem>
@@ -627,10 +627,10 @@
     packages
     (<literal>frontend_net</literal>);
     others are sinks: they consume packages and return a result
-    (<literal>z3950_client</literal>,
-    <literal>backend_test</literal>,
+    (<literal>backend_test</literal>,
     <literal>bounce</literal>,
-    <literal>http_file</literal>);
+    <literal>http_file</literal>, 
+    <literal>z3950_client</literal>);
     the others are true filters, that read, process and pass on the
     packages they are fed
     (<literal>auth_simple</literal>,
@@ -768,16 +768,6 @@ Figure out what additional information we need in:
    </section>
    
    <section>
-    <title><literal>log</literal>
-     (mp::filter::Log)</title>
-    <para>
-     Writes logging information to standard output, and passes on
-     the package unchanged. A log file name can be specified, as well
-     as multiple different logging formats.
-   </para>
-   </section>
-   
-   <section>
     <title><literal>load_balance</literal>
      (mp::filter::LoadBalance)</title>
     <para>
@@ -790,7 +780,17 @@ Figure out what additional information we need in:
      with least load cost for a new session.
    </para>
    </section>
-   
+      
+   <section>
+    <title><literal>log</literal>
+     (mp::filter::Log)</title>
+    <para>
+     Writes logging information to standard output, and passes on
+     the package unchanged. A log file name can be specified, as well
+     as multiple different logging formats.
+   </para>
+   </section>
+
    <section>
    <title><literal>multi</literal>
      (mp::filter::Multi)</title>
@@ -853,8 +853,16 @@ Figure out what additional information we need in:
     (mp::filter::SRUtoZ3950)</title>
     <para>
      This filter transforms valid
-     SRU/GET or SRU/SOAP requests to Z3950 requests, and wraps the
-     received hit counts and XML records into suitable SRU response messages.
+     SRU GET/POST/SOAP searchRetrieve requests to Z3950 init, search,
+     and present requests, and wraps the
+     received hit counts and XML records into suitable SRU response
+     messages.
+     The <literal>sru_z3950</literal> filter does only process SRU
+     GET/POST/SOAP explain requests in a very crude fashion, returning
+     the absolute minimum required by the standard. Full ZeeReX
+     explain support is added by including the  
+     <literal>zeerex_explain</literal> filter before the 
+     <literal>sru_z3950</literal> filter.
     </para>
    </section>
    
@@ -902,6 +910,27 @@ Figure out what additional information we need in:
      are passed untouched. 
     </para>
   </section>
+
+
+   <section>
+    <title><literal>zeerex_explain</literal>
+     (mp::filter::ZeerexExplain)</title>
+    <para>
+     This filter acts as a sink for
+     SRU GET/POST/SOAP explain requests, returning a static ZeeReX
+     Explain XML record from the config section. All other packages
+     are passed through, including SRU GET/POST/SOAP searchRetrieve
+     requests, which are handled by a following
+     <literal>sru_z3950</literal> filter.
+     See the 
+     <ulink url="&url.zeerex.explain;">ZeeReX Explain</ulink>
+     standard pages and the 
+     <ulink url="&url.sru.explain;">SRU Explain</ulink> pages
+     for more information on the correct explain syntax.
+    </para>
+   </section>
+   
+
   </section>
   
   
