@@ -1,5 +1,5 @@
 # Metaproxy XML config file schemas
-#  $Id: metaproxy.rnc,v 1.13 2007-01-02 15:35:36 marc Exp $
+#  $Id: metaproxy.rnc,v 1.14 2007-01-05 11:28:48 marc Exp $
 # 
 #   Copyright (c) 2005-2006, Index Data.
 # 
@@ -25,6 +25,8 @@ namespace mp = "http://indexdata.com/metaproxy"
 start |= metaproxy
 
 include "retrievalinfo.rnc"
+
+any = (text | element * { attribute * { text }*, any })*
 
 metaproxy =
   element mp:metaproxy {
@@ -180,4 +182,10 @@ filter_z3950_client =
 filter_zeerex_explain =
   attribute type { "zeerex_explain" },
   attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?
+  attribute name { xsd:NCName }?,
+  element mp:database {  
+     attribute name { xsd:NCName },
+     any        
+  }+
+
+ 
