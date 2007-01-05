@@ -1,4 +1,4 @@
-/* $Id: sru_util.hpp,v 1.4 2006-12-28 13:26:06 marc Exp $
+/* $Id: sru_util.hpp,v 1.5 2007-01-05 12:26:50 marc Exp $
 -   Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -35,6 +35,10 @@ namespace metaproxy_1 {
 
         bool build_sru_debug_package(metaproxy_1::Package &package);
 
+        void get_sru_server_info(metaproxy_1::Package &package, 
+                                 Z_SRW_explainRequest 
+                                 const *er_req);
+        
         bool build_simple_explain(metaproxy_1::Package &package, 
                                   metaproxy_1::odr &odr_en,
                                   Z_SRW_PDU *sru_pdu_res,
@@ -63,6 +67,20 @@ namespace metaproxy_1 {
         
         Z_ElementSetNames * build_esn_from_schema(metaproxy_1::odr &odr_en, 
                                                   const char *schema);
+
+        class SRUServerInfo
+        {
+        public:
+            SRUServerInfo ()
+                : database("Default")
+                {}
+        public:
+            std::string database;
+            std::string host;
+            std::string port;
+        };
+        
+        
         
 
 //         class SRU 

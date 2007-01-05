@@ -1,4 +1,4 @@
-/* $Id: sru_util.cpp,v 1.3 2006-12-28 13:26:06 marc Exp $
+/* $Id: sru_util.cpp,v 1.4 2007-01-05 12:26:50 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -33,6 +33,42 @@ bool mp_util::build_sru_debug_package(mp::Package &package)
     }
     package.session().close();
     return false;
+}
+
+void mp_util::get_sru_server_info(mp::Package &package, 
+                                   Z_SRW_explainRequest 
+                                   const *er_req) 
+{
+
+    SRUServerInfo sruinfo;
+
+    // getting database info
+    std::string database("Default");
+    if (er_req && er_req->database)
+        database = er_req->database;
+
+    // getting host and port info
+    std::string host = package.origin().listen_host();
+    std::string port = mp_util::to_string(package.origin().listen_port());
+
+    // overwriting host and port info if set from HTTP Host header
+    Z_GDU *zgdu_req = package.request().get();
+    if  (zgdu_req && zgdu_req->which == Z_GDU_HTTP_Request)
+    {
+        Z_HTTP_Request* http_req =  zgdu_req->u.HTTP_Request;
+        if (http_req)
+        {
+            std::string http_host_address
+                = mp_util::http_header_value(http_req->headers, "Host");
+
+            std::string::size_type i = http_host_address.rfind(":");
+            if (i != std::string::npos)
+            {
+                host.assign(http_host_address, 0, i);
+                port.assign(http_host_address, i + 1, std::string::npos);
+            }
+        }
+    }
 }
 
 
@@ -78,7 +114,7 @@ bool mp_util::build_simple_explain(mp::Package &package,
     // building SRU explain record
     std::string explain_xml 
         = mp_util::to_string(
-            "<explain>\n"
+            "<explain  xmlns=\"http://explain.z3950.org/dtd/2.0/\">\n"
             "  <serverInfo protocol='SRU'>\n"
             "    <host>")
         + host

@@ -1,4 +1,4 @@
-/* $Id: filter_zeerex_explain.cpp,v 1.1 2006-12-28 14:59:44 marc Exp $
+/* $Id: filter_zeerex_explain.cpp,v 1.2 2007-01-05 12:26:50 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -98,13 +98,6 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package) const
         package.session().close();
         return;
     }
-    
-    
-    // SRU request package translation to Z3950 package
-    //if (sru_pdu_req)
-    //    std::cout << *sru_pdu_req << "\n";
-    //else
-    //    std::cout << "SRU empty\n";
     
 
     if (sru_pdu_req->which != Z_SRW_explain_request){
