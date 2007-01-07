@@ -1,6 +1,6 @@
 # Copyright (C) 2005-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.25 2006-11-17 17:58:07 adam Exp $
+# $Id: makefile,v 1.26 2007-01-07 15:48:26 marc Exp $
 
 # MS NMAKE makefile for metaproxy
 
@@ -231,17 +231,19 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\filter_bounce.obj \
 	$(OBJDIR)\filter_frontend_net.obj \
 	$(OBJDIR)\filter_http_file.obj \
+        $(OBJDIR)\filter_load_balance.obj \
         $(OBJDIR)\filter_log.obj \
 	$(OBJDIR)\filter_multi.obj \
 	$(OBJDIR)\filter_query_rewrite.obj \
-        $(OBJDIR)\filter_session_shared.obj \
         $(OBJDIR)\filter_record_transform.obj \
+        $(OBJDIR)\filter_session_shared.obj \
         $(OBJDIR)\filter_sru_to_z3950.obj \
         $(OBJDIR)\filter_template.obj \
         $(OBJDIR)\filter_virt_db.obj \
         $(OBJDIR)\filter_z3950_client.obj \
-	$(OBJDIR)\origin.obj \
+        $(OBJDIR)\filter_zeerex_explain.obj \
 	$(OBJDIR)\gduutil.obj \
+	$(OBJDIR)\origin.obj \
 	$(OBJDIR)\package.obj \
 	$(OBJDIR)\pipe.obj \
 	$(OBJDIR)\plainfile.obj \
