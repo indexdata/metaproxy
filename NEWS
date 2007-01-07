@@ -1,3 +1,19 @@
+--- 1.0.8 2007
+
+New filter plus documentation for filter record_transform finished.
+Filters load_balance, sru_z3950 and zeerex_explain in development added.
+Documentation for filters load_balance, sru_z3950 and zeerex_explain started.
+
+XML framework for config files started.
+Master RelaxNG Compact schema's are found in xml/schema/*.rnc,
+RelaxNG XML schemas and XML Schema's are generated from RNC syntax.
+XML config files are checked against RNG and XML Schema's.
+
+XSLT transformation framework added in xml/xslt/*.xsl, consisting mainly of 
+LOC Marc21 stylesheets found at http://www.loc.gov/marcxml/xslt.
+Added stylesheet explain2cqlpqftxt.xsl which transforms a standard SRU ZeeReX 
+explain record to YAZ CQL-to-PQF text config file. 
+
 --- 1.0.7 2006/11/07
 
 Added 'timeout' setting for filter frontend_net which specifies the number
