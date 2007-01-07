@@ -1,8 +1,8 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.24 2006-12-28 13:26:06 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.25 2007-01-07 00:41:18 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
- */
+*/
 
 #include "config.hpp"
 #include "filter.hpp"
@@ -125,32 +125,31 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package) const
     char *charset = 0;
     char *stylesheet = 0;
 
+    mp_util::SRUServerInfo sruinfo = mp_util::get_sru_server_info(package);
+
+
     if (! (sru_pdu_req = mp_util::decode_sru_request(package, odr_de, odr_en, 
                                             sru_pdu_res, soap,
                                             charset, stylesheet)))
     {
-        mp_util::build_simple_explain(package, odr_en, sru_pdu_res, 0);
-        mp_util::build_sru_response(package, odr_en, soap, 
-                           sru_pdu_res, charset, stylesheet);
-        package.session().close();
+        //mp_util::build_simple_explain(package, odr_en, sru_pdu_res, sruinfo);
+        //mp_util::build_sru_response(package, odr_en, soap, 
+        //                   sru_pdu_res, charset, stylesheet);
+        //package.session().close();
+        package.move();
         return;
     }
     
-    
-    // SRU request package translation to Z3950 package
-    //if (sru_pdu_req)
-    //    std::cout << *sru_pdu_req << "\n";
-    //else
-    //    std::cout << "SRU empty\n";
-    
-
     // explain
     if (sru_pdu_req && sru_pdu_req->which == Z_SRW_explain_request)
     {
-        Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
+        //Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
         //sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
 
-        mp_util::build_simple_explain(package, odr_en, sru_pdu_res, er_req);
+        //mp_util::build_simple_explain(package, odr_en, sru_pdu_res, 
+        //                              sruinfo, er_req);
+        package.move();
+        return;
     }
 
     // searchRetrieve

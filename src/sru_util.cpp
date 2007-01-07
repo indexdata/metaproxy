@@ -1,4 +1,4 @@
-/* $Id: sru_util.cpp,v 1.4 2007-01-05 12:26:50 marc Exp $
+/* $Id: sru_util.cpp,v 1.5 2007-01-07 00:41:18 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -18,7 +18,7 @@ namespace mp = metaproxy_1;
 // Doxygen doesn't like mp::gdu, so we use this instead
 namespace mp_util = metaproxy_1::util;
 
-
+const std::string xmlns_explain("http://explain.z3950.org/dtd/2.0/");
 
 bool mp_util::build_sru_debug_package(mp::Package &package)
 {
@@ -35,21 +35,18 @@ bool mp_util::build_sru_debug_package(mp::Package &package)
     return false;
 }
 
-void mp_util::get_sru_server_info(mp::Package &package, 
-                                   Z_SRW_explainRequest 
-                                   const *er_req) 
+mp_util::SRUServerInfo mp_util::get_sru_server_info(mp::Package &package)
+    //Z_SRW_explainRequest const *er_req) 
 {
-
-    SRUServerInfo sruinfo;
+    mp_util::SRUServerInfo sruinfo;
 
     // getting database info
-    std::string database("Default");
-    if (er_req && er_req->database)
-        database = er_req->database;
+    //if (er_req && er_req->database)
+    //    sruinfo.database = er_req->database;
 
     // getting host and port info
-    std::string host = package.origin().listen_host();
-    std::string port = mp_util::to_string(package.origin().listen_port());
+    sruinfo.host = package.origin().listen_host();
+    sruinfo.port = mp_util::to_string(package.origin().listen_port());
 
     // overwriting host and port info if set from HTTP Host header
     Z_GDU *zgdu_req = package.request().get();
@@ -58,76 +55,117 @@ void mp_util::get_sru_server_info(mp::Package &package,
         Z_HTTP_Request* http_req =  zgdu_req->u.HTTP_Request;
         if (http_req)
         {
+
+            //std::string http_method = http_req->method;
+            //std::string http_version = http_req->version;
+            std::string http_path = http_req->path;
+            if (http_path.size() > 1)
+                sruinfo.database.assign(http_path, 1, std::string::npos);
+
             std::string http_host_address
                 = mp_util::http_header_value(http_req->headers, "Host");
 
             std::string::size_type i = http_host_address.rfind(":");
             if (i != std::string::npos)
             {
-                host.assign(http_host_address, 0, i);
-                port.assign(http_host_address, i + 1, std::string::npos);
+                sruinfo.host.assign(http_host_address, 0, i);
+                sruinfo.port.assign(http_host_address, i + 1, 
+                                    std::string::npos);
             }
         }
     }
+    
+    //std::cout << "sruinfo.database " << sruinfo.database << "\n";
+    //std::cout << "sruinfo.host " << sruinfo.host << "\n";
+    //std::cout << "sruinfo.port " << sruinfo.port << "\n";
+
+    return sruinfo;
 }
 
 
-bool mp_util::build_simple_explain(mp::Package &package, 
-                                   mp::odr &odr_en,
-                                   Z_SRW_PDU *sru_pdu_res,
-                                   Z_SRW_explainRequest 
-                                   const *er_req) 
+// bool mp_util::build_simple_explain(mp::Package &package, 
+//                                    mp::odr &odr_en,
+//                                    Z_SRW_PDU *sru_pdu_res,
+//                                    SRUServerInfo sruinfo,
+//                                    Z_SRW_explainRequest const *er_req) 
+// {
+//     // z3950'fy recordPacking
+//     int record_packing = Z_SRW_recordPacking_XML;
+//     if (er_req && er_req->recordPacking && 's' == *(er_req->recordPacking))
+//         record_packing = Z_SRW_recordPacking_string;
+
+//     // building SRU explain record
+//     std::string explain_xml 
+//         = mp_util::to_string(
+//             "<explain  xmlns=\"" + xmlns_explain + "\">\n"
+//             "  <serverInfo protocol='SRU'>\n"
+//             "    <host>")
+//         + sruinfo.host
+//         + mp_util::to_string("</host>\n"
+//             "    <port>")
+//         + sruinfo.port
+//         + mp_util::to_string("</port>\n"
+//             "    <database>")
+//         + sruinfo.database
+//         + mp_util::to_string("</database>\n"
+//             "  </serverInfo>\n"
+//             "</explain>\n");
+    
+    
+//     // preparing explain record insert
+//     Z_SRW_explainResponse *sru_res = sru_pdu_res->u.explain_response;
+    
+//     // inserting one and only explain record
+    
+//     sru_res->record.recordPosition = odr_intdup(odr_en, 1);
+//     sru_res->record.recordPacking = record_packing;
+//     sru_res->record.recordSchema = (char *)xmlns_explain.c_str();
+//     sru_res->record.recordData_len = 1 + explain_xml.size();
+//     sru_res->record.recordData_buf
+//         = odr_strdupn(odr_en, (const char *)explain_xml.c_str(), 
+//                       1 + explain_xml.size());
+
+//     return true;
+// };
+
+        
+bool mp_util::build_sru_explain(metaproxy_1::Package &package, 
+                                metaproxy_1::odr &odr_en,
+                                Z_SRW_PDU *sru_pdu_res,
+                                SRUServerInfo sruinfo,
+                                const xmlNode *explain,
+                                Z_SRW_explainRequest const *er_req)
 {
+
+    // building SRU explain record
+    std::string explain_xml;    
+
+    if (explain == 0){
+        explain_xml 
+            = mp_util::to_string(
+                "<explain  xmlns=\"" + xmlns_explain + "\">\n"
+                "  <serverInfo protocol='SRU'>\n"
+                "    <host>")
+            + sruinfo.host
+            + mp_util::to_string("</host>\n"
+                                 "    <port>")
+            + sruinfo.port
+            + mp_util::to_string("</port>\n"
+                                 "    <database>")
+            + sruinfo.database
+            + mp_util::to_string("</database>\n"
+                                 "  </serverInfo>\n"
+                                 "</explain>\n");
+    }
+    else {
+        explain_xml = "<need_to_dump_XML_dom_tree/>";
+    }
+
+
     // z3950'fy recordPacking
     int record_packing = Z_SRW_recordPacking_XML;
     if (er_req && er_req->recordPacking && 's' == *(er_req->recordPacking))
-        record_packing = Z_SRW_recordPacking_string;
-
-    // getting database info
-    std::string database("Default");
-    if (er_req && er_req->database)
-        database = er_req->database;
-
-    // getting host and port info
-    std::string host = package.origin().listen_host();
-    std::string port = mp_util::to_string(package.origin().listen_port());
-
-    // overwriting host and port info if set from HTTP Host header
-    Z_GDU *zgdu_req = package.request().get();
-    if  (zgdu_req && zgdu_req->which == Z_GDU_HTTP_Request)
-    {
-        Z_HTTP_Request* http_req =  zgdu_req->u.HTTP_Request;
-        if (http_req)
-        {
-            std::string http_host_address
-                = mp_util::http_header_value(http_req->headers, "Host");
-
-            std::string::size_type i = http_host_address.rfind(":");
-            if (i != std::string::npos)
-            {
-                host.assign(http_host_address, 0, i);
-                port.assign(http_host_address, i + 1, std::string::npos);
-            }
-        }
-    }
-
-    // building SRU explain record
-    std::string explain_xml 
-        = mp_util::to_string(
-            "<explain  xmlns=\"http://explain.z3950.org/dtd/2.0/\">\n"
-            "  <serverInfo protocol='SRU'>\n"
-            "    <host>")
-        + host
-        + mp_util::to_string("</host>\n"
-            "    <port>")
-        + port
-        + mp_util::to_string("</port>\n"
-            "    <database>")
-        + database
-        + mp_util::to_string("</database>\n"
-            "  </serverInfo>\n"
-            "</explain>\n");
-    
+        record_packing = Z_SRW_recordPacking_string;    
     
     // preparing explain record insert
     Z_SRW_explainResponse *sru_res = sru_pdu_res->u.explain_response;
@@ -136,7 +174,7 @@ bool mp_util::build_simple_explain(mp::Package &package,
     
     sru_res->record.recordPosition = odr_intdup(odr_en, 1);
     sru_res->record.recordPacking = record_packing;
-    sru_res->record.recordSchema = "http://explain.z3950.org/dtd/2.0/";
+    sru_res->record.recordSchema = (char *)xmlns_explain.c_str();
     sru_res->record.recordData_len = 1 + explain_xml.size();
     sru_res->record.recordData_buf
         = odr_strdupn(odr_en, (const char *)explain_xml.c_str(), 

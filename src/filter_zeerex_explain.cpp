@@ -1,4 +1,4 @@
-/* $Id: filter_zeerex_explain.cpp,v 1.2 2007-01-05 12:26:50 marc Exp $
+/* $Id: filter_zeerex_explain.cpp,v 1.3 2007-01-07 00:41:18 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -23,6 +23,7 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <map>
 
 namespace mp = metaproxy_1;
 namespace mp_util = metaproxy_1::util;
@@ -34,8 +35,9 @@ namespace metaproxy_1 {
         class ZeeRexExplain::Impl {
         public:
             void configure(const xmlNode *xmlnode);
-            void process(metaproxy_1::Package &package) const;
+            void process(metaproxy_1::Package &package);
         private:
+            std::map<std::string, const xmlNode *> m_database_explain;
         };
     }
 }
@@ -58,11 +60,41 @@ void yf::ZeeRexExplain::process(mp::Package &package) const
     m_p->process(package);
 }
 
-void yf::ZeeRexExplain::Impl::configure(const xmlNode *xmlnode)
+void yf::ZeeRexExplain::Impl::configure(const xmlNode *confignode)
 {
+    const xmlNode * dbnode;
+    
+    for (dbnode = confignode->children; dbnode; dbnode = dbnode->next){
+        if (dbnode->type != XML_ELEMENT_NODE)
+            continue;
+        
+        std::string database;
+        mp::xml::check_element_mp(dbnode, "database");
+
+        for (struct _xmlAttr *attr = dbnode->properties; 
+             attr; attr = attr->next){
+            
+            mp::xml::check_attribute(attr, "", "name");
+            database = mp::xml::get_text(attr);
+            
+            std::cout << database << "\n";
+            
+            const xmlNode *explainnode;
+            for (explainnode = dbnode->children; 
+                 explainnode; explainnode = explainnode->next){
+                if (explainnode->type != XML_ELEMENT_NODE)
+                    continue;
+                if (explainnode)
+                    break;
+            }
+            // assigning explain node to database name - no check yet 
+            m_database_explain.insert(std::make_pair(database, explainnode));
+         }
+    }
 }
 
-void yf::ZeeRexExplain::Impl::process(mp::Package &package) const
+
+void yf::ZeeRexExplain::Impl::process(mp::Package &package)
 {
     Z_GDU *zgdu_req = package.request().get();
 
@@ -81,18 +113,38 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package) const
     //Z_SRW_PDU *sru_pdu_res = 0;
     Z_SRW_PDU *sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
 
-    Z_SOAP *soap = 0;
-    char *charset = 0;
-    char *stylesheet = 0;
+    // finding correct SRU database and explain XML node fragment from config
+    mp_util::SRUServerInfo sruinfo = mp_util::get_sru_server_info(package);
 
+    const xmlNode *explainnode = 0;
+    std::map<std::string, const xmlNode *>::iterator idbexp;
+    idbexp = m_database_explain.find(sruinfo.database);
+
+    //std::cout << "Finding " << sruinfo.database << "\n";
+    if (idbexp != m_database_explain.end()){
+        //std::cout << "Found " << idbexp->first << " " << idbexp->second << "\n";
+        explainnode = idbexp->second;
+    }
+    else {
+        // need to emmit error ?? or just let package pass ??
+        //std::cout << "Missed " << sruinfo.database << "\n";
+        package.move();
+        return;
+    }
+    
 
     // if SRU package could not be decoded, send minimal explain and
     // close connection
+
+    Z_SOAP *soap = 0;
+    char *charset = 0;
+    char *stylesheet = 0;
     if (! (sru_pdu_req = mp_util::decode_sru_request(package, odr_de, odr_en, 
                                             sru_pdu_res, soap,
                                             charset, stylesheet)))
     {
-        mp_util::build_simple_explain(package, odr_en, sru_pdu_res, 0);
+        mp_util::build_sru_explain(package, odr_en, sru_pdu_res, 
+                                   sruinfo, explainnode);
         mp_util::build_sru_response(package, odr_en, soap, 
                            sru_pdu_res, charset, stylesheet);
         package.session().close();
@@ -108,12 +160,12 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package) const
     // except valid SRU explain request, construct ZeeRex Explain response
     else {
         Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
-
-        mp_util::build_simple_explain(package, odr_en, sru_pdu_res, er_req);
-
+        //mp_util::build_simple_explain(package, odr_en, sru_pdu_res, 
+        //                           sruinfo, er_req);
+        mp_util::build_sru_explain(package, odr_en, sru_pdu_res, 
+                                   sruinfo, explainnode, er_req);
         mp_util::build_sru_response(package, odr_en, soap, 
                                     sru_pdu_res, charset, stylesheet);
-
         return;
     }
 

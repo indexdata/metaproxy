@@ -1,4 +1,4 @@
-/* $Id: sru_util.hpp,v 1.5 2007-01-05 12:26:50 marc Exp $
+/* $Id: sru_util.hpp,v 1.6 2007-01-07 00:41:18 marc Exp $
 -   Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -27,6 +27,8 @@ namespace std
 namespace metaproxy_1 {
     namespace util  {
 
+        class SRUServerInfo;
+
         // std::string sru_protocol(const Z_HTTP_Request &http_req);
         // std::string debug_http(const Z_HTTP_Request &http_req);
         // void http_response(mp::Package &package, 
@@ -35,14 +37,22 @@ namespace metaproxy_1 {
 
         bool build_sru_debug_package(metaproxy_1::Package &package);
 
-        void get_sru_server_info(metaproxy_1::Package &package, 
-                                 Z_SRW_explainRequest 
-                                 const *er_req);
+        SRUServerInfo get_sru_server_info(metaproxy_1::Package &package);
+                                          // Z_SRW_explainRequest 
+                                          //const *er_req);
         
-        bool build_simple_explain(metaproxy_1::Package &package, 
-                                  metaproxy_1::odr &odr_en,
-                                  Z_SRW_PDU *sru_pdu_res,
-                                  Z_SRW_explainRequest const *er_req);
+//         bool build_simple_explain(metaproxy_1::Package &package, 
+//                                   metaproxy_1::odr &odr_en,
+//                                   Z_SRW_PDU *sru_pdu_res,
+//                                   SRUServerInfo sruinfo,
+//                                   Z_SRW_explainRequest const *er_req = 0);
+        
+        bool build_sru_explain(metaproxy_1::Package &package, 
+                               metaproxy_1::odr &odr_en,
+                               Z_SRW_PDU *sru_pdu_res,
+                               SRUServerInfo sruinfo,
+                               const xmlNode *explain = 0,
+                               Z_SRW_explainRequest const *er_req = 0);
         
         bool build_sru_response(metaproxy_1::Package &package, 
                                 metaproxy_1::odr &odr_en,
