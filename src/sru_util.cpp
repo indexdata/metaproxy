@@ -1,4 +1,4 @@
-/* $Id: sru_util.cpp,v 1.5 2007-01-07 00:41:18 marc Exp $
+/* $Id: sru_util.cpp,v 1.6 2007-01-07 15:55:02 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -158,7 +158,15 @@ bool mp_util::build_sru_explain(metaproxy_1::Package &package,
                                  "</explain>\n");
     }
     else {
-        explain_xml = "<need_to_dump_XML_dom_tree/>";
+        // make new XML DOC with given explain node
+        xmlDocPtr doc =  xmlNewDoc(BAD_CAST "1.0");
+        xmlDocSetRootElement(doc, (xmlNode*)explain);
+
+        xmlChar *xmlbuff;
+        int xmlbuffsz;
+        xmlDocDumpFormatMemory(doc, &xmlbuff, &xmlbuffsz, 1);
+
+        explain_xml.assign((const char*)xmlbuff, 0, xmlbuffsz);
     }
 
 
