@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.8 2007-01-02 15:35:36 marc Exp $
+# $Id: Makefile.am,v 1.9 2007-01-08 13:07:38 marc Exp $
 
 # This doesn't actually build anything, it just tests whether the
 # configuration files here correspond with the schema.
@@ -20,7 +20,7 @@ xmlconfig = $(srcdir)/config-bytarget.xml \
     $(srcdir)/config4.xml \
     $(srcdir)/config5.xml
 
-config = example.simple-auth example.target-auth pqf2pqf.xsl
+config = example.simple-auth example.target-auth pqf2pqf.xsl explain.xml
 
 
 rng = $(srcdir)/../xml/schema/metaproxy.rng

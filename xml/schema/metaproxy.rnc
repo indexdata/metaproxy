@@ -1,5 +1,5 @@
 # Metaproxy XML config file schemas
-#  $Id: metaproxy.rnc,v 1.14 2007-01-05 11:28:48 marc Exp $
+#  $Id: metaproxy.rnc,v 1.15 2007-01-08 13:07:39 marc Exp $
 # 
 #   Copyright (c) 2005-2006, Index Data.
 # 
@@ -61,7 +61,7 @@ filter =
     | filter_sru_z3950
     | filter_virt_db
     | filter_z3950_client
-    | filter_zeerex_explain
+#    | filter_zeerex_explain
   }
 
 filter_refid = attribute refid { xsd:NCName }
@@ -161,7 +161,11 @@ filter_session_shared =
 filter_sru_z3950 =
   attribute type { "sru_z3950" },
   attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?
+  attribute name { xsd:NCName }?,
+  element mp:database {  
+     attribute name { xsd:NCName },
+     any        
+  }+
 
 filter_virt_db =
   attribute type { "virt_db" },
@@ -179,13 +183,13 @@ filter_z3950_client =
   attribute name { xsd:NCName }?,
   element mp:timeout { xsd:integer }?
 
-filter_zeerex_explain =
-  attribute type { "zeerex_explain" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?,
-  element mp:database {  
-     attribute name { xsd:NCName },
-     any        
-  }+
+#filter_zeerex_explain =
+#  attribute type { "zeerex_explain" },
+#  attribute id { xsd:NCName }?,
+#  attribute name { xsd:NCName }?,
+#  element mp:database {  
+#     attribute name { xsd:NCName },
+#     any        
+#  }+
 
  

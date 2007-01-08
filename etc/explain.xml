@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: explain.xml,v 1.1 2007-01-08 10:17:45 marc Exp $ -->
+<!-- $Id: explain.xml,v 1.2 2007-01-08 13:07:38 marc Exp $ -->
 
 <!-- this file configures the SRU/SRW explain response -->
 <!-- see: http://explain.z3950.org/dtd/commentary.html -->
@@ -10,13 +10,13 @@
 <explain xmlns="http://explain.z3950.org/dtd/2.0/">
 
   <serverInfo protocol="SRU">
-    <host>foo.indexdata.dk</host>
-    <port>80</port>
+    <host>foo.somehost.somewhere</host>
+    <port>9000</port>
     <database>Default</database>
   </serverInfo>
 
   <databaseInfo>
-    <title lang="en" primary="true">Metaproxy example SRU explain record</title
+    <title lang="en" primary="true">Metaproxy SRU explain record</title>
     <description lang="en" primary="true">
       Some description of this service
     </description>
