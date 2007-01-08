@@ -17,7 +17,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.46 2007-01-05 10:56:17 marc Exp $ -->
+<!-- $Id: book.xml,v 1.47 2007-01-08 12:27:27 marc Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -778,6 +778,12 @@ Figure out what additional information we need in:
      <literal>load_balance</literal> filter is assuming that
      all backend targets have equal content, and chooses the backend
      with least load cost for a new session.
+    <warning>
+     <para>
+      This filter is experimental and yet not mature for heavy load
+      production sites.
+     </para>
+    </warning>
    </para>
    </section>
       
@@ -857,12 +863,16 @@ Figure out what additional information we need in:
      and present requests, and wraps the
      received hit counts and XML records into suitable SRU response
      messages.
-     The <literal>sru_z3950</literal> filter does only process SRU
-     GET/POST/SOAP explain requests in a very crude fashion, returning
-     the absolute minimum required by the standard. Full ZeeReX
-     explain support is added by including the  
-     <literal>zeerex_explain</literal> filter before the 
-     <literal>sru_z3950</literal> filter.
+     The <literal>sru_z3950</literal> filter  processes also  SRU
+     GET/POST/SOAP explain requests, returning
+     either the absolute minimum required by the standard, or a  full 
+     pre-defined ZeeReX explain record.
+     See the 
+     <ulink url="&url.zeerex.explain;">ZeeReX Explain</ulink>
+     standard pages and the 
+     <ulink url="&url.sru.explain;">SRU Explain</ulink> pages
+     for more information on the correct explain syntax.
+     SRU scan requests are not supported yet.
     </para>
    </section>
    
@@ -917,17 +927,19 @@ Figure out what additional information we need in:
      (mp::filter::ZeerexExplain)</title>
     <para>
      This filter acts as a sink for
-     SRU GET/POST/SOAP explain requests, returning a static ZeeReX
+     Z39.50 explain requests, returning a static ZeeReX
      Explain XML record from the config section. All other packages
-     are passed through, including SRU GET/POST/SOAP searchRetrieve
-     requests, which are handled by a following
-     <literal>sru_z3950</literal> filter.
+     are passed through.
      See the 
      <ulink url="&url.zeerex.explain;">ZeeReX Explain</ulink>
-     standard pages and the 
-     <ulink url="&url.sru.explain;">SRU Explain</ulink> pages
+     standard pages
      for more information on the correct explain syntax.
     </para>
+    <warning>
+     <para>
+      This filter is not yet completed.
+     </para>
+    </warning>
    </section>
    
 
@@ -983,16 +995,11 @@ Figure out what additional information we need in:
    <para>
     If Metaproxy is an interpreter providing operations on packages, then
     its configuration file can be thought of as a program for that
-    interpreter.  Configuration is by means of a single file, the name
+    interpreter.  Configuration is by means of a single XML file, the name
     of which is supplied as the sole command-line argument to the
     <command>metaproxy</command> program.  (See
     <link linkend="progref">the reference guide</link>
     below for more information on invoking Metaproxy.)
-   </para>
-   <para>
-    The configuration files are written in XML.  (But that's just an
-    implementation detail - they could just as well have been written
-    in YAML or Lisp-like S-expressions, or in a custom syntax.)
    </para>
   </section>
   

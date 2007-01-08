@@ -4,7 +4,7 @@
  <!ENTITY % common SYSTEM "common/common.ent">
      %common;
 ]>
-<!-- $Id: zeerex_explain.xml,v 1.1 2007-01-05 10:56:17 marc Exp $ -->
+<!-- $Id: zeerex_explain.xml,v 1.2 2007-01-08 12:27:27 marc Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>zeerex_explain</refentrytitle>
@@ -14,13 +14,13 @@
  
  <refnamediv>
   <refname>zeerex_explain</refname>
-  <refpurpose>answering SRU web service explain requests</refpurpose>
+  <refpurpose>answering Z39.50 ZeeReX explain requests</refpurpose>
  </refnamediv>
  
  <refsect1><title>DESCRIPTION</title>
   <para>
-   The <literal>zeerex_explain</literal> metaproxy filter 
-   answers valid SRU GET/POST/SOAP explain requests, returning a
+   The <literal>zeerex_explain</literal> Metaproxy filter 
+   answers valid Z30.50 explain requests, returning a
    static ZeeReX Explain XML record from the config section. All other
    packages are passed through. 
   </para>
@@ -28,19 +28,13 @@
    Multiple database elements defining the names of the accepted
    databases are allowed in the configuration file. Each
    of them must contain their own explain record. Notice that explain
-   records come in SRU and Z3950 flavours, and this filter requires
-   the SRU version. See the 
+   records come in SRU and Z39.50 flavours, and this filter requires
+   the Z39.50 version. See the 
    <ulink url="&url.zeerex.explain;">ZeeReX Explain</ulink>
    standard pages and the 
    <ulink url="&url.sru.explain;">SRU Explain</ulink> pages
    for more information. 
   </para>
-  <para> 
-   A configuration for a full SRU server needs to line up a 
-   <literal>zeerex_explain</literal> filter, a
-   <literal>cql_pqf</literal> (not implemented yet) filter, and a  
-   <literal>sru_z3950</literal> after each other.
-   </para>
  </refsect1>
 
  <refsect1><title>EXAMPLES</title>
@@ -69,9 +63,6 @@
   <para> 
    <ulink url="&url.zeerex.explain;">ZeeReX Explain</ulink>
   </para>
-  <para>   
-   <ulink url="&url.sru.explain;">SRU Explain</ulink> 
-   </para>
  </refsect1>
  
  &copyright;
