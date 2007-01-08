@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.25 2007-01-07 00:41:18 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.26 2007-01-08 11:10:06 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -23,6 +23,7 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <map>
 
 namespace mp = metaproxy_1;
 namespace mp_util = metaproxy_1::util;
@@ -34,10 +35,11 @@ namespace metaproxy_1 {
         class SRUtoZ3950::Impl {
         public:
             void configure(const xmlNode *xmlnode);
-            void process(metaproxy_1::Package &package) const;
+            void process(metaproxy_1::Package &package);
         private:
             union SRW_query {char * cql; char * xcql; char * pqf;};
             typedef const int& SRW_query_type;
+            std::map<std::string, const xmlNode *> m_database_explain;
         private:
 
             bool z3950_build_query(mp::odr &odr_en, Z_Query *z_query, 
@@ -94,11 +96,38 @@ void yf::SRUtoZ3950::process(mp::Package &package) const
     m_p->process(package);
 }
 
-void yf::SRUtoZ3950::Impl::configure(const xmlNode *xmlnode)
+void yf::SRUtoZ3950::Impl::configure(const xmlNode *confignode)
 {
+    const xmlNode * dbnode;
+    
+    for (dbnode = confignode->children; dbnode; dbnode = dbnode->next){
+        if (dbnode->type != XML_ELEMENT_NODE)
+            continue;
+        
+        std::string database;
+        mp::xml::check_element_mp(dbnode, "database");
+
+        for (struct _xmlAttr *attr = dbnode->properties; 
+             attr; attr = attr->next){
+            
+            mp::xml::check_attribute(attr, "", "name");
+            database = mp::xml::get_text(attr);
+             
+            const xmlNode *explainnode;
+            for (explainnode = dbnode->children; 
+                 explainnode; explainnode = explainnode->next){
+                if (explainnode->type != XML_ELEMENT_NODE)
+                    continue;
+                if (explainnode)
+                    break;
+            }
+            // assigning explain node to database name - no check yet 
+            m_database_explain.insert(std::make_pair(database, explainnode));
+         }
+    }
 }
 
-void yf::SRUtoZ3950::Impl::process(mp::Package &package) const
+void yf::SRUtoZ3950::Impl::process(mp::Package &package)
 {
     Z_GDU *zgdu_req = package.request().get();
 
@@ -110,45 +139,59 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package) const
     
     // only working on  HTTP_Request packages now
 
-
-    // TODO: Z3950 response parsing and translation to SRU package
     bool ok = true;    
 
     mp::odr odr_de(ODR_DECODE);
     Z_SRW_PDU *sru_pdu_req = 0;
 
     mp::odr odr_en(ODR_ENCODE);
-    //Z_SRW_PDU *sru_pdu_res = 0;
     Z_SRW_PDU *sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
 
-    Z_SOAP *soap = 0;
-    char *charset = 0;
-    char *stylesheet = 0;
-
+    // determine database with the HTTP header information only
     mp_util::SRUServerInfo sruinfo = mp_util::get_sru_server_info(package);
+    std::map<std::string, const xmlNode *>::iterator idbexp;
+    idbexp = m_database_explain.find(sruinfo.database);
 
-
-    if (! (sru_pdu_req = mp_util::decode_sru_request(package, odr_de, odr_en, 
-                                            sru_pdu_res, soap,
-                                            charset, stylesheet)))
-    {
-        //mp_util::build_simple_explain(package, odr_en, sru_pdu_res, sruinfo);
-        //mp_util::build_sru_response(package, odr_en, soap, 
-        //                   sru_pdu_res, charset, stylesheet);
-        //package.session().close();
+    // assign explain config XML DOM node if database is known
+    const xmlNode *explainnode = 0;
+    if (idbexp != m_database_explain.end()){
+        explainnode = idbexp->second;
+    }
+    // just moving package if database is not known
+    else {
         package.move();
         return;
     }
     
-    // explain
+
+    // decode SRU request
+    Z_SOAP *soap = 0;
+    char *charset = 0;
+    char *stylesheet = 0;
+
+    // filter acts as sink for non-valid SRU requests
+    if (! (sru_pdu_req = mp_util::decode_sru_request(package, odr_de, odr_en, 
+                                            sru_pdu_res, soap,
+                                            charset, stylesheet)))
+    {
+        mp_util::build_sru_explain(package, odr_en, sru_pdu_res, 
+                                   sruinfo, explainnode);
+        mp_util::build_sru_response(package, odr_en, soap, 
+                           sru_pdu_res, charset, stylesheet);
+        package.session().close();
+        return;
+    }
+    
+    // filter acts as sink for SRU explain requests
     if (sru_pdu_req && sru_pdu_req->which == Z_SRW_explain_request)
     {
-        //Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
-        //sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
-
+        Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
         //mp_util::build_simple_explain(package, odr_en, sru_pdu_res, 
-        //                              sruinfo, er_req);
-        package.move();
+        //                           sruinfo, er_req);
+        mp_util::build_sru_explain(package, odr_en, sru_pdu_res, 
+                                   sruinfo, explainnode, er_req);
+        mp_util::build_sru_response(package, odr_en, soap, 
+                                    sru_pdu_res, charset, stylesheet);
         return;
     }
 
@@ -217,7 +260,7 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package) const
         return;
     }
 
-    //mp_util::build_sru_debug_package(package);
+    // build and send SRU response
     mp_util::build_sru_response(package, odr_en, soap, 
                                 sru_pdu_res, charset, stylesheet);
     return;
@@ -227,11 +270,9 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package) const
 
 bool 
 yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package, 
-                                             const std::string &database) const
+                                         const std::string &database) const
 {
     // prepare Z3950 package
-    //Session s;
-    //Package z3950_package(s, package.origin());
     Package z3950_package(package.session(), package.origin());
     z3950_package.copy_filter(package);
 
@@ -258,7 +299,6 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
     z3950_package.request() = apdu;
 
     // send Z3950 package
-    // std::cout << "z3950_init_request " << *apdu <<"\n";
     z3950_package.move();
 
     // dead Z3950 backend detection
@@ -353,13 +393,12 @@ yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
     }
 
     z3950_package.request() = apdu;
-    //std::cout << "z3950_search_request " << *apdu << "\n";
         
+    // send Z39.50 package off to backend
     z3950_package.move();
 
 
     Z_GDU *z3950_gdu = z3950_package.response().get();
-    //std::cout << "z3950_search_request " << *z3950_gdu << "\n";
 
     //TODO: check success condition
 
@@ -528,7 +567,7 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
     // attaching Z3950 package to filter chain
     z3950_package.request() = apdu;
 
-    //std::cout << "z3950_present_request " << *apdu << "\n";   
+    // sending Z30.50 present request 
     z3950_package.move();
 
     //check successful Z3950 present response
@@ -548,7 +587,6 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
     
 
     // everything fine, continuing
-    //std::cout << "z3950_present_request OK\n";
 
     Z_PresentResponse *pr = z3950_gdu->u.z3950->u.presentResponse;
     Z_SRW_searchRetrieveResponse *sru_res = sru_pdu_res->u.response;
