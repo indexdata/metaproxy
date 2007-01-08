@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-sru-to-z3950.xml,v 1.10 2007-01-05 12:27:23 marc Exp $ -->
+<!-- $Id: config-sru-to-z3950.xml,v 1.11 2007-01-08 10:17:45 marc Exp $ -->
 <metaproxy 
     xmlns="http://indexdata.com/metaproxy" 
     version="1.0">
@@ -9,7 +9,7 @@
       <threads>10</threads>
       <port>@:9000</port>
     </filter>
-    <filter id="zeerex" type="zeerex_explain">
+    <filter id="sru" type="sru_z3950">
       <database name="Default">
         <explain xmlns="http://explain.z3950.org/dtd/2.0/">
           ...
@@ -25,13 +25,12 @@
     <route id="start">
       <filter refid="frontend"/>
       <filter type="log">
-        <message>ZEEREX</message>
-      </filter>
-      <filter refid="zeerex"/>
-      <filter type="log">
         <message>SRU/Z3950</message>
       </filter>
-      <filter type="sru_z3950"/>
+      <filter type="log">
+        <message>ZEEREX</message>
+      </filter>
+      <filter refid="sru"/>
       <filter type="log">
         <message>VIRTDB</message>
       </filter>
