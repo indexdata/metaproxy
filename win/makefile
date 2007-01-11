@@ -1,6 +1,6 @@
 # Copyright (C) 2005-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.26 2007-01-07 15:48:26 marc Exp $
+# $Id: makefile,v 1.27 2007-01-11 12:29:02 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
@@ -94,7 +94,7 @@ YAZ_DEF=/DYAZ_HAVE_XML2=1 /DYAZ_HAVE_XSLT=1 /DYAZ_USE_NEW_LOG=1 /I"$(YAZ_DIR)\in
 
 # Copy yaz.dll to our bin
 yaz: $(BINDIR)\$(YAZD).dll
-$(BINDIR)\$(YAZD).dll: $(YAZ_DIR)\bin\$(YAZD).dll
+$(BINDIR)\$(YAZD).dll: "$(YAZ_DIR)\bin\$(YAZD).dll"
   copy "$(YAZ_DIR)\bin\$(YAZD).dll" $(BINDIR)
 
 # YAZ++ includes & libs
@@ -103,17 +103,17 @@ YAZPP_DEF=/I"$(YAZPP_DIR)\include"
 
 # Copy yazpp.dll to our bin
 yazpp: $(BINDIR)\$(YAZPPD).dll
-$(BINDIR)\$(YAZPPD).dll: $(YAZPP_DIR)\bin\$(YAZPPD).dll
+$(BINDIR)\$(YAZPPD).dll: "$(YAZPP_DIR)\bin\$(YAZPPD).dll"
   copy "$(YAZPP_DIR)\bin\$(YAZPPD).dll" $(BINDIR)
 
 # Copy libxslt and associates to our bin directory
 libxslt: $(BINDIR)\libxslt.dll
 
-$(BINDIR)\libxslt.dll: $(LIBXSLT_DIR)\bin\libxslt.dll
-	copy $(ICONV_DIR)\bin\iconv.dll $(BINDIR)
-	copy $(ZLIB_DIR)\bin\zlib1.dll $(BINDIR)
-	copy $(LIBXML2_DIR)\bin\libxml2.dll $(BINDIR)
-	copy $(LIBXSLT_DIR)\bin\libxslt.dll $(BINDIR)
+$(BINDIR)\libxslt.dll: "$(LIBXSLT_DIR)\bin\libxslt.dll"
+	copy "$(ICONV_DIR)\bin\iconv.dll" $(BINDIR)
+	copy "$(ZLIB_DIR)\bin\zlib1.dll" $(BINDIR)
+	copy "$(LIBXML2_DIR)\bin\libxml2.dll" $(BINDIR)
+	copy "$(LIBXSLT_DIR)\bin\libxslt.dll" $(BINDIR)
 
 config: $(SRCDIR)\config.hpp
 
