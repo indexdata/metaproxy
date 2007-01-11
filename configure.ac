@@ -37,7 +37,7 @@ AC_CHECK_LIB(dl,dlopen)
 boostdir="yes"
 AC_ARG_WITH(boost, [ ---with-boost=PREFIX     Boost library in PREFIX],[boostdir=$withval])
 
-if test "$openssl" != "yes"; then
+if test "$boostdir" != "yes"; then
 	CPPFLAGS="-I${boostdir}/include"
 	LIBS="-L${boostdir}/lib"
 fi
