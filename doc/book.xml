@@ -2,7 +2,8 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1//EN"
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" 
 [
-     <!ENTITY local SYSTEM "local.ent">
+     <!ENTITY % local SYSTEM "local.ent">
+     %local;
      <!ENTITY manref SYSTEM "manref.xml">
      <!ENTITY progref SYSTEM "progref.xml">
      <!ENTITY % common SYSTEM "common/common.ent">
@@ -17,7 +18,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.47 2007-01-08 12:27:27 marc Exp $ -->
+<!-- $Id: book.xml,v 1.48 2007-01-11 13:23:09 adam Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -35,6 +36,9 @@
    <holder>Index Data ApS</holder>
   </copyright>
   <abstract>
+   <simpara>
+    This manual is part of Metaproxy version &version;.
+    </simpara>
    <simpara>
     Metaproxy is a universal router, proxy and encapsulated
     metasearcher for information retrieval protocols.  It accepts,
