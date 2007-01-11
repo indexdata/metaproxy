@@ -1,4 +1,4 @@
-/* $Id: filter_load_balance.cpp,v 1.5 2007-01-04 13:22:56 marc Exp $
+/* $Id: filter_load_balance.cpp,v 1.6 2007-01-11 12:55:09 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -11,10 +11,16 @@
 #include "filter_load_balance.hpp"
 #include "util.hpp"
 
+
 #include <boost/thread/mutex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <yaz/zgdu.h>
+
+// remove max macro if already defined (defined later in <limits>)
+#ifdef max
+#undef max
+#endif
 
 //#include <iostream>
 #include <list>
