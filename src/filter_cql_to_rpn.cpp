@@ -1,4 +1,4 @@
-/* $Id: filter_cql_to_rpn.cpp,v 1.1 2007-01-12 10:16:21 adam Exp $
+/* $Id: filter_cql_to_rpn.cpp,v 1.2 2007-01-12 10:17:23 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -114,6 +114,13 @@ void yf::CQL_to_RPN::process(mp::Package &package) const
 
 void yf::CQL_to_RPN::configure(const xmlNode *ptr)
 {
+
+    /*
+      <filter type="cql_to_rpn">
+      <conversion file="pqf.properties"/>
+      </filter>
+    */
+    
     std::string fname;
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
