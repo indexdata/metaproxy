@@ -18,7 +18,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.48 2007-01-11 13:23:09 adam Exp $ -->
+<!-- $Id: book.xml,v 1.49 2007-01-12 15:43:00 adam Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -657,8 +657,7 @@
     the core Metaproxy binary.  This overview is intended to give a
     flavor of the available functionality; more detailed information
     about each type of filter is included below in
-    <link linkend="filterref"
-	  >the reference guide to Metaproxy filters</link>.
+    <xref linkend="reference"/>.
    </para>
    <para>
     The filters are here named by the string that is used as the
@@ -1002,8 +1001,8 @@ Figure out what additional information we need in:
     interpreter.  Configuration is by means of a single XML file, the name
     of which is supplied as the sole command-line argument to the
     <command>metaproxy</command> program.  (See
-    <link linkend="progref">the reference guide</link>
-    below for more information on invoking Metaproxy.)
+    <xref linkend="reference"/> below for more information on invoking
+    Metaproxy.)
    </para>
   </section>
   
@@ -1039,7 +1038,7 @@ Figure out what additional information we need in:
     and contain various elements that provide suitable configuration
     for a filter of its type.  The filter-specific elements are
     described in
-    <link linkend="filterref">the reference guide below</link>.
+    <xref linkend="reference"/>.
     Filters defined in this part of the file must carry an
     <literal>id</literal> attribute so that they can be referenced
     from elsewhere.
@@ -1543,7 +1542,7 @@ Z>
    <para>
     <emphasis>Stop!  Do not read this!</emphasis>
     You won't enjoy it at all.  You should just skip ahead to
-    <link linkend="refguide">the reference guide</link>,
+    <xref linkend="reference"/>,
     which tells
     <!-- The remainder of this paragraph is lifted verbatim from
     Douglas Adams' _Hitch Hiker's Guide to the Galaxy_, chapter 8 -->
@@ -1792,9 +1791,9 @@ Z>
  </chapter>
  
  
- 
- <reference id="refguide">
-  <title>Reference guide</title>
+ <reference id="reference">
+  <title>Reference</title>
+   <partintro>
     <para>
      The material in this chapter is drawn directly from the individual
      manual entries.  In particular, the Metaproxy invocation section is
@@ -1802,7 +1801,8 @@ Z>
      on each individual filter is available using the name of the filter
      as the argument to the <command>man</command> command.
     </para>
-    &manref;
+   </partintro>
+   &manref;
  </reference>
 </book>
 
