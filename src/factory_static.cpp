@@ -1,4 +1,4 @@
-/* $Id: factory_static.cpp,v 1.15 2007-01-02 15:35:36 marc Exp $
+/* $Id: factory_static.cpp,v 1.16 2007-01-12 10:16:21 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -18,6 +18,7 @@
 #include "filter_auth_simple.hpp"
 #include "filter_backend_test.hpp"
 #include "filter_bounce.hpp"
+#include "filter_cql_to_rpn.hpp"
 #include "filter_frontend_net.hpp"
 #include "filter_http_file.hpp"
 #include "filter_load_balance.hpp"
@@ -40,6 +41,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_auth_simple,
         &metaproxy_1_filter_backend_test,
         &metaproxy_1_filter_bounce,
+        &metaproxy_1_filter_cql_to_rpn,
         &metaproxy_1_filter_frontend_net,        
         &metaproxy_1_filter_http_file,
         &metaproxy_1_filter_load_balance,

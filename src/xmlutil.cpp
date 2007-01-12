@@ -1,4 +1,4 @@
-/* $Id: xmlutil.cpp,v 1.11 2006-12-01 12:37:26 marc Exp $
+/* $Id: xmlutil.cpp,v 1.12 2007-01-12 10:16:21 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -17,15 +17,15 @@ static const std::string metaproxy_ns = "http://indexdata.com/metaproxy";
 
 std::string mp_xml::get_text(const struct _xmlAttr  *ptr)
 {
-    if (ptr->children->type == XML_TEXT_NODE)
-        return std::string((const char *) (ptr->children->content));
-    return std::string();
+    return get_text(ptr->children);
 }
 
 std::string mp_xml::get_text(const xmlNode *ptr)
 {
     std::string c;
-    for (ptr = ptr->children; ptr; ptr = ptr->next)
+    if (ptr && ptr->type != XML_TEXT_NODE)
+        ptr = ptr->children;
+    for (; ptr; ptr = ptr->next)
         if (ptr->type == XML_TEXT_NODE)
             c += std::string((const char *) (ptr->content));
     return c;
