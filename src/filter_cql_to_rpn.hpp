@@ -1,4 +1,4 @@
-/* $Id: filter_cql_to_rpn.hpp,v 1.1 2007-01-12 10:16:21 adam Exp $
+/* $Id: filter_cql_to_rpn.hpp,v 1.2 2007-01-15 15:07:59 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -14,16 +14,15 @@
 
 namespace metaproxy_1 {
     namespace filter {
-        class CQL_to_RPN : public Base {
-            class Rep;
+        class CQLtoRPN : public Base {
+            class Impl;
+            boost::scoped_ptr<Impl> m_p;
         public:
-            CQL_to_RPN();
-            ~CQL_to_RPN();
+            CQLtoRPN();
+            ~CQLtoRPN();
             void process(metaproxy_1::Package & package) const;
             void configure(const xmlNode * ptr);
         private:
-            class Impl;
-            boost::scoped_ptr<Rep> m_p;
         };
     }
 }
