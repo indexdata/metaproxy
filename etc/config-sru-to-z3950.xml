@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-sru-to-z3950.xml,v 1.14 2007-01-16 09:23:24 marc Exp $ -->
+<!-- $Id: config-sru-to-z3950.xml,v 1.15 2007-01-16 10:00:06 marc Exp $ -->
 <metaproxy 
     xmlns="http://indexdata.com/metaproxy" 
     version="1.0">
@@ -15,9 +15,21 @@
                     href="explain.xml"/>
       </database>
     </filter>
-      <filter id="cql" type="cql_rpn">
-        <conversion file="etc/cql2pqf.txt"/>
-      </filter>
+    <filter id="cql" type="cql_rpn">
+      <conversion file="etc/cql2pqf.txt"/>
+    </filter>
+    <filter id="retrieve" type="record_transform">
+      <retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
+        <retrieval syntax="xml" name="dc"
+                   identifier="info:srw/schema/1/dc-v1.1">
+          <backend syntax="usmarc" name="F">
+            <marc inputformat="marc" outputformat="marcxml"
+                  inputcharset="marc-8"/>
+            <xslt stylesheet="xml/xslt/MARC21slim2DC.xsl"/>
+          </backend>
+        </retrieval>
+      </retrievalinfo>
+    </filter>
     <filter id="backend" type="z3950_client">
      <timeout>30</timeout>
     </filter>
@@ -26,15 +38,23 @@
     <route id="start">
       <filter refid="frontend"/>
       <filter type="log">
-        <message>SRU</message>
+        <message>HTTP</message>
       </filter>
       <filter refid="sru"/>
+      <!-- 
       <filter type="log">
         <message>CQL</message>
       </filter>
+       -->
       <filter refid="cql"/>
+      <!-- 
       <filter type="log">
         <message>PQF</message>
+      </filter>
+       -->
+      <filter refid="retrieve"/>
+      <filter type="log">
+        <message>Z3950</message>
       </filter>
       <filter type="backend_test"/>
       <!--
@@ -46,7 +66,6 @@
       </filter>
       <filter refid="backend"/>
       -->
-
       <filter type="bounce"/>
     </route>
   </routes>
