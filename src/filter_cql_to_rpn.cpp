@@ -1,4 +1,4 @@
-/* $Id: filter_cql_to_rpn.cpp,v 1.4 2007-01-16 08:49:05 marc Exp $
+/* $Id: filter_cql_to_rpn.cpp,v 1.5 2007-01-16 09:04:54 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -12,15 +12,12 @@
 
 #include "filter_cql_to_rpn.hpp"
 
-
-#include <yaz/log.h>
+#include <yazpp/z-query.h>
 #include <yaz/cql.h>
+#include <yazpp/cql2rpn.h>
 #include <yaz/zgdu.h>
-#include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
 #include <yaz/srw.h>
-#include <yazpp/z-query.h>
-#include <yazpp/cql2rpn.h>
 
 
 namespace mp = metaproxy_1;
@@ -108,14 +105,15 @@ void yf::CQLtoRPN::Impl::configure(const xmlNode *xmlnode)
     }
     if (fname.length() == 0)
     {
-        throw mp::filter::FilterException("Missing conversion spec for "
-                                          "filter cql_rpn");
+        throw mp::filter::FilterException("Missing conversion configuration "
+                                          "for filter cql_rpn");
     }
 
     int error = 0;
     if (!m_cql2rpn.parse_spec_file(fname.c_str(), &error))
     {
-        throw mp::filter::FilterException("Bad or missing CQL to RPN spec "
+        throw mp::filter::FilterException("Bad or missing "
+                                          "CQL to RPN configuration "
                                           + fname);
     }
 }
@@ -141,12 +139,11 @@ void yf::CQLtoRPN::Impl::process(mp::Package &package)
                                                  &addinfo);
             if (r == -3)
             {
-                yaz_log(YLOG_LOG, "No CQL to RPN table");
                 Z_APDU *f_apdu = 
                     odr.create_searchResponse(
                         apdu_req, 
                         YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
-                        "Missing CQL to RPN spec");
+                        "Missing CQL to RPN configuration");
                 package.response() = f_apdu;
                 return;
             }
@@ -154,7 +151,6 @@ void yf::CQLtoRPN::Impl::process(mp::Package &package)
             {
                 int error_code = yaz_diag_srw_to_bib1(r);
 
-                yaz_log(YLOG_LOG, "CQL Conversion error %d", r);
                 Z_APDU *f_apdu = 
                     odr.create_searchResponse(apdu_req, error_code, addinfo);
                 package.response() = f_apdu;
