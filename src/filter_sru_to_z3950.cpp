@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.26 2007-01-08 11:10:06 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.27 2007-01-17 14:59:18 marc Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -70,6 +70,9 @@ namespace metaproxy_1 {
                                     Z_SRW_scanRequest 
                                     const *sr_req) const;
 
+            bool z3950_to_srw_diagnostics_ok(mp::odr &odr_en, 
+                                  Z_SRW_searchRetrieveResponse *srw_res,
+                                  Z_Records *records) const;
 
             int z3950_to_srw_diag(mp::odr &odr_en, 
                                   Z_SRW_searchRetrieveResponse *srw_res,
@@ -401,35 +404,43 @@ yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
     Z_GDU *z3950_gdu = z3950_package.response().get();
 
     //TODO: check success condition
-
     //int yaz_diag_bib1_to_srw (int bib1_code);
     //int yaz_diag_srw_to_bib1(int srw_code);
     //Se kode i src/seshigh.c (srw_bend_search, srw_bend_init).
 
-    if (z3950_gdu && z3950_gdu->which == Z_GDU_Z3950 
-        && z3950_gdu->u.z3950->which == Z_APDU_searchResponse
-        && z3950_gdu->u.z3950->u.searchResponse->searchStatus)
+    if (!z3950_gdu || z3950_gdu->which != Z_GDU_Z3950 
+        || z3950_gdu->u.z3950->which != Z_APDU_searchResponse
+        || !z3950_gdu->u.z3950->u.searchResponse
+        || !z3950_gdu->u.z3950->u.searchResponse->searchStatus)
     {
-
-        Z_SearchResponse *sr = z3950_gdu->u.z3950->u.searchResponse;
-        if (sr)
-        {
-            // srw'fy number of records
-            sru_pdu_res->u.response->numberOfRecords 
-                = (int *) odr_malloc(odr_en, sizeof(int *));
-            *(sru_pdu_res->u.response->numberOfRecords) = *(sr->resultCount);
-
-            // srw'fy nextRecordPosition
-            //sru_pdu_res->u.response->nextRecordPosition 
-            //    = (int *) odr_malloc(odr_en, sizeof(int *));
-            //*(sru_pdu_res->u.response->nextRecordPosition) = 1;
-
-        }
-
-        return true;
+        yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.response->diagnostics),
+                               &(sru_pdu_res->u.response->num_diagnostics),
+                               2, 0);
+        package.session().close();
+        return false;
     }
     
-    return false;
+    // everything fine, continuing
+    Z_SearchResponse *sr = z3950_gdu->u.z3950->u.searchResponse;
+
+    // checking non surrogate diagnostics in Z3950 search response package
+    if (!z3950_to_srw_diagnostics_ok(odr_en, sru_pdu_res->u.response, 
+                                     sr->records))
+        return false;
+    
+
+    // Finally, roll on and srw'fy number of records
+    sru_pdu_res->u.response->numberOfRecords 
+        = (int *) odr_malloc(odr_en, sizeof(int *));
+    *(sru_pdu_res->u.response->numberOfRecords) = *(sr->resultCount);
+    
+    // srw'fy nextRecordPosition
+    //sru_pdu_res->u.response->nextRecordPosition 
+    //    = (int *) odr_malloc(odr_en, sizeof(int *));
+    //*(sru_pdu_res->u.response->nextRecordPosition) = 1;
+
+    return true;
 }
 
 bool 
@@ -591,16 +602,13 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
     Z_PresentResponse *pr = z3950_gdu->u.z3950->u.presentResponse;
     Z_SRW_searchRetrieveResponse *sru_res = sru_pdu_res->u.response;
         
-    // checking non surrogate dioagnostics in Z3950 present response package
-    if (pr->records 
-        && pr->records->which == Z_Records_NSD
-        && pr->records->u.nonSurrogateDiagnostic)
-    {
-        //int http_code =
-        z3950_to_srw_diag(odr_en, sru_res, 
-                          pr->records->u.nonSurrogateDiagnostic);
+
+    // checking non surrogate diagnostics in Z3950 present response package
+    if (!z3950_to_srw_diagnostics_ok(odr_en, sru_pdu_res->u.response, 
+                                     pr->records))
         return false;
-    }
+    
+
     
     // copy all records if existing
     if (pr->records && pr->records->which == Z_Records_DBOSD)
@@ -631,8 +639,8 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
                 = pr->records->u.databaseOrSurDiagnostics->records[i];
             
             sru_res->records[i].recordPosition 
-                = odr_intdup(odr_en, 
-                             i + *(apdu->u.presentRequest->resultSetStartPoint));
+                = odr_intdup(odr_en,
+                           i + *(apdu->u.presentRequest->resultSetStartPoint));
             
             sru_res->records[i].recordPacking = record_packing;
             
@@ -776,6 +784,24 @@ bool yf::SRUtoZ3950::Impl::z3950_build_query(mp::odr &odr_en, Z_Query *z_query,
     return false;
 }
 
+
+bool 
+yf::SRUtoZ3950::Impl::z3950_to_srw_diagnostics_ok(mp::odr &odr_en, 
+                                                  Z_SRW_searchRetrieveResponse 
+                                                  *sru_res,
+                                                  Z_Records *records) const
+{
+    // checking non surrogate diagnostics in Z3950 present response package
+    if (records 
+        && records->which == Z_Records_NSD
+        && records->u.nonSurrogateDiagnostic)
+    {
+        z3950_to_srw_diag(odr_en, sru_res, 
+                          records->u.nonSurrogateDiagnostic);
+        return false;
+    }
+    return true;
+}
 
 
 int 
