@@ -18,7 +18,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.53 2007-01-18 11:32:42 marc Exp $ -->
+<!-- $Id: book.xml,v 1.54 2007-01-18 12:39:41 marc Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -1558,12 +1558,123 @@ Z>
  </chapter>
 
 
+ <chapter id="sru-server">
+  <title>Combined SRU webservice and Z39.50 server configuration</title>
+  <para>
+   Metaproxy can act as 
+   <ulink url="&url.sru;">SRU</ulink> and 
+   <ulink url="&url.srw;">SRW</ulink> 
+   web service server, which translates web service requests to 
+   <ulink url="&url.z39.50;">ANSI/NISO Z39.50</ulink> packages and
+   sends them off to common available targets.
+  </para>
+  <para>
+  A typical setup for this operation needs a filter route including the
+  following modules: 
+  </para>
+   
+  <table id="sru-server-table-config" frame="top">
+   <title>SRU/Z39.50 Server Filter Route Configuration</title>
+   <tgroup cols="3">
+    <thead>
+     <row>
+      <entry>Filter</entry>
+      <entry>Importance</entry>
+      <entry>Purpose</entry>
+     </row>
+    </thead>
+    
+    <tbody>
+     <row>
+      <entry><literal>frontend_net</literal></entry>
+      <entry>required</entry>
+      <entry>Accepting HTTP connections and passing them to following
+      filters. Since this filter also accepts Z39.50 connections, the
+      server works as SRU and Z39.50 server on the same port.</entry>
+     </row>
+     <row>
+      <entry><literal>sru_z3950</literal></entry>
+      <entry>required</entry>
+      <entry>Accepting SRU GET/POST/SOAP explain and
+       searchRetrieve requests for the the configured databases.
+       Explain requests are directly served from the static XML configuration.
+       SearchRetrieve requests are
+       transformed  to Z39.50 search and present packages.
+       All other HTTP and Z39.50 packages are passed unaltered.</entry>
+     </row>
+     <row>
+      <entry><literal>http_file</literal></entry>
+      <entry>optional</entry>
+      <entry>Serving HTTP requests from the filesystem. This is only
+      needed if the server should serve XSLT stylesheets, static HTML
+      files or Java Script for thin browser based clients.
+       Z39.50 packages are passed unaltered.</entry>
+     </row>
+     <row>
+      <entry><literal>cql_rpn</literal></entry>
+      <entry>required</entry>
+      <entry>Usually, Z39.50 servers do not talk CQL, hence the
+      translation of the CQL query language to RPN is mandatory in
+      most cases. Affects only  Z39.50 search packages.</entry>
+     </row>
+     <row>
+      <entry><literal>record_transform</literal></entry>
+      <entry>optional</entry>
+      <entry>Some Z39.50 backend targets can not present XML record
+      syntaxes in common wanted element sets. using this filter, one
+      can transform binary MARC records to MARCXML records, and
+      further transform those to any needed XML schema/format by XSLT
+      transformations. Changes only  Z39.50 present packages.</entry>
+     </row>
+     <row>
+      <entry><literal>session_shared</literal></entry>
+      <entry>optional</entry>
+      <entry>The stateless nature of web services requires frequent
+      re-searching of the same targets for display of paged result set
+      records. This might be an unacceptable burden for the accessed
+      backend Z39.50 targets, and this mosule can be added for
+      efficient backend target resource pooling.</entry>
+     </row>
+     <row>
+      <entry><literal>z3950_client</literal></entry>
+      <entry>required</entry>
+      <entry>Finally, a Z39.50 package sink is needed in the filter
+      chain to provide the response packages. The Z39.50 client module
+      is used to access external targets over the network, but any
+      coming local Z39.50 package sink could be used instead of.</entry>
+     </row>
+     <row>
+      <entry><literal>bounce</literal></entry>
+      <entry>required</entry>
+      <entry>Any Metaproxy package arriving here did not do so by
+      purpose, and is bounced back with connection closure. this
+      prevents inifinite package hanging inside the SRU server.</entry>
+     </row>
+    </tbody>
+   </tgroup>
+  </table>
+  <para> 
+   A typical minimal example  <ulink url="&url.sru;">SRU</ulink> and 
+   <ulink url="&url.srw;">SRW</ulink> server configuration file is found
+   in the tarball distribution at 
+   <literal>etc/config-sru-to-z3950.xml</literal>.
+  </para> 
+  <para>
+   Off course, any other metaproxy modules can be integrated into a
+   SRU server solution, including, but not limited to, load balancing, 
+   multiple target querying 
+   (see  <xref linkend="multidb"/>), and complex RPN query rewrites. 
+  </para>
 
+
+ </chapter>
+
+ <!--
  <chapter id="extensions">
   <title>Writing extensions for Metaproxy</title>
   <para>### To be written</para>
  </chapter>
-
+ -->
 
 
 
