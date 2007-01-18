@@ -18,7 +18,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.50 2007-01-18 09:20:52 adam Exp $ -->
+<!-- $Id: book.xml,v 1.51 2007-01-18 09:24:47 marc Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -46,12 +46,15 @@
     Metaproxy is a universal router, proxy and encapsulated
     metasearcher for information retrieval protocols.  It accepts,
     processes, interprets and redirects requests from IR clients using
-    standard protocols such as
+    standard protocols such as the binary
     <ulink url="&url.z39.50;">ANSI/NISO Z39.50</ulink>
-    (and in the future <ulink url="&url.sru;">SRU</ulink>
-    and <ulink url="&url.srw;">SRW</ulink>), as
+    and  the information search and retireval 
+    web services <ulink url="&url.sru;">SRU</ulink>
+    and <ulink url="&url.srw;">SRW</ulink>, as
     well as functioning as a limited
     <ulink url="&url.http;">HTTP</ulink> server. 
+   </simpara>
+   <simpara>
     Metaproxy is configured by an XML file which
     specifies how the software should function in terms of routes that
     the request packets can take through the proxy, each step on a
