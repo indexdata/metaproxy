@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.35 2007-01-18 09:20:52 adam Exp $
+## $Id: Makefile.am,v 1.36 2007-01-18 11:32:42 marc Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -13,6 +13,7 @@ XMLMAN = metaproxy.xml \
 	auth_simple.xml \
 	backend_test.xml \
 	bounce.xml \
+        cql_rpn.xml \
 	frontend_net.xml \
 	http_file.xml \
 	load_balance.xml \
@@ -31,6 +32,7 @@ MANFILES = metaproxy.1 \
 	auth_simple.3mp \
 	backend_test.3mp  \
 	bounce.3mp \
+        cql_rpn.3mp \
         frontend_net.3mp \
 	http_file.3mp \
 	load_balance.3mp \

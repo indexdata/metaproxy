@@ -1,8 +1,10 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" 
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
+ <!ENTITY % common SYSTEM "common/common.ent">
+     %common;
 ]>
-<!-- $Id: template.xml,v 1.4 2006-04-25 12:48:52 marc Exp $ -->
+<!-- $Id: template.xml,v 1.5 2007-01-18 11:32:42 marc Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>template</refentrytitle>
@@ -12,7 +14,7 @@
  
  <refnamediv>
   <refname>template</refname>
-  <refpurpose>Template module that does nothing</refpurpose>
+  <refpurpose>Metaproxy Template Module That Does Nothing</refpurpose>
  </refnamediv>
  
  <refsect1><title>DESCRIPTION</title>

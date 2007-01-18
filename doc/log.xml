@@ -1,8 +1,10 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" 
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
+ <!ENTITY % common SYSTEM "common/common.ent">
+     %common;
 ]>
-<!-- $Id: log.xml,v 1.5 2006-06-19 13:08:00 adam Exp $ -->
+<!-- $Id: log.xml,v 1.6 2007-01-18 11:32:42 marc Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>log</refentrytitle>
@@ -12,7 +14,7 @@
  
  <refnamediv>
   <refname>log</refname>
-  <refpurpose>logs packages</refpurpose>
+  <refpurpose>Metaproxy Package Logging Module</refpurpose>
  </refnamediv>
  
  <refsect1><title>DESCRIPTION</title>

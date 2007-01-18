@@ -18,7 +18,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.52 2007-01-18 09:39:38 adam Exp $ -->
+<!-- $Id: book.xml,v 1.53 2007-01-18 11:32:42 marc Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -741,11 +741,24 @@ Figure out what additional information we need in:
      sets Z39.50 packages to Z_Close, and HTTP_Request packages to
      HTTP_Response err code 400 packages, and adds a suitable bounce
      message. 
-     The bounce filter is usually added at end of each filter chain
-     config.xml to prevent infinite hanging of for example HTTP
+     The bounce filter is usually added at end of each filter chain route
+     to prevent infinite hanging of for example HTTP
      requests packages when only the Z39.50 client partial sink 
      filter is found in the
      route.  
+    </para>
+   </section>
+   
+   <section>
+    <title><literal>cql_rpn</literal>
+    (mp::filter::CQLtoRPN)</title>
+    <para>
+     A query language transforming filter which catches Z39.50 
+     <literal>searchRequest</literal>
+     packages containing <literal>CQL</literal> queries, transforms
+     those to <literal>RPN</literal> queries,
+     and sends the <literal>searchRequests</literal> on to the next
+     filters. It is among other things useful in a SRU context. 
     </para>
    </section>
    
@@ -764,7 +777,8 @@ Figure out what additional information we need in:
     <title><literal>http_file</literal>
      (mp::filter::HttpFile)</title>
     <para>
-     A partial sink which swallows only HTTP_Request packages, and 
+     A partial sink which swallows only 
+     <literal>HTTP_Request</literal> packages, and 
      returns the contents of files from the local
      filesystem in response to HTTP requests.  
      It lets Z39.50 packages and all other forthcoming package types
@@ -821,7 +835,9 @@ Figure out what additional information we need in:
    <title><literal>query_rewrite</literal>
      (mp::filter::QueryRewrite)</title>
     <para>
-     Rewrites Z39.50 Type-1 and Type-101 (``RPN'') queries by a
+     Rewrites Z39.50 <literal>Type-1</literal> 
+     and <literal>Type-101</literal> (``<literal>RPN</literal>'') 
+     queries by a
      three-step process: the query is transliterated from Z39.50
      packet structures into an XML representation; that XML
      representation is transformed by an XSLT stylesheet; and the
@@ -851,10 +867,8 @@ Figure out what additional information we need in:
     <para>
      This filter implements global sharing of
      result sets (i.e. between threads and therefore between
-     clients), yielding performance improvements especially when
-     incoming requests are from a stateless environment such as a
-     web-server, in which the client process representing a session
-     might be any one of many.
+     clients), yielding performance improvements by clever resource
+     pooling. 
     </para>
    </section>
 
@@ -1123,7 +1137,26 @@ Figure out what additional information we need in:
     which returns the response to the client.
    </para>
   </section>
-  <section id="checking.xml.syntax">
+
+  <section id="config-file-modularity">
+   <title>Config file modularity</title>
+   <para>
+    Metaproxy XML configuration snippets can be reused by other
+    filters using the <literal>XInclude</literal> standard, as seen in
+    the <literal>/etc/config-sru-to-z3950.xml</literal> example SRU 
+    configuration.
+   <screen><![CDATA[
+    <filter id="sru" type="sru_z3950">
+      <database name="Default">
+       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+                    href="explain.xml"/>
+      </database>
+    </filter>
+]]></screen>
+    </para>
+  </section>
+
+  <section id="config-file-syntax-check">
    <title>Config file syntax checking</title>
    <para>
     The distribution contains RelaxNG Compact and XML syntax checking

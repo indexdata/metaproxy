@@ -4,7 +4,7 @@
  <!ENTITY % common SYSTEM "common/common.ent">
      %common;
 ]>
-<!-- $Id: zeerex_explain.xml,v 1.2 2007-01-08 12:27:27 marc Exp $ -->
+<!-- $Id: zeerex_explain.xml,v 1.3 2007-01-18 11:32:42 marc Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>zeerex_explain</refentrytitle>
@@ -14,7 +14,7 @@
  
  <refnamediv>
   <refname>zeerex_explain</refname>
-  <refpurpose>answering Z39.50 ZeeReX explain requests</refpurpose>
+  <refpurpose>Metaproxy Z39.50 ZeeReX Explain Module</refpurpose>
  </refnamediv>
  
  <refsect1><title>DESCRIPTION</title>
@@ -35,6 +35,11 @@
    <ulink url="&url.sru.explain;">SRU Explain</ulink> pages
    for more information. 
   </para>
+    <warning>
+     <para>
+      This filter is not yet completed.
+     </para>
+    </warning>
  </refsect1>
 
  <refsect1><title>EXAMPLES</title>

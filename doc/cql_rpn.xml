@@ -1,0 +1,88 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" 
+    "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
+ <!ENTITY copyright SYSTEM "copyright.xml">
+ <!ENTITY % common SYSTEM "common/common.ent">
+     %common;
+]>
+<!-- $Id: cql_rpn.xml,v 1.1 2007-01-18 11:32:42 marc Exp $ -->
+<refentry>
+ <refmeta>
+  <refentrytitle>query_rewrite</refentrytitle>
+  <manvolnum>3mp</manvolnum>
+   <refmiscinfo>Metaproxy Module</refmiscinfo>
+</refmeta>
+ 
+ <refnamediv>
+  <refname>cql_rpn</refname>
+  <refpurpose>Metaproxy CQL to RPN Query Language Transforming Module</refpurpose>
+ </refnamediv>
+
+ <refsect1><title>DESCRIPTION</title>
+  <para>
+   A query language transforming filter which catches Z39.50 
+   <literal>searchRequest</literal>
+   packages containing <literal>CQL</literal> queries, transforms
+   those to <literal>RPN</literal> queries,
+   and sends the <literal>searchRequests</literal> on to the next
+   filters.
+  </para>
+  <para>
+   The filter takes only one configuration parameter, namely the path
+   of the standard <literal>YAZ</literal> 
+   <literal>CQL</literal>-to-<literal>CQL</literal> configuration
+   file. See the  <ulink url="&url.yaz;">YAZ</ulink> manual for
+   configuration file syntax and details.
+  </para>
+  <para>
+   A common and wellknown challenge is that the ZeeRex SRU
+   Explain config file used in the <literal>sru_z3950</literal>
+   filter and the <literal>CQL</literal> translation configuration
+   file used in this filter must be kept in syncronization.
+   Syncronization can be eased by using the provided XSLT stylesheet,
+   <literal>xml/xslt/explain2cqlpqftxt.xsl</literal>, which transforms
+   from ZeeReX Explain to the later. The example configurations have
+   been created by running:
+   <screen>
+     xsltproc xml/xslt/explain2cqlpqftxt.xsl etc/explain.xml > etc/cql2pqf.txt
+   </screen> 
+  </para>
+ </refsect1>
+ 
+ <refsect1><title>EXAMPLES</title>
+  <para>
+   A typical configuration looks like this:
+   <screen><![CDATA[
+    <filter id="cql" type="cql_rpn">
+      <conversion file="etc/cql2pqf.txt"/>
+    </filter>
+ ]]>
+   </screen>
+  </para>
+ </refsect1> 
+ 
+ <refsect1><title>SEE ALSO</title>
+  <para>
+   <citerefentry>
+    <refentrytitle>metaproxy</refentrytitle>
+    <manvolnum>1</manvolnum>
+   </citerefentry>
+  </para>
+ </refsect1>
+ 
+ &copyright;
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:1
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-local-catalogs: nil
+sgml-namecase-general:t
+End:
+-->

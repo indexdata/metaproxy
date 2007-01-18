@@ -1,8 +1,10 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" 
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
+ <!ENTITY % common SYSTEM "common/common.ent">
+     %common;
 ]>
-<!-- $Id: session_shared.xml,v 1.5 2007-01-18 09:12:00 adam Exp $ -->
+<!-- $Id: session_shared.xml,v 1.6 2007-01-18 11:32:42 marc Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>session_shared</refentrytitle>
@@ -12,13 +14,19 @@
  
  <refnamediv>
   <refname>session_shared</refname>
-  <refpurpose>Module for sharing result-sets etc. between threads</refpurpose>
+  <refpurpose> Metaproxy Module for sharing system ressorces between 
+   threads</refpurpose>
  </refnamediv>
  
  <refsect1><title>DESCRIPTION</title>
   <para>
-   This module allows many Z39.50 frontend sessions to share
-   a number of backend sessions. The purpose is this filter is to:
+   This filter implements global sharing of
+   result sets (i.e. between threads and therefore between
+   clients), yielding performance improvements especially when
+   incoming requests are from a stateless environment such as a
+   web-server, in which the client process representing a session
+   might be any one of many.
+   It performs the following actions:
    <itemizedlist>
     <listitem>
      <para>
@@ -27,7 +35,7 @@
     </listitem>
     <listitem>
      <para>
-      Reduce number of Initializations with backend servers.
+      Reduce the number of initializations with backend servers.
      </para>
     </listitem>
     <listitem>
