@@ -18,19 +18,22 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.49 2007-01-12 15:43:00 adam Exp $ -->
+<!-- $Id: book.xml,v 1.50 2007-01-18 09:20:52 adam Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
-  <author>
-   <firstname>Adam</firstname><surname>Dickmeiss</surname>
-  </author>
-  <author>
-   <firstname>Marc</firstname><surname>Cromme</surname>
-  </author>
-  <author>
-   <firstname>Mike</firstname><surname>Taylor</surname>
-  </author>
+  <authorgroup>
+   <author>
+    <firstname>Adam</firstname><surname>Dickmeiss</surname>
+   </author>
+   <author>
+    <firstname>Marc</firstname><surname>Cromme</surname>
+   </author>
+   <author>
+    <firstname>Mike</firstname><surname>Taylor</surname>
+   </author>
+  </authorgroup>
+  <releaseinfo>&version;</releaseinfo>
   <copyright>
    <year>2005-2007</year>
    <holder>Index Data ApS</holder>
