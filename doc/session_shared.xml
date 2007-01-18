@@ -2,7 +2,7 @@
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
 ]>
-<!-- $Id: session_shared.xml,v 1.4 2006-04-25 12:48:52 marc Exp $ -->
+<!-- $Id: session_shared.xml,v 1.5 2007-01-18 09:12:00 adam Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>session_shared</refentrytitle>
@@ -17,18 +17,68 @@
  
  <refsect1><title>DESCRIPTION</title>
   <para>
-   This module is experimental and NOT SUPPORTED.  When complete, it
-   will enable Metaproxy to share resources such as result-sets
-   between multiple threads, yielding performance improvements.
+   This module allows many Z39.50 frontend sessions to share
+   a number of backend sessions. The purpose is this filter is to:
+   <itemizedlist>
+    <listitem>
+     <para>
+      Reduce the number of backend server sessions.
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      Reduce number of Initializations with backend servers.
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      Optimize the use of result-sets.
+      </para>
+     </listitem>
+   </itemizedlist>
+  </para>
+  <para>
+   Configurable values:
+   <variablelist>
+    <varlistentry><term>Session TTL</term>
+     <listitem>
+      <para>
+       When a backend session is idle for more than this amount of
+       time, given in seconds, it will be closed. Default value
+       is 90 seconds.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>Result-Set TTL</term>
+     <listitem>
+      <para>
+       When a backend session result-set is not in use for more than this
+       amount of time, given in seconds, it will be deleted/reused.
+       Default value is 10 seconds.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>Result-Set max</term>
+     <listitem>
+      <para>
+       This specifies the maximum number of result-sets in use by
+       a backend. The number only applies to targets/servers with named
+       result sets. Targets that do not support named result sets
+       may only have one active result set. Default value is 10.
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
   </para>
  </refsect1>
 
  <refsect1><title>EXAMPLES</title>
   <para>
-   A typical configuration looks like this:
+   Configuration:
    <screen><![CDATA[
     <filter type="session_shared">
-     ### Not yet defined
+     <resultset ttl="10" max="3"/>
+     <session ttl="30"/>
     </filter>
 ]]>
    </screen>
