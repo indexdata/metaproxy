@@ -18,7 +18,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.51 2007-01-18 09:24:47 marc Exp $ -->
+<!-- $Id: book.xml,v 1.52 2007-01-18 09:39:38 adam Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -849,18 +849,13 @@ Figure out what additional information we need in:
     <title><literal>session_shared</literal>
      (mp::filter::SessionShared)</title>
     <para>
-     When this is finished, it will implement global sharing of
+     This filter implements global sharing of
      result sets (i.e. between threads and therefore between
      clients), yielding performance improvements especially when
      incoming requests are from a stateless environment such as a
      web-server, in which the client process representing a session
-     might be any one of many.  However:
+     might be any one of many.
     </para>
-    <warning>
-     <para>
-      This filter is not yet completed.
-     </para>
-    </warning>
    </section>
 
    <section>
