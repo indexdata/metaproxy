@@ -1,4 +1,4 @@
---- 1.0.8 2007
+--- 1.0.8 2007/01/25
 
 Implemented filter, session_shared, which optimizes usage of Z39.50
 sessions and result sets.
