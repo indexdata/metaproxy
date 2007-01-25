@@ -86,7 +86,7 @@ BOOST_AUTO_UNIT_TEST( test )
 ])
 
 ## YAZPP checks
-YAZPP_INIT(threads,1.0.1)
+YAZPP_INIT(threads,1.0.2)
 if test -z "$YAZPPLIB"; then
 	AC_MSG_ERROR([YAZ++ development libraries missing])
 fi
