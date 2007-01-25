@@ -1,10 +1,18 @@
 --- 1.0.8 2007
 
-New filter plus documentation for filter record_transform finished.
-Filters load_balance, sru_z3950 and zeerex_explain in development added.
-Documentation for filters load_balance, sru_z3950 and zeerex_explain started.
+Implemented filter, session_shared, which optimizes usage of Z39.50
+sessions and result sets.
+
+New filter, record_transform, which converts MARC/XML records.
+
+New filter, sru_z3950, which converts SRU to Z39.50 packages.
+
+New filter, load_balance, in development.
+
+New filter, zeerex_xplain.
 
 XML framework for config files started.
+
 Master RelaxNG Compact schema's are found in xml/schema/*.rnc,
 RelaxNG XML schemas and XML Schema's are generated from RNC syntax.
 XML config files are checked against RNG and XML Schema's.
