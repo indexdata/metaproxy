@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-sru-to-z3950.xml,v 1.16 2007-01-25 10:28:06 adam Exp $ -->
+<!-- $Id: config-sru-to-z3950.xml,v 1.17 2007-01-25 13:55:11 adam Exp $ -->
 <metaproxy 
     xmlns="http://indexdata.com/metaproxy" 
     version="1.0">
@@ -12,7 +12,11 @@
     <filter id="sru" type="sru_z3950">
       <database name="Default">
        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-                    href="explain.xml"/>
+                    href="../etc/explain.xml"/>
+      </database>
+      <database name="test">
+       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+                    href="../etc/explain.xml"/>
       </database>
     </filter>
     <filter id="cql" type="cql_rpn">
@@ -28,45 +32,65 @@
             <xslt stylesheet="../xml/xslt/MARC21slim2DC.xsl"/>
           </backend>
         </retrieval>
+        <retrieval syntax="usmarc">
+          <backend syntax="usmarc" name="F">
+          </backend>
+        </retrieval>
       </retrievalinfo>
-    </filter>
-    <filter id="backend" type="z3950_client">
-     <timeout>30</timeout>
     </filter>
   </filters>
   <routes>  
+    <!-- Z39.50 clients -->
+    <route id="remote">
+      <filter type="log">
+        <message>remote</message>
+      </filter>
+      <filter type="z3950_client">
+	<timeout>30</timeout>
+      </filter>
+      <filter type="bounce"/>
+    </route>
+    
+    <!-- shared Z39.50 clients -->
+    <route id="shared">
+      <filter type="log">
+        <message>shared</message>
+      </filter>
+      <filter type="session_shared"/>
+      <filter type="z3950_client">
+	<timeout>30</timeout>
+      </filter>
+      <filter type="bounce"/>
+    </route>
+    
+    <!-- local built-in server -->
+    <route id="local">
+      <filter type="backend_test"/>
+      <filter type="bounce"/>
+    </route>
+
     <route id="start">
       <filter refid="frontend"/>
       <filter type="log">
         <message>HTTP</message>
+	<category apdu="true"/>
       </filter>
       <filter refid="sru"/>
-      <!-- 
-      <filter type="log">
-        <message>CQL</message>
-      </filter>
-       -->
       <filter refid="cql"/>
-      <!-- 
-      <filter type="log">
-        <message>PQF</message>
-      </filter>
-       -->
       <filter refid="retrieve"/>
       <filter type="log">
         <message>Z3950</message>
       </filter>
-      <filter type="backend_test"/>
-      <!--
       <filter type="virt_db">
-        <virtual>
+        <virtual route="shared">
           <database>Default</database>
           <target>localhost:9999/Default</target>
         </virtual>
+        <virtual route="local">
+          <database>test</database>
+          <target>someid</target>
+        </virtual>
       </filter>
-      <filter refid="backend"/>
-      -->
-      <filter type="bounce"/>
     </route>
   </routes>
 </metaproxy>
