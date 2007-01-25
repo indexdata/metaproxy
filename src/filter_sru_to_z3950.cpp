@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.27 2007-01-17 14:59:18 marc Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.28 2007-01-25 13:52:56 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -47,8 +47,10 @@ namespace metaproxy_1 {
                                    SRW_query_type query_type) const;
 
             bool z3950_init_request(mp::Package &package, 
-                                         const std::string 
-                                         &database = "Default") const;
+                                    mp::odr &odr_en,
+                                    Z_SRW_PDU *sru_pdu_res,
+                                    const std::string 
+                                    &database = "Default") const;
 
             bool z3950_close_request(mp::Package &package) const;
 
@@ -211,7 +213,7 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
         ok = mp_util::check_sru_query_exists(package, odr_en, 
                                              sru_pdu_res, sr_req);
 
-        if (ok && z3950_init_request(package))
+        if (ok && z3950_init_request(package, odr_en, sru_pdu_res))
         {
             {
                 ok = z3950_search_request(package, odr_en,
@@ -247,7 +249,7 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
                                4, "scan");
  
         // to be used when we do scan
-        if (false && z3950_init_request(package))
+        if (false && z3950_init_request(package, odr_en, sru_pdu_res))
         {
             z3950_scan_request(package, odr_en, sru_pdu_res, sr_req);    
             z3950_close_request(package);
@@ -273,6 +275,8 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
 
 bool 
 yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package, 
+                                         mp::odr &odr_en,
+                                         Z_SRW_PDU *sru_pdu_res,
                                          const std::string &database) const
 {
     // prepare Z3950 package
@@ -280,7 +284,6 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
     z3950_package.copy_filter(package);
 
     // set initRequest APDU
-    mp::odr odr_en(ODR_ENCODE);
     Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_initRequest);
     Z_InitRequest *init_req = apdu->u.initRequest;
     //TODO: add user name in apdu
@@ -306,6 +309,10 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
 
     // dead Z3950 backend detection
     if (z3950_package.session().is_closed()){
+        yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.response->diagnostics),
+                               &(sru_pdu_res->u.response->num_diagnostics),
+                               2, 0);
         package.session().close();
         return false;
     }
@@ -314,9 +321,15 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
     Z_GDU *z3950_gdu = z3950_package.response().get();
 
     if (z3950_gdu && z3950_gdu->which == Z_GDU_Z3950 
-        && z3950_gdu->u.z3950->which == Z_APDU_initResponse)
+        && z3950_gdu->u.z3950->which == Z_APDU_initResponse 
+        && *z3950_gdu->u.z3950->u.initResponse->result)
          return true;
  
+    yaz_add_srw_diagnostic(odr_en,
+                           &(sru_pdu_res->u.response->diagnostics),
+                           &(sru_pdu_res->u.response->num_diagnostics),
+                           2, 0);
+    package.session().close();
     return false;
 }
 
@@ -427,8 +440,9 @@ yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
     // checking non surrogate diagnostics in Z3950 search response package
     if (!z3950_to_srw_diagnostics_ok(odr_en, sru_pdu_res->u.response, 
                                      sr->records))
+    {
         return false;
-    
+    }
 
     // Finally, roll on and srw'fy number of records
     sru_pdu_res->u.response->numberOfRecords 
@@ -810,13 +824,11 @@ yf::SRUtoZ3950::Impl::z3950_to_srw_diag(mp::odr &odr_en,
                                        Z_DefaultDiagFormat *ddf) const
 {
     int bib1_code = *ddf->condition;
-    if (bib1_code == 109)
-        return 404;
     sru_res->num_diagnostics = 1;
     sru_res->diagnostics = (Z_SRW_diagnostic *)
         odr_malloc(odr_en, sizeof(*sru_res->diagnostics));
     yaz_mk_std_diagnostic(odr_en, sru_res->diagnostics,
-                          yaz_diag_bib1_to_srw(*ddf->condition), 
+                          yaz_diag_bib1_to_srw(bib1_code), 
                           ddf->u.v2Addinfo);
     return 0;
 }
