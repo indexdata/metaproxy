@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.47 2006-11-29 13:00:54 marc Exp $
+/* $Id: filter_virt_db.cpp,v 1.48 2007-01-25 11:28:40 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -133,7 +133,7 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::create_backend_from_databases
         map_it = m_p->m_maps.find(mp::util::database_name_normalize(*db_it));
         if (map_it == m_p->m_maps.end())  // database not found
         {
-            error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
+            error_code = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
             addinfo = *db_it;
             BackendPtr ptr;
             return ptr;
