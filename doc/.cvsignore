@@ -1,10 +1,10 @@
 Makefile
 Makefile.in
-metaproxy.tex
-metaproxy.out
-metaproxy.log
-metaproxy.aux
-metaproxy.pdf
+book.tex
+book.out
+book.log
+book.aux
+book.pdf
 manpage.links
 manpage.refs
 local.ent
@@ -20,3 +20,5 @@ multi.png
 multi.pdf
 htmlhelp.hhp
 toc.hhc
+metaproxy.pdf
+metaproxyj.pdf
