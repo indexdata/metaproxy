@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-zurg.xml,v 1.11 2006-11-29 13:00:53 marc Exp $ -->
+<!-- $Id: config-zurg.xml,v 1.12 2007-01-25 10:28:06 adam Exp $ -->
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <routes>
@@ -12,7 +12,7 @@
         <message>F</message>
       </filter>
       <filter type="auth_simple">
-	<userRegister>etc/example.simple-auth</userRegister>
+	<userRegister>../etc/example.simple-auth</userRegister>
       </filter>
       <filter type="virt_db">
         <virtual>
@@ -65,7 +65,7 @@
         <message>M</message>
       </filter>
       <filter type="auth_simple">
-        <targetRegister>etc/example.target-auth</targetRegister>
+        <targetRegister>../etc/example.target-auth</targetRegister>
 	<discardUnauthorisedTargets/>
       </filter>
       <filter type="multi">

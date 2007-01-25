@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-sru-to-z3950.xml,v 1.15 2007-01-16 10:00:06 marc Exp $ -->
+<!-- $Id: config-sru-to-z3950.xml,v 1.16 2007-01-25 10:28:06 adam Exp $ -->
 <metaproxy 
     xmlns="http://indexdata.com/metaproxy" 
     version="1.0">
@@ -16,7 +16,7 @@
       </database>
     </filter>
     <filter id="cql" type="cql_rpn">
-      <conversion file="etc/cql2pqf.txt"/>
+      <conversion file="../etc/cql2pqf.txt"/>
     </filter>
     <filter id="retrieve" type="record_transform">
       <retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
@@ -25,7 +25,7 @@
           <backend syntax="usmarc" name="F">
             <marc inputformat="marc" outputformat="marcxml"
                   inputcharset="marc-8"/>
-            <xslt stylesheet="xml/xslt/MARC21slim2DC.xsl"/>
+            <xslt stylesheet="../xml/xslt/MARC21slim2DC.xsl"/>
           </backend>
         </retrieval>
       </retrievalinfo>
