@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.36 2007-01-18 11:32:42 marc Exp $
+## $Id: Makefile.am,v 1.37 2007-01-25 10:35:05 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -78,6 +78,16 @@ metaproxy.pdf: $(XMLFILES) multi.pdf
 	done
 	dblatex $(MAINXML)
 	mv book.pdf metaproxy.pdf
+
+metaproxyj.pdf: $(XMLFILES) multi.pdf
+	for i in $(PNGFILES) common/id.png multi.pdf; do \
+		if test ! -f $$i; then cp $(srcdir)/$$i $$i; fi; \
+	done
+	jade  -E14 -D $(srcdir) -d common/print.dsl -t tex $(srcdir)/common/xml.dcl $(MAINXML)
+	pdfjadetex book.tex
+	pdfjadetex book.tex
+	pdfjadetex book.tex
+	mv book.pdf metaproxyj.pdf
 
 manref.xml: $(XMLMAN) $(srcdir)/common/stripref.xsl
 	rm -f manref.xml
