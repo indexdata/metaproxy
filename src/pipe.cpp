@@ -1,5 +1,5 @@
-/* $Id: pipe.cpp,v 1.8 2006-06-10 14:29:12 adam Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: pipe.cpp,v 1.9 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */

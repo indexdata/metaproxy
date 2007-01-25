@@ -1,5 +1,5 @@
-/* $Id: filter_multi.cpp,v 1.24 2006-08-30 12:27:34 adam Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: filter_multi.cpp,v 1.25 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */

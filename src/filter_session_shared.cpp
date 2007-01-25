@@ -1,5 +1,5 @@
-/* $Id: filter_session_shared.cpp,v 1.15 2006-06-21 10:06:07 adam Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: filter_session_shared.cpp,v 1.16 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */

@@ -1,5 +1,5 @@
-/* $Id: sru_util.cpp,v 1.6 2007-01-07 15:55:02 marc Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: sru_util.cpp,v 1.7 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
 */

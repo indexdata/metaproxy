@@ -1,5 +1,5 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.28 2006-09-29 08:42:47 marc Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: ex_filter_frontend_net.cpp,v 1.29 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */

@@ -1,5 +1,5 @@
-/* $Id: filter_virt_db.cpp,v 1.49 2007-01-25 12:57:08 adam Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: filter_virt_db.cpp,v 1.50 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */

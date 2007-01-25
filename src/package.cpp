@@ -1,5 +1,5 @@
-/* $Id: package.cpp,v 1.17 2006-09-14 19:53:57 marc Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: package.cpp,v 1.18 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */

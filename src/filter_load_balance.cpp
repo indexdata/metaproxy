@@ -1,5 +1,5 @@
-/* $Id: filter_load_balance.cpp,v 1.6 2007-01-11 12:55:09 adam Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: filter_load_balance.cpp,v 1.7 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */

@@ -1,5 +1,5 @@
-/* $Id: xmlutil.cpp,v 1.12 2007-01-12 10:16:21 adam Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: xmlutil.cpp,v 1.13 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */

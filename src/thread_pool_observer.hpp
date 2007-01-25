@@ -1,5 +1,5 @@
-/* $Id: thread_pool_observer.hpp,v 1.10 2006-06-10 14:29:13 adam Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: thread_pool_observer.hpp,v 1.11 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */

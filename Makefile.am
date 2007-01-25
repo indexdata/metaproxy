@@ -1,6 +1,6 @@
 ## This file is part of Metaproxy
-## Copyright (C) 2005-2006, Index Data ApS
-## $Id: Makefile.am,v 1.19 2006-10-11 13:21:51 marc Exp $
+## Copyright (C) 2005-2007, Index Data ApS
+## $Id: Makefile.am,v 1.20 2007-01-25 14:05:54 adam Exp $
 
 SUBDIRS = etc doc src xml 
 

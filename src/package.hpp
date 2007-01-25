@@ -1,5 +1,5 @@
-/* $Id: package.hpp,v 1.25 2006-09-26 13:02:50 marc Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: package.hpp,v 1.26 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */

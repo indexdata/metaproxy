@@ -1,5 +1,5 @@
-/* $Id: test_filter_record_transform.cpp,v 1.4 2006-12-12 14:48:13 marc Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: test_filter_record_transform.cpp,v 1.5 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */

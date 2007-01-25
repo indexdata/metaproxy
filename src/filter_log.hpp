@@ -1,5 +1,5 @@
-/* $Id: filter_log.hpp,v 1.17 2006-09-29 12:24:49 marc Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: filter_log.hpp,v 1.18 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */

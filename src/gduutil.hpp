@@ -1,5 +1,5 @@
-/* $Id: gduutil.hpp,v 1.4 2006-09-26 13:15:33 marc Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: gduutil.hpp,v 1.5 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */

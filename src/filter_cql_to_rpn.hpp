@@ -1,5 +1,5 @@
-/* $Id: filter_cql_to_rpn.hpp,v 1.2 2007-01-15 15:07:59 marc Exp $
-   Copyright (c) 2005-2006, Index Data.
+/* $Id: filter_cql_to_rpn.hpp,v 1.3 2007-01-25 14:05:54 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */
