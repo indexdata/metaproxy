@@ -18,7 +18,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.54 2007-01-18 12:39:41 marc Exp $ -->
+<!-- $Id: book.xml,v 1.55 2007-01-25 10:34:27 adam Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -582,7 +582,7 @@
       plugins that provide new filters.  The filter API is small and
       conceptually simple, but there are many details to master.  See
       the section below on
-      <link linkend="extensions">extensions</link>.
+      <link linkend="filters">Filters</link>.
      </para>
     </listitem>
    </varlistentry>
