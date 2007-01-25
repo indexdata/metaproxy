@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.48 2007-01-25 11:28:40 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.49 2007-01-25 12:57:08 adam Exp $
    Copyright (c) 2005-2006, Index Data.
 
    See the LICENSE file for details
@@ -214,6 +214,7 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::init_backend(
         }
         if (!*res->result)
         {
+            error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
             mp::util::get_init_diagnostics(res, error_code, addinfo);
             BackendPtr null;
             return null; 
