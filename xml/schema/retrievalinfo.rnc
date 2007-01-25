@@ -1,5 +1,5 @@
 # Metaproxy XML config file schemas
-#  $Id: retrievalinfo.rnc,v 1.4 2006-12-12 11:01:40 marc Exp $
+#  $Id: retrievalinfo.rnc,v 1.5 2007-01-25 11:25:20 adam Exp $
 # 
 #   Copyright (c) 2005-2006, Index Data.
 # 
@@ -43,7 +43,7 @@ retrievalinfo =
           attribute inputformat { xsd:string },
           attribute outputformat { xsd:string },
           attribute inputcharset { xsd:string }
-        },
+        }?,
         element y:xslt {
           attribute stylesheet { xsd:string }
         }?
