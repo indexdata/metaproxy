@@ -1,7 +1,7 @@
 # Metaproxy XML config file schemas
-#  $Id: retrievalinfo.rnc,v 1.5 2007-01-25 11:25:20 adam Exp $
+#  $Id: retrievalinfo.rnc,v 1.6 2007-01-26 14:46:31 adam Exp $
 # 
-#   Copyright (c) 2005-2006, Index Data.
+#   Copyright (c) 2005-2007, Index Data.
 # 
 #   See the LICENSE file for details
 # 
@@ -27,6 +27,16 @@ namespace y = "http://indexdata.com/yaz"
 
 start |= retrievalinfo
 
+marc = element y:marc {
+  attribute inputformat { xsd:string },
+  attribute outputformat { xsd:string },
+  attribute inputcharset { xsd:string }
+}
+
+xslt = element y:xslt {
+  attribute stylesheet { xsd:string }
+}
+
 retrievalinfo = 
   element y:retrievalinfo { 
     attribute version { "1.0" },
@@ -39,14 +49,7 @@ retrievalinfo =
       element y:backend {
       attribute syntax { xsd:string },
       attribute name { xsd:string }?,
-        element y:marc {
-          attribute inputformat { xsd:string },
-          attribute outputformat { xsd:string },
-          attribute inputcharset { xsd:string }
-        }?,
-        element y:xslt {
-          attribute stylesheet { xsd:string }
-        }?
+      (marc | xslt)*
       }?
     }+
   }
