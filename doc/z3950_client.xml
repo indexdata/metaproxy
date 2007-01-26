@@ -4,7 +4,7 @@
  <!ENTITY % common SYSTEM "common/common.ent">
      %common;
 ]>
-<!-- $Id: z3950_client.xml,v 1.5 2007-01-18 11:32:42 marc Exp $ -->
+<!-- $Id: z3950_client.xml,v 1.6 2007-01-26 14:49:21 adam Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>z3950_client</refentrytitle>
@@ -19,7 +19,39 @@
  
  <refsect1><title>DESCRIPTION</title>
   <para>
-   This backend filter is a Z39.50 client.
+   This backend filter is a Z39.50 client. This modules
+   proxies all Z39.50 packages to a target. HTTP packages are ignored.
+   The address of the backend target (host) can be given as part of the
+   Initialize Request (Virtual host) or the default target may be specified
+   in the configuration.
+  </para>
+  <para>
+   <variablelist>
+    <varlistentry><term>timeout</term>
+     <listitem>
+      <para>
+       Specifies how long the client will wait for any request
+       before giving up. Default value is 30 seconds.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>default_target</term>
+     <listitem>
+      <para>
+       Specifies the target (host) for the Z39.50 server to be used
+       if the Init Request does not indicate otherwise.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>force_target</term>
+     <listitem>
+      <para>
+       Specifies the target (host) for the Z39.50 server to be used
+       always (regardless of Init Request vhost).
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
   </para>
  </refsect1>
  
@@ -29,6 +61,7 @@
    <screen><![CDATA[
     <filter type="z3950_client">
      <timeout>30</timeout>
+     <default_target>z3950.indexdata.dk</default_target>
     </filter>
 ]]>
    </screen>

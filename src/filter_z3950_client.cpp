@@ -1,4 +1,4 @@
-/* $Id: filter_z3950_client.cpp,v 1.29 2007-01-25 14:05:54 adam Exp $
+/* $Id: filter_z3950_client.cpp,v 1.30 2007-01-26 14:49:22 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -64,6 +64,8 @@ namespace metaproxy_1 {
         public:
             // number of seconds to wait before we give up request
             int m_timeout_sec;
+            std::string m_default_target;
+            std::string m_force_target;
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
             std::map<mp::Session,Z3950Client::Assoc *> m_clients;
@@ -226,34 +228,48 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         package.session().close();
         return 0;
     }
-    std::list<std::string> vhosts;
-    mp::util::remove_vhost_otherinfo(&apdu->u.initRequest->otherInfo, vhosts);
-    size_t no_vhosts = vhosts.size();
-    if (no_vhosts == 0)
+    std::string target = m_force_target;
+    if (!target.length())
     {
-        mp::odr odr;
-        package.response() = odr.create_initResponse(
-            apdu,
-            YAZ_BIB1_INIT_NEGOTIATION_OPTION_REQUIRED,
-            "z3950_client: No virtal host given");
-        
-        package.session().close();
-        return 0;
+        target = m_default_target;
+        std::list<std::string> vhosts;
+        mp::util::remove_vhost_otherinfo(&apdu->u.initRequest->otherInfo,
+                                         vhosts);
+        size_t no_vhosts = vhosts.size();
+        if (no_vhosts == 1)
+        {
+            std::list<std::string>::const_iterator v_it = vhosts.begin();
+            target = *v_it;
+        }
+        else if (no_vhosts == 0)
+        {
+            if (!target.length())
+            {
+                // no default target. So we don't know where to connect
+                mp::odr odr;
+                package.response() = odr.create_initResponse(
+                    apdu,
+                    YAZ_BIB1_INIT_NEGOTIATION_OPTION_REQUIRED,
+                    "z3950_client: No virtal host given");
+                
+                package.session().close();
+                return 0;
+            }
+        }
+        else if (no_vhosts > 1)
+        {
+            mp::odr odr;
+            package.response() = odr.create_initResponse(
+                apdu,
+                YAZ_BIB1_COMBI_OF_SPECIFIED_DATABASES_UNSUPP,
+                "z3950_client: Can not cope with multiple vhosts");
+            package.session().close();
+            return 0;
+        }
     }
-    if (no_vhosts > 1)
-    {
-        mp::odr odr;
-        package.response() = odr.create_initResponse(
-            apdu,
-            YAZ_BIB1_COMBI_OF_SPECIFIED_DATABASES_UNSUPP,
-            "z3950_client: Can not cope with multiple vhosts");
-        package.session().close();
-        return 0;
-    }
-    std::list<std::string>::const_iterator v_it = vhosts.begin();
     std::list<std::string> dblist;
     std::string host;
-    mp::util::split_zurl(*v_it, host, dblist);
+    mp::util::split_zurl(target, host, dblist);
     
     if (dblist.size())
     {
@@ -373,6 +389,14 @@ void yf::Z3950Client::configure(const xmlNode *ptr)
         if (!strcmp((const char *) ptr->name, "timeout"))
         {
             m_p->m_timeout_sec = mp::xml::get_int(ptr->children, 30);
+        }
+        else if (!strcmp((const char *) ptr->name, "default_target"))
+        {
+            m_p->m_default_target = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name, "force_target"))
+        {
+            m_p->m_force_target = mp::xml::get_text(ptr);
         }
         else
         {

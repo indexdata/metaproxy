@@ -1,3 +1,6 @@
+Added support for configurable default/force target/vhost for module Z39.50
+client module.
+
 --- 1.0.8 2007/01/25
 
 Implemented filter, session_shared, which optimizes usage of Z39.50
