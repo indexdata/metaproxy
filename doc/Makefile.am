@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.37 2007-01-25 10:35:05 adam Exp $
+## $Id: Makefile.am,v 1.38 2007-01-31 11:16:57 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -96,7 +96,7 @@ manref.xml: $(XMLMAN) $(srcdir)/common/stripref.xsl
 	done
 
 multi.png: multi.svg
-	inkscape --export-png=$@ --export-width=800 --export-area-drawing $?
+	inkscape --export-png=$@ --export-area=0:0:1050:500 $?
 
 multi.eps: multi.svg
 	inkscape --export-eps=$@ --export-bbox-page $?
