@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.9 2007-01-08 13:07:38 marc Exp $
+# $Id: Makefile.am,v 1.10 2007-02-01 07:49:20 marc Exp $
 
 # This doesn't actually build anything, it just tests whether the
 # configuration files here correspond with the schema.
@@ -18,7 +18,8 @@ xmlconfig = $(srcdir)/config-bytarget.xml \
     $(srcdir)/config2.xml \
     $(srcdir)/config3.xml \
     $(srcdir)/config4.xml \
-    $(srcdir)/config5.xml
+    $(srcdir)/config5.xml \
+    $(srcdir)/retrieval-info.xml
 
 config = example.simple-auth example.target-auth pqf2pqf.xsl explain.xml
 
