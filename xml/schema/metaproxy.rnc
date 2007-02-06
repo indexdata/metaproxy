@@ -1,5 +1,5 @@
 # Metaproxy XML config file schemas
-#  $Id: metaproxy.rnc,v 1.18 2007-01-26 14:49:23 adam Exp $
+#  $Id: metaproxy.rnc,v 1.19 2007-02-06 13:28:08 marc Exp $
 # 
 #   Copyright (c) 2005-2007, Index Data.
 # 
@@ -98,7 +98,7 @@ filter_frontend_net =
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
   element mp:threads { xsd:integer }?,
-  element mp:port { xsd:string },
+  element mp:port { xsd:string }+,
   element mp:timeout { xsd:integer }?
 
 filter_http_file =
