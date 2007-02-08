@@ -1,4 +1,4 @@
-/* $Id: router_flexml.cpp,v 1.20 2007-01-25 14:05:54 adam Exp $
+/* $Id: router_flexml.cpp,v 1.21 2007-02-08 09:27:32 marc Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -316,7 +316,7 @@ const mp::filter::Base *mp::RouterFleXML::Pos::move(const char *route)
 {
     if (route && *route)
     {
-        std::cout << "move to " << route << "\n";
+        //std::cout << "move to " << route << "\n";
         m_route_it = m_p->m_routes.find(route);
         if (m_route_it == m_p->m_routes.end())
         {
