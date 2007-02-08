@@ -1,4 +1,4 @@
-/* $Id: sru_util.cpp,v 1.7 2007-01-25 14:05:54 adam Exp $
+/* $Id: sru_util.cpp,v 1.8 2007-02-08 09:22:32 marc Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -36,13 +36,8 @@ bool mp_util::build_sru_debug_package(mp::Package &package)
 }
 
 mp_util::SRUServerInfo mp_util::get_sru_server_info(mp::Package &package)
-    //Z_SRW_explainRequest const *er_req) 
 {
     mp_util::SRUServerInfo sruinfo;
-
-    // getting database info
-    //if (er_req && er_req->database)
-    //    sruinfo.database = er_req->database;
 
     // getting host and port info
     sruinfo.host = package.origin().listen_host();
@@ -55,21 +50,26 @@ mp_util::SRUServerInfo mp_util::get_sru_server_info(mp::Package &package)
         Z_HTTP_Request* http_req =  zgdu_req->u.HTTP_Request;
         if (http_req)
         {
-
-            //std::string http_method = http_req->method;
-            //std::string http_version = http_req->version;
             std::string http_path = http_req->path;
-            if (http_path.size() > 1)
-                sruinfo.database.assign(http_path, 1, std::string::npos);
+            
+            // taking out GET parameters
+            std::string::size_type ipath = http_path.rfind("?");
+            if (ipath != std::string::npos)
+                http_path.assign(http_path, 0, ipath);
 
+            // assign to database name
+            if (http_path.size() > 1){
+                sruinfo.database.assign(http_path, 1, std::string::npos);
+            }
+            
             std::string http_host_address
                 = mp_util::http_header_value(http_req->headers, "Host");
 
-            std::string::size_type i = http_host_address.rfind(":");
-            if (i != std::string::npos)
+            std::string::size_type iaddress = http_host_address.rfind(":");
+            if (iaddress != std::string::npos)
             {
-                sruinfo.host.assign(http_host_address, 0, i);
-                sruinfo.port.assign(http_host_address, i + 1, 
+                sruinfo.host.assign(http_host_address, 0, iaddress);
+                sruinfo.port.assign(http_host_address, iaddress + 1, 
                                     std::string::npos);
             }
         }
@@ -82,51 +82,6 @@ mp_util::SRUServerInfo mp_util::get_sru_server_info(mp::Package &package)
     return sruinfo;
 }
 
-
-// bool mp_util::build_simple_explain(mp::Package &package, 
-//                                    mp::odr &odr_en,
-//                                    Z_SRW_PDU *sru_pdu_res,
-//                                    SRUServerInfo sruinfo,
-//                                    Z_SRW_explainRequest const *er_req) 
-// {
-//     // z3950'fy recordPacking
-//     int record_packing = Z_SRW_recordPacking_XML;
-//     if (er_req && er_req->recordPacking && 's' == *(er_req->recordPacking))
-//         record_packing = Z_SRW_recordPacking_string;
-
-//     // building SRU explain record
-//     std::string explain_xml 
-//         = mp_util::to_string(
-//             "<explain  xmlns=\"" + xmlns_explain + "\">\n"
-//             "  <serverInfo protocol='SRU'>\n"
-//             "    <host>")
-//         + sruinfo.host
-//         + mp_util::to_string("</host>\n"
-//             "    <port>")
-//         + sruinfo.port
-//         + mp_util::to_string("</port>\n"
-//             "    <database>")
-//         + sruinfo.database
-//         + mp_util::to_string("</database>\n"
-//             "  </serverInfo>\n"
-//             "</explain>\n");
-    
-    
-//     // preparing explain record insert
-//     Z_SRW_explainResponse *sru_res = sru_pdu_res->u.explain_response;
-    
-//     // inserting one and only explain record
-    
-//     sru_res->record.recordPosition = odr_intdup(odr_en, 1);
-//     sru_res->record.recordPacking = record_packing;
-//     sru_res->record.recordSchema = (char *)xmlns_explain.c_str();
-//     sru_res->record.recordData_len = 1 + explain_xml.size();
-//     sru_res->record.recordData_buf
-//         = odr_strdupn(odr_en, (const char *)explain_xml.c_str(), 
-//                       1 + explain_xml.size());
-
-//     return true;
-// };
 
         
 bool mp_util::build_sru_explain(metaproxy_1::Package &package, 
