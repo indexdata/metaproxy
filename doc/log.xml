@@ -4,7 +4,7 @@
  <!ENTITY % common SYSTEM "common/common.ent">
      %common;
 ]>
-<!-- $Id: log.xml,v 1.7 2007-02-17 13:24:16 adam Exp $ -->
+<!-- $Id: log.xml,v 1.8 2007-02-17 13:26:12 adam Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>log</refentrytitle>
@@ -52,9 +52,10 @@
     <varlistentry><term>access</term>
      <listitem>
       <para>
-       One line accesss log. This is a brief message stating the
-       request and response. This is enabled by default. All other
-       categories are disabled by default.
+       One line log messages inspired by Apache access log entries.
+       This is a brief message stating the request and response.
+       This is enabled by default. All other categories are disabled by
+       default.
       </para>
      </listitem>
     </varlistentry>
