@@ -4,7 +4,7 @@
  <!ENTITY % common SYSTEM "common/common.ent">
      %common;
 ]>
-<!-- $Id: log.xml,v 1.6 2007-01-18 11:32:42 marc Exp $ -->
+<!-- $Id: log.xml,v 1.7 2007-02-17 13:24:16 adam Exp $ -->
 <refentry>
  <refmeta>
   <refentrytitle>log</refentrytitle>
@@ -21,6 +21,100 @@
   <para>
    This filter logs packages sent - and received . 
   </para>
+
+  <para>
+   Configurable values:
+   <variablelist>
+    <varlistentry><term>message</term>
+     <listitem>
+      <para>
+       Specifies a custom message for the log message.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>filename</term>
+     <listitem>
+      <para>
+       Specifies a name of file that log messages is written to.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>category</term>
+     <listitem>
+      <para>
+       Specifies the category of messages to be logged. The category is an
+       XML attribute and value of attribute is a boolean; 
+       <literal>true</literal> for enabled; <literal>false</literal>
+       for disabled.
+       The following category attributes are supported:
+
+   <variablelist>
+    <varlistentry><term>access</term>
+     <listitem>
+      <para>
+       One line accesss log. This is a brief message stating the
+       request and response. This is enabled by default. All other
+       categories are disabled by default.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>request-apdu</term>
+     <listitem>
+      <para>
+       Z39.50 Request APDU.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>response-apdu</term>
+     <listitem>
+      <para>
+       Z39.50 Response APDU.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>apdu</term>
+     <listitem>
+      <para>
+       Z39.50 APDU (request and response)
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>request-session</term>
+     <listitem>
+      <para>
+       Request session.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>response-session</term>
+     <listitem>
+      <para>
+       Response session.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>session</term>
+     <listitem>
+      <para>
+       Session (request and response)
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>init-options</term>
+     <listitem>
+      <para>
+       Z39.50 Init Request options
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+
+
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </para>
  </refsect1>
  
  <refsect1><title>EXAMPLES</title>
@@ -29,7 +123,8 @@
    <screen><![CDATA[
     <filter type="log">
      <message>B</message>
-     <filename>logs/etaproxy.log</filename>
+     <category access="true"/>
+     <filename>logs/metaproxy.log</filename>
     </filter>
 ]]>
    </screen>
