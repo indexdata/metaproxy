@@ -18,7 +18,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.55 2007-01-25 10:34:27 adam Exp $ -->
+<!-- $Id: book.xml,v 1.56 2007-02-17 12:28:11 adam Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -502,6 +502,152 @@
   </section>
  </chapter>
  
+<chapter id="yazproxy-comparison">
+ <title>YAZ Proxy Comparison</title>
+ <para>
+  The table below lists facilities either supported by either
+   <ulink url="&url.yazproxy;">YAZ Proxy</ulink> or Metaproxy.
+ </para>
+<table id="yazproxy-comparison-table">
+ <title>Metaproxy / YAZ Proxy comparison</title>
+ <tgroup cols="3">
+  <thead>
+   <row>
+    <entry>Facility</entry>
+    <entry>Metaproxy</entry>
+    <entry>YAZ Proxy</entry>
+   </row>
+  </thead>
+  <tbody>
+   <row>
+    <entry>Z39.50 server</entry>
+    <entry>Using filter <literal>frontend_net</literal></entry>
+    <entry>Supported</entry>
+   </row>
+   <row>
+    <entry>SRU server</entry>
+    <entry>Supported with filter <literal>sru_z3950</literal></entry>
+    <entry>Supported</entry>
+   </row>
+   <row>
+    <entry>Z39.50 client</entry>
+    <entry>Supported with filter <literal>z3950_client</literal></entry>
+    <entry>Supported</entry>
+   </row>
+   <row>
+    <entry>SRU client</entry>
+    <entry>Unsupported</entry>
+    <entry>Unsupported</entry>
+   </row>
+   <row>
+    <entry>Connection reuse</entry>
+    <entry>Supported with filter <literal>session_shared</literal></entry>
+    <entry>Supported</entry>
+   </row>
+   <row>
+    <entry>Connection share</entry>
+    <entry>Supported with filter <literal>session_shared</literal></entry>
+    <entry>Unsupported</entry>
+   </row>
+   <row>
+    <entry>Result set reuse</entry>
+    <entry>Supported with filter <literal>session_shared</literal></entry>
+    <entry>Within one Z39.50 session / HTTP keep-alive</entry>
+   </row>
+   <row>
+    <entry>Record cache</entry>
+    <entry>Unsupported</entry>
+    <entry>Supported for last result set within one Z39.50/HTTP-keep alive session</entry>
+   </row>
+   <row>
+    <entry>Z39.50 Virtual database, i.e. select any Z39.50 target for database</entry>
+    <entry>Supported with filter <literal>virt_db</literal></entry>
+    <entry>Unsupported</entry>
+   </row>
+   <row>
+    <entry>SRU Virtual database, i.e. select any Z39.50 target for path</entry>
+    <entry>Supported with filter <literal>virt_db</literal>, 
+     <literal>sru_z3950</literal></entry>
+    <entry>Supported</entry>
+   </row>
+   <row>
+    <entry>Multi target search</entry>
+    <entry>Supported with filter <literal>multi</literal> (round-robin)</entry>
+    <entry>Unsupported</entry>
+   </row>
+   <row>
+    <entry>Retrieval and search limits</entry>
+    <entry>Unsupported</entry>
+    <entry>Supported</entry>
+   </row>
+   <row>
+    <entry>Bandwidth limits</entry>
+    <entry>Unsupported</entry>
+    <entry>Supported</entry>
+   </row>
+   <row>
+    <entry>Connect limits</entry>
+    <entry>Unsupported</entry>
+    <entry>Supported</entry>
+   </row>
+   <row>
+    <entry>Retrieval sanity check and conversions</entry>
+    <entry>Supported using filter <literal>record_transform</literal></entry>
+    <entry>Supported</entry>
+   </row>
+   <row>
+    <entry>Query check</entry>
+    <entry>
+     Supported in a limited way using <literal>query_rewrite</literal>
+    </entry>
+    <entry>Supported</entry>
+   </row>
+   <row>
+    <entry>Query rewrite</entry>
+    <entry>Supported with <literal>query_rewrite</literal></entry>
+    <entry>Unsupported</entry>
+   </row>
+   <row>
+    <entry>Session invalidate for -1 hits</entry>
+    <entry>Unsupported</entry>
+    <entry>Supported</entry>
+   </row>
+   <row>
+    <entry>Architecture</entry>
+    <entry>Multi-threaded + select for networked modules such as
+      <literal>frontend_net</literal>)</entry>
+    <entry>Single-threaded using select</entry>
+   </row>
+
+   <row>
+    <entry>Extensability</entry>
+    <entry>Most functionality implemented as loadable modules</entry>
+    <entry>Unsupported and experimental</entry>
+   </row>
+
+   <row>
+    <entry><ulink url="&url.usemarcon;">USEMARCON</ulink></entry>
+    <entry>Unsupported</entry>
+    <entry>Supported</entry>
+   </row>
+
+   <row>
+    <entry>Portability</entry>
+    <entry>
+     Requires YAZ, YAZ++ and modern C++ compiler supporting
+     <ulink url="&url.boost;">Boost</ulink>.
+    </entry>
+    <entry>
+     Requires YAZ and YAZ++.
+     STL is not required so pretty much any C++ compiler out there should work.
+    </entry>
+   </row>
+
+  </tbody>
+ </tgroup>
+</table>
+</chapter>
+
  <chapter id="architecture">
   <title>The Metaproxy Architecture</title>
   <para>
