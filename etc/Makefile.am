@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.11 2007-02-16 09:00:42 adam Exp $
+# $Id: Makefile.am,v 1.12 2007-02-17 13:03:29 adam Exp $
 
 # This doesn't actually build anything, it just tests whether the
 # configuration files here correspond with the schema.
@@ -35,10 +35,10 @@ EXTRA_DIST = $(etcdata_DATA)
 check_rng: 
 	xmllint --noout --xinclude --relaxng $(rng) $(xmlconfig)
 
+## Only run XSD checks for a "new" Libxml2
 .PHONY: check_xsd
 check_xsd: 
-	xmllint --noout --xinclude --schema $(xsd) $(xmlconfig)
-
+	if test `xmllint --version 2>&1 |head -1|awk '{print $$5}'` -gt 20622; then xmllint --noout --xinclude --schema $(xsd) $(xmlconfig); fi
 
 check-local: check_rng check_xsd
 
