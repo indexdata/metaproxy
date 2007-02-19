@@ -1,4 +1,4 @@
-/* $Id: thread_pool_observer.cpp,v 1.18 2007-01-25 14:05:54 adam Exp $
+/* $Id: thread_pool_observer.cpp,v 1.19 2007-02-19 12:51:08 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -112,7 +112,11 @@ void ThreadPoolSocketObserver::socketNotify(int event)
     if (event & SOCKET_OBSERVE_READ)
     {
         char buf[2];
+#ifdef WIN32
         recv(m_p->m_pipe.read_fd(), buf, 1, 0);
+#else
+        read(m_p->m_pipe.read_fd(), buf, 1);
+#endif
         IThreadPoolMsg *out;
         {
             boost::mutex::scoped_lock output_lock(m_p->m_mutex_output_data);
@@ -143,7 +147,11 @@ void ThreadPoolSocketObserver::run(void *p)
         {
             boost::mutex::scoped_lock output_lock(m_p->m_mutex_output_data);
             m_p->m_output.push_back(out);
+#ifdef WIN32
             send(m_p->m_pipe.write_fd(), "", 1, 0);
+#else
+            write(m_p->m_pipe.write_fd(), "", 1);
+#endif
         }
     }
 }

@@ -1,4 +1,4 @@
-/* $Id: pipe.cpp,v 1.9 2007-01-25 14:05:54 adam Exp $
+/* $Id: pipe.cpp,v 1.10 2007-02-19 12:51:08 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -97,6 +97,8 @@ Pipe::Pipe(int port_to_use) : m_p(new Rep)
     WORD wVersionRequested = MAKEWORD(2, 0);
     if (WSAStartup( wVersionRequested, &wsaData ))
         throw Pipe::Error("WSAStartup failed");
+#else
+    port_to_use = 0;  // we'll just use pipe on Unix
 #endif
     if (port_to_use)
     {
@@ -172,7 +174,13 @@ Pipe::Pipe(int port_to_use) : m_p(new Rep)
     else
     {
 #ifndef WIN32
-        pipe(m_p->m_fd);
+        if (pipe(m_p->m_fd))
+            throw Pipe::Error("pipe failed");
+        else
+        {
+            assert(m_p->m_fd[0] >= 0);
+            assert(m_p->m_fd[1] >= 0);
+        }
 #endif
     }
 }
