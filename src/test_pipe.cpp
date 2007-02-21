@@ -1,4 +1,4 @@
-/* $Id: test_pipe.cpp,v 1.9 2007-02-19 12:51:08 adam Exp $
+/* $Id: test_pipe.cpp,v 1.10 2007-02-21 14:01:27 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -62,7 +62,7 @@ Timer::Timer(yazpp_1::ISocketObservable *obs,
     {
         std::cout << "Error write: "<< strerror(errno) << std::endl;
     }
-    BOOST_CHECK_EQUAL(write(m_pipe.write_fd(), "", 1), 1);
+    BOOST_CHECK_EQUAL(r, 1);
 }
 
 void Timer::socketNotify(int event)
