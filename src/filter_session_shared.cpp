@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.cpp,v 1.16 2007-01-25 14:05:54 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.17 2007-02-23 18:58:44 marc Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -897,7 +897,7 @@ void yf::SessionShared::Rep::expire()
         boost::xtime_get(&xt, boost::TIME_UTC);
         xt.sec += 30;
         boost::thread::sleep(xt);
-        std::cout << "." << std::endl;
+        //std::cout << "." << std::endl;
         
         BackendClassMap::const_iterator b_it = m_backend_map.begin();
         for (; b_it != m_backend_map.end(); b_it++)
