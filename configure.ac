@@ -34,56 +34,29 @@ fi
 # Checks for libraries.
 AC_CHECK_LIB(dl,dlopen)
 
-boostdir="yes"
-AC_ARG_WITH(boost, [ ---with-boost=PREFIX     Boost library in PREFIX],[boostdir=$withval])
 
-if test "$boostdir" != "yes"; then
-	CPPFLAGS="-I${boostdir}/include"
-	LIBS="-L${boostdir}/lib"
+# check for Boost C++ development libs and headers
+AX_BOOST_BASE(1.33)
+AX_BOOST_DATE_TIME(1.33)
+AX_BOOST_PROGRAM_OPTIONS(1.33)
+AX_BOOST_THREAD(1.33)
+AX_BOOST_UNIT_TEST_FRAMEWORK(1.33)
+if test "$ax_cv_boost_base" = "no"; then
+   AC_MSG_ERROR([install libboost-dev or similar])
 fi
-
-AC_CHECK_LIB(pthread, main)
-
-AC_CHECK_LIB(boost_thread, main, [],[
-	AC_MSG_NOTICE([boost thread library not found.])
-	AC_MSG_ERROR([Install libboost-thread-dev (or similar)])
-])
-
-AC_CHECK_LIB(boost_date_time, main, [],[
-	AC_MSG_NOTICE([boost date_time library not found.])
-	AC_MSG_ERROR([Install libboost-date-time-dev (or similar)])
-])
-
-AC_CHECK_LIB(boost_program_options, main, [],[
-	AC_MSG_NOTICE([boost program options library not found.])
-	AC_MSG_ERROR([Install libboost-program-options-dev (or similar)])
-])
-
-AC_CHECK_HEADER(boost/test/auto_unit_test.hpp,,[
-	AC_MSG_NOTICE([boost test unit header not found.])
-	AC_MSG_ERROR([Install libboost-test-dev (or similar)])
-])
-
-AC_MSG_CHECKING([whether boost_unit_test_framework works])
-OLIBS=$LIBS
-LIBS="$LIBS -lboost_unit_test_framework"
-AC_TRY_LINK([
-#define BOOST_AUTO_TEST_MAIN
-#include <boost/test/auto_unit_test.hpp> 
-BOOST_AUTO_UNIT_TEST( test )
-{
- BOOST_CHECK(true);
-}
-],[],
-[
-	AC_MSG_RESULT([yes])
-	LIBS=$OLIBS
-],
-[
-	AC_MSG_RESULT([no])
-	AC_MSG_NOTICE([Boost unit test framework does not appear to work])
-	AC_MSG_ERROR([Consult config.log for details])
-])
+if test "$ax_cv_boost_date_time" = "no"; then
+   AC_MSG_ERROR([install libboost-date-time-dev or similar])
+fi
+if test "$ax_cv_boost_program_options" = "no"; then
+   AC_MSG_ERROR([install libboost-program-options-dev or similar])
+fi
+if test "$ax_cv_boost_thread" = "no"; then
+   AC_MSG_ERROR([install libboost-thread-dev or similar])
+fi
+if test "$ax_cv_boost_unit_test_framework" = "no"; then
+   AC_MSG_ERROR([install libboost-test-dev or similar])
+fi
+    
 
 ## YAZPP checks
 YAZPP_INIT(threads,1.0.2)
@@ -97,10 +70,6 @@ YAZ_DOC
 ##AC_HEADER_SYS_WAIT
 ##AC_HEADER_TIME 
 AC_CHECK_HEADERS(sys/select.h sys/socket.h iostream list vector stdexcept)
-AC_CHECK_HEADERS(boost/thread/mutex.hpp \ 
-                 boost/date_time/posix_time/posix_time.hpp \
-                 boost/regex.hpp \
-                 boost/test/auto_unit_test.hpp)
 
 # Checks for typedefs, structures, and compiler characteristics.
 ##AC_TYPE_SIZE_T 
