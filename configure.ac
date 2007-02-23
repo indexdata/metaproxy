@@ -46,12 +46,18 @@ if test "$ax_cv_boost_base" = "no"; then
 fi
 if test "$ax_cv_boost_date_time" = "no"; then
    AC_MSG_ERROR([install libboost-date-time-dev or similar])
+else
+   LIBS="$LIBS -lboost_date_time";
 fi
 if test "$ax_cv_boost_program_options" = "no"; then
    AC_MSG_ERROR([install libboost-program-options-dev or similar])
+else
+   LIBS="$LIBS -lboost_program_options";
 fi
 if test "$ax_cv_boost_thread" = "no"; then
    AC_MSG_ERROR([install libboost-thread-dev or similar])
+else
+   LIBS="$LIBS -lboost_thread";
 fi
 if test "$ax_cv_boost_unit_test_framework" = "no"; then
    AC_MSG_ERROR([install libboost-test-dev or similar])
