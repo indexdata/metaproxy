@@ -36,17 +36,8 @@ AC_CHECK_LIB(dl,dlopen)
 
 
 # check for Boost C++ development libs and headers
-AX_BOOST_BASE(1.32)
-AX_BOOST_DATE_TIME(1.32)
-AX_BOOST_PROGRAM_OPTIONS(1.32)
-AX_BOOST_THREAD(1.32)
-AX_BOOST_UNIT_TEST_FRAMEWORK(1.32)
 
-LD_FLAGS="$LD_FLAGS $BOOST_LDFLAGS" 
-#AM_LDLFAGS="$AM_LDLFAGS\
-LIBS="$LIBS\
-$BOOST_DATE_TIME_LIB $BOOST_PROGRAM_OPTIONS_LIB $BOOST_THREAD_LIB"; 
-
+AX_BOOST([1.32])
 if test "$ax_cv_boost_base" = "no"; then
    AC_MSG_ERROR([install libboost-dev or similar])
 fi
@@ -123,6 +114,10 @@ echo \
   Automake:                   ${AUTOMAKE}
   Archiver:                   ${AR}
   Ranlib:                     ${RANLIB}
+  Boost Version:              ${BOOST_VERSION}               
+  Boost Include:              ${BOOST_CPPFLAGS}               
+  Boost linker flags:         ${BOOST_LDFLAGS}               
+  Boost Libs:                 ${BOOST_DATE_TIME_LIB} ${BOOST_PROGRAM_OPTIONS_LIB} ${BOOST_THREAD_LIB}               
   YAZPP Version:              ${YAZPPVERSION}
   YAZPP Include:              ${YAZPPINC}
   YAZPP La Lib:               ${YAZPPLALIB}

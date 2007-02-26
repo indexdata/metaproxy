@@ -1,8 +1,14 @@
-## $Id: Makefile.am,v 1.62 2007-01-12 10:16:21 adam Exp $
+## $Id: Makefile.am,v 1.63 2007-02-26 11:40:03 marc Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
-AM_CXXFLAGS = $(YAZPPINC) $(XSLT_CFLAGS)
+AM_CXXFLAGS = $(YAZPPINC) $(BOOST_CPPFLAGS)
+
+AM_LDFLAGS = $(BOOST_LDFLAGS) \
+            $(BOOST_DATE_TIME_LIB) \
+            $(BOOST_PROGRAM_OPTIONS_LIB) \
+            $(BOOST_THREAD_LIB) \
+            $(YAZPPLALIB)
 
 EXTRA_DIST=Jamfile.in
 
@@ -47,7 +53,7 @@ libmetaproxy_la_SOURCES = \
 
 # Rules for programs..
 
-LDADD= libmetaproxy.la $(YAZPPLALIB) $(XSLT_LIBS)
+LDADD= libmetaproxy.la
 
 bin_PROGRAMS = metaproxy
 noinst_PROGRAMS = ex_filter_frontend_net ex_router_flexml tstdl
@@ -114,7 +120,7 @@ test_filter_virt_db_SOURCES = test_filter_virt_db.cpp
 test_ses_map_SOURCES = test_ses_map.cpp
 test_router_flexml_SOURCES = test_router_flexml.cpp
 
-TESTLDADD = $(LDADD) -lboost_unit_test_framework
+TESTLDADD = $(LDADD) $(BOOST_UNIT_TEST_FRAMEWORK_LIB)
 
 test_package1_LDADD = $(TESTLDADD)
 test_pipe_LDADD = $(TESTLDADD)

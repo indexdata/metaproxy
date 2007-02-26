@@ -1,6 +1,6 @@
 ## This file is part of Metaproxy
 ## Copyright (C) 2005-2007, Index Data ApS
-## $Id: Makefile.am,v 1.21 2007-02-01 08:00:49 adam Exp $
+## $Id: Makefile.am,v 1.22 2007-02-26 11:40:03 marc Exp $
 
 SUBDIRS = xml src etc doc
 
@@ -8,7 +8,9 @@ ACLOCAL_AMFLAGS = -I m4
 
 AUTOMAKE_OPTIONS = foreign
 
-EXTRA_DIST = Doxyfile.in NEWS README LICENSE m4/yazpp.m4 m4/yaz.m4 buildconf.sh
+EXTRA_DIST = Doxyfile.in NEWS README LICENSE \
+             m4/yazpp.m4 m4/yaz.m4 m4/ax_boost.m4 \
+             buildconf.sh
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure 
 
