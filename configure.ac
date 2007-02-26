@@ -27,8 +27,8 @@ AM_PROG_LIBTOOL
 AC_LANG(C)
 
 if test "$enable_shared" = "yes"; then
-   	AC_DEFINE([HAVE_DL_SUPPORT],[1],
-                [Define to 1 if you have shared module support])
+    AC_DEFINE([HAVE_DL_SUPPORT],[1],
+	[Define to 1 if you have shared module support])
 fi
 
 # Checks for libraries.
@@ -38,7 +38,7 @@ AC_CHECK_LIB(m,main)
 ## YAZPP checks
 YAZPP_INIT(threads,1.0.2)
 if test -z "$YAZPPLIB"; then
-	AC_MSG_ERROR([YAZ++ development libraries missing])
+    AC_MSG_ERROR([YAZ++ development libraries missing])
 fi
 YAZ_DOC
 CPPFLAGS="$YAZPPINC $CPPFLAGS"
@@ -47,19 +47,19 @@ CPPFLAGS="$YAZPPINC $CPPFLAGS"
 
 AX_BOOST([1.32])
 if test "$ax_cv_boost_base" = "no"; then
-   AC_MSG_ERROR([install libboost-dev or similar])
+    AC_MSG_ERROR([install libboost-dev or similar])
 fi
 if test "$ax_cv_boost_date_time" = "no"; then
-   AC_MSG_ERROR([install libboost-date-time-dev or similar])
+    AC_MSG_ERROR([install libboost-date-time-dev or similar])
 fi
 if test "$ax_cv_boost_program_options" = "no"; then
-   AC_MSG_ERROR([install libboost-program-options-dev or similar])
+    AC_MSG_ERROR([install libboost-program-options-dev or similar])
 fi
 if test "$ax_cv_boost_thread" = "no"; then
-   AC_MSG_ERROR([install libboost-thread-dev or similar])
+    AC_MSG_ERROR([install libboost-thread-dev or similar])
 fi
 if test "$ax_cv_boost_unit_test_framework" = "no"; then
-   AC_MSG_ERROR([install libboost-test-dev or similar])
+    AC_MSG_ERROR([install libboost-test-dev or similar])
 fi
     
 
@@ -74,7 +74,6 @@ AC_CHECK_HEADERS(sys/select.h sys/socket.h iostream list vector stdexcept)
 ##AC_TYPE_SIZE_T 
 ##AC_CHECK_SIZEOF(int)
 ##AC_CHECK_SIZEOF(long int)
-
 
 # Checks for library functions.
 
@@ -127,3 +126,8 @@ echo \
   Bugreport:                  ${PACKAGE_BUGREPORT}
 
 ------------------------------------------------------------------------"
+dnl Local Variables:
+dnl mode:shell-script
+dnl sh-indentation: 2
+dnl sh-basic-offset: 4
+dnl End:
