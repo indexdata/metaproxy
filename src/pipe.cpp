@@ -1,4 +1,4 @@
-/* $Id: pipe.cpp,v 1.10 2007-02-19 12:51:08 adam Exp $
+/* $Id: pipe.cpp,v 1.11 2007-02-26 13:19:23 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -9,6 +9,7 @@
 #include <unistd.h>
 #endif
 
+#include <signal.h>
 #include <errno.h>
 #ifdef WIN32
 #include <winsock.h>
