@@ -1,8 +1,8 @@
-## $Id: Makefile.am,v 1.63 2007-02-26 11:40:03 marc Exp $
+## $Id: Makefile.am,v 1.64 2007-02-26 13:31:00 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
-AM_CXXFLAGS = $(YAZPPINC) $(BOOST_CPPFLAGS)
+AM_CXXFLAGS = $(BOOST_CPPFLAGS)
 
 AM_LDFLAGS = $(BOOST_LDFLAGS) \
             $(BOOST_DATE_TIME_LIB) \

@@ -23,8 +23,8 @@ AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AM_PROG_LIBTOOL
 
-# Use C++ compilers only for tests
-AC_LANG(C++)
+# Default language to use for tests (some tests may switch to C++)
+AC_LANG(C)
 
 if test "$enable_shared" = "yes"; then
    	AC_DEFINE([HAVE_DL_SUPPORT],[1],
@@ -33,7 +33,15 @@ fi
 
 # Checks for libraries.
 AC_CHECK_LIB(dl,dlopen)
+AC_CHECK_LIB(m,main)
 
+## YAZPP checks
+YAZPP_INIT(threads,1.0.2)
+if test -z "$YAZPPLIB"; then
+	AC_MSG_ERROR([YAZ++ development libraries missing])
+fi
+YAZ_DOC
+CPPFLAGS="$YAZPPINC $CPPFLAGS"
 
 # check for Boost C++ development libs and headers
 
@@ -55,12 +63,6 @@ if test "$ax_cv_boost_unit_test_framework" = "no"; then
 fi
     
 
-## YAZPP checks
-YAZPP_INIT(threads,1.0.2)
-if test -z "$YAZPPLIB"; then
-	AC_MSG_ERROR([YAZ++ development libraries missing])
-fi
-YAZ_DOC
 
 # Checks for header files.
 ##AC_HEADER_STDC
