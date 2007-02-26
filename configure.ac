@@ -68,7 +68,7 @@ fi
 ##AC_HEADER_STDC
 ##AC_HEADER_SYS_WAIT
 ##AC_HEADER_TIME 
-AC_CHECK_HEADERS(sys/select.h sys/socket.h iostream list vector stdexcept)
+AC_CHECK_HEADERS(sys/select.h sys/socket.h)
 
 # Checks for typedefs, structures, and compiler characteristics.
 ##AC_TYPE_SIZE_T 
