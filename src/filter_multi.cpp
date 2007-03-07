@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.25 2007-01-25 14:05:54 adam Exp $
+/* $Id: filter_multi.cpp,v 1.26 2007-03-07 22:50:12 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -721,11 +721,16 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
 
             nprl->records[i] = (Z_NamePlusRecord*)
                 odr_malloc(odr, sizeof(Z_NamePlusRecord));
+            int inside_pos = jit->m_inside_pos;
+            if (inside_pos >= b_resp->records->
+                u.databaseOrSurDiagnostics->num_records)
+                break;
 	    *nprl->records[i] = *b_resp->records->
-                u.databaseOrSurDiagnostics->records[jit->m_inside_pos];
+                u.databaseOrSurDiagnostics->records[inside_pos];
             nprl->records[i]->databaseName =
                     odr_strdup(odr, jit->m_backend->m_vhost.c_str());
         }
+        nprl->num_records = i; // usually same as jobs.size();
         *f_resp->nextResultSetPosition = start + i;
         *f_resp->numberOfRecordsReturned = i;
     }
