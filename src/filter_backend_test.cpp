@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.22 2007-01-25 14:05:54 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.23 2007-03-08 09:38:31 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -93,6 +93,7 @@ Z_Records *yf::BackendTest::Rep::fetch(
 {
     oident *prefformat;
     oid_value form;
+    const char *element_set_name = "F"; // default to use
     
     if (number + start - 1 > result_set_size || start < 1)
     {
@@ -107,7 +108,10 @@ Z_Records *yf::BackendTest::Rep::fetch(
     switch(form)
     {
     case VAL_NONE:
+        form = VAL_USMARC;
+        break;
     case VAL_USMARC:
+    case VAL_TEXT_XML:
         break;
     default:
         error_code = YAZ_BIB1_RECORD_SYNTAX_UNSUPP;
@@ -123,14 +127,20 @@ Z_Records *yf::BackendTest::Rep::fetch(
                 = YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_;
             return 0;
         }
-        const char *name = esn->u.generic;
-        if (strcmp(name, "B") && strcmp(name, "F"))
-        {
-            error_code 
-                = YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_;
-            addinfo = std::string(name);
-            return 0;
-        }
+        element_set_name = esn->u.generic;
+    }
+    if (!strcmp(element_set_name, "B") && form == VAL_USMARC)
+        ; // Brief
+    else if (!strcmp(element_set_name, "F") && form == VAL_USMARC)
+        ; // Full
+    else if (!strncmp(element_set_name, "FF", 2) && form == VAL_TEXT_XML)
+        ; // Huge XML test record
+    else
+    {
+        error_code 
+            = YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_;
+        addinfo = std::string(element_set_name);
+        return 0;
     }
     Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
     rec->which = Z_Records_DBOSD;
@@ -148,12 +158,31 @@ Z_Records *yf::BackendTest::Rep::fetch(
         npr->databaseName = 0;
         npr->which = Z_NamePlusRecord_databaseRecord;
 
-        char *tmp_rec = odr_strdup(odr, marc_record);
-        char offset_str[30];
-        sprintf(offset_str, "test__%09d_", i+start);
-        memcpy(tmp_rec+186, offset_str, strlen(offset_str));
-        npr->u.databaseRecord = z_ext_record(odr, VAL_USMARC,
-                                             tmp_rec, strlen(tmp_rec));
+        if (!strncmp(element_set_name, "FF", 2))
+        {   // Huge XML test record
+            size_t sz = 1024;
+            if (element_set_name[2])
+                sz = atoi(element_set_name+2) * 1024;
+            if (sz < 10)
+                sz = 10;
+            char *tmp_rec = (char*) xmalloc(sz);
+
+            memset(tmp_rec, 'a', sz);
+            memcpy(tmp_rec, "<a>", 3);
+            memcpy(tmp_rec + sz - 4, "</a>", 4);
+
+            npr->u.databaseRecord = z_ext_record(odr, VAL_TEXT_XML, tmp_rec, sz);
+            xfree(tmp_rec);
+        }
+        else
+        {
+            char *tmp_rec = odr_strdup(odr, marc_record);
+            char offset_str[30];
+            sprintf(offset_str, "test__%09d_", i+start);
+            memcpy(tmp_rec+186, offset_str, strlen(offset_str));
+            npr->u.databaseRecord = z_ext_record(odr, VAL_USMARC,
+                                                 tmp_rec, strlen(tmp_rec));
+        }
 
     }
     *number_returned = number;
