@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.29 2007-01-25 14:05:54 adam Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.30 2007-03-08 09:43:37 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -183,7 +183,7 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
                                    sruinfo, explainnode);
         mp_util::build_sru_response(package, odr_en, soap, 
                            sru_pdu_res, charset, stylesheet);
-        package.session().close();
+        // package.session().close();
         return;
     }
     
@@ -261,7 +261,6 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
         sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
         
         // TODO: make nice diagnostic return package 
-        package.session().close();
         return;
     }
 
@@ -313,7 +312,6 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
                                &(sru_pdu_res->u.response->diagnostics),
                                &(sru_pdu_res->u.response->num_diagnostics),
                                2, 0);
-        package.session().close();
         return false;
     }
 
@@ -329,16 +327,12 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
                            &(sru_pdu_res->u.response->diagnostics),
                            &(sru_pdu_res->u.response->num_diagnostics),
                            2, 0);
-    package.session().close();
     return false;
 }
 
 bool 
 yf::SRUtoZ3950::Impl::z3950_close_request(mp::Package &package) const
 {
-    // close SRU package
-    package.session().close();
-
     // prepare and close Z3950 package 
     Package z3950_package(package.session(), package.origin());
     z3950_package.copy_filter(package);
@@ -430,7 +424,6 @@ yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
                                &(sru_pdu_res->u.response->diagnostics),
                                &(sru_pdu_res->u.response->num_diagnostics),
                                2, 0);
-        package.session().close();
         return false;
     }
     
@@ -606,10 +599,9 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
                                &(sru_pdu_res->u.response->diagnostics), 
                                &(sru_pdu_res->u.response->num_diagnostics), 
                                2, 0);
-        package.session().close();
         return false;
     }
-    
+
 
     // everything fine, continuing
 
