@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.30 2007-03-08 09:43:37 adam Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.31 2007-03-20 07:05:10 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -179,11 +179,21 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
                                             sru_pdu_res, soap,
                                             charset, stylesheet)))
     {
-        mp_util::build_sru_explain(package, odr_en, sru_pdu_res, 
-                                   sruinfo, explainnode);
-        mp_util::build_sru_response(package, odr_en, soap, 
-                           sru_pdu_res, charset, stylesheet);
-        // package.session().close();
+        if (soap)
+        {
+            mp_util::build_sru_explain(package, odr_en, sru_pdu_res, 
+                                       sruinfo, explainnode);
+            mp_util::build_sru_response(package, odr_en, soap, 
+                                        sru_pdu_res, charset, stylesheet);
+        }
+        else
+        {
+            metaproxy_1::odr odr; 
+            Z_GDU *zgdu_res = 
+                odr.create_HTTP_Response(package.session(), 
+                                         zgdu_req->u.HTTP_Request, 400);
+            package.response() = zgdu_res;
+        }
         return;
     }
     
