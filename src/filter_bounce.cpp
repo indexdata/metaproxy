@@ -1,4 +1,4 @@
-/* $Id: filter_bounce.cpp,v 1.2 2007-01-25 14:05:54 adam Exp $
+/* $Id: filter_bounce.cpp,v 1.3 2007-03-20 07:17:40 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -45,53 +45,45 @@ yf::Bounce::~Bounce()
 
 void yf::Bounce::process(mp::Package &package) const
 {
-
-    if (! m_p->bounce ){
+    if (! m_p->bounce )
+    {
         package.move();
         return;
     }
-
-     
     package.session().close();
-
+    
     Z_GDU *zgdu = package.request().get();
-
+    
     if (!zgdu)
         return;
-
+    
     //std::string message("BOUNCE ");
     std::ostringstream message;    
     message << "BOUNCE " << *zgdu;
-
+    
     metaproxy_1::odr odr; 
-
-   if (zgdu->which == Z_GDU_Z3950){
-       Z_APDU *apdu_res = 0;
+    
+    if (zgdu->which == Z_GDU_Z3950)
+    {
+        Z_APDU *apdu_res = 0;
         apdu_res = odr.create_close(zgdu->u.z3950,
                                     Z_Close_systemProblem,
                                     message.str().c_str());
         package.response() = apdu_res;
     }
-    else if (zgdu->which == Z_GDU_HTTP_Request){
-    Z_GDU *zgdu_res = 0;
-    zgdu_res 
-        = odr.create_HTTP_Response(package.session(), 
-                                   zgdu->u.HTTP_Request, 400);
-
-    //zgdu_res->u.HTTP_Response->content_len = message.str().size();
-    //zgdu_res->u.HTTP_Response->content_buf 
-    //    = (char*) odr_malloc(odr, zgdu_res->u.HTTP_Response->content_len);
-
-    //strncpy(zgdu_res->u.HTTP_Response->content_buf, 
-    //        message.str().c_str(),  zgdu_res->u.HTTP_Response->content_len);
+    else if (zgdu->which == Z_GDU_HTTP_Request)
+    {
+        Z_GDU *zgdu_res = 0;
+        zgdu_res 
+            = odr.create_HTTP_Response(package.session(), 
+                                       zgdu->u.HTTP_Request, 400);
+        
+        package.response() = zgdu_res;
+    }
+    else if (zgdu->which == Z_GDU_HTTP_Response)
+    {
+    }
     
-        // z_HTTP_header_add(o, &hres->headers,
-        //            "Content-Type", content_type.c_str());
-    package.response() = zgdu_res;
-    }
-    else if (zgdu->which == Z_GDU_HTTP_Response){
-    }
-
 
     return;
 }
