@@ -1,4 +1,4 @@
-/* $Id: filter_record_transform.cpp,v 1.8 2007-01-25 14:05:54 adam Exp $
+/* $Id: filter_record_transform.cpp,v 1.9 2007-03-20 07:57:54 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -299,7 +299,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
                                  YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
                                  yaz_record_conv_get_error(rc));
                      }
-                     wrbuf_free(output_record, 1);
+                     wrbuf_destroy(output_record);
                  }
              }
          }

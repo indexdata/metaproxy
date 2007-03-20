@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.25 2007-01-25 14:05:54 adam Exp $
+/* $Id: util.cpp,v 1.26 2007-03-20 07:57:54 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -215,7 +215,7 @@ std::string mp_util::zQueryToString(Z_Query *query)
             query_str = std::string(wrbuf_buf(w), wrbuf_len(w));
             
             // destroy wrbuf
-            wrbuf_free(w, 1);
+            wrbuf_destroy(w);
         }
     }
 

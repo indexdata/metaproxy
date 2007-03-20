@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.17 2007-01-25 14:05:54 adam Exp $
+/* $Id: gduutil.cpp,v 1.18 2007-03-20 07:57:54 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -182,8 +182,8 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                          
             WRBUF wr = wrbuf_alloc();
             yaz_query_to_wrbuf(wr, sr->query);
-            os << wrbuf_buf(wr);
-            wrbuf_free(wr, 1);
+            os << wrbuf_cstr(wr);
+            wrbuf_destroy(wr);
         }
         break;
     case Z_APDU_searchResponse:
@@ -336,8 +336,8 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 {
                     WRBUF wr = wrbuf_alloc();
                     yaz_scan_to_wrbuf(wr, sr->termListAndStartPoint, VAL_NONE);
-                    os << wrbuf_buf(wr);
-                    wrbuf_free(wr, 1);
+                    os << wrbuf_cstr(wr);
+                    wrbuf_destroy(wr);
                 }
                 else
                     os << " -";
