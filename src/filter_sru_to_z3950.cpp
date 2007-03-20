@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.31 2007-03-20 07:05:10 adam Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.32 2007-03-20 07:20:16 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -176,7 +176,7 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
 
     // filter acts as sink for non-valid SRU requests
     if (! (sru_pdu_req = mp_util::decode_sru_request(package, odr_de, odr_en, 
-                                            sru_pdu_res, soap,
+                                            sru_pdu_res, &soap,
                                             charset, stylesheet)))
     {
         if (soap)
@@ -205,16 +205,11 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
         //                           sruinfo, er_req);
         mp_util::build_sru_explain(package, odr_en, sru_pdu_res, 
                                    sruinfo, explainnode, er_req);
-        mp_util::build_sru_response(package, odr_en, soap, 
-                                    sru_pdu_res, charset, stylesheet);
-        return;
     }
-
-    // searchRetrieve
     else if (sru_pdu_req 
         && sru_pdu_req->which == Z_SRW_searchRetrieve_request
         && sru_pdu_req->u.request)
-    {
+    {   // searchRetrieve
         Z_SRW_searchRetrieveRequest *sr_req = sru_pdu_req->u.request;   
         
         sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_searchRetrieve_response);
@@ -277,7 +272,6 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
     // build and send SRU response
     mp_util::build_sru_response(package, odr_en, soap, 
                                 sru_pdu_res, charset, stylesheet);
-    return;
 }
 
 
@@ -367,12 +361,11 @@ yf::SRUtoZ3950::Impl::z3950_close_request(mp::Package &package) const
     return false;
 }
 
-bool 
-yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,  
-                                          mp::odr &odr_en,
-                                          Z_SRW_PDU *sru_pdu_res,
-                                          Z_SRW_searchRetrieveRequest 
-                                          const *sr_req) const
+bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,  
+                                                mp::odr &odr_en,
+                                                Z_SRW_PDU *sru_pdu_res,
+                                                Z_SRW_searchRetrieveRequest 
+                                                const *sr_req) const
 {
 
     assert(sru_pdu_res->u.response);

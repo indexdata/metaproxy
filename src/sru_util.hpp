@@ -1,5 +1,5 @@
-/* $Id: sru_util.hpp,v 1.7 2007-01-25 14:05:54 adam Exp $
--   Copyright (c) 2005-2007, Index Data.
+/* $Id: sru_util.hpp,v 1.8 2007-03-20 07:20:16 adam Exp $
+   Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
  */
@@ -65,7 +65,7 @@ namespace metaproxy_1 {
                                        metaproxy_1::odr &odr_de,
                                        metaproxy_1::odr &odr_en,
                                        Z_SRW_PDU *sru_pdu_res,
-                                       Z_SOAP *&soap,
+                                       Z_SOAP **soap,
                                        char *charset,
                                        char *stylesheet);
 

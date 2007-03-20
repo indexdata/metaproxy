@@ -1,4 +1,4 @@
-/* $Id: sru_util.cpp,v 1.8 2007-02-08 09:22:32 marc Exp $
+/* $Id: sru_util.cpp,v 1.9 2007-03-20 07:20:16 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -221,7 +221,7 @@ bool mp_util::build_sru_response(mp::Package &package,
                                                      mp::odr &odr_de,
                                                      mp::odr &odr_en,
                                                      Z_SRW_PDU *sru_pdu_res,
-                                                     Z_SOAP *&soap,
+                                                     Z_SOAP **soap,
                                                      char *charset,
                                                      char *stylesheet) 
 {
@@ -241,7 +241,7 @@ bool mp_util::build_sru_response(mp::Package &package,
 
     // checking if we got a SRU GET/POST/SOAP HTTP package
     // closing connection if we did not ...
-    if (0 == yaz_sru_decode(http_req, &sru_pdu_req, &soap, 
+    if (0 == yaz_sru_decode(http_req, &sru_pdu_req, soap, 
                             odr_de, &charset, 
                             &(sru_pdu_res->u.response->diagnostics), 
                             &(sru_pdu_res->u.response->num_diagnostics)))
@@ -254,7 +254,7 @@ bool mp_util::build_sru_response(mp::Package &package,
         }
         return sru_pdu_req;
     }
-    else if (0 == yaz_srw_decode(http_req, &sru_pdu_req, &soap, 
+    else if (0 == yaz_srw_decode(http_req, &sru_pdu_req, soap, 
                                  odr_de, &charset))
         return sru_pdu_req;
     else 

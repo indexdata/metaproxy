@@ -1,4 +1,4 @@
-/* $Id: filter_zeerex_explain.cpp,v 1.4 2007-01-25 14:05:54 adam Exp $
+/* $Id: filter_zeerex_explain.cpp,v 1.5 2007-03-20 07:20:16 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -140,7 +140,7 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
     char *charset = 0;
     char *stylesheet = 0;
     if (! (sru_pdu_req = mp_util::decode_sru_request(package, odr_de, odr_en, 
-                                            sru_pdu_res, soap,
+                                            sru_pdu_res, &soap,
                                             charset, stylesheet)))
     {
         mp_util::build_sru_explain(package, odr_en, sru_pdu_res, 
@@ -152,13 +152,15 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
     }
     
 
-    if (sru_pdu_req->which != Z_SRW_explain_request){
+    if (sru_pdu_req->which != Z_SRW_explain_request)
+    {
     // Let pass all other SRU actions
         package.move();
         return;
     }
     // except valid SRU explain request, construct ZeeRex Explain response
-    else {
+    else 
+    {
         Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
         //mp_util::build_simple_explain(package, odr_en, sru_pdu_res, 
         //                           sruinfo, er_req);
