@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.18 2007-03-20 07:57:54 adam Exp $
+/* $Id: gduutil.cpp,v 1.19 2007-04-10 11:28:51 marc Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -129,7 +129,8 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 = zapdu.u.initRequest;
 
             Z_IdAuthentication *a = ir->idAuthentication;
-            if (a && a->which == Z_IdAuthentication_idPass )
+            if (a && a->which == Z_IdAuthentication_idPass 
+                &&  a->u.idPass->userId)
                 os << a->u.idPass->userId << " ";
             //<< ":" << a->u.idPass->groupId << " ";
             else
@@ -144,10 +145,13 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 else
                     os << "-" << " " ;
 
-            os << (ir->implementationId) << " "
-                //<< ir->referenceId << " "
-               << (ir->implementationName) << " "
-               << (ir->implementationVersion);
+            if (ir->implementationId)
+                os << (ir->implementationId) << " ";
+            //<< ir->referenceId << " "
+            if (ir->implementationName)
+                os<< (ir->implementationName) << " ";
+            if (ir->implementationVersion)
+                os << (ir->implementationVersion) << " ";
         }
         break;
     case Z_APDU_initResponse:
@@ -155,12 +159,16 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         {
             Z_InitResponse *ir 
                 = zapdu.u.initResponse;
-            if (ir->result && *(ir->result))
-                os << "OK" << " "
-                   << (ir->implementationId) << " "
+            if (ir->result && *(ir->result)){
+                os << "OK" << " ";
+                if (ir->implementationId)
+                     os << (ir->implementationId) << " ";
                     //<< ir->referenceId << " "
-                   << (ir->implementationName) << " "
-                   << (ir->implementationVersion) << " ";
+                if (ir->implementationName)
+                      os<< (ir->implementationName) << " ";
+                if (ir->implementationVersion)
+                     os << (ir->implementationVersion) << " ";
+            }
             else
                 os << "DIAG";
         }
