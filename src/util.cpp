@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.26 2007-03-20 07:57:54 adam Exp $
+/* $Id: util.cpp,v 1.27 2007-04-13 09:57:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -10,7 +10,8 @@
 #include <yaz/odr.h>
 #include <yaz/pquery.h>
 #include <yaz/otherinfo.h>
-#include <yaz/querytowrbuf.h> // for yaz_query_to_wrbuf()
+#include <yaz/querytowrbuf.h>
+#include <yaz/oid_db.h>
 
 #include <iostream>
 
@@ -291,14 +292,17 @@ int mp_util::get_or_remove_vhost_otherinfo(
     std::list<std::string> &vhosts)
 {
     int cat;
+    const int *oid_proxy = yaz_string_to_oid(yaz_oid_std(),
+                                             CLASS_USERINFO,
+                                             OID_STR_PROXY);
     for (cat = 1; ; cat++)
     {
         // check virtual host
         const char *vhost =
-            yaz_oi_get_string_oidval(otherInformation,
-                                     VAL_PROXY, 
-                                     cat /* categoryValue */,
-                                     remove_flag /* delete flag */);
+            yaz_oi_get_string_oid(otherInformation,
+                                  oid_proxy,
+                                  cat /* categoryValue */,
+                                  remove_flag /* delete flag */);
         if (!vhost)
             break;
         vhosts.push_back(std::string(vhost));
@@ -327,10 +331,15 @@ void mp_util::set_vhost_otherinfo(
 {
     int cat;
     std::list<std::string>::const_iterator it = vhosts.begin();
+
+    const int *oid_proxy = yaz_string_to_oid(yaz_oid_std(),
+                                             CLASS_USERINFO,
+                                             OID_STR_PROXY);
+
     for (cat = 1; it != vhosts.end() ; cat++, it++)
     {
-        yaz_oi_set_string_oidval(otherInformation, odr,
-                                 VAL_PROXY, cat, it->c_str());
+        yaz_oi_set_string_oid(otherInformation, odr,
+                              oid_proxy, cat, it->c_str());
     }
 }
 
@@ -338,12 +347,16 @@ void mp_util::set_vhost_otherinfo(
     Z_OtherInformation **otherInformation, ODR odr,
     const std::string vhost, const int cat)
 {
-        yaz_oi_set_string_oidval(otherInformation, odr,
-                                 VAL_PROXY, cat, vhost.c_str());
+    const int *oid_proxy = yaz_string_to_oid(yaz_oid_std(),
+                                             CLASS_USERINFO,
+                                             OID_STR_PROXY);
+
+    yaz_oi_set_string_oid(otherInformation, odr,
+                          oid_proxy, cat, vhost.c_str());
 }
 
 void mp_util::split_zurl(std::string zurl, std::string &host,
-                                   std::list<std::string> &db)
+                         std::list<std::string> &db)
 {
     const char *zurl_cstr = zurl.c_str();
     const char *sep = strchr(zurl_cstr, '/');

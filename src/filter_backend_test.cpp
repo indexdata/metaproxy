@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.23 2007-03-08 09:38:31 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.24 2007-04-13 09:57:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -22,6 +22,7 @@
 #include <yaz/log.h>
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
+#include <yaz/oid_db.h>
 
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
@@ -91,8 +92,6 @@ Z_Records *yf::BackendTest::Rep::fetch(
     int start, int number, int &error_code, std::string &addinfo,
     int *number_returned, int *next_position)
 {
-    oident *prefformat;
-    oid_value form;
     const char *element_set_name = "F"; // default to use
     
     if (number + start - 1 > result_set_size || start < 1)
@@ -101,21 +100,20 @@ Z_Records *yf::BackendTest::Rep::fetch(
         return 0;
     }
 
-    if (!(prefformat = oid_getentbyoid(preferredRecordSyntax)))
-        form = VAL_NONE;
-    else
-        form = prefformat->value;
-    switch(form)
+    const char *name_oid = OID_STR_USMARC; // default if syntax is given
+    if (preferredRecordSyntax)
     {
-    case VAL_NONE:
-        form = VAL_USMARC;
-        break;
-    case VAL_USMARC:
-    case VAL_TEXT_XML:
-        break;
-    default:
-        error_code = YAZ_BIB1_RECORD_SYNTAX_UNSUPP;
-        return 0;
+        name_oid = 
+            yaz_oid_to_string(yaz_oid_std(), preferredRecordSyntax, 0);
+        if (name_oid && !strcmp(name_oid, OID_STR_USMARC))
+            ;
+        else if (name_oid && !strcmp(name_oid, OID_STR_XML))
+            ;
+        else
+        {
+            error_code = YAZ_BIB1_RECORD_SYNTAX_UNSUPP;
+            return 0;
+        }
     }
 
     // no element set, "B" and "F" are supported
@@ -129,11 +127,14 @@ Z_Records *yf::BackendTest::Rep::fetch(
         }
         element_set_name = esn->u.generic;
     }
-    if (!strcmp(element_set_name, "B") && form == VAL_USMARC)
+    if (!strcmp(element_set_name, "B") 
+        && !strcmp(name_oid, OID_STR_USMARC))
         ; // Brief
-    else if (!strcmp(element_set_name, "F") && form == VAL_USMARC)
+    else if (!strcmp(element_set_name, "F") 
+                 && !strcmp(name_oid, OID_STR_USMARC))
         ; // Full
-    else if (!strncmp(element_set_name, "FF", 2) && form == VAL_TEXT_XML)
+    else if (!strncmp(element_set_name, "FF", 2) 
+             && !strcmp(name_oid, OID_STR_XML))
         ; // Huge XML test record
     else
     {
@@ -171,7 +172,7 @@ Z_Records *yf::BackendTest::Rep::fetch(
             memcpy(tmp_rec, "<a>", 3);
             memcpy(tmp_rec + sz - 4, "</a>", 4);
 
-            npr->u.databaseRecord = z_ext_record(odr, VAL_TEXT_XML, tmp_rec, sz);
+            npr->u.databaseRecord = z_ext_record_xml(odr, tmp_rec, sz);
             xfree(tmp_rec);
         }
         else
@@ -180,8 +181,8 @@ Z_Records *yf::BackendTest::Rep::fetch(
             char offset_str[30];
             sprintf(offset_str, "test__%09d_", i+start);
             memcpy(tmp_rec+186, offset_str, strlen(offset_str));
-            npr->u.databaseRecord = z_ext_record(odr, VAL_USMARC,
-                                                 tmp_rec, strlen(tmp_rec));
+            npr->u.databaseRecord = z_ext_record_usmarc(
+                odr, tmp_rec, strlen(tmp_rec));
         }
 
     }

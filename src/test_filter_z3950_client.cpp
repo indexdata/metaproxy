@@ -1,4 +1,4 @@
-/* $Id: test_filter_z3950_client.cpp,v 1.10 2007-01-25 14:05:54 adam Exp $
+/* $Id: test_filter_z3950_client.cpp,v 1.11 2007-04-13 09:57:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -20,6 +20,7 @@
 
 #include <yaz/zgdu.h>
 #include <yaz/otherinfo.h>
+#include <yaz/oid_db.h>
 
 using namespace boost::unit_test;
 namespace mp = metaproxy_1;
@@ -135,8 +136,13 @@ BOOST_AUTO_UNIT_TEST( test_filter_z3950_client_4 )
         
         const char *vhost = "localhost:9999";
         if (vhost)
-            yaz_oi_set_string_oidval(&apdu->u.initRequest->otherInfo,
-                                     odr, VAL_PROXY, 1, vhost);
+        {
+            const int *oid_proxy = yaz_string_to_oid(yaz_oid_std(),
+                                                     CLASS_USERINFO,
+                                                     OID_STR_PROXY);
+            yaz_oi_set_string_oid(&apdu->u.initRequest->otherInfo,
+                                  odr, oid_proxy, 1, vhost);
+        }
         BOOST_CHECK(apdu);
         
         pack.request() = apdu;

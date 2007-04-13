@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.32 2007-03-20 07:20:16 adam Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.33 2007-04-13 09:57:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -16,6 +16,7 @@
 #include <yaz/z-core.h>
 #include <yaz/srw.h>
 #include <yaz/pquery.h>
+#include <yaz/oid_db.h>
 
 #include <boost/thread/mutex.hpp>
 
@@ -566,8 +567,9 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
         record_packing = Z_SRW_recordPacking_string;
 
     // RecordSyntax will always be XML
-    (apdu->u.presentRequest->preferredRecordSyntax)
-        = yaz_oidval_to_z3950oid (odr_en, CLASS_RECSYN, VAL_TEXT_XML);
+    apdu->u.presentRequest->preferredRecordSyntax
+        = yaz_string_to_oid_odr(yaz_oid_std(), CLASS_RECSYN, OID_STR_XML,
+                                odr_en);
 
     // z3950'fy record schema
      if (sr_req->recordSchema)
@@ -662,9 +664,11 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
             else
             {
                 Z_External *r = npr->u.databaseRecord;
-                oident *ent = oid_getentbyoid(r->direct_reference);
-                if (r->which == Z_External_octet 
-                    && ent->value == VAL_TEXT_XML)
+                const int *xml_oid = yaz_string_to_oid(yaz_oid_std(),
+                                                       CLASS_RECSYN,
+                                                       OID_STR_XML);
+                if (xml_oid && r->direct_reference 
+                    && !oid_oidcmp(r->direct_reference, xml_oid))
                 {
                     sru_res->records[i].recordSchema = "dc";
                     sru_res->records[i].recordData_buf

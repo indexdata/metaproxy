@@ -1,4 +1,4 @@
-/* $Id: filter_record_transform.cpp,v 1.9 2007-03-20 07:57:54 adam Exp $
+/* $Id: filter_record_transform.cpp,v 1.10 2007-04-13 09:57:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -178,7 +178,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         else if (ret_code == 2)
         {
             char oidbuf[OID_STR_MAX];
-            oid_to_dotstring(input_syntax, oidbuf);
+            oid_oid_to_dotstring(input_syntax, oidbuf);
             details = odr_strdup(odr_en, oidbuf);
             
             apdu = odr_en.create_presentResponse(
@@ -189,16 +189,12 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         return;
     }
 
-
-
     // now re-coding the z3950 backend present request
      
-    // z3950'fy record syntax
-    if (backend_syntax)  // TODO: this seems not to work - why ??
-        pr_req->preferredRecordSyntax = backend_syntax;
+    if (backend_syntax) 
+        pr_req->preferredRecordSyntax = odr_oiddup(odr_en, backend_syntax);
     else
-        pr_req->preferredRecordSyntax
-            = yaz_oidval_to_z3950oid(odr_en, CLASS_RECSYN, VAL_NONE);
+        pr_req->preferredRecordSyntax = 0;
     
 
     // z3950'fy record schema
@@ -284,9 +280,8 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
                                                    output_record);
                      if (ret_trans == 0)
                      {
-                         struct oident *ident = oid_getentbyoid(match_syntax);
                          npr->u.databaseRecord =
-                             z_ext_record(odr_en, ident->value,
+                             z_ext_record_oid(odr_en, match_syntax,
                                           wrbuf_buf(output_record),
                                           wrbuf_len(output_record));
                      }

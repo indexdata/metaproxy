@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.19 2007-04-10 11:28:51 marc Exp $
+/* $Id: gduutil.cpp,v 1.20 2007-04-13 09:57:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -8,6 +8,7 @@
 #include "util.hpp"
 
 #include <yaz/wrbuf.h>
+#include <yaz/oid_db.h>
 #include <yaz/querytowrbuf.h>
 
 #include <iostream>
@@ -241,8 +242,13 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
             else
                 os << " -";
             if (pr->preferredRecordSyntax)
-                //os << " " << pr->preferredRecordSyntax;
-                os << " " <<(oid_getentbyoid(pr->preferredRecordSyntax))->desc;
+            {
+                char oid_name_str[OID_STR_MAX];
+                const char *oid_name = yaz_oid_to_string_buf(
+                    pr->preferredRecordSyntax, 0, oid_name_str);
+                    
+                os << " " << oid_name;
+            }
             else
                 os << " -";
             const char * msg = 0;
@@ -343,7 +349,8 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 if (sr->termListAndStartPoint)
                 {
                     WRBUF wr = wrbuf_alloc();
-                    yaz_scan_to_wrbuf(wr, sr->termListAndStartPoint, VAL_NONE);
+                    yaz_scan_to_wrbuf(wr, sr->termListAndStartPoint, 
+                                      sr->attributeSet);
                     os << wrbuf_cstr(wr);
                     wrbuf_destroy(wr);
                 }
