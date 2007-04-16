@@ -1,4 +1,4 @@
-/* $Id: test_filter_z3950_client.cpp,v 1.11 2007-04-13 09:57:51 adam Exp $
+/* $Id: test_filter_z3950_client.cpp,v 1.12 2007-04-16 21:54:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -137,11 +137,8 @@ BOOST_AUTO_UNIT_TEST( test_filter_z3950_client_4 )
         const char *vhost = "localhost:9999";
         if (vhost)
         {
-            const int *oid_proxy = yaz_string_to_oid(yaz_oid_std(),
-                                                     CLASS_USERINFO,
-                                                     OID_STR_PROXY);
             yaz_oi_set_string_oid(&apdu->u.initRequest->otherInfo,
-                                  odr, oid_proxy, 1, vhost);
+                                  odr, yaz_oid_userinfo_proxy, 1, vhost);
         }
         BOOST_CHECK(apdu);
         

@@ -1,4 +1,4 @@
-/* $Id: util.cpp,v 1.27 2007-04-13 09:57:51 adam Exp $
+/* $Id: util.cpp,v 1.28 2007-04-16 21:54:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -292,15 +292,12 @@ int mp_util::get_or_remove_vhost_otherinfo(
     std::list<std::string> &vhosts)
 {
     int cat;
-    const int *oid_proxy = yaz_string_to_oid(yaz_oid_std(),
-                                             CLASS_USERINFO,
-                                             OID_STR_PROXY);
     for (cat = 1; ; cat++)
     {
         // check virtual host
         const char *vhost =
             yaz_oi_get_string_oid(otherInformation,
-                                  oid_proxy,
+                                  yaz_oid_userinfo_proxy,
                                   cat /* categoryValue */,
                                   remove_flag /* delete flag */);
         if (!vhost)
@@ -332,14 +329,10 @@ void mp_util::set_vhost_otherinfo(
     int cat;
     std::list<std::string>::const_iterator it = vhosts.begin();
 
-    const int *oid_proxy = yaz_string_to_oid(yaz_oid_std(),
-                                             CLASS_USERINFO,
-                                             OID_STR_PROXY);
-
     for (cat = 1; it != vhosts.end() ; cat++, it++)
     {
         yaz_oi_set_string_oid(otherInformation, odr,
-                              oid_proxy, cat, it->c_str());
+                              yaz_oid_userinfo_proxy, cat, it->c_str());
     }
 }
 
@@ -347,12 +340,8 @@ void mp_util::set_vhost_otherinfo(
     Z_OtherInformation **otherInformation, ODR odr,
     const std::string vhost, const int cat)
 {
-    const int *oid_proxy = yaz_string_to_oid(yaz_oid_std(),
-                                             CLASS_USERINFO,
-                                             OID_STR_PROXY);
-
     yaz_oi_set_string_oid(otherInformation, odr,
-                          oid_proxy, cat, vhost.c_str());
+                          yaz_oid_userinfo_proxy, cat, vhost.c_str());
 }
 
 void mp_util::split_zurl(std::string zurl, std::string &host,

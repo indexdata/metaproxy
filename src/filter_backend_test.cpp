@@ -1,4 +1,4 @@
-/* $Id: filter_backend_test.cpp,v 1.24 2007-04-13 09:57:51 adam Exp $
+/* $Id: filter_backend_test.cpp,v 1.25 2007-04-16 21:54:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -100,14 +100,14 @@ Z_Records *yf::BackendTest::Rep::fetch(
         return 0;
     }
 
-    const char *name_oid = OID_STR_USMARC; // default if syntax is given
+    if (!preferredRecordSyntax)
+        preferredRecordSyntax = odr_oiddup(odr, yaz_oid_recsyn_usmarc);
+
     if (preferredRecordSyntax)
     {
-        name_oid = 
-            yaz_oid_to_string(yaz_oid_std(), preferredRecordSyntax, 0);
-        if (name_oid && !strcmp(name_oid, OID_STR_USMARC))
+        if (!oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml))
             ;
-        else if (name_oid && !strcmp(name_oid, OID_STR_XML))
+        else if (!oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_usmarc))
             ;
         else
         {
@@ -128,13 +128,13 @@ Z_Records *yf::BackendTest::Rep::fetch(
         element_set_name = esn->u.generic;
     }
     if (!strcmp(element_set_name, "B") 
-        && !strcmp(name_oid, OID_STR_USMARC))
+        && !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_usmarc))
         ; // Brief
     else if (!strcmp(element_set_name, "F") 
-                 && !strcmp(name_oid, OID_STR_USMARC))
+             && !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_usmarc))
         ; // Full
     else if (!strncmp(element_set_name, "FF", 2) 
-             && !strcmp(name_oid, OID_STR_XML))
+             && !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml))
         ; // Huge XML test record
     else
     {

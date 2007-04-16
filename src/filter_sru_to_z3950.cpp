@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.33 2007-04-13 09:57:51 adam Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.34 2007-04-16 21:54:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -568,8 +568,7 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
 
     // RecordSyntax will always be XML
     apdu->u.presentRequest->preferredRecordSyntax
-        = yaz_string_to_oid_odr(yaz_oid_std(), CLASS_RECSYN, OID_STR_XML,
-                                odr_en);
+        = odr_oiddup(odr_en, yaz_oid_recsyn_xml);
 
     // z3950'fy record schema
      if (sr_req->recordSchema)
@@ -664,11 +663,8 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
             else
             {
                 Z_External *r = npr->u.databaseRecord;
-                const int *xml_oid = yaz_string_to_oid(yaz_oid_std(),
-                                                       CLASS_RECSYN,
-                                                       OID_STR_XML);
-                if (xml_oid && r->direct_reference 
-                    && !oid_oidcmp(r->direct_reference, xml_oid))
+                if (r->direct_reference 
+                    && !oid_oidcmp(r->direct_reference, yaz_oid_recsyn_xml))
                 {
                     sru_res->records[i].recordSchema = "dc";
                     sru_res->records[i].recordData_buf
