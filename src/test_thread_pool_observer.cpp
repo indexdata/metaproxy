@@ -1,4 +1,4 @@
-/* $Id: test_thread_pool_observer.cpp,v 1.12 2007-01-25 14:05:54 adam Exp $
+/* $Id: test_thread_pool_observer.cpp,v 1.13 2007-04-18 12:06:59 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -82,6 +82,14 @@ void My_Timer_Thread::socketNotify(int event)
     m->m_val = m_requests++;
     m->m_timer = this;
     m_t->put(m);
+#if 0
+    // prevent input queue from being filled up..
+    // bug #1064: Test test_thread_pool_observer hangs
+    // fortunately we don't need this hack. because put (ebove)
+    // will block itself if needed
+    if (m->m_val == 30)
+         m_obs->deleteObserver(this);
+#endif
 }
 
 BOOST_AUTO_UNIT_TEST( thread_pool_observer1 ) 
@@ -93,7 +101,7 @@ BOOST_AUTO_UNIT_TEST( thread_pool_observer1 )
     while (t.m_responses < 30 && mySocketManager.processEvent() > 0)
         ;
     BOOST_CHECK_EQUAL(t.m_responses, 30);
-    BOOST_CHECK(t.m_sum >= 435);
+    BOOST_CHECK(t.m_sum >= 435); // = 29*30/2
 }
 
 /*

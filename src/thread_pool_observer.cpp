@@ -1,4 +1,4 @@
-/* $Id: thread_pool_observer.cpp,v 1.19 2007-02-19 12:51:08 adam Exp $
+/* $Id: thread_pool_observer.cpp,v 1.20 2007-04-18 12:06:59 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -52,13 +52,16 @@ namespace metaproxy_1 {
         boost::thread_group m_thrds;
         boost::mutex m_mutex_input_data;
         boost::condition m_cond_input_data;
+        boost::condition m_cond_input_full;
         boost::mutex m_mutex_output_data;
         std::deque<IThreadPoolMsg *> m_input;
         std::deque<IThreadPoolMsg *> m_output;
         bool m_stop_flag;
-        int m_no_threads;
+        unsigned m_no_threads;
     };
+    const unsigned int queue_size_per_thread = 64;
 }
+
 
 
 using namespace yazpp_1;
@@ -141,7 +144,8 @@ void ThreadPoolSocketObserver::run(void *p)
                 break;
             
             in = m_p->m_input.front();
-            m_p->m_input.pop_front();
+            m_p->m_input.pop_front(); 
+            m_p->m_cond_input_full.notify_all();
         }
         IThreadPoolMsg *out = in->handle();
         {
@@ -159,6 +163,8 @@ void ThreadPoolSocketObserver::run(void *p)
 void ThreadPoolSocketObserver::put(IThreadPoolMsg *m)
 {
     boost::mutex::scoped_lock input_lock(m_p->m_mutex_input_data);
+    while (m_p->m_input.size() >= m_p->m_no_threads * queue_size_per_thread)
+        m_p->m_cond_input_full.wait(input_lock);
     m_p->m_input.push_back(m);
     m_p->m_cond_input_data.notify_one();
 }
