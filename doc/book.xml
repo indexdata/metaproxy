@@ -18,7 +18,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.57 2007-03-30 11:35:04 marc Exp $ -->
+<!-- $Id: book.xml,v 1.58 2007-04-19 06:55:50 adam Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -366,7 +366,7 @@
    </para>
    <para>
     There is currently no official RPM package for YAZ++.
-    See the <ulink url="&url.yaz.pp;">YAZ++</ulink> pages 
+    See the <ulink url="&url.yazplusplus;">YAZ++</ulink> pages 
     for more information on a Unix tarball install.
    </para>
    <para>
