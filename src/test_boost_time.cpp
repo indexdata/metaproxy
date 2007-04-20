@@ -1,4 +1,4 @@
-/* $Id: test_boost_time.cpp,v 1.9 2007-01-25 14:05:54 adam Exp $
+/* $Id: test_boost_time.cpp,v 1.10 2007-04-20 08:53:34 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -37,7 +37,7 @@ BOOST_AUTO_UNIT_TEST( testboosttime1 )
         boost::posix_time::time_duration duration = then - now;
         //std::cout << duration << std::endl;
         
-        BOOST_CHECK (duration.total_seconds() == 1);
+        BOOST_CHECK (duration.total_seconds() >= 1);
         BOOST_CHECK (duration.fractional_seconds() > 0);
         
     }
