@@ -4,8 +4,8 @@
  <!ENTITY % common SYSTEM "common/common.ent">
      %common;
 ]>
-<!-- $Id: http_file.xml,v 1.6 2007-01-18 11:32:42 marc Exp $ -->
-<refentry>
+<!-- $Id: http_file.xml,v 1.7 2007-05-09 21:23:08 adam Exp $ -->
+<refentry id="ref-http_file">
  <refmeta>
   <refentrytitle>http_file</refentrytitle>
   <manvolnum>3mp</manvolnum>

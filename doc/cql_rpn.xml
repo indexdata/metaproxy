@@ -4,10 +4,10 @@
  <!ENTITY % common SYSTEM "common/common.ent">
      %common;
 ]>
-<!-- $Id: cql_rpn.xml,v 1.1 2007-01-18 11:32:42 marc Exp $ -->
-<refentry>
+<!-- $Id: cql_rpn.xml,v 1.2 2007-05-09 21:23:08 adam Exp $ -->
+<refentry id="ref-cql_rpn">
  <refmeta>
-  <refentrytitle>query_rewrite</refentrytitle>
+  <refentrytitle>cql_rpn</refentrytitle>
   <manvolnum>3mp</manvolnum>
    <refmiscinfo>Metaproxy Module</refmiscinfo>
 </refmeta>

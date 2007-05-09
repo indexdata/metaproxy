@@ -4,8 +4,8 @@
  <!ENTITY % common SYSTEM "common/common.ent">
      %common;
 ]>
-<!-- $Id: z3950_client.xml,v 1.6 2007-01-26 14:49:21 adam Exp $ -->
-<refentry>
+<!-- $Id: z3950_client.xml,v 1.7 2007-05-09 21:23:08 adam Exp $ -->
+<refentry id="ref-z3950_client">
  <refmeta>
   <refentrytitle>z3950_client</refentrytitle>
   <manvolnum>3mp</manvolnum>

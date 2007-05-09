@@ -1,3 +1,7 @@
+--- 1.0.9 ..
+
+Switched to GPL v2.
+
 Added support for configurable default/force target/vhost for module Z39.50
 client module.
 

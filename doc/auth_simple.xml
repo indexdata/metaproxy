@@ -4,8 +4,8 @@
  <!ENTITY % common SYSTEM "common/common.ent">
      %common;
 ]>
-<!-- $Id: auth_simple.xml,v 1.8 2007-01-18 11:32:42 marc Exp $ -->
-<refentry>
+<!-- $Id: auth_simple.xml,v 1.9 2007-05-09 21:23:08 adam Exp $ -->
+<refentry id="ref-auth_simple">
  <refmeta>
   <refentrytitle>auth_simple</refentrytitle>
   <manvolnum>3mp</manvolnum>

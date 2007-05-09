@@ -1,7 +1,22 @@
-/* $Id: filter_bounce.hpp,v 1.2 2007-01-25 14:05:54 adam Exp $
+/* $Id: filter_bounce.hpp,v 1.3 2007-05-09 21:23:09 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
-   See the LICENSE file for details
+This file is part of Metaproxy.
+
+Metaproxy is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+Metaproxy is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with Metaproxy; see the file LICENSE.  If not, write to the
+Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
+02111-1307, USA.
  */
 
 // Filter that bounces all requests packages
