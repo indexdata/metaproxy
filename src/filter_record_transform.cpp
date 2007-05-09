@@ -1,4 +1,4 @@
-/* $Id: filter_record_transform.cpp,v 1.10 2007-04-13 09:57:51 adam Exp $
+/* $Id: filter_record_transform.cpp,v 1.11 2007-05-09 07:14:28 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -141,7 +141,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     }
     
     const char *match_schema = 0;
-    int *match_syntax = 0;
+    Odr_oid *match_syntax = 0;
 
     const char *backend_schema = 0;
     Odr_oid *backend_syntax = 0;
