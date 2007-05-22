@@ -4,7 +4,7 @@
  <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
 ]>
-<!-- $Id: log.xml,v 1.11 2007-05-22 13:03:32 adam Exp $ -->
+<!-- $Id: log.xml,v 1.12 2007-05-22 19:45:57 adam Exp $ -->
 <refentry id="ref-log">
  <refmeta>
   <refentrytitle>log</refentrytitle>
@@ -56,6 +56,14 @@
 	   This is a brief message stating the request and response.
 	   This is enabled by default. All other categories are disabled by
 	   default. See the section ACCESS LOG.
+	  </para>
+	 </listitem>
+	</varlistentry>
+	<varlistentry><term>user-access</term>
+	 <listitem>
+	  <para>
+	   One line log messages similar to <literal>access</literal> but
+	   with the authenticated user on each log line.
 	  </para>
 	 </listitem>
 	</varlistentry>
@@ -145,6 +153,10 @@
     <varlistentry><term>IP (position 3)</term>
      <listitem><para>
        IP address of origin (peer)
+      </para>
+      <para>
+       If category <literal>user-acesss</literal> is used the
+       user is written on position 3 and the IP is written on position 4.
       </para>
      </listitem>
     </varlistentry>

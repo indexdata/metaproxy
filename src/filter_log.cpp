@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.30 2007-05-22 13:03:32 adam Exp $
+/* $Id: filter_log.cpp,v 1.31 2007-05-22 19:45:58 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -43,7 +43,6 @@ namespace yf = metaproxy_1::filter;
 
 namespace metaproxy_1 {
     namespace filter {
-
         class Log::Impl {
         public:
             class LFile;
@@ -52,7 +51,7 @@ namespace metaproxy_1 {
             //Impl();
             Impl(const std::string &x = "-");
            ~Impl();
-            void process(metaproxy_1::Package & package) const;
+            void process(metaproxy_1::Package & package);
             void configure(const xmlNode * ptr);
         private:
             void openfile(const std::string &fname);
@@ -64,6 +63,7 @@ namespace metaproxy_1 {
         private:
             std::string m_msg_config;
             bool m_access;
+            bool m_user_access;
             bool m_req_apdu;
             bool m_res_apdu;
             bool m_req_session;
@@ -74,6 +74,9 @@ namespace metaproxy_1 {
             // for performance avoid opening files which other log filter 
             // instances already have opened
             static std::list<LFilePtr> filter_log_files;
+
+            boost::mutex m_session_mutex;
+            std::map<mp::Session, std::string> m_sessions;
        };
 
         class Log::Impl::LFile {
@@ -134,6 +137,7 @@ std::list<yf::Log::Impl::LFilePtr> yf::Log::Impl::filter_log_files;
 yf::Log::Impl::Impl(const std::string &x)
     : m_msg_config(x),
       m_access(true),
+      m_user_access(false),
       m_req_apdu(false),
       m_res_apdu(false),
       m_req_session(false),
@@ -167,10 +171,10 @@ void yf::Log::Impl::configure(const xmlNode *ptr)
             const struct _xmlAttr *attr;
             for (attr = ptr->properties; attr; attr = attr->next)
             {
-                if (!strcmp((const char *) attr->name, 
-                                 "access"))
-                    m_access = 
-                        mp::xml::get_bool(attr->children, true);
+                if (!strcmp((const char *) attr->name,  "access"))
+                    m_access = mp::xml::get_bool(attr->children, true);
+                else if (!strcmp((const char *) attr->name, "user-access"))
+                    m_user_access = mp::xml::get_bool(attr->children, true);
                 else if (!strcmp((const char *) attr->name, "request-apdu"))
                     m_req_apdu = mp::xml::get_bool(attr->children, true);
                 else if (!strcmp((const char *) attr->name, "response-apdu"))
@@ -214,24 +218,51 @@ void yf::Log::Impl::configure(const xmlNode *ptr)
     }
 }
 
-void yf::Log::Impl::process(mp::Package &package) const
+void yf::Log::Impl::process(mp::Package &package)
 {
-    Z_GDU *gdu;
+    Z_GDU *gdu = package.request().get();
+    std::string user("-");
 
     // getting timestamp for receiving of package
     boost::posix_time::ptime receive_time
         = boost::posix_time::microsec_clock::local_time();
 
-
-
-    // scope for locking Ostream 
+    // scope for session lock
+    {
+        boost::mutex::scoped_lock scoped_lock(m_session_mutex);
+        
+        if (gdu && gdu->which == Z_GDU_Z3950)
+        {
+            Z_APDU *apdu_req = gdu->u.z3950;
+            if (apdu_req->which == Z_APDU_initRequest)
+            {
+                Z_InitRequest *req = apdu_req->u.initRequest;
+                Z_IdAuthentication *a = req->idAuthentication;
+                if (a)
+                {
+                    if (a->which == Z_IdAuthentication_idPass)
+                        user = a->u.idPass->userId;
+                    else if (a->which == Z_IdAuthentication_open)
+                        user = a->u.open;
+                
+                    m_sessions[package.session()] = user;
+                }
+            }
+        }
+        std::map<mp::Session,std::string>::iterator it = 
+            m_sessions.find(package.session());
+        if (it != m_sessions.end())
+            user = it->second;
+        
+        if (package.session().is_closed())
+            m_sessions.erase(package.session());
+    }
+    // scope for locking Ostream
     { 
         boost::mutex::scoped_lock scoped_lock(m_file->m_mutex);
-        
  
         if (m_access)
         {
-            gdu = package.request().get();
             if (gdu)          
             {
                 m_file->out
@@ -239,6 +270,22 @@ void yf::Log::Impl::process(mp::Package &package) const
                     //<< to_iso_string(receive_time) << " "
                     << to_iso_extended_string(receive_time) << " "
                     << m_msg_config << " "
+                    << package << " "
+                    << "000000.000000" << " " 
+                    << *gdu
+                    << "\n";
+            }
+        }
+
+        if (m_user_access)
+        {
+            if (gdu)          
+            {
+                m_file->out
+                    //<< receive_time << " "
+                    //<< to_iso_string(receive_time) << " "
+                    << to_iso_extended_string(receive_time) << " "
+                    << m_msg_config << " " << user << " "
                     << package << " "
                     << "000000.000000" << " " 
                     << *gdu
@@ -257,7 +304,6 @@ void yf::Log::Impl::process(mp::Package &package) const
 
         if (m_init_options)
         {
-            gdu = package.request().get();
             if (gdu && gdu->which == Z_GDU_Z3950 &&
                 gdu->u.z3950->which == Z_APDU_initRequest)
             {
@@ -271,7 +317,6 @@ void yf::Log::Impl::process(mp::Package &package) const
         
         if (m_req_apdu)
         {
-            gdu = package.request().get();
             if (gdu)
             {
                 mp::odr odr(ODR_PRINT);
@@ -285,6 +330,8 @@ void yf::Log::Impl::process(mp::Package &package) const
     // unlocked during move
     package.move();
 
+    gdu = package.response().get();
+
     // getting timestamp for sending of package
     boost::posix_time::ptime send_time
         = boost::posix_time::microsec_clock::local_time();
@@ -297,7 +344,6 @@ void yf::Log::Impl::process(mp::Package &package) const
 
         if (m_access)
         {
-            gdu = package.response().get();
             if (gdu)
             {
                 m_file->out
@@ -305,6 +351,21 @@ void yf::Log::Impl::process(mp::Package &package) const
                     //<< to_iso_string(send_time) << " "
                     << to_iso_extended_string(send_time) << " "
                     << m_msg_config << " "
+                    << package << " "
+                    << to_iso_string(duration) << " "
+                    << *gdu
+                    << "\n";
+            }   
+        }
+        if (m_user_access)
+        {
+            if (gdu)
+            {
+                m_file->out
+                    //<< send_time << " "
+                    //<< to_iso_string(send_time) << " "
+                    << to_iso_extended_string(send_time) << " "
+                    << m_msg_config << " " << user << " "
                     << package << " "
                     << to_iso_string(duration) << " "
                     << *gdu
@@ -324,7 +385,6 @@ void yf::Log::Impl::process(mp::Package &package) const
 
         if (m_init_options)
         {
-            gdu = package.response().get();
             if (gdu && gdu->which == Z_GDU_Z3950 &&
                 gdu->u.z3950->which == Z_APDU_initResponse)
             {
@@ -338,7 +398,6 @@ void yf::Log::Impl::process(mp::Package &package) const
         
         if (m_res_apdu)
         {
-            gdu = package.response().get();
             if (gdu)
             {
                 mp::odr odr(ODR_PRINT);
@@ -346,7 +405,6 @@ void yf::Log::Impl::process(mp::Package &package) const
                 z_GDU(odr, &gdu, 0, 0);
             }
         }
-        
         m_file->out.flush();
     }
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config0.xml,v 1.4 2006-11-29 13:00:54 marc Exp $ -->
+<!-- $Id: config0.xml,v 1.5 2007-05-22 19:45:58 adam Exp $ -->
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <filters>
@@ -10,7 +10,8 @@
   <routes>  
     <route id="start">
       <filter refid="frontend"/>
-      <filter type="log"/>
+      <filter type="log"><category user-access="true"/></filter>
+      <filter type="backend_test"/>
       <filter type="bounce"/>
     </route>
   </routes>

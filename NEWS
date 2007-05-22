@@ -1,6 +1,8 @@
 --- 1.0.9 ..
 
-Extended the access log a bit. Updated documentation accordingly.
+Extension for log module. The log category 'access' logs more details.
+New category 'user-access' added which is simlar to 'access' but adds
+the Z39.50 user as for all entries in a session.
 
 Switched to GPL v2.
 
