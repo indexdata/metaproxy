@@ -4,7 +4,7 @@
  <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
 ]>
-<!-- $Id: log.xml,v 1.10 2007-05-22 11:05:45 adam Exp $ -->
+<!-- $Id: log.xml,v 1.11 2007-05-22 13:03:32 adam Exp $ -->
 <refentry id="ref-log">
  <refmeta>
   <refentrytitle>log</refentrytitle>
@@ -35,7 +35,7 @@
     <varlistentry><term>filename</term>
      <listitem>
       <para>
-       Specifies a name of file that log messages is written to.
+       Specifies a name of log file.
       </para>
      </listitem>
     </varlistentry>
@@ -48,74 +48,227 @@
        for disabled.
        The following category attributes are supported:
 
-   <variablelist>
-    <varlistentry><term>access</term>
-     <listitem>
-      <para>
-       One line log messages inspired by Apache access log entries.
-       This is a brief message stating the request and response.
-       This is enabled by default. All other categories are disabled by
-       default.
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry><term>request-apdu</term>
-     <listitem>
-      <para>
-       Z39.50 Request APDU.
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry><term>response-apdu</term>
-     <listitem>
-      <para>
-       Z39.50 Response APDU.
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry><term>apdu</term>
-     <listitem>
-      <para>
-       Z39.50 APDU (request and response)
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry><term>request-session</term>
-     <listitem>
-      <para>
-       Request session.
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry><term>response-session</term>
-     <listitem>
-      <para>
-       Response session.
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry><term>session</term>
-     <listitem>
-      <para>
-       Session (request and response)
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry><term>init-options</term>
-     <listitem>
-      <para>
-       Z39.50 Init Request options
-      </para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-
-
+       <variablelist>
+	<varlistentry><term>access</term>
+	 <listitem>
+	  <para>
+	   One line log messages inspired by Apache access log entries.
+	   This is a brief message stating the request and response.
+	   This is enabled by default. All other categories are disabled by
+	   default. See the section ACCESS LOG.
+	  </para>
+	 </listitem>
+	</varlistentry>
+	<varlistentry><term>request-apdu</term>
+	 <listitem>
+	  <para>
+	   Z39.50 Request APDU.
+	  </para>
+	 </listitem>
+	</varlistentry>
+	<varlistentry><term>response-apdu</term>
+	 <listitem>
+	  <para>
+	   Z39.50 Response APDU.
+	  </para>
+	 </listitem>
+	</varlistentry>
+	<varlistentry><term>apdu</term>
+	 <listitem>
+	  <para>
+	   Z39.50 APDU (request and response)
+	  </para>
+	 </listitem>
+	</varlistentry>
+	<varlistentry><term>request-session</term>
+	 <listitem>
+	  <para>
+	   Request session.
+	  </para>
+	 </listitem>
+	</varlistentry>
+	<varlistentry><term>response-session</term>
+	 <listitem>
+	  <para>
+	   Response session.
+	  </para>
+	 </listitem>
+	</varlistentry>
+	<varlistentry><term>session</term>
+	 <listitem>
+	  <para>
+	   Session (request and response)
+	  </para>
+	 </listitem>
+	</varlistentry>
+	<varlistentry><term>init-options</term>
+	 <listitem>
+	  <para>
+	   Z39.50 Init Request options
+	  </para>
+	 </listitem>
+	</varlistentry>
+       </variablelist>
+       
       </para>
      </listitem>
     </varlistentry>
    </variablelist>
   </para>
+ </refsect1>
+
+ <refsect1><title>The access log</title>
+  <para>
+   The access is is strictly one line per entry and aims for
+   easy mangling with tools such as awk, grep, perl etc.
+   Many values may be omitted in the packages in which case a single
+   dash is printed instead. This is to ensure that all values have
+   well-defined position.
+  </para>
+  <para>
+   The basic format and order is
+   <variablelist>
+    <varlistentry><term>time (position 1)</term>
+     <listitem><para>
+       Full time of event
+      </para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry><term>Custom message (position 2)</term>
+     <listitem><para>
+       The string as given in element <literal>message</literal>.
+      </para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry><term>IP (position 3)</term>
+     <listitem><para>
+       IP address of origin (peer)
+      </para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry><term>session (position 4)</term>
+     <listitem><para>
+       Session ID. Can be used to identify a particular Z39.50 session.
+       For HTTP this session ID only tracks the HTTP socket (kept alive).
+       NOT to be confused the the HTTP cookie mechanism.
+      </para>
+     </listitem>
+    </varlistentry>
+
+    <varlistentry><term>elapsed (position 5)</term>
+     <listitem><para>
+       Elapsed time .
+       The elapsed time is the time between the point in time
+       where a package was received form the client and the
+       point where a response was received from the next filter
+       in chain (backend eventually).
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>protocol (position 6)</term>
+     <listitem><para>
+       Protocol type which is one of <literal>Z3950</literal> or
+       <literal>HTTP_Request</literal> or 
+       <literal>HTTP_Response</literal>.
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </para>
+  
+  <para>
+   For packages of with protocol marker <literal>Z3950</literal>
+   the the access log line is followed by the APDU type + information
+   depending on the type. The APDU type is on position 7.
+   
+   <variablelist>
+    
+    <varlistentry><term>initRequest</term>
+     <listitem><para>
+       Z39.50 Initialize Request with the information 
+       username, vhost,
+       implementation ID, implementation name, implementation version.
+      </para>
+     </listitem>
+    </varlistentry>
+    
+    <varlistentry><term>initResponse</term>
+     <listitem><para>
+       Z39.50 Initialize Response with the information:
+       status (OK or FAIL), implementatino ID, implementation name,
+       implementation version.
+      </para>
+     </listitem>
+    </varlistentry>
+    
+    <varlistentry><term>searchRequest</term>
+     <listitem><para>
+       Z39.50 Search Request with the information:
+       database(s), result set ID, record syntax, query.
+      </para>
+      <para>
+       Multiple databases are separated by 
+       a plus-sign (<literal>+</literal>). The query itself is
+       multiple tokens. For this reason it is placed as the last
+       information on this log entry.
+      </para>
+     </listitem>
+    </varlistentry>
+    
+    <varlistentry><term>searchResponse</term>
+     <listitem><para>
+       Z39.50 Search Response with the information:
+       status (OK or FAIL), hit count, number of records returned,
+       next result set position.
+      </para>
+     </listitem>
+    </varlistentry>
+    
+    <varlistentry><term>presentRequest</term>
+     <listitem><para>
+       Z39.50 Present Request with the information:
+       result Set ID, start position, number of records requested,
+       record syntax, record composition.
+      </para>
+     </listitem>
+    </varlistentry>
+    
+    <varlistentry><term>presentResponse</term>
+     <listitem><para>
+       Z39.50 Present Response with the information:
+       status (OK, DIAG, ERROR), number of records returned,
+       next result set position.
+      </para>
+     </listitem>
+    </varlistentry>
+    
+    <varlistentry><term>scanRequest</term>
+     <listitem><para>
+       Z39.50 Scan Request with the information:
+       database(s), number of terms requested, preferred position in
+       response, step size, start point.
+      </para>
+      <para>
+       start point is a multi token value in PQF notation.
+      </para>
+     </listitem>
+    </varlistentry>
+    
+    <varlistentry><term>scanResponse</term>
+     <listitem><para>
+       Z39.50 Scan Response with the information:
+       status (OK, ERROR), number of entries returned, position of term,
+       step size.
+      </para>
+     </listitem>
+    </varlistentry>
+    
+   </variablelist>
+  </para>
+  
  </refsect1>
  
  <refsect1><title>EXAMPLES</title>

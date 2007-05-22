@@ -1,4 +1,4 @@
-/* $Id: gduutil.cpp,v 1.21 2007-05-09 21:23:09 adam Exp $
+/* $Id: gduutil.cpp,v 1.22 2007-05-22 13:03:32 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -133,60 +133,74 @@ std::ostream& std::operator<<(std::ostream& os, Z_DefaultDiagFormat& ddf)
     return os;
 }
 
+static void dump_opt_string(std::ostream& os, const char *s)
+{
+    os << " ";
+    if (s)
+        os << s;
+    else
+        os << "-";
+}
+
+static void dump_opt_int(std::ostream& os, const int *i)
+{
+    os << " ";
+    if (i)
+        os << *i;
+    else
+        os << "-";
+}
+
 std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
 {
     switch(zapdu.which) {
 
     case Z_APDU_initRequest:
-        os << " " << "initRequest" << " ";
+        os << " " << "initRequest";
                         
         {
             Z_InitRequest *ir 
                 = zapdu.u.initRequest;
 
             Z_IdAuthentication *a = ir->idAuthentication;
-            if (a && a->which == Z_IdAuthentication_idPass 
-                &&  a->u.idPass->userId)
-                os << a->u.idPass->userId << " ";
-            //<< ":" << a->u.idPass->groupId << " ";
+            if (a && a->which == Z_IdAuthentication_idPass)
+                dump_opt_string(os, a->u.idPass->userId);
+            else if (a && a->which == Z_IdAuthentication_open)
+                dump_opt_string(os, a->u.open);
             else
-                os << "-" << " ";
-
+                dump_opt_string(os, 0);
+            
+            os << " ";
             std::list<std::string> vhosts;
             mp::util::get_vhost_otherinfo(ir->otherInfo, vhosts);
             if (vhosts.size()){
                 copy(vhosts.begin(), vhosts.end(), 
                      ostream_iterator<string>(os, " "));
             }
-                else
-                    os << "-" << " " ;
-
-            if (ir->implementationId)
-                os << (ir->implementationId) << " ";
-            //<< ir->referenceId << " "
-            if (ir->implementationName)
-                os<< (ir->implementationName) << " ";
-            if (ir->implementationVersion)
-                os << (ir->implementationVersion) << " ";
+            else
+                os << "-" ;
+            
+            dump_opt_string(os, ir->implementationId);
+            dump_opt_string(os, ir->implementationName);
+            dump_opt_string(os, ir->implementationVersion);
         }
         break;
     case Z_APDU_initResponse:
-        os << " " << "initResponse" << " ";
+        os << " " << "initResponse ";
         {
             Z_InitResponse *ir 
                 = zapdu.u.initResponse;
-            if (ir->result && *(ir->result)){
-                os << "OK" << " ";
-                if (ir->implementationId)
-                     os << (ir->implementationId) << " ";
-                    //<< ir->referenceId << " "
-                if (ir->implementationName)
-                      os<< (ir->implementationName) << " ";
-                if (ir->implementationVersion)
-                     os << (ir->implementationVersion) << " ";
+            if (ir->result && *(ir->result))
+            {
+                os << "OK";
             }
             else
-                os << "DIAG";
+            {
+                os << "FAIL";
+            }
+            dump_opt_string(os, ir->implementationId);
+            dump_opt_string(os, ir->implementationName);
+            dump_opt_string(os, ir->implementationVersion);
         }
         break;
     case Z_APDU_searchRequest:
@@ -198,12 +212,25 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
             for (int i = 0; i < sr->num_databaseNames; i++)
             {
                 os << sr->databaseNames[i];
-                if (i+1 ==  sr->num_databaseNames)
-                    os << " ";
-                else
+                if (i+1 !=  sr->num_databaseNames)
                     os << "+";
             }
-                         
+
+            dump_opt_string(os, sr->resultSetName);
+
+            os << " ";
+            if (sr->preferredRecordSyntax)
+            {
+                char oid_name_str[OID_STR_MAX];
+                const char *oid_name = yaz_oid_to_string_buf(
+                    sr->preferredRecordSyntax, 0, oid_name_str);
+                
+                os << oid_name;
+            }
+            else
+                os << "-";
+
+            os << " ";
             WRBUF wr = wrbuf_alloc();
             yaz_query_to_wrbuf(wr, sr->query);
             os << wrbuf_cstr(wr);
@@ -211,26 +238,16 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         }
         break;
     case Z_APDU_searchResponse:
-        os << " " << "searchResponse" << " ";
+        os << " " << "searchResponse ";
         {
             Z_SearchResponse *sr 
                 = zapdu.u.searchResponse;
             if (sr->searchStatus && *(sr->searchStatus))
             {
                 os << "OK";
-                if (sr->resultCount)
-                    os << " " << *(sr->resultCount);
-                else
-                    os << " -";
-                //<< sr->referenceId << " "
-                if (sr->numberOfRecordsReturned)
-                    os << " " << *(sr->numberOfRecordsReturned);
-                else
-                    os << " -";
-                if (sr->nextResultSetPosition)
-                    os << " " << *(sr->nextResultSetPosition);
-                else
-                    os << " -";
+                dump_opt_int(os, sr->resultCount);
+                dump_opt_int(os, sr->numberOfRecordsReturned);
+                dump_opt_int(os, sr->nextResultSetPosition);
             }
             else 
                 if (sr->records)
@@ -243,19 +260,9 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         os << " " << "presentRequest";
         {
             Z_PresentRequest *pr = zapdu.u.presentRequest;
-            if (pr->resultSetId)
-                os << " " << (pr->resultSetId);
-            else
-                os << " -";
-            //<< pr->referenceId << " "
-            if (pr->resultSetStartPoint)
-                os << " " << *(pr->resultSetStartPoint);
-            else
-                os << " -";
-            if (pr->numberOfRecordsRequested)
-                os << " " << *(pr->numberOfRecordsRequested);
-            else
-                os << " -";
+            dump_opt_string(os, pr->resultSetId);
+            dump_opt_int(os, pr->resultSetStartPoint);
+            dump_opt_int(os, pr->numberOfRecordsRequested);
             if (pr->preferredRecordSyntax)
             {
                 char oid_name_str[OID_STR_MAX];
@@ -267,11 +274,9 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
             else
                 os << " -";
             const char * msg = 0;
-            if (pr->recordComposition 
-                && (msg = mp_util::record_composition_to_esn(pr->recordComposition)))
-                os << " " << msg;
-            else
-                os << " -";
+            if (pr->recordComposition)
+                msg = mp_util::record_composition_to_esn(pr->recordComposition);
+            dump_opt_string(os, msg);
         }
         break;
     case Z_APDU_presentResponse:
@@ -343,24 +348,14 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 for (int i = 0; i < sr->num_databaseNames; i++)
                 {
                     os << sr->databaseNames[i];
-                    if (i+1 ==  sr->num_databaseNames)
-                        os << " ";
-                    else
-                    os << "+";
+                    if (i+1 !=  sr->num_databaseNames)
+                        os << "+";
                 }
-                if (sr->numberOfTermsRequested)
-                    os << " " << *(sr->numberOfTermsRequested);
-                else
-                     os << " -";
-                if (sr->preferredPositionInResponse)
-                    os << " " << *(sr->preferredPositionInResponse);
-                else
-                    os << " -";
-                if (sr->stepSize)
-                    os << " " << *(sr->stepSize);
-                else
-                    os << " -";
-                
+                dump_opt_int(os, sr->numberOfTermsRequested);
+                dump_opt_int(os, sr->preferredPositionInResponse);
+                dump_opt_int(os, sr->stepSize);
+
+                os << " ";
                 if (sr->termListAndStartPoint)
                 {
                     WRBUF wr = wrbuf_alloc();
@@ -370,7 +365,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                     wrbuf_destroy(wr);
                 }
                 else
-                    os << " -";
+                    os << "-";
             }
         }
         break;
@@ -381,61 +376,41 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 = zapdu.u.scanResponse;
             if (sr)
             {
-                if ((sr->scanStatus) && !*(sr->scanStatus))
+                if (!sr->scanStatus)
                 {
                     os << "OK";
-                    //<< *(sr->scanStatus) << " "
-                    if (sr->numberOfEntriesReturned)
-                        os << " " << *(sr->numberOfEntriesReturned);
-                    else
-                        os << " -";
-                    //<< sr->referenceId << " "
-                    if (sr->positionOfTerm)
-                        os << " " << *(sr->positionOfTerm);
-                    else
-                        os << " -";
-                    if (sr->stepSize)
-                        os << " " << *(sr->stepSize);
-                     else
-                        os << " -";                  
                 }
-                else {
-                    os << "ERROR";
-                    if (sr->scanStatus)
-                    {
-                        os << " " << *(sr->scanStatus) << " ";
-                    
-                        switch (*(sr->scanStatus)){
-                        case Z_Scan_success:
-                            os << "success ";
-                            break;
-                        case Z_Scan_partial_1:
-                            os << "partial_1";
-                            break;
-                        case Z_Scan_partial_2:
-                            os << "partial_2";
-                            break;
-                        case Z_Scan_partial_3:
-                            os << "partial_3";
-                            break;
-                        case Z_Scan_partial_4:
-                            os << "partial_4";
-                            break;
-                        case Z_Scan_partial_5:
-                            os << "partial_5";
-                            break;
-                        case Z_Scan_failure:
-                            os << "failure";
-                            break;
-                        default:
-                            os << "unknown";
-                        }
+                else
+                {
+                    switch (*(sr->scanStatus)){
+                    case Z_Scan_success:
+                        os << "OK";
+                        break;
+                    case Z_Scan_partial_1:
+                        os << "partial_1";
+                        break;
+                    case Z_Scan_partial_2:
+                        os << "partial_2";
+                        break;
+                    case Z_Scan_partial_3:
+                        os << "partial_3";
+                        break;
+                    case Z_Scan_partial_4:
+                        os << "partial_4";
+                        break;
+                    case Z_Scan_partial_5:
+                        os << "partial_5";
+                        break;
+                    case Z_Scan_failure:
+                        os << "failure";
+                        break;
+                    default:
+                        os << "unknown";
                     }
-                    if (sr->numberOfEntriesReturned)
-                        os << " " << *(sr->numberOfEntriesReturned);
-                    else
-                        os << " -";
                 }
+                dump_opt_int(os, sr->numberOfEntriesReturned);
+                dump_opt_int(os, sr->positionOfTerm);
+                dump_opt_int(os, sr->stepSize);
             }
         }
         break;

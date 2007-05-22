@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.29 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_log.cpp,v 1.30 2007-05-22 13:03:32 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -50,7 +50,7 @@ namespace metaproxy_1 {
             typedef boost::shared_ptr<Log::Impl::LFile> LFilePtr;
         public:
             //Impl();
-            Impl(const std::string &x = "");
+            Impl(const std::string &x = "-");
            ~Impl();
             void process(metaproxy_1::Package & package) const;
             void configure(const xmlNode * ptr);

@@ -1,5 +1,7 @@
 --- 1.0.9 ..
 
+Extended the access log a bit. Updated documentation accordingly.
+
 Switched to GPL v2.
 
 Added support for configurable default/force target/vhost for module Z39.50
