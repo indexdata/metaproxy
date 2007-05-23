@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.23 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_auth_simple.cpp,v 1.24 2007-05-23 14:24:10 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -357,8 +357,8 @@ void yf::AuthSimple::check_targets(mp::Package & package) const
     std::list<std::string> authorisedTargets = m_p->targetsByUser[user];
 
     std::list<std::string> targets;
-    Z_OtherInformation *otherInfo = initReq->otherInfo;
-    mp::util::get_vhost_otherinfo(otherInfo, targets);
+    Z_OtherInformation **otherInfo = &initReq->otherInfo;
+    mp::util::remove_vhost_otherinfo(otherInfo, targets);
 
     // Check each of the targets specified in the otherInfo package
     std::list<std::string>::iterator i;
@@ -381,9 +381,8 @@ void yf::AuthSimple::check_targets(mp::Package & package) const
                            YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED,
                            // ### It would be better to use the Z-db name
                            "all databases");
-
     mp::odr odr;
-    mp::util::set_vhost_otherinfo(&otherInfo, odr, targets);
+    mp::util::set_vhost_otherinfo(otherInfo, odr, targets);
     package.move();
 }
 

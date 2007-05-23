@@ -1,5 +1,7 @@
 --- 1.0.9 ..
 
+Fixed bug #1136: Access rights not enforced.
+
 Extension for log module. The log category 'access' logs more details.
 New category 'user-access' added which is simlar to 'access' but adds
 the Z39.50 user as for all entries in a session.
