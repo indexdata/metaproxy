@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.31 2007-05-22 19:45:58 adam Exp $
+/* $Id: filter_log.cpp,v 1.32 2007-05-24 14:07:12 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -445,7 +445,7 @@ void yf::Log::Impl::option_write(const char *name, void *handle)
 
 
 yf::Log::Impl::LFile::LFile(std::string fname) : 
-    m_fname(fname), fout(fname.c_str()), out(fout)
+    m_fname(fname), fout(fname.c_str(),std::ios_base::app), out(fout)
 {
 }
 
