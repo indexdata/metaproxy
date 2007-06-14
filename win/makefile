@@ -1,6 +1,6 @@
 # Copyright (C) 2005-2007, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.32 2007-05-23 17:12:24 adam Exp $
+# $Id: makefile,v 1.33 2007-06-14 08:33:27 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
@@ -8,7 +8,7 @@
 DEBUG=0   # 0 for release, 1 for debug
 
 # Metaproxy version
-VERSION=1.0.10
+VERSION=1.0.11
 
 # YAZ and YAZ++ directories
 YAZ_DIR=..\..\yaz
