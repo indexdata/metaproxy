@@ -1,6 +1,4 @@
-## $Id: Makefile.am,v 1.38 2007-01-31 11:16:57 adam Exp $
-docdir=$(datadir)/doc/@PACKAGE@
-
+## $Id: Makefile.am,v 1.39 2007-06-17 07:06:43 adam Exp $
 SUBDIRS = common
 
 SUFFIXES=.3mp .1 .pdf .tkl .esp .xml 
