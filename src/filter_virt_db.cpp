@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.51 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.52 2007-08-13 10:19:16 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -18,7 +18,7 @@ along with Metaproxy; see the file LICENSE.  If not, write to the
 Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
-/* $Id: filter_virt_db.cpp,v 1.51 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.52 2007-08-13 10:19:16 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -498,7 +498,8 @@ void yf::VirtualDB::Frontend::fixup_npr_record(ODR odr, Z_NamePlusRecord *npr,
         {
             // see which target it corresponds to.. (if any)
             std::map<std::string,VirtualDB::Map>::const_iterator map_it;
-            map_it = m_p->m_maps.find(*db_it);
+
+            map_it = m_p->m_maps.find(mp::util::database_name_normalize(*db_it));
             if (map_it != m_p->m_maps.end())
             { 
                 VirtualDB::Map m = map_it->second;
