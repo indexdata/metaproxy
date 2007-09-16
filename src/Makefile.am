@@ -1,14 +1,10 @@
-## $Id: Makefile.am,v 1.64 2007-02-26 13:31:00 adam Exp $
+## $Id: Makefile.am,v 1.65 2007-09-16 22:16:48 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
 AM_CXXFLAGS = $(BOOST_CPPFLAGS)
 
-AM_LDFLAGS = $(BOOST_LDFLAGS) \
-            $(BOOST_DATE_TIME_LIB) \
-            $(BOOST_PROGRAM_OPTIONS_LIB) \
-            $(BOOST_THREAD_LIB) \
-            $(YAZPPLALIB)
+AM_LDFLAGS = $(BOOST_LDFLAGS)
 
 EXTRA_DIST=Jamfile.in
 
@@ -53,7 +49,11 @@ libmetaproxy_la_SOURCES = \
 
 # Rules for programs..
 
-LDADD= libmetaproxy.la
+LDADD = libmetaproxy.la \
+	$(YAZPPLALIB) \
+	$(BOOST_DATE_TIME_LIB) \ 
+	$(BOOST_PROGRAM_OPTIONS_LIB) \
+	$(BOOST_THREAD_LIB)
 
 bin_PROGRAMS = metaproxy
 noinst_PROGRAMS = ex_filter_frontend_net ex_router_flexml tstdl
