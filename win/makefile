@@ -1,6 +1,6 @@
 # Copyright (C) 2005-2007, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.33 2007-06-14 08:33:27 adam Exp $
+# $Id: makefile,v 1.34 2007-09-18 18:34:28 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
@@ -15,16 +15,16 @@ YAZ_DIR=..\..\yaz
 YAZPP_DIR=..\..\yazpp
 
 # Boost
-BOOST=\boost
-BOOST_VERSION=1_33_1
+BOOST=\program files\boost\boost_1_34_1
+BOOST_VERSION=1_34_1
 BOOST_TOOLSET=vc80 # vc80 for VS 2005, vc71 for 2003
 BOOST_MODEL=mt
 
 # libxml2 + libxslt + associates
 ZLIB_DIR=\zlib-1.2.3.win32
 ICONV_DIR=\iconv-1.9.2.win32
-LIBXML2_DIR=\libxml2-2.6.26.win32
-LIBXSLT_DIR=\libxslt-1.1.17.win32
+LIBXML2_DIR=\libxml2-2.6.28.win32
+LIBXSLT_DIR=\libxslt-1.1.19.win32
 
 # The targets
 
@@ -32,7 +32,7 @@ default: all
 
 all: dirs config yaz yazpp libxslt dll progs
 
-progs: ex_filter_frontend_net test_pipe metaproxy
+progs: metaproxy ex_filter_frontend_net test_pipe
 
 NSIS="c:\program files\nsis\makensis.exe"
 
@@ -128,7 +128,7 @@ BOOST_LIB_SUFFIX=$(BOOST_TOOLSET)-$(BOOST_MODEL)-gd-$(BOOST_VERSION).lib
 BOOST_LIB_SUFFIX=$(BOOST_TOOLSET)-$(BOOST_MODEL)-$(BOOST_VERSION).lib
 !endif
 
-BOOST_DEF = /I"$(BOOST)\include\boost-$(BOOST_VERSION)"
+BOOST_DEF = /I"$(BOOST)"
 BOOST_LIB = \
     "$(BOOST)\lib\libboost_date_time-$(BOOST_LIB_SUFFIX)" \
     "$(BOOST)\lib\libboost_program_options-$(BOOST_LIB_SUFFIX)" \
