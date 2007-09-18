@@ -18,7 +18,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.61 2007-09-18 18:43:17 adam Exp $ -->
+<!-- $Id: book.xml,v 1.62 2007-09-18 19:15:53 adam Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -48,10 +48,9 @@
     processes, interprets and redirects requests from IR clients using
     standard protocols such as the binary
     <ulink url="&url.z39.50;">ANSI/NISO Z39.50</ulink>
-    and  the information search and retireval 
-    web services <ulink url="&url.sru;">SRU</ulink>
-    and <ulink url="&url.srw;">SRW</ulink>, as
-    well as functioning as a limited
+    and  the information search and retrieval 
+    web service <ulink url="&url.sru;">SRU</ulink>
+    as well as functioning as a limited
     <ulink url="&url.http;">HTTP</ulink> server. 
    </simpara>
    <simpara>
@@ -87,8 +86,8 @@
    <ulink url="&url.metaproxy;">Metaproxy</ulink>
    is a stand alone program that acts as a universal router, proxy and
    encapsulated metasearcher for information retrieval protocols such
-   as <ulink url="&url.z39.50;">Z39.50</ulink>, and in the future
-   <ulink url="&url.sru;">SRU</ulink> and <ulink url="&url.srw;">SRW</ulink>.
+   as <ulink url="&url.z39.50;">Z39.50</ulink> and
+   <ulink url="&url.sru;">SRU</ulink>.
    To clients, it acts as a server of these protocols: it can be searched,
    records can be retrieved from it, etc. 
    To servers, it acts as a client: it searches in them,
@@ -1661,7 +1660,6 @@ Z>
   <para>
    Metaproxy can act as 
    <ulink url="&url.sru;">SRU</ulink> and 
-   <ulink url="&url.srw;">SRW</ulink> 
    web service server, which translates web service requests to 
    <ulink url="&url.z39.50;">ANSI/NISO Z39.50</ulink> packages and
    sends them off to common available targets.
@@ -1752,9 +1750,8 @@ Z>
    </tgroup>
   </table>
   <para> 
-   A typical minimal example  <ulink url="&url.sru;">SRU</ulink> and 
-   <ulink url="&url.srw;">SRW</ulink> server configuration file is found
-   in the tarball distribution at 
+   A typical minimal example <ulink url="&url.sru;">SRU</ulink>
+   server configuration file is found in the tarball distribution at 
    <literal>etc/config-sru-to-z3950.xml</literal>.
   </para> 
   <para>
