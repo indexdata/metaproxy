@@ -18,7 +18,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.60 2007-05-22 11:05:45 adam Exp $ -->
+<!-- $Id: book.xml,v 1.61 2007-09-18 18:43:17 adam Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -159,7 +159,10 @@
      <listitem>
       <para>
        The popular C++ library. Initial versions of Metaproxy
-       was built with 1.33.0. Version 1.33.1 works too.
+       was built with 1.33.0. Version 1.33.1 works too. Metaproxy
+       also compiles with Boost 1.34.1 but the tests do
+       <emphasis>not</emphasis> compile, because the Test API
+       of Boost has changed.
       </para>
      </listitem>
     </varlistentry>
@@ -263,7 +266,10 @@
    </para>
    <para>
     There is currently no official Debian package for YAZ++.
-    And the Debian package for YAZ is probably too old.
+    And the official Debian package for YAZ is probably too old.
+    But Index Data bulds "new" versions of those for Debian (i386 only).
+   </para>
+   <para>
     Update the <filename>/etc/apt/sources.list</filename>
     to include the Index Data repository.
     See YAZ' <ulink url="&url.yaz.download.debian;">Download Debian</ulink>
@@ -271,7 +277,7 @@
    </para>
    <screen>
     apt-get install libxslt1-dev
-    apt-get install libyazpp-dev
+    apt-get install libyazpp2-dev
     apt-get install libboost-dev
     apt-get install libboost-thread-dev
     apt-get install libboost-date-time-dev
@@ -328,39 +334,12 @@
    <section id="installation.windows.boost">
     <title>Boost</title>
     <para>
-     Get Boost from its <ulink url="&url.boost;">home page</ulink>.
-     You also need Boost Jam (an alternative to make).
-     That's also available from the Boost home page.
-     The files to be downloaded are called something like:
-     <filename>boost_1_33-1.exe</filename>
-     and
-     <filename>boost-jam-3.1.12-1-ntx86.zip</filename>.
-     Unpack Boost Jam first. Put <filename>bjam.exe</filename>
-     in your system path. Make a command prompt and ensure
-     it can be found automatically. If not check the PATH.
-     The Boost .exe is a self-extracting exe with
-     complete source for Boost. Compile that source with
-     Boost Jam (An alternative to Make).
-     The compilation takes a while.
-     For Visual Studio 2003, use
-     <screen>
-      bjam "-sTOOLS=vc-7_1"
-     </screen>
-     Here <literal>vc-7_1</literal> refers to a "Toolset" (compiler system).
-     For Visual Studio 2005, use
-     <screen>
-      bjam "-sTOOLS=vc-8_0"
-     </screen>
-     To install the libraries in a common place, use
-     <screen>
-      bjam "-sTOOLS=vc-7_1" install
-     </screen>
-     (or vc-8_0 for VS 2005).
-    </para>
-    <para>
-     By default, the Boost build process installs the resulting
-     libraries + header files in
-     <literal>\boost\lib</literal>, <literal>\boost\include</literal>.
+     For Windows, it's easiest to get the precompiled Boost
+     package from <ulink url="&url.boost.windows.download;">here</ulink>.
+     Several versions of the Boost libraries may be selected when
+     installing Boost for windows. Please choose at least the
+     <emphasis>multithreaded</emphasis> (non-DLL) version because
+     the Metaproxy makefile uses that.
     </para>
     <para>
      For more information about installing Boost refer to the
@@ -378,7 +357,7 @@
     </para>
     <para>
      Libxslt has other dependencies, but these can all be downloaded
-     from the same site. Get the following:
+     from the same site. Get the following package:
      iconv, zlib, libxml2, libxslt.
     </para>
    </section>
@@ -396,9 +375,7 @@
     <title>YAZ++</title>
     <para>
      Get <ulink url="&url.yazplusplus;">YAZ++</ulink> as well.
-     Version 1.0 or later is required. For now get it from
-     Index Data's
-     <ulink url="&url.snapshot.download;">Snapshot area</ulink>.
+     Version 1.0.3 or later is required.
     </para>
     <para>
      YAZ++ includes NMAKE makefiles, similar to those found in the
