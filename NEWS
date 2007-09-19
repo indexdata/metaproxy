@@ -1,3 +1,13 @@
+--- 1.0.12 2007/09/19
+
+Fixed problem in Makefile WRT library specifictions. This could produce
+linker errors (when they should not happen).
+
+Fixed bug #1341: MetaProxy returning different results. Problem was that
+fix-up of record database did not normalize the database name.
+
+Documentation updates for Windows compilation.
+
 --- 1.0.11 2007/06/14
 
 Fixed problem with logfile being truncated.
