@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.65 2007-09-16 22:16:48 adam Exp $
+## $Id: Makefile.am,v 1.66 2007-11-02 17:25:33 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -51,7 +51,7 @@ libmetaproxy_la_SOURCES = \
 
 LDADD = libmetaproxy.la \
 	$(YAZPPLALIB) \
-	$(BOOST_DATE_TIME_LIB) \ 
+	$(BOOST_DATE_TIME_LIB) \
 	$(BOOST_PROGRAM_OPTIONS_LIB) \
 	$(BOOST_THREAD_LIB)
 
