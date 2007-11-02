@@ -1,4 +1,4 @@
-/* $Id: test_filter_backend_test.cpp,v 1.11 2007-05-09 21:23:09 adam Exp $
+/* $Id: test_filter_backend_test.cpp,v 1.12 2007-11-02 17:47:41 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -36,12 +36,13 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/otherinfo.h>
 
 #define BOOST_AUTO_TEST_MAIN
+#define BOOST_TEST_DYN_LINK
 #include <boost/test/auto_unit_test.hpp>
 using namespace boost::unit_test;
 
 namespace mp = metaproxy_1;
 
-BOOST_AUTO_UNIT_TEST( test_filter_backend_test_1 )
+BOOST_AUTO_TEST_CASE( test_filter_backend_test_1 )
 {
     try 
     {
@@ -52,7 +53,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_backend_test_1 )
     }
 }
 
-BOOST_AUTO_UNIT_TEST( test_filter_backend_test_2 )
+BOOST_AUTO_TEST_CASE( test_filter_backend_test_2 )
 {
     try 
     {
@@ -90,7 +91,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_backend_test_2 )
     }
 }
 
-BOOST_AUTO_UNIT_TEST( test_filter_backend_test_3 )
+BOOST_AUTO_TEST_CASE( test_filter_backend_test_3 )
 {
     try 
     {
@@ -137,7 +138,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_backend_test_3 )
     }
 }
 
-BOOST_AUTO_UNIT_TEST( test_filter_backend_test_4 )
+BOOST_AUTO_TEST_CASE( test_filter_backend_test_4 )
 {
     try 
     {

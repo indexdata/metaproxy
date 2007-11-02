@@ -1,4 +1,4 @@
-/* $Id: test_filter_sru_to_z3950.cpp,v 1.5 2007-05-09 21:23:09 adam Exp $
+/* $Id: test_filter_sru_to_z3950.cpp,v 1.6 2007-11-02 17:47:41 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -31,6 +31,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <stdexcept>
 
 #define BOOST_AUTO_TEST_MAIN
+#define BOOST_TEST_DYN_LINK
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
@@ -40,7 +41,7 @@ using namespace mp::util;
 
 
 
-BOOST_AUTO_UNIT_TEST( test_filter_sru_to_z3950_1 )
+BOOST_AUTO_TEST_CASE( test_filter_sru_to_z3950_1 )
 {
     try 
     {
@@ -51,7 +52,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_sru_to_z3950_1 )
     }
 }
 
-BOOST_AUTO_UNIT_TEST( test_filter_sru_to_z3950_2 )
+BOOST_AUTO_TEST_CASE( test_filter_sru_to_z3950_2 )
 {
     try 
     {
@@ -73,7 +74,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_sru_to_z3950_2 )
 }
 
 
-// BOOST_AUTO_UNIT_TEST( test_filter_sru_to_z3950_3 )
+// BOOST_AUTO_TEST_CASE( test_filter_sru_to_z3950_3 )
 // {
     
 

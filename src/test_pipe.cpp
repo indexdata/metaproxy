@@ -1,4 +1,4 @@
-/* $Id: test_pipe.cpp,v 1.11 2007-05-09 21:23:09 adam Exp $
+/* $Id: test_pipe.cpp,v 1.12 2007-11-02 17:47:41 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -42,6 +42,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "pipe.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
+#define BOOST_TEST_DYN_LINK
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
@@ -103,7 +104,7 @@ void Timer::socketNotify(int event)
     }
 }
 
-BOOST_AUTO_UNIT_TEST( test_pipe_1 )
+BOOST_AUTO_TEST_CASE( test_pipe_1 )
 {
     yazpp_1::SocketManager mySocketManager;
     

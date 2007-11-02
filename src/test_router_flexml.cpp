@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.20 2007-05-09 21:23:09 adam Exp $
+/* $Id: test_router_flexml.cpp,v 1.21 2007-11-02 17:47:41 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -28,6 +28,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "factory_static.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
+#define BOOST_TEST_DYN_LINK
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
@@ -48,7 +49,7 @@ static mp::filter::Base* filter_creator()
 }
 
 // Pass well-formed XML and valid configuration to it (implicit NS)
-BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
+BOOST_AUTO_TEST_CASE( test_router_flexml_1 )
 {
     try
     {
@@ -96,7 +97,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_1 )
 }
 
 // Pass non-wellformed XML
-BOOST_AUTO_UNIT_TEST( test_router_flexml_2 )
+BOOST_AUTO_TEST_CASE( test_router_flexml_2 )
 {
     bool got_error_as_expected = false;
     try
@@ -125,7 +126,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_2 )
 }
 
 // Pass well-formed XML with explicit NS
-BOOST_AUTO_UNIT_TEST( test_router_flexml_3 )
+BOOST_AUTO_TEST_CASE( test_router_flexml_3 )
 {
     try
     {
@@ -162,7 +163,7 @@ BOOST_AUTO_UNIT_TEST( test_router_flexml_3 )
 }
 
 // Pass well-formed XML but bad filter type
-BOOST_AUTO_UNIT_TEST( test_router_flexml_4 )
+BOOST_AUTO_TEST_CASE( test_router_flexml_4 )
 {
     bool got_error_as_expected = false;
     try

@@ -1,4 +1,4 @@
-/* $Id: test_filter_query_rewrite.cpp,v 1.13 2007-05-09 21:23:09 adam Exp $
+/* $Id: test_filter_query_rewrite.cpp,v 1.14 2007-11-02 17:47:41 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -30,6 +30,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "package.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
+#define BOOST_TEST_DYN_LINK
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
@@ -156,7 +157,7 @@ void check_query_rewrite_search(mp::RouterChain &router,
 }
 
 
-BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite_1 )
+BOOST_AUTO_TEST_CASE( test_filter_query_rewrite_1 )
 {
     try 
     {
@@ -167,7 +168,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite_1 )
     }
 }
 
-BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite2 )
+BOOST_AUTO_TEST_CASE( test_filter_query_rewrite2 )
 {
     try 
     {
@@ -191,7 +192,7 @@ BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite2 )
 }
 
 
-BOOST_AUTO_UNIT_TEST( test_filter_query_rewrite3 )
+BOOST_AUTO_TEST_CASE( test_filter_query_rewrite3 )
 {
     
 

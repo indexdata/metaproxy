@@ -1,4 +1,4 @@
-/* $Id: test_session2.cpp,v 1.10 2007-05-09 21:23:09 adam Exp $
+/* $Id: test_session2.cpp,v 1.11 2007-11-02 17:47:41 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -29,6 +29,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <boost/thread/thread.hpp>
 
 #define BOOST_AUTO_TEST_MAIN
+#define BOOST_TEST_DYN_LINK
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
@@ -65,7 +66,7 @@ class Worker
 
 
 
-BOOST_AUTO_UNIT_TEST( testsession2 ) 
+BOOST_AUTO_TEST_CASE( testsession2 ) 
 {
 
     // test session 
