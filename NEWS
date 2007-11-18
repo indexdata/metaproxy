@@ -1,3 +1,5 @@
+Mergetype may be specified for filter 'multi'.
+
 --- 1.0.12 2007/09/19
 
 Fixed problem in Makefile WRT library specifictions. This could produce
