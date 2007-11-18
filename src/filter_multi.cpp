@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.27 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_multi.cpp,v 1.28 2007-11-18 10:44:40 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -18,6 +18,8 @@ along with Metaproxy; see the file LICENSE.  If not, write to the
 Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
+
+#include <yaz/log.h>
 
 #include "config.hpp"
 
@@ -46,7 +48,10 @@ namespace yf = mp::filter;
 
 namespace metaproxy_1 {
     namespace filter {
-
+        enum multi_merge_type {
+            round_robin,
+            serve_order
+        };
         struct Multi::BackendSet {
             BackendPtr m_backend;
             int m_count;
@@ -72,6 +77,7 @@ namespace metaproxy_1 {
             ~FrontendSet();
 
             void round_robin(int pos, int number, std::list<PresentJob> &job);
+            void serve_order(int pos, int number, std::list<PresentJob> &job);
 
             std::list<BackendSet> m_backend_sets;
             std::string m_setname;
@@ -119,6 +125,7 @@ namespace metaproxy_1 {
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
             bool m_hide_unavailable;
+            multi_merge_type m_merge_type;
         };
     }
 }
@@ -126,6 +133,7 @@ namespace metaproxy_1 {
 yf::Multi::Rep::Rep()
 {
     m_hide_unavailable = false;
+    m_merge_type = round_robin;
 }
 
 bool yf::Multi::BackendSet::operator < (const BackendSet &k) const
@@ -250,6 +258,32 @@ void yf::Multi::Frontend::multi_move(std::list<BackendPtr> &blist)
         g.add_thread(new boost::thread(**bit));
     }
     g.join_all();
+}
+
+void yf::Multi::FrontendSet::serve_order(int start, int number,
+                                         std::list<PresentJob> &jobs)
+{
+    int i;
+    for (i = 0; i < number; i++)
+    {
+        std::list<BackendSet>::const_iterator bsit;
+        int voffset = 0;
+        int offset = start + i - 1;
+        for (bsit = m_backend_sets.begin(); bsit != m_backend_sets.end(); 
+             bsit++)
+        {
+            if (offset >= voffset && offset < voffset + bsit->m_count)
+            {
+                PresentJob job;
+                job.m_backend = bsit->m_backend;
+                job.m_inside_pos = 0;
+                job.m_pos = offset - voffset + 1;
+                jobs.push_back(job);
+                break;
+            }
+            voffset += bsit->m_count;
+        }
+    }
 }
 
 void yf::Multi::FrontendSet::round_robin(int start, int number,
@@ -632,7 +666,21 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
     std::list<Multi::FrontendSet::PresentJob> jobs;
     int start = *req->resultSetStartPoint;
     int number = *req->numberOfRecordsRequested;
-    it->second.round_robin(start, number, jobs);
+
+    if (m_p->m_merge_type == round_robin)
+        it->second.round_robin(start, number, jobs);
+    else if (m_p->m_merge_type == serve_order)
+        it->second.serve_order(start, number, jobs);
+
+    if (0)
+    {
+        std::list<Multi::FrontendSet::PresentJob>::const_iterator jit;
+        for (jit = jobs.begin(); jit != jobs.end(); jit++)
+        {
+            yaz_log(YLOG_LOG, "job pos=%d inside_pos=%d", 
+                    jit->m_pos, jit->m_inside_pos);
+        }
+    }
 
     std::list<BackendPtr> present_backend_list;
 
@@ -1141,12 +1189,24 @@ void mp::filter::Multi::configure(const xmlNode * ptr)
         {
             m_p->m_hide_unavailable = true;
         }
+        else if (!strcmp((const char *) ptr->name, "mergetype"))
+        {
+            std::string mergetype = mp::xml::get_text(ptr);
+            if (mergetype == "roundrobin")
+                m_p->m_merge_type = round_robin;
+            else if (mergetype == "serveorder")
+                m_p->m_merge_type = serve_order;
+            else
+                throw mp::filter::FilterException
+                    ("Bad mergetype "  + mergetype + " in multi filter");
+
+        }
         else
         {
             throw mp::filter::FilterException
                 ("Bad element " 
                  + std::string((const char *) ptr->name)
-                 + " in virt_db filter");
+                 + " in multi filter");
         }
     }
 }

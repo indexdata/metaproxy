@@ -1,5 +1,5 @@
 # Metaproxy XML config file schemas
-#  $Id: metaproxy.rnc,v 1.20 2007-05-23 06:53:00 adam Exp $
+#  $Id: metaproxy.rnc,v 1.21 2007-11-18 10:44:40 adam Exp $
 # 
 #   Copyright (c) 2005-2007, Index Data.
 # 
@@ -141,7 +141,8 @@ filter_multi =
     attribute route { xsd:string },
     xsd:string
   }*,
-  element mp:hideunavailable { empty }?
+  element mp:hideunavailable { empty }?,
+  element mp:mergetype { xsd:string }?
 
 filter_query_rewrite =
   attribute type { "query_rewrite" },
