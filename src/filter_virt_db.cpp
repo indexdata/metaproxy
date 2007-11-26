@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.52 2007-08-13 10:19:16 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.53 2007-11-26 21:45:08 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -18,7 +18,7 @@ along with Metaproxy; see the file LICENSE.  If not, write to the
 Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
-/* $Id: filter_virt_db.cpp,v 1.52 2007-08-13 10:19:16 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.53 2007-11-26 21:45:08 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -160,8 +160,13 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::create_backend_from_databases
         }
         std::list<std::string>::const_iterator t_it =
             map_it->second.m_targets.begin();
-        for (; t_it != map_it->second.m_targets.end(); t_it++)
-            targets_dedup[*t_it] = true;
+        for (; t_it != map_it->second.m_targets.end(); t_it++) {
+            if (!targets_dedup[*t_it])
+            {
+                targets_dedup[*t_it] = true;
+                b->m_targets.push_back(*t_it);
+            }
+        }
 
         // see if we have a route conflict.
         if (!first_route && b->m_route != map_it->second.m_route)
@@ -174,10 +179,6 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::create_backend_from_databases
         b->m_route = map_it->second.m_route;
         first_route = false;
     }
-    std::map<std::string,bool>::const_iterator tm_it = targets_dedup.begin();
-    for (; tm_it != targets_dedup.end(); tm_it++)
-        b->m_targets.push_back(tm_it->first);
-
     return b;
 }
 
