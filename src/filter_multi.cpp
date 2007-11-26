@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.28 2007-11-18 10:44:40 adam Exp $
+/* $Id: filter_multi.cpp,v 1.29 2007-11-26 21:21:12 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -67,10 +67,13 @@ namespace metaproxy_1 {
             Z_Entry *get_entry(ODR odr);
         };
         struct Multi::FrontendSet {
-            struct PresentJob {
+            class PresentJob {
+            public:
                 BackendPtr m_backend;
-                int m_pos;
-                int m_inside_pos;
+                int m_pos; // position for backend (1=first, 2=second,..
+                int m_start; // present request start
+                PresentJob(BackendPtr ptr, int pos) : 
+                    m_backend(ptr), m_pos(pos), m_start(0) {};
             };
             FrontendSet(std::string setname);
             FrontendSet();
@@ -274,10 +277,7 @@ void yf::Multi::FrontendSet::serve_order(int start, int number,
         {
             if (offset >= voffset && offset < voffset + bsit->m_count)
             {
-                PresentJob job;
-                job.m_backend = bsit->m_backend;
-                job.m_inside_pos = 0;
-                job.m_pos = offset - voffset + 1;
+                PresentJob job(bsit->m_backend, offset - voffset + 1);
                 jobs.push_back(job);
                 break;
             }
@@ -290,12 +290,10 @@ void yf::Multi::FrontendSet::round_robin(int start, int number,
                                          std::list<PresentJob> &jobs)
 {
     std::list<int> pos;
-    std::list<int> inside_pos;
     std::list<BackendSet>::const_iterator bsit;
     for (bsit = m_backend_sets.begin(); bsit != m_backend_sets.end(); bsit++)
     {
         pos.push_back(1);
-        inside_pos.push_back(0);
     }
 
     int p = 1;
@@ -349,10 +347,9 @@ void yf::Multi::FrontendSet::round_robin(int start, int number,
     {
         more = false;
         std::list<int>::iterator psit = pos.begin();
-        std::list<int>::iterator esit = inside_pos.begin();
         bsit = m_backend_sets.begin();
 
-        for (; bsit != m_backend_sets.end(); psit++,esit++,bsit++)
+        for (; bsit != m_backend_sets.end(); psit++,bsit++)
         {
             if (fetched >= number)
             {
@@ -363,12 +360,8 @@ void yf::Multi::FrontendSet::round_robin(int start, int number,
             {
                 if (p >= start)
                 {
-                    PresentJob job;
-                    job.m_backend = bsit->m_backend;
-                    job.m_pos = *psit;
-                    job.m_inside_pos = *esit;
+                    PresentJob job(bsit->m_backend, *psit);
                     jobs.push_back(job);
-                    (*esit)++;
                     fetched++;
                 }
                 (*psit)++;
@@ -677,8 +670,7 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
         std::list<Multi::FrontendSet::PresentJob>::const_iterator jit;
         for (jit = jobs.begin(); jit != jobs.end(); jit++)
         {
-            yaz_log(YLOG_LOG, "job pos=%d inside_pos=%d", 
-                    jit->m_pos, jit->m_inside_pos);
+            yaz_log(YLOG_LOG, "job pos=%d", jit->m_pos);
         }
     }
 
@@ -688,22 +680,33 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
     bsit = it->second.m_backend_sets.begin();
     for (; bsit != it->second.m_backend_sets.end(); bsit++)
     {
-        std::list<Multi::FrontendSet::PresentJob>::const_iterator jit;
         int start = -1;
         int end = -1;
-        
-        for (jit = jobs.begin(); jit != jobs.end(); jit++)
         {
-            if (jit->m_backend == bsit->m_backend)
+            std::list<Multi::FrontendSet::PresentJob>::const_iterator jit;
+            for (jit = jobs.begin(); jit != jobs.end(); jit++)
             {
-                if (start == -1 || jit->m_pos < start)
-                    start = jit->m_pos;
-                if (end == -1 || jit->m_pos > end)
-                    end = jit->m_pos;
+                if (jit->m_backend == bsit->m_backend)
+                {
+                    if (start == -1 || jit->m_pos < start)
+                        start = jit->m_pos;
+                    if (end == -1 || jit->m_pos > end)
+                        end = jit->m_pos;
+                }
             }
         }
         if (start != -1)
         {
+            std::list<Multi::FrontendSet::PresentJob>::iterator jit;
+            for (jit = jobs.begin(); jit != jobs.end(); jit++)
+            {
+                if (jit->m_backend == bsit->m_backend)
+                {
+                    if (jit->m_pos >= start && jit->m_pos <= end)
+                        jit->m_start = start;
+                }
+            }
+
             PackagePtr p = bsit->m_backend->m_package;
 
             *req->resultSetStartPoint = start;
@@ -784,7 +787,7 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
 
             nprl->records[i] = (Z_NamePlusRecord*)
                 odr_malloc(odr, sizeof(Z_NamePlusRecord));
-            int inside_pos = jit->m_inside_pos;
+            int inside_pos = jit->m_pos - jit->m_start;
             if (inside_pos >= b_resp->records->
                 u.databaseOrSurDiagnostics->num_records)
                 break;
