@@ -1,8 +1,9 @@
-# $Id: Makefile.am,v 1.1 2006-10-13 08:17:40 marc Exp $
+# $Id: Makefile.am,v 1.2 2007-12-14 08:01:37 marc Exp $
 
 xmlxsltdatadir = $(pkgdatadir)/xml/xslt
 
-xmlxsltdata_DATA =  MARC21slim2DC.xsl \
+xmlxsltdata_DATA =  /explain2cqlpqftxt.xsl \
+   MARC21slim2DC.xsl \
    MARC21slim2MADS.xsl \
    MARC21slim2MODS.xsl \
    MARC21slim2MODS3-1.xsl \
