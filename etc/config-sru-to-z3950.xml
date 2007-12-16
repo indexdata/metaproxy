@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-sru-to-z3950.xml,v 1.20 2007-03-07 22:17:51 adam Exp $ -->
+<!-- $Id: config-sru-to-z3950.xml,v 1.21 2007-12-16 22:22:49 adam Exp $ -->
 <metaproxy 
     xmlns="http://indexdata.com/metaproxy" 
     version="1.0">
@@ -30,6 +30,13 @@
             <marc inputformat="marc" outputformat="marcxml"
                   inputcharset="marc-8"/>
             <xslt stylesheet="../xml/xslt/MARC21slim2DC.xsl"/>
+          </backend>
+        </retrieval>
+        <retrieval syntax="opac"/>
+        <retrieval syntax="xml" name="opac">
+          <backend syntax="opac" name="F">
+          <marc inputformat="marc" outputformat="marcxml"
+                inputcharset="marc-8"/>
           </backend>
         </retrieval>
         <retrieval syntax="usmarc">

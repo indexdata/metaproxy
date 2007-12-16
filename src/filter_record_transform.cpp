@@ -1,4 +1,4 @@
-/* $Id: filter_record_transform.cpp,v 1.12 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_record_transform.cpp,v 1.13 2007-12-16 22:22:49 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -282,35 +282,44 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
                  = pr_res->records->u.databaseOrSurDiagnostics->records[i];
              if (npr->which == Z_NamePlusRecord_databaseRecord)
              {
+                 WRBUF output_record = wrbuf_alloc();
                  Z_External *r = npr->u.databaseRecord;
-                 //oident *ent = oid_getentbyoid(r->direct_reference);
-                 if (r->which == Z_External_octet) 
+                 int ret_trans = 0;
+                 if (r->which == Z_External_OPAC)
                  {
-                     WRBUF output_record = wrbuf_alloc();
-                     int ret_trans 
-                         =  yaz_record_conv_record(rc,
-                                                   (const char *)
-                                                   r->u.octet_aligned->buf, 
-                                                   r->u.octet_aligned->len,
-                                                   output_record);
-                     if (ret_trans == 0)
-                     {
-                         npr->u.databaseRecord =
-                             z_ext_record_oid(odr_en, match_syntax,
+#if YAZ_VERSIONL >= 0x030011
+                     ret_trans = 
+                         yaz_record_conv_opac_record(rc, r->u.opac,
+                                                     output_record);
+#else
+                     ;
+#endif
+                 }
+                 else if (r->which == Z_External_octet) 
+                 {
+                     ret_trans =
+                         yaz_record_conv_record(rc, (const char *)
+                                                r->u.octet_aligned->buf, 
+                                                r->u.octet_aligned->len,
+                                                output_record);
+                 }
+                 if (ret_trans == 0)
+                 {
+                     npr->u.databaseRecord =
+                         z_ext_record_oid(odr_en, match_syntax,
                                           wrbuf_buf(output_record),
                                           wrbuf_len(output_record));
-                     }
-                     else
-                     {
-                         pr_res->records->
-                             u.databaseOrSurDiagnostics->records[i] 
-                             =  zget_surrogateDiagRec(
-                                 odr_en, npr->databaseName,
-                                 YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
-                                 yaz_record_conv_get_error(rc));
-                     }
-                     wrbuf_destroy(output_record);
                  }
+                 else
+                 {
+                     pr_res->records->
+                         u.databaseOrSurDiagnostics->records[i] 
+                         =  zget_surrogateDiagRec(
+                             odr_en, npr->databaseName,
+                             YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                             yaz_record_conv_get_error(rc));
+                 }
+                 wrbuf_destroy(output_record);
              }
          }
     }
