@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.29 2007-11-26 21:21:12 adam Exp $
+/* $Id: filter_multi.cpp,v 1.30 2008-01-19 09:02:11 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -331,8 +331,6 @@ void yf::Multi::FrontendSet::round_robin(int start, int number,
         }
         // skip on each set.. before "present range"..
         p = p + skip;
-        
-        std::cout << "\nSKIP min=" << min << " no_left=" << no_left << "\n\n";
         
         std::list<int>::iterator psit = pos.begin();
         for (psit = pos.begin(); psit != pos.end(); psit++)
@@ -1053,7 +1051,7 @@ void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
         }
     }
 
-    if (true)
+    if (false)
     {
         std::cout << "BEFORE\n";
         ScanTermInfoList::iterator it = entries_before.begin();
