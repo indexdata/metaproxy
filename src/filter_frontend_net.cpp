@@ -1,4 +1,4 @@
-/* $Id: filter_frontend_net.cpp,v 1.24 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_frontend_net.cpp,v 1.25 2008-01-21 16:15:00 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -152,7 +152,9 @@ void mp::ThreadPoolPackage::result()
     }
 
     if (m_session->m_no_requests == 0 && m_package->session().is_closed())
-	delete m_session;
+    {
+        m_session->close();
+    }
     delete this;
 }
 
@@ -205,7 +207,10 @@ void mp::ZAssocChild::failNotify()
 {
     // TODO: send Package to signal "close"
     if (m_session.is_closed())
+    {
+        delete this;
 	return;
+    }
     m_no_requests++;
 
     m_session.close();
