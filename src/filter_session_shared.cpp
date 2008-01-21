@@ -1,4 +1,4 @@
-/* $Id: filter_session_shared.cpp,v 1.18 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_session_shared.cpp,v 1.19 2008-01-21 15:23:11 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -422,14 +422,10 @@ void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
                                                m_session_ttl));
             m_backend_map[k] = b;
             frontend->m_backend_class = b;
-            std::cout << "SessionShared::Rep::init new session " 
-                      << frontend->m_backend_class << "\n";
         }
         else
         {
             frontend->m_backend_class = it->second;            
-            std::cout << "SessionShared::Rep::init existing session "
-                      << frontend->m_backend_class << "\n";
         }
     }
     BackendClassPtr bc = frontend->m_backend_class;
@@ -581,7 +577,6 @@ void yf::SessionShared::Frontend::override_set(
                     found_backend = *it;
                     result_set_id = (*set_it)->m_result_set_id;
                     found_backend->m_sets.erase(set_it);
-                    std::cout << "REUSE TTL SET: " << result_set_id << "\n";
                     return;
                 }
             }
@@ -602,7 +597,6 @@ void yf::SessionShared::Frontend::override_set(
             }
             else
                 result_set_id = "default";
-            std::cout << "AVAILABLE SET: " << result_set_id << "\n";
             return;
         }
     }
@@ -637,8 +631,6 @@ void yf::SessionShared::Frontend::get_set(mp::Package &package,
                         found_backend = *it;
                         bc->use_backend(found_backend);
                         found_set->timestamp();
-                        std::cout << "MATCH SET: " << 
-                            found_set->m_result_set_id << "\n";
                         // found matching set. No need to search again
                         return;
                     }
@@ -676,8 +668,6 @@ void yf::SessionShared::Frontend::get_set(mp::Package &package,
             package.response() = f_apdu;
             return;
         }
-        std::cout << "NEW " << found_backend << "\n";
-        
         if (bc->m_named_result_sets)
         {
             result_set_id = boost::io::str(
@@ -686,14 +676,12 @@ void yf::SessionShared::Frontend::get_set(mp::Package &package,
         }
         else
             result_set_id = "default";
-        std::cout << "NEW SET: " << result_set_id << "\n";
     }
     // we must search ...
     BackendSetPtr new_set(new BackendSet(result_set_id,
                                          databases, query));
     if (!new_set->search(package, apdu_req, found_backend))
     {
-        std::cout << "search error\n";
         bc->remove_backend(found_backend);
         return; // search error 
     }
@@ -875,12 +863,10 @@ void yf::SessionShared::BackendClass::expire()
     BackendInstanceList::iterator bit = m_backend_list.begin();
     while (bit != m_backend_list.end())
     {
-        std::cout << "expiry ";
         time_t last_use = (*bit)->m_time_last_use;
         
         if ((*bit)->m_in_use)
         {
-            std::cout << "inuse";
             bit++;
         }
         else if ((now >= last_use && now - last_use > m_backend_expiry_ttl)
@@ -893,14 +879,11 @@ void yf::SessionShared::BackendClass::expire()
             (*bit)->m_close_package->move();
 
             bit = m_backend_list.erase(bit);
-            std::cout << "erase";
         }
         else
         {
-            std::cout << "keep";
             bit++;
         }
-        std::cout << std::endl;
     }
 }
 
@@ -912,7 +895,6 @@ void yf::SessionShared::Rep::expire()
         boost::xtime_get(&xt, boost::TIME_UTC);
         xt.sec += 30;
         boost::thread::sleep(xt);
-        //std::cout << "." << std::endl;
         
         BackendClassMap::const_iterator b_it = m_backend_map.begin();
         for (; b_it != m_backend_map.end(); b_it++)
