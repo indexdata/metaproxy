@@ -2,7 +2,7 @@
 ## Process this file with autoconf to produce a configure script.
 
 # Autoconf and automake setup
-AC_PREREQ(2.59)
+AC_PREREQ(2.60)
 AC_INIT([metaproxy],[1.0.13],[metaproxy-help@indexdata.dk])
 
 AC_CONFIG_HEADERS(src/config.hpp)
@@ -12,7 +12,7 @@ AC_CONFIG_AUX_DIR([config])
 AC_CANONICAL_SYSTEM
 ##AC_PREFIX_DEFAULT(`pwd`/install) 
 
-AM_INIT_AUTOMAKE([1.8])
+AM_INIT_AUTOMAKE([1.9])
 
 # Checks for programs.
 AC_PROG_CXX
