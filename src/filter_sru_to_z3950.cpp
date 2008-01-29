@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.35 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.36 2008-01-29 16:51:12 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -64,23 +64,22 @@ namespace metaproxy_1 {
 
             bool z3950_init_request(mp::Package &package, 
                                     mp::odr &odr_en,
-                                    Z_SRW_PDU *sru_pdu_res,
-                                    const std::string 
-                                    &database = "Default") const;
+                                    Z_SRW_PDU *sru_pdu_req,
+                                    Z_SRW_PDU *sru_pdu_res) const;
 
             bool z3950_close_request(mp::Package &package) const;
 
-            bool z3950_search_request(mp::Package &package,
-                                      mp::odr &odr_en,
-                                      Z_SRW_PDU *sru_pdu_res,
-                                      Z_SRW_searchRetrieveRequest 
-                                          const *sr_req) const;
+            bool z3950_search_request(
+                mp::Package &package,
+                mp::odr &odr_en,
+                Z_SRW_PDU *sru_pdu_res,
+                Z_SRW_searchRetrieveRequest const *sr_req) const;
 
-            bool z3950_present_request(mp::Package &package,
-                                       mp::odr &odr_en,
-                                       Z_SRW_PDU *sru_pdu_res,
-                                       Z_SRW_searchRetrieveRequest 
-                                       const *sr_req) const;
+            bool z3950_present_request(
+                mp::Package &package,
+                mp::odr &odr_en,
+                Z_SRW_PDU *sru_pdu_res,
+                Z_SRW_searchRetrieveRequest const *sr_req) const;
 
             bool z3950_scan_request(mp::Package &package,
                                     mp::odr &odr_en,
@@ -234,7 +233,7 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
         ok = mp_util::check_sru_query_exists(package, odr_en, 
                                              sru_pdu_res, sr_req);
 
-        if (ok && z3950_init_request(package, odr_en, sru_pdu_res))
+        if (ok && z3950_init_request(package, odr_en, sru_pdu_req, sru_pdu_res))
         {
             {
                 ok = z3950_search_request(package, odr_en,
@@ -270,7 +269,8 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
                                4, "scan");
  
         // to be used when we do scan
-        if (false && z3950_init_request(package, odr_en, sru_pdu_res))
+        if (false && z3950_init_request(package, odr_en, sru_pdu_req,
+                                        sru_pdu_res))
         {
             z3950_scan_request(package, odr_en, sru_pdu_res, sr_req);    
             z3950_close_request(package);
@@ -295,8 +295,8 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
 bool 
 yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package, 
                                          mp::odr &odr_en,
-                                         Z_SRW_PDU *sru_pdu_res,
-                                         const std::string &database) const
+                                         Z_SRW_PDU *sru_pdu_req,
+                                         Z_SRW_PDU *sru_pdu_res) const
 {
     // prepare Z3950 package
     Package z3950_package(package.session(), package.origin());
@@ -320,6 +320,16 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
     ODR_MASK_SET(init_req->protocolVersion, Z_ProtocolVersion_1);
     ODR_MASK_SET(init_req->protocolVersion, Z_ProtocolVersion_2);
     ODR_MASK_SET(init_req->protocolVersion, Z_ProtocolVersion_3);
+
+    Z_SRW_extra_arg *arg;
+    for ( arg = sru_pdu_req->extra_args; arg; arg = arg->next)
+        if (!strcmp(arg->name, "x-target"))
+        {
+            std::string target(arg->value);
+            mp_util::set_vhost_otherinfo(&init_req->otherInfo,
+                                         odr_en, target, 1);
+            
+        }
 
     z3950_package.request() = apdu;
 

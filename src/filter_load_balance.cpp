@@ -1,4 +1,4 @@
-/* $Id: filter_load_balance.cpp,v 1.8 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_load_balance.cpp,v 1.9 2008-01-29 16:51:12 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -189,7 +189,7 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
                 
                 // copying new target into init package
                 mp::util::set_vhost_otherinfo(&(org_init->otherInfo), 
-                                              odr_en, target); 
+                                              odr_en, target, 1);
                 package.request() = gdu_req;
         }
             

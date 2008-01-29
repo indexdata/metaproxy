@@ -1,4 +1,4 @@
-/* $Id: util.hpp,v 1.25 2007-05-09 21:23:09 adam Exp $
+/* $Id: util.hpp,v 1.26 2008-01-29 16:51:12 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -90,7 +90,7 @@ namespace metaproxy_1 {
         void set_vhost_otherinfo(Z_OtherInformation **otherInformation, 
                                  ODR odr,
                                  const std::string vhost, 
-                                 const int cat = 1 );
+                                 const int cat);
 
         void set_vhost_otherinfo(Z_OtherInformation **otherInformation,
                                  ODR odr,
