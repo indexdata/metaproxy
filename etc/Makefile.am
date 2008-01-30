@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.12 2007-02-17 13:03:29 adam Exp $
+# $Id: Makefile.am,v 1.13 2008-01-30 11:42:01 adam Exp $
 
 # This doesn't actually build anything, it just tests whether the
 # configuration files here correspond with the schema.
@@ -12,6 +12,7 @@ xmlconfig = $(srcdir)/config-bytarget.xml \
     $(srcdir)/config-shared1.xml \
     $(srcdir)/config-simple-multi.xml \
     $(srcdir)/config-sru-to-z3950.xml \
+    $(srcdir)/config-sru-holdings.xml \
     $(srcdir)/config-zurg.xml \
     $(srcdir)/config0.xml \
     $(srcdir)/config1.xml \
