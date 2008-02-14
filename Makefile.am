@@ -1,6 +1,6 @@
 ## This file is part of Metaproxy
 ## Copyright (C) 2005-2007, Index Data ApS
-## $Id: Makefile.am,v 1.23 2008-02-14 12:42:30 marc Exp $
+## $Id: Makefile.am,v 1.24 2008-02-14 13:46:46 marc Exp $
 
 SUBDIRS = xml src etc doc
 
@@ -20,6 +20,7 @@ dist-hook:
 	-cp $(srcdir)/win/* $(distdir)/win
 	mkdir $(distdir)/debian
 	cp $(srcdir)/debian/control $(distdir)/debian
+	cp $(srcdir)/debian/copyright $(distdir)/debian
 	cp $(srcdir)/debian/changelog $(distdir)/debian
 	cp $(srcdir)/debian/rules $(distdir)/debian
 	cp $(srcdir)/debian/*.install $(distdir)/debian
