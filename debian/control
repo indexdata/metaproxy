@@ -10,7 +10,7 @@ Section: net
 Architecture: any
 Depends: ${shlibs:Depends}, libmetaproxy
 Description: Metaproxy Z39.50/SRU router (main executable)
- Metaproxy is a universal router, proxy and encapsulated metasearcher
+ This is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets
  and redirects requests from IR clients using standard protocols such as
  the binary ANSI/NISO Z39.50  and the information search and retrieval web
@@ -23,7 +23,7 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, libyazpp3, libyaz3
 Description: Metaproxy Z39.50/SRU router (main executable)
- Metaproxy is a universal router, proxy and encapsulated metasearcher
+ This is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets
  and redirects requests from IR clients using standard protocols such as
  the binary ANSI/NISO Z39.50  and the information search and retrieval web
@@ -35,7 +35,7 @@ Package: metaproxy-doc
 Section: doc
 Architecture: all
 Description: Metaproxy Z39.50/SRU router (documentation)
- Metaproxy is a universal router, proxy and encapsulated metasearcher
+ This is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets
  and redirects requests from IR clients using standard protocols such as
  the binary ANSI/NISO Z39.50  and the information search and retrieval web
