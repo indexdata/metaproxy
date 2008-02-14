@@ -78,7 +78,6 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	cp LICENSE debian/copyright
 	dh_installdocs -A README
 	dh_installchangelogs 
 	dh_installexamples
