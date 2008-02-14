@@ -2,4 +2,5 @@ metaproxy (1.0.13-1) unstable; urgency=low
 
   * Initial Debian Packages
 
- -- Marc Cromme <marc@indexdata.dk>  Fri, 08 Feb 2008 13:39:25 +0100
+ -- Marc Cromme <marc@indexdata.dk>  Thu, 14 Feb 2008 14:43:39 +0100
+

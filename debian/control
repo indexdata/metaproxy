@@ -8,8 +8,7 @@ Build-Depends: debhelper (>= 4), libyaz3-dev, libyazpp3-dev, libxslt1-dev, libbo
 Package: metaproxy
 Section: net
 Architecture: any
-Depends: ${shlibs:Depends}
-Conflicts:
+Depends: ${shlibs:Depends}, libmetaproxy
 Description: Metaproxy Z39.50/SRU router (main executable)
  Metaproxy is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets
@@ -22,8 +21,7 @@ Description: Metaproxy Z39.50/SRU router (main executable)
 Package: libmetaproxy
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}
-Conflicts:
+Depends: ${shlibs:Depends}, libyazpp3, libyaz3
 Description: Metaproxy Z39.50/SRU router (main executable)
  Metaproxy is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets
