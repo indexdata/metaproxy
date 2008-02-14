@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.13 2008-01-30 11:42:01 adam Exp $
+# $Id: Makefile.am,v 1.14 2008-02-14 15:31:30 marc Exp $
 
 # This doesn't actually build anything, it just tests whether the
 # configuration files here correspond with the schema.
@@ -41,6 +41,7 @@ check_rng:
 check_xsd: 
 	if test `xmllint --version 2>&1 |head -1|awk '{print $$5}'` -gt 20622; then xmllint --noout --xinclude --schema $(xsd) $(xmlconfig); fi
 
-check-local: check_rng check_xsd
+#check-local: check_rng check_xsd
+check-local: check_rng
 
 
