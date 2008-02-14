@@ -1,0 +1,46 @@
+Source: metaproxy
+Section: devel
+Standards-Version: 3.6.2
+Maintainer: Marc Cromme <marc@indexdata.dk>
+Priority: extra
+Build-Depends: debhelper (>= 4), libyaz3-dev, libyazpp3-dev, libxslt1-dev, libboost-dev, libboost-thread-dev, libboost-date-time-dev, libboost-program-options-dev, libboost-test-dev
+
+Package: metaproxy
+Section: net
+Architecture: any
+Depends: ${shlibs:Depends}
+Conflicts:
+Description: Metaproxy Z39.50/SRU router (main executable)
+ Metaproxy is a universal router, proxy and encapsulated metasearcher
+ for information retrieval protocols. It accepts, processes, interprets
+ and redirects requests from IR clients using standard protocols such as
+ the binary ANSI/NISO Z39.50  and the information search and retrieval web
+ service SRU as well as functioning as a limited HTTP server. 
+ .
+ This packages includes the main Metaproxy executable.
+
+Package: libmetaproxy
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}
+Conflicts:
+Description: Metaproxy Z39.50/SRU router (main executable)
+ Metaproxy is a universal router, proxy and encapsulated metasearcher
+ for information retrieval protocols. It accepts, processes, interprets
+ and redirects requests from IR clients using standard protocols such as
+ the binary ANSI/NISO Z39.50  and the information search and retrieval web
+ service SRU as well as functioning as a limited HTTP server. 
+ .
+ This packages includes the Metaproxy libraries.
+
+Package: metaproxy-doc
+Section: doc
+Architecture: all
+Description: Metaproxy Z39.50/SRU router (documentation)
+ Metaproxy is a universal router, proxy and encapsulated metasearcher
+ for information retrieval protocols. It accepts, processes, interprets
+ and redirects requests from IR clients using standard protocols such as
+ the binary ANSI/NISO Z39.50  and the information search and retrieval web
+ service SRU as well as functioning as a limited HTTP server. 
+ .
+ This packages includes HTML documentation for Metaproxy.

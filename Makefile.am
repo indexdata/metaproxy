@@ -1,6 +1,6 @@
 ## This file is part of Metaproxy
 ## Copyright (C) 2005-2007, Index Data ApS
-## $Id: Makefile.am,v 1.22 2007-02-26 11:40:03 marc Exp $
+## $Id: Makefile.am,v 1.23 2008-02-14 12:42:30 marc Exp $
 
 SUBDIRS = xml src etc doc
 
@@ -18,25 +18,20 @@ dist-hook:
 	if test -x /usr/bin/cvs2cl -a -d CVS; then cvs2cl ; fi
 	mkdir $(distdir)/win
 	-cp $(srcdir)/win/* $(distdir)/win
+	mkdir $(distdir)/debian
+	cp $(srcdir)/debian/control $(distdir)/debian
+	cp $(srcdir)/debian/changelog $(distdir)/debian
+	cp $(srcdir)/debian/rules $(distdir)/debian
+	cp $(srcdir)/debian/*.install $(distdir)/debian
+	cp $(srcdir)/debian/*.manpages $(distdir)/debian
 
-# doxygen target
+#cp $(srcdir)/debian/*.postinst $(distdir)/debian
+
+
 .PHONY:dox
 dox:
 	doxygen
 
-.PHONY:firefox
-firefox:
-	firefox  -new-window file://`pwd`/dox/html/index.html &
-
-.PHONY:konqueror
-konqueror:
-	konqueror file://`pwd`/dox/html/index.html &
-
-.PHONY:galeon
-galeon:
-	galeon file://`pwd`/dox/html/index.html &
-
-.PHONY:epiphany
-epiphany:
-	epiphany --new-window file://`pwd`/dox/html/index.html &
-
+.PHONY:debian
+debian:
+	dpkg-buildpackage -rfakeroot
