@@ -82,6 +82,8 @@ binary-arch: build install
 	dh_installchangelogs 
 	dh_installexamples
 	mv debian/tmp/usr/share/doc/metaproxy debian/tmp/usr/share/doc/metaproxy-doc
+	mkdir debian/tmp/etc
+	cp debian/tmp/usr/share/metaproxy/etc/config1.xml debian/tmp/etc/metaproxy.conf
 	dh_install 
 #	dh_installmenu
 #	dh_installdebconf	
