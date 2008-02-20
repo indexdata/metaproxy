@@ -1,5 +1,8 @@
 First Debian package
 
+The sru_z9350 filter now recognizes SRU parameter z-target as being
+a ZURL of the form host/database . 
+
 Mergetype may be specified for filter 'multi'.
 
 --- 1.0.12 2007/09/19
