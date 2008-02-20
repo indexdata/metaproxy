@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.hpp,v 1.9 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_auth_simple.hpp,v 1.10 2008-02-20 15:07:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -34,7 +34,7 @@ namespace metaproxy_1 {
         public:
             AuthSimple();
             ~AuthSimple();
-            void configure(const xmlNode * ptr);
+            void configure(const xmlNode * ptr, bool test_only);
             void process(metaproxy_1::Package & package) const;
         private:
             void config_userRegister(std::string filename);

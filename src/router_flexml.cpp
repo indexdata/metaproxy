@@ -1,4 +1,4 @@
-/* $Id: router_flexml.cpp,v 1.22 2007-05-09 21:23:09 adam Exp $
+/* $Id: router_flexml.cpp,v 1.23 2008-02-20 15:07:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -49,7 +49,7 @@ namespace metaproxy_1 {
         friend class RouterFleXML::Pos;
         Rep();
 
-        void base(xmlDocPtr doc, mp::FactoryFilter &factory);
+        void base(xmlDocPtr doc, mp::FactoryFilter &factory, bool test_only);
 
         typedef std::map<std::string,
                          boost::shared_ptr<const mp::filter::Base > >
@@ -63,10 +63,12 @@ namespace metaproxy_1 {
 
         std::string m_dl_path;
 
-        void parse_xml_config_dom(xmlDocPtr doc);
+        void parse_xml_config_dom(xmlDocPtr doc, bool test_only);
 
-        void parse_xml_filters(xmlDocPtr doc, const xmlNode *node);
-        void parse_xml_routes(xmlDocPtr doc, const xmlNode *node);
+        void parse_xml_filters(xmlDocPtr doc, const xmlNode *node,
+            bool test_only);
+        void parse_xml_routes(xmlDocPtr doc, const xmlNode *node,
+            bool test_only);
 
         bool m_xinclude;
     private:
@@ -87,7 +89,8 @@ namespace metaproxy_1 {
 }
 
 void mp::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
-                                               const xmlNode *node)
+                                              const xmlNode *node,
+                                              bool test_only)
 {
     unsigned int filter_nr = 0;
     while(node && mp::xml::check_element_mp(node, "filter"))
@@ -122,7 +125,7 @@ void mp::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
         }
         mp::filter::Base* filter_base = m_factory->create(type_value);
 
-        filter_base->configure(node);
+        filter_base->configure(node, test_only);
 
         if (m_id_filter_map.find(id_value) != m_id_filter_map.end())
             throw mp::XMLError("Filter " + id_value + " already defined");
@@ -135,7 +138,8 @@ void mp::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
 }
 
 void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
-                                              const xmlNode *node)
+                                             const xmlNode *node,
+                                             bool test_only)
 {
     mp::xml::check_element_mp(node, "route");
 
@@ -213,7 +217,7 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
                 }
                 mp::filter::Base* filter_base = m_factory->create(type_value);
 
-                filter_base->configure(node3);
+                filter_base->configure(node3, test_only);
                 
                 route.m_list.push_back(
                     boost::shared_ptr<mp::filter::Base>(filter_base));
@@ -232,7 +236,8 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
     }
 }
 
-void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
+void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
+                                                 bool test_only)
 {
     if (!doc)
         throw mp::XMLError("Empty XML Document");
@@ -273,14 +278,16 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc)
     if (mp::xml::is_element_mp(node, "filters"))
     {
         parse_xml_filters(doc, mp::xml::jump_to_children(node,
-                                                          XML_ELEMENT_NODE));
+                                                         XML_ELEMENT_NODE),
+            test_only);
                       
         node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
     }
     // process <routes> node which is expected third element node
     mp::xml::check_element_mp(node, "routes");
     
-    parse_xml_routes(doc, mp::xml::jump_to_children(node, XML_ELEMENT_NODE));
+    parse_xml_routes(doc, mp::xml::jump_to_children(node, XML_ELEMENT_NODE),
+        test_only);
 
     node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
     if (node)
@@ -294,20 +301,23 @@ mp::RouterFleXML::Rep::Rep() : m_xinclude(false)
 {
 }
 
-void mp::RouterFleXML::Rep::base(xmlDocPtr doc, mp::FactoryFilter &factory)
+void mp::RouterFleXML::Rep::base(xmlDocPtr doc, mp::FactoryFilter &factory,
+    bool test_only)
 {
     m_factory = &factory;
-    parse_xml_config_dom(doc);
+    parse_xml_config_dom(doc, test_only);
     m_start_route = "start";
 }
 
-mp::RouterFleXML::RouterFleXML(xmlDocPtr doc, mp::FactoryFilter &factory)
+mp::RouterFleXML::RouterFleXML(xmlDocPtr doc, mp::FactoryFilter &factory,
+    bool test_only)
     : m_p(new Rep)
 {
-    m_p->base(doc, factory);
+    m_p->base(doc, factory, test_only);
 }
 
-mp::RouterFleXML::RouterFleXML(std::string xmlconf, mp::FactoryFilter &factory) 
+mp::RouterFleXML::RouterFleXML(std::string xmlconf, mp::FactoryFilter &factory,
+    bool test_only) 
     : m_p(new Rep)
 {            
     LIBXML_TEST_VERSION;
@@ -318,7 +328,7 @@ mp::RouterFleXML::RouterFleXML(std::string xmlconf, mp::FactoryFilter &factory)
         throw mp::XMLError("xmlParseMemory failed");
     else
     {
-        m_p->base(doc, factory);
+        m_p->base(doc, factory, test_only);
         xmlFreeDoc(doc);
     }
 }

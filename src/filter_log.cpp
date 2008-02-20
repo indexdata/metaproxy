@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.32 2007-05-24 14:07:12 adam Exp $
+/* $Id: filter_log.cpp,v 1.33 2008-02-20 15:07:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -106,7 +106,7 @@ yf::Log::~Log()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
-void yf::Log::configure(const xmlNode *xmlnode)
+void yf::Log::configure(const xmlNode *xmlnode, bool test_only)
 {
     m_p->configure(xmlnode);
 }

@@ -1,4 +1,4 @@
-/* $Id: filter_sru_to_z3950.cpp,v 1.37 2008-01-29 21:25:46 adam Exp $
+/* $Id: filter_sru_to_z3950.cpp,v 1.38 2008-02-20 15:07:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -107,7 +107,7 @@ yf::SRUtoZ3950::~SRUtoZ3950()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
-void yf::SRUtoZ3950::configure(const xmlNode *xmlnode)
+void yf::SRUtoZ3950::configure(const xmlNode *xmlnode, bool test_only)
 {
     m_p->configure(xmlnode);
 }

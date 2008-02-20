@@ -1,4 +1,4 @@
-/* $Id: test_filter_record_transform.cpp,v 1.7 2007-11-02 17:47:41 adam Exp $
+/* $Id: test_filter_record_transform.cpp,v 1.8 2008-02-20 15:07:53 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE( test_filter_record_transform_3 )
 
         // creating and configuring filter
         mp::filter::RecordTransform f_rec_trans;
-        f_rec_trans.configure(root_element);
+        f_rec_trans.configure(root_element, true);
         
         // remeber to free XML DOM
         xmlFreeDoc(doc);

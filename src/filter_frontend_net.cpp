@@ -1,5 +1,5 @@
-/* $Id: filter_frontend_net.cpp,v 1.25 2008-01-21 16:15:00 adam Exp $
-   Copyright (c) 2005-2007, Index Data.
+/* $Id: filter_frontend_net.cpp,v 1.26 2008-02-20 15:07:51 adam Exp $
+   Copyright (c) 2005-2008, Index Data.
 
 This file is part of Metaproxy.
 
@@ -37,6 +37,8 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 namespace mp = metaproxy_1;
 
 namespace metaproxy_1 {
+    class My_Timer_Thread;
+    class ZAssocServer;
     namespace filter {
         class FrontendNet::Rep {
             friend class FrontendNet;
@@ -44,6 +46,9 @@ namespace metaproxy_1 {
             std::vector<std::string> m_ports;
             int m_listen_duration;
             int m_session_timeout;
+            yazpp_1::SocketManager mySocketManager;
+            
+            ZAssocServer **az;
         };
     }
     class My_Timer_Thread : public yazpp_1::ISocketObserver {
@@ -95,10 +100,9 @@ namespace metaproxy_1 {
     class ZAssocServer : public yazpp_1::Z_Assoc {
     public:
         ~ZAssocServer();
-        ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable,
-                     mp::ThreadPoolSocketObserver *m_thread_pool_observer,
-                     const mp::Package *package,
-                     int timeout);
+        ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable, int timeout);
+        void set_package(const mp::Package *package);
+        void set_thread_pool(ThreadPoolSocketObserver *m_thread_pool_observer);
     private:
         yazpp_1::IPDU_Observer* sessionNotify(
             yazpp_1::IPDU_Observable *the_PDU_Observable,
@@ -233,14 +237,21 @@ void mp::ZAssocChild::connectNotify()
 }
 
 mp::ZAssocServer::ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable,
-                               mp::ThreadPoolSocketObserver *thread_pool_observer,
-                               const mp::Package *package,
                                int timeout)
     :  Z_Assoc(PDU_Observable), m_session_timeout(timeout)
 {
-    m_thread_pool_observer = thread_pool_observer;
-    m_package = package;
+    m_package = 0;
+}
 
+
+void mp::ZAssocServer::set_package(const mp::Package *package)
+{
+    m_package = package;
+}
+
+void mp::ZAssocServer::set_thread_pool(ThreadPoolSocketObserver *observer)
+{
+    m_thread_pool_observer = observer;
 }
 
 yazpp_1::IPDU_Observer *mp::ZAssocServer::sessionNotify(yazpp_1::IPDU_Observable
@@ -278,10 +289,18 @@ mp::filter::FrontendNet::FrontendNet() : m_p(new Rep)
     m_p->m_no_threads = 5;
     m_p->m_listen_duration = 0;
     m_p->m_session_timeout = 300; // 5 minutes
+    m_p->az = 0;
 }
 
 mp::filter::FrontendNet::~FrontendNet()
 {
+    if (m_p->az)
+    {
+        size_t i;
+        for (i = 0; i<m_p->m_ports.size(); i++)
+            delete m_p->az[i];
+        delete [] m_p->az;
+    }
 }
 
 bool mp::My_Timer_Thread::timeout()
@@ -306,44 +325,31 @@ void mp::My_Timer_Thread::socketNotify(int event)
 
 void mp::filter::FrontendNet::process(Package &package) const
 {
-    if (m_p->m_ports.size() == 0)
+    if (m_p->az == 0)
         return;
-
-    yazpp_1::SocketManager mySocketManager;
-
-    My_Timer_Thread *tt = 0;
-    if (m_p->m_listen_duration)
-	tt = new My_Timer_Thread(&mySocketManager, m_p->m_listen_duration);
-
-    ThreadPoolSocketObserver threadPool(&mySocketManager, m_p->m_no_threads);
-
-    mp::ZAssocServer **az = new mp::ZAssocServer *[m_p->m_ports.size()];
-
-    // Create mp::ZAssocServer for each port
     size_t i;
+    My_Timer_Thread *tt = 0;
+
+    if (m_p->m_listen_duration)
+        tt = new My_Timer_Thread(&m_p->mySocketManager,
+                                 m_p->m_listen_duration);
+    
+    ThreadPoolSocketObserver tp(&m_p->mySocketManager, m_p->m_no_threads);
+
     for (i = 0; i<m_p->m_ports.size(); i++)
     {
-	// create a PDU assoc object (one per mp::ZAssocServer)
-	yazpp_1::PDU_Assoc *as = new yazpp_1::PDU_Assoc(&mySocketManager);
-
-	// create ZAssoc with PDU Assoc
-	az[i] = new mp::ZAssocServer(as, &threadPool, &package,
-                                     m_p->m_session_timeout);
-	az[i]->server(m_p->m_ports[i].c_str());
+	m_p->az[i]->set_package(&package);
+	m_p->az[i]->set_thread_pool(&tp);
     }
-    while (mySocketManager.processEvent() > 0)
+    while (m_p->mySocketManager.processEvent() > 0)
     {
 	if (tt && tt->timeout())
 	    break;
     }
-    for (i = 0; i<m_p->m_ports.size(); i++)
-	delete az[i];
-
-    delete [] az;
     delete tt;
 }
 
-void mp::filter::FrontendNet::configure(const xmlNode * ptr)
+void mp::filter::FrontendNet::configure(const xmlNode * ptr, bool test_only)
 {
     if (!ptr || !ptr->children)
     {
@@ -385,17 +391,38 @@ void mp::filter::FrontendNet::configure(const xmlNode * ptr)
                                                              ptr->name));
         }
     }
+    if (test_only)
+        return;
+    set_ports(ports);
+}
+
+void mp::filter::FrontendNet::set_ports(std::vector<std::string> &ports)
+{
     m_p->m_ports = ports;
+    
+    m_p->az = new mp::ZAssocServer *[m_p->m_ports.size()];
+    
+    // Create mp::ZAssocServer for each port
+    size_t i;
+    for (i = 0; i<m_p->m_ports.size(); i++)
+    {
+        // create a PDU assoc object (one per mp::ZAssocServer)
+        yazpp_1::PDU_Assoc *as = new yazpp_1::PDU_Assoc(&m_p->mySocketManager);
+        
+        // create ZAssoc with PDU Assoc
+        m_p->az[i] = new mp::ZAssocServer(as, 
+                                          m_p->m_session_timeout);
+        if (m_p->az[i]->server(m_p->m_ports[i].c_str()))
+        {
+            throw mp::filter::FilterException("Unable to bind to address " 
+                                              + std::string(m_p->m_ports[i]));
+        }
+    }
 }
 
-std::vector<std::string> &mp::filter::FrontendNet::ports()
+void mp::filter::FrontendNet::set_listen_duration(int d)
 {
-    return m_p->m_ports;
-}
-
-int &mp::filter::FrontendNet::listen_duration()
-{
-    return m_p->m_listen_duration;
+    m_p->m_listen_duration = d;
 }
 
 static mp::filter::Base* filter_creator()

@@ -1,4 +1,4 @@
-/* $Id: test_filter2.cpp,v 1.24 2007-11-02 17:30:04 adam Exp $
+/* $Id: test_filter2.cpp,v 1.25 2008-02-20 15:07:53 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -43,7 +43,7 @@ public:
     void process(mp::Package & package) const {
 	package.move();
     };
-    void configure(const xmlNode* ptr = 0);
+    void configure(const xmlNode* ptr, bool test_only);
     int get_constant() const { return m_constant; };
 private:
     const xmlNode *m_ptr;
@@ -51,10 +51,10 @@ private:
 };
 
 
-void FilterConstant::configure(const xmlNode* ptr)
+void FilterConstant::configure(const xmlNode* ptr, bool test_only)
 {
     m_ptr = ptr;
-    
+
     BOOST_CHECK_EQUAL (ptr->type, XML_ELEMENT_NODE);
     BOOST_CHECK_EQUAL(std::string((const char *) ptr->name), "filter");
     
@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE( testfilter2_2 )
         {
             xmlNodePtr root_element = xmlDocGetRootElement(doc);
             
-            base->configure(root_element);
+            base->configure(root_element, true);
             
             xmlFreeDoc(doc);
         }

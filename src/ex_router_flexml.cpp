@@ -1,4 +1,4 @@
-/* $Id: ex_router_flexml.cpp,v 1.12 2008-02-20 10:51:11 adam Exp $
+/* $Id: ex_router_flexml.cpp,v 1.13 2008-02-20 15:07:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         if (doc)
         {
             mp::FactoryStatic factory;
-            mp::RouterFleXML router(doc, factory);
+            mp::RouterFleXML router(doc, factory, false);
 
 	    mp::Package pack;
 	 

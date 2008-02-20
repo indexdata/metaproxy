@@ -1,4 +1,4 @@
-/* $Id: filter_auth_simple.cpp,v 1.24 2007-05-23 14:24:10 adam Exp $
+/* $Id: filter_auth_simple.cpp,v 1.25 2008-02-20 15:07:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -76,7 +76,7 @@ static void die(std::string s) { throw mp::filter::FilterException(s); }
 
 
 // Read XML config.. Put config info in m_p.
-void mp::filter::AuthSimple::configure(const xmlNode * ptr)
+void mp::filter::AuthSimple::configure(const xmlNode * ptr, bool test_only)
 {
     std::string userRegisterName;
     std::string targetRegisterName;

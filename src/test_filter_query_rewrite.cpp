@@ -1,4 +1,4 @@
-/* $Id: test_filter_query_rewrite.cpp,v 1.14 2007-11-02 17:47:41 adam Exp $
+/* $Id: test_filter_query_rewrite.cpp,v 1.15 2008-02-20 15:07:53 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_CASE( test_filter_query_rewrite3 )
 
         // creating and configuring filter
         mp::filter::QueryRewrite f_query_rewrite;
-        f_query_rewrite.configure(root_element);
+        f_query_rewrite.configure(root_element, true);
         
         // remeber to free XML DOM
         xmlFreeDoc(doc);

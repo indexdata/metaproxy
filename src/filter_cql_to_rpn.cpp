@@ -1,4 +1,4 @@
-/* $Id: filter_cql_to_rpn.cpp,v 1.7 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_cql_to_rpn.cpp,v 1.8 2008-02-20 15:07:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -18,7 +18,7 @@ along with Metaproxy; see the file LICENSE.  If not, write to the
 Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
-/* $Id: filter_cql_to_rpn.cpp,v 1.7 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_cql_to_rpn.cpp,v 1.8 2008-02-20 15:07:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -68,7 +68,7 @@ yf::CQLtoRPN::~CQLtoRPN()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
-void yf::CQLtoRPN::configure(const xmlNode *xmlnode)
+void yf::CQLtoRPN::configure(const xmlNode *xmlnode, bool test_only)
 {
     m_p->configure(xmlnode);
 }

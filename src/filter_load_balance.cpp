@@ -1,4 +1,4 @@
-/* $Id: filter_load_balance.cpp,v 1.9 2008-01-29 16:51:12 adam Exp $
+/* $Id: filter_load_balance.cpp,v 1.10 2008-02-20 15:07:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -102,7 +102,7 @@ yf::LoadBalance::~LoadBalance()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
-void yf::LoadBalance::configure(const xmlNode *xmlnode)
+void yf::LoadBalance::configure(const xmlNode *xmlnode, bool test_only)
 {
     m_p->configure(xmlnode);
 }

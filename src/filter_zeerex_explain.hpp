@@ -1,4 +1,4 @@
-/* $Id: filter_zeerex_explain.hpp,v 1.3 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_zeerex_explain.hpp,v 1.4 2008-02-20 15:07:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -35,7 +35,7 @@ namespace metaproxy_1 {
         public:
             ZeeRexExplain();
             ~ZeeRexExplain();
-            void configure(const xmlNode *xmlnode);
+            void configure(const xmlNode *xmlnode, bool test_only);
             void process(metaproxy_1::Package & package) const;
         };
     }

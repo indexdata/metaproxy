@@ -1,4 +1,4 @@
-/* $Id: test_filter_frontend_net.cpp,v 1.19 2007-11-02 17:47:41 adam Exp $
+/* $Id: test_filter_frontend_net.cpp,v 1.20 2008-02-20 15:07:53 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -18,7 +18,7 @@ along with Metaproxy; see the file LICENSE.  If not, write to the
 Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
-/* $Id: test_filter_frontend_net.cpp,v 1.19 2007-11-02 17:47:41 adam Exp $
+/* $Id: test_filter_frontend_net.cpp,v 1.20 2008-02-20 15:07:53 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -131,8 +131,8 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_3 )
 
             std::vector <std::string> ports;
             ports.insert(ports.begin(), "unix:socket");
-            filter_front.ports() = ports;
-            filter_front.listen_duration() = 1;  // listen a short time only
+            filter_front.set_ports(ports);
+            filter_front.set_listen_duration(1);  // listen a short time only
 	    router.append(filter_front);
 
             // put in a backend

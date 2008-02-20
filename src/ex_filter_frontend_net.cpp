@@ -1,4 +1,4 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.31 2008-02-20 10:51:11 adam Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.32 2008-02-20 15:07:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -106,11 +106,11 @@ int main(int argc, char **argv)
 
             // put frontend filter in router
             mp::filter::FrontendNet filter_front;
-            filter_front.ports() = ports;
+            filter_front.set_ports(ports);
 
             // 0=no time, >0 timeout in seconds
             if (duration != -1)
-                filter_front.listen_duration() = duration;
+                filter_front.set_listen_duration(duration);
 
 	    router.append(filter_front);
 

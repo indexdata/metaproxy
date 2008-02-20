@@ -1,4 +1,4 @@
-/* $Id: router_flexml.hpp,v 1.17 2007-05-09 21:23:09 adam Exp $
+/* $Id: router_flexml.hpp,v 1.18 2008-02-20 15:07:53 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -38,8 +38,10 @@ namespace metaproxy_1
         class Route;
         class Pos;
     public:
-        RouterFleXML(std::string xmlconf, metaproxy_1::FactoryFilter &factory);
-        RouterFleXML(xmlDocPtr doc, metaproxy_1::FactoryFilter &factory);
+        RouterFleXML(std::string xmlconf, metaproxy_1::FactoryFilter &factory,
+            bool test_only);
+        RouterFleXML(xmlDocPtr doc, metaproxy_1::FactoryFilter &factory,
+            bool test_only);
         
         ~RouterFleXML();
 

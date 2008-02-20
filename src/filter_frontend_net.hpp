@@ -1,4 +1,4 @@
-/* $Id: filter_frontend_net.hpp,v 1.16 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_frontend_net.hpp,v 1.17 2008-02-20 15:07:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -38,12 +38,12 @@ namespace metaproxy_1 {
             FrontendNet();
             ~FrontendNet();
             void process(metaproxy_1::Package & package) const;
-            void configure(const xmlNode * ptr);
+            void configure(const xmlNode * ptr, bool test_only);
         public:
             /// set ports
-            std::vector<std::string> &ports();
+            void set_ports(std::vector<std::string> &ports);
             // set liten duraction (number of seconcds to listen)
-            int &listen_duration();
+            void set_listen_duration(int d);
         };
     }
 }

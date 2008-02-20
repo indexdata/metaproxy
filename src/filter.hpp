@@ -1,4 +1,4 @@
-/* $Id: filter.hpp,v 1.20 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter.hpp,v 1.21 2008-02-20 15:07:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -40,7 +40,7 @@ namespace metaproxy_1 {
             virtual void process(Package & package) const = 0;
 
             /// configuration during filter load 
-            virtual void configure(const xmlNode * ptr);
+            virtual void configure(const xmlNode * ptr, bool test_only);
         };
 
         class FilterException : public std::runtime_error {

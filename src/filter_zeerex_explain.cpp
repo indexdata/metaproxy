@@ -1,4 +1,4 @@
-/* $Id: filter_zeerex_explain.cpp,v 1.6 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_zeerex_explain.cpp,v 1.7 2008-02-20 15:07:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -65,7 +65,7 @@ yf::ZeeRexExplain::~ZeeRexExplain()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
-void yf::ZeeRexExplain::configure(const xmlNode *xmlnode)
+void yf::ZeeRexExplain::configure(const xmlNode *xmlnode, bool test_only)
 {
     m_p->configure(xmlnode);
 }

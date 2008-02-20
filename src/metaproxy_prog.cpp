@@ -1,4 +1,4 @@
-/* $Id: metaproxy_prog.cpp,v 1.13 2008-02-20 12:39:35 adam Exp $
+/* $Id: metaproxy_prog.cpp,v 1.14 2008-02-20 15:07:52 adam Exp $
    Copyright (c) 2005-2008, Index Data.
 
 This file is part of Metaproxy.
@@ -80,6 +80,7 @@ int main(int argc, char **argv)
                 break;
             case 'l':
                 yaz_log_init_file(arg);
+                yaz_log(YLOG_LOG, "Metaproxy " VERSION " started");
                 break;
             case 'p':
                 pidfile = arg;
@@ -119,7 +120,7 @@ int main(int argc, char **argv)
             std::cerr << "processing XInclude directive\n";
         }
         mp::FactoryStatic factory;
-        mp::RouterFleXML router(doc, factory);
+        mp::RouterFleXML router(doc, factory, false);
 
         yaz_daemon("metaproxy", mode, handler, &router, pidfile, uid);
     }

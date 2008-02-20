@@ -1,4 +1,4 @@
-/* $Id: filter_virt_db.cpp,v 1.53 2007-11-26 21:45:08 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.54 2008-02-20 15:07:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -18,7 +18,7 @@ along with Metaproxy; see the file LICENSE.  If not, write to the
 Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
-/* $Id: filter_virt_db.cpp,v 1.53 2007-11-26 21:45:08 adam Exp $
+/* $Id: filter_virt_db.cpp,v 1.54 2008-02-20 15:07:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
    See the LICENSE file for details
@@ -790,7 +790,7 @@ void yf::VirtualDB::process(mp::Package &package) const
 }
 
 
-void mp::filter::VirtualDB::configure(const xmlNode * ptr)
+void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {

@@ -1,4 +1,4 @@
-/* $Id: filter_http_file.cpp,v 1.9 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_http_file.cpp,v 1.10 2008-02-20 15:07:51 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -215,7 +215,7 @@ void yf::HttpFile::process(mp::Package &package) const
         package.move();
 }
 
-void mp::filter::HttpFile::configure(const xmlNode * ptr)
+void mp::filter::HttpFile::configure(const xmlNode * ptr, bool test_only)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {

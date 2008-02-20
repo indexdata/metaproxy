@@ -1,4 +1,4 @@
-/* $Id: test_router_flexml.cpp,v 1.21 2007-11-02 17:47:41 adam Exp $
+/* $Id: test_router_flexml.cpp,v 1.22 2008-02-20 15:07:53 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE( test_router_flexml_1 )
 
         mp::FactoryStatic factory;
         factory.add_creator("tfilter", filter_creator);
-        mp::RouterFleXML rflexml(xmlconf, factory);
+        mp::RouterFleXML rflexml(xmlconf, factory, true);
         BOOST_CHECK_EQUAL(tfilter_ref, 2);
     }
     catch ( std::runtime_error &e) {
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE( test_router_flexml_2 )
             "      <port>@:210</port>\n";
         
         mp::FactoryFilter factory;
-        mp::RouterFleXML rflexml(xmlconf_invalid, factory);
+        mp::RouterFleXML rflexml(xmlconf_invalid, factory, true);
     }
     catch ( mp::XMLError &e) {
         std::cout << "XMLError: " << e.what() << "\n";
@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_CASE( test_router_flexml_3 )
             "</mp:metaproxy>\n";
        
         mp::FactoryStatic factory;
-        mp::RouterFleXML rflexml(xmlconf, factory);
+        mp::RouterFleXML rflexml(xmlconf, factory, true);
     }
     catch ( std::runtime_error &e) {
         std::cout << "std::runtime error: " << e.what() << "\n";
@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE( test_router_flexml_4 )
 
         mp::FactoryStatic factory;
         factory.add_creator("tfilter", filter_creator);
-        mp::RouterFleXML rflexml(xmlconf, factory);
+        mp::RouterFleXML rflexml(xmlconf, factory, true);
     }
     catch ( mp::FactoryFilter::NotFound &e) {
         std::cout << "mp::FactoryFilter::NotFound: " << e.what() << "\n";

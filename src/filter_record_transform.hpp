@@ -1,4 +1,4 @@
-/* $Id: filter_record_transform.hpp,v 1.3 2007-05-09 21:23:09 adam Exp $
+/* $Id: filter_record_transform.hpp,v 1.4 2008-02-20 15:07:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -36,7 +36,7 @@ namespace metaproxy_1 {
             RecordTransform();
             ~RecordTransform();
             void process(metaproxy_1::Package & package) const;
-            void configure(const xmlNode * ptr);
+            void configure(const xmlNode * ptr, bool test_only);
         };
     }
 }

@@ -1,4 +1,4 @@
-/* $Id: filter_record_transform.cpp,v 1.13 2007-12-16 22:22:49 adam Exp $
+/* $Id: filter_record_transform.cpp,v 1.14 2008-02-20 15:07:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -63,7 +63,7 @@ yf::RecordTransform::~RecordTransform()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
-void yf::RecordTransform::configure(const xmlNode *xmlnode)
+void yf::RecordTransform::configure(const xmlNode *xmlnode, bool test_only)
 {
     m_p->configure(xmlnode);
 }

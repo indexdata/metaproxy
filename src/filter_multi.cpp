@@ -1,4 +1,4 @@
-/* $Id: filter_multi.cpp,v 1.30 2008-01-19 09:02:11 adam Exp $
+/* $Id: filter_multi.cpp,v 1.31 2008-02-20 15:07:52 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -1173,7 +1173,7 @@ void yf::Multi::process(mp::Package &package) const
     m_p->release_frontend(package);
 }
 
-void mp::filter::Multi::configure(const xmlNode * ptr)
+void mp::filter::Multi::configure(const xmlNode * ptr, bool test_only)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
