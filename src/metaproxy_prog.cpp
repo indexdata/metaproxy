@@ -1,5 +1,5 @@
-/* $Id: metaproxy_prog.cpp,v 1.10 2007-05-09 21:23:09 adam Exp $
-   Copyright (c) 2005-2007, Index Data.
+/* $Id: metaproxy_prog.cpp,v 1.11 2008-02-20 10:28:23 adam Exp $
+   Copyright (c) 2005-2008, Index Data.
 
 This file is part of Metaproxy.
 
@@ -21,8 +21,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include "config.hpp"
 
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
+#include <yaz/options.h>
 
 #include <iostream>
 #include <stdexcept>
@@ -39,82 +38,56 @@ int main(int argc, char **argv)
 {
     try 
     {
-        po::options_description desc("Allowed options");
-        desc.add_options()
-            ("help,h", "produce help message")
-            ("version,V", "show version")
-            ("config", po::value< std::vector<std::string> >(), "xml config")
-            ;
-        
-        po::positional_options_description p;
-        p.add("config", -1);
-        
-        po::variables_map vm;        
-        po::store(po::command_line_parser(argc, argv).
-                  options(desc).positional(p).run(), vm);
-        po::notify(vm);
-        
-        if (vm.count("help")) {
-            std::cout << desc << "\n";
-            return 1;
-        }
-        if (vm.count("version")) {
-            std::cout << "Metaproxy " VERSION "\n";
-            return 0;
-        }
-        xmlDocPtr doc = 0;
-        if (vm.count("config"))
+        const char *fname = 0;
+        int ret;
+        char *arg;
+        while ((ret = options("h{help}V{version}c{config}:", argv, argc, &arg))
+               != -2)
         {
-            std::vector<std::string> config_fnames = 
-                vm["config"].as< std::vector<std::string> >();
-
-            if (config_fnames.size() != 1)
+            switch (ret)
             {
-                std::cerr << "Only one configuration must be given\n";
+            case 'h':
+                std::cout << "metaproxy\n"
+                    " -h|--help     help\n"
+                    " -V|--version  version\n"
+                    " -c|--config   config filename\n"
+                          << std::endl;
+                break;
+            case 'V':
+                std::cout << "Metaproxy " VERSION "\n";
+                break;
+            case 'c':
+                fname = arg;
+                break;
+            case -1:
+                std::cerr << "bad option: " << arg << std::endl;
                 std::exit(1);
-            }
-            
-            // need to parse with xinclude tags 
-            // XML_PARSE_XINCLUDE XML_PARSE_NOBLANKS  
-            // XML_PARSE_NSCLEAN XML_PARSE_NONET 
-            doc = xmlReadFile(config_fnames[0].c_str(), 
-                              NULL, 
-                              XML_PARSE_XINCLUDE + XML_PARSE_NOBLANKS
-                              + XML_PARSE_NSCLEAN + XML_PARSE_NONET );
-
-            if (!doc)
-            {
-                std::cerr << "XML parsing failed\n";
-                std::exit(1);
-            }
-            // and perform Xinclude then
-            if (xmlXIncludeProcess(doc) > 0) {
-                std::cerr << "processing XInclude directive\n";
             }
         }
-        else
+        if (!fname)
         {
             std::cerr << "No configuration given\n";
             std::exit(1);
         }
-        if (doc)
+        xmlDocPtr doc = xmlReadFile(fname,
+                                    NULL, 
+                                    XML_PARSE_XINCLUDE + XML_PARSE_NOBLANKS
+                                    + XML_PARSE_NSCLEAN + XML_PARSE_NONET );
+        
+        if (!doc)
         {
-            try {
-                mp::FactoryStatic factory;
-                mp::RouterFleXML router(doc, factory);
-                mp::Package pack;
-                pack.router(router).move();
-            }
-            catch (std::runtime_error &e) {
-                std::cerr << "std::runtime error: " << e.what() << "\n";
-                std::exit(1);
-            }
-            xmlFreeDoc(doc);
+            std::cerr << "XML parsing failed\n";
+            std::exit(1);
         }
-    }
-    catch (po::unknown_option &e) {
-        std::cerr << e.what() << "; use --help for list of options\n";
-        std::exit(1);
+        // and perform Xinclude then
+        if (xmlXIncludeProcess(doc) > 0) {
+            std::cerr << "processing XInclude directive\n";
+        }
+        mp::FactoryStatic factory;
+        mp::RouterFleXML router(doc, factory);
+        mp::Package pack;
+        pack.router(router).move();
+        xmlFreeDoc(doc);
     }
     catch (std::logic_error &e) {
         std::cerr << "std::logic error: " << e.what() << "\n";
