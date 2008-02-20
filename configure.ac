@@ -52,9 +52,6 @@ fi
 if test "$ax_cv_boost_date_time" = "no"; then
     AC_MSG_ERROR([install libboost-date-time-dev or similar])
 fi
-if test "$ax_cv_boost_program_options" = "no"; then
-    AC_MSG_ERROR([install libboost-program-options-dev or similar])
-fi
 if test "$ax_cv_boost_thread" = "no"; then
     AC_MSG_ERROR([install libboost-thread-dev or similar])
 fi
