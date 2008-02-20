@@ -1,4 +1,4 @@
-/* $Id: metaproxy_prog.cpp,v 1.11 2008-02-20 10:28:23 adam Exp $
+/* $Id: metaproxy_prog.cpp,v 1.12 2008-02-20 10:49:49 adam Exp $
    Copyright (c) 2005-2008, Index Data.
 
 This file is part of Metaproxy.
@@ -41,13 +41,13 @@ int main(int argc, char **argv)
         const char *fname = 0;
         int ret;
         char *arg;
-        while ((ret = options("h{help}V{version}c{config}:", argv, argc, &arg))
-               != -2)
+        while ((ret = options("h{help}V{version}c{config}:", 
+                              argv, argc, &arg)) != -2)
         {
             switch (ret)
             {
             case 'h':
-                std::cout << "metaproxy\n"
+                std::cerr << "metaproxy\n"
                     " -h|--help     help\n"
                     " -V|--version  version\n"
                     " -c|--config   config filename\n"
