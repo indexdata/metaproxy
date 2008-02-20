@@ -1,4 +1,4 @@
-/* $Id: ex_filter_frontend_net.cpp,v 1.30 2007-05-09 21:23:09 adam Exp $
+/* $Id: ex_filter_frontend_net.cpp,v 1.31 2008-02-20 10:51:11 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -25,10 +25,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <iostream>
 #include <stdexcept>
 
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
-
-
+#include <yaz/options.h>
 #include "util.hpp"
 #include "filter_frontend_net.hpp"
 #include "filter_z3950_client.hpp"
@@ -74,32 +71,34 @@ int main(int argc, char **argv)
 {
     try 
     {
-        po::options_description desc("Allowed options");
-        desc.add_options()
-            ("help", "produce help message")
-            ("duration", po::value<int>(),
-             "number of seconds for server to exist")
-            ("port", po::value< std::vector<std::string> >(), "listener port")
-            ;
+        std::vector<std::string> ports;
+        int duration = -1;
+        int ret;
+        char *arg;
 
-        po::positional_options_description p;
-        p.add("port", -1);
-
-        po::variables_map vm;        
-        po::store(po::command_line_parser(argc, argv).
-                  options(desc).positional(p).run(), vm);
-        po::notify(vm);    
-
-        if (vm.count("help")) {
-            std::cout << desc << "\n";
-            return 1;
-        }
-
-        if (vm.count("port"))
+        while ((ret = options("h{help}d{duration}:p{port}:", 
+                              argv, argc, &arg)) != -2)
         {
-            std::vector<std::string> ports = 
-                vm["port"].as< std::vector<std::string> >();
-
+            switch(ret)
+            {
+            case -1:
+                std::cerr << "bad option " << arg << std::endl;
+            case 'h':
+                std::cerr << "ex_filter_frontend_net\n"
+                    " -h|--help       help\n"
+                    " -d|--duration n duration\n"
+                    " -p|--port n     port number\n"
+                          << std::endl;
+                break;
+            case 'p':
+                ports.push_back(arg);
+                break;
+            case 'd':
+                duration = atoi(arg);
+                break;
+            }
+        }
+        {
             for (size_t i = 0; i<ports.size(); i++)
                 std::cout << "port " << i << " " << ports[i] << "\n";
 
@@ -110,9 +109,9 @@ int main(int argc, char **argv)
             filter_front.ports() = ports;
 
             // 0=no time, >0 timeout in seconds
-            if (vm.count("duration")) {
-                filter_front.listen_duration() = vm["duration"].as<int>();
-            }
+            if (duration != -1)
+                filter_front.listen_duration() = duration;
+
 	    router.append(filter_front);
 
             // put log filter in router
