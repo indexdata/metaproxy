@@ -4,7 +4,7 @@
  <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
 ]>
-<!-- $Id: metaproxy.xml,v 1.8 2007-05-22 11:05:45 adam Exp $ -->
+<!-- $Id: metaproxy.xml,v 1.9 2008-02-20 12:39:34 adam Exp $ -->
 <refentry id="ref-metaproxy">
  <refmeta>
   <refentrytitle>metaproxy</refentrytitle>
@@ -13,14 +13,20 @@
  
  <refnamediv>
   <refname>metaproxy</refname>
-  <refpurpose>Metaproxy - daemon</refpurpose>
+  <refpurpose>Metaproxy - server</refpurpose>
  </refnamediv>
  
  <refsynopsisdiv>
   <cmdsynopsis>
    <command>metaproxy</command>
    <arg choice="opt"><option>--help</option></arg>
+   <arg choice="opt"><option>--version</option></arg>
    <arg choice="opt"><option>--config <replaceable>config</replaceable></option></arg>
+   <arg choice="opt"><option>-D</option></arg>
+   <arg choice="opt"><option>-l <replaceable>logfile</replaceable></option></arg>
+   <arg choice="opt"><option>-p <replaceable>pidfile</replaceable></option></arg>
+   <arg choice="opt"><option>-u <replaceable>ID</replaceable></option></arg>
+   <arg choice="opt"><option>-X</option></arg>
   </cmdsynopsis>
  </refsynopsisdiv>
  
@@ -43,9 +49,51 @@
    </varlistentry>
 
    <varlistentry>
+    <term>--version</term>
+    <listitem><para>
+      Displays Metaproxy version.
+     </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
     <term>--config <replaceable>config</replaceable></term>
     <listitem><para>
       Specify the configuration.
+     </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-D</term>
+    <listitem><para>
+      Puts Metaproxy in the background after startup.
+     </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-l <replaceable>logfile</replaceable></term>
+    <listitem><para>
+      Specifies YAZ log file.
+     </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-p <replaceable>pidfile</replaceable></term>
+    <listitem><para>
+      Specifies file which holds PID after startup.
+     </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-u <replaceable>ID</replaceable></term>
+    <listitem><para>
+      Makes Metaproxy changes its identity to ID after startup.
+     </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-X</term>
+    <listitem><para>
+      Makes Metaproxy operate in debug mode.
      </para></listitem>
    </varlistentry>
 

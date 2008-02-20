@@ -1,4 +1,4 @@
-/* $Id: metaproxy_prog.cpp,v 1.12 2008-02-20 10:49:49 adam Exp $
+/* $Id: metaproxy_prog.cpp,v 1.13 2008-02-20 12:39:35 adam Exp $
    Copyright (c) 2005-2008, Index Data.
 
 This file is part of Metaproxy.
@@ -21,7 +21,9 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include "config.hpp"
 
+#include <yaz/log.h>
 #include <yaz/options.h>
+#include <yaz/daemon.h>
 
 #include <iostream>
 #include <stdexcept>
@@ -34,6 +36,14 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 namespace mp = metaproxy_1;
 
+static void handler(void *data)
+{
+    mp::RouterFleXML *routerp = (mp::RouterFleXML*) data;
+
+    mp::Package pack;
+    pack.router(*routerp).move();
+}
+    
 int main(int argc, char **argv)
 {
     try 
@@ -41,23 +51,47 @@ int main(int argc, char **argv)
         const char *fname = 0;
         int ret;
         char *arg;
-        while ((ret = options("h{help}V{version}c{config}:", 
+        unsigned mode = 0;
+        const char *pidfile = 0;
+        const char *uid = 0;
+
+        while ((ret = options("c{config}:Dh{help}l:p:u:V{version}X", 
                               argv, argc, &arg)) != -2)
         {
             switch (ret)
             {
+            case 'c':
+                fname = arg;
+                break;
+            case 'D':
+                mode = YAZ_DAEMON_FORK|YAZ_DAEMON_KEEPALIVE;
+                break;
             case 'h':
                 std::cerr << "metaproxy\n"
                     " -h|--help     help\n"
                     " -V|--version  version\n"
-                    " -c|--config   config filename\n"
+                    " -c|--config f config filename\n"
+                    " -D            daemon and keepalive operation\n"
+                    " -l f          log file f\n"
+                    " -p f          pid file f\n"
+                    " -u id         change uid to id\n"
+                    " -X            debug mode (no fork/daemon mode)\n"
                           << std::endl;
+                break;
+            case 'l':
+                yaz_log_init_file(arg);
+                break;
+            case 'p':
+                pidfile = arg;
+                break;
+            case 'u':
+                uid = arg;
                 break;
             case 'V':
                 std::cout << "Metaproxy " VERSION "\n";
                 break;
-            case 'c':
-                fname = arg;
+            case 'X':
+                mode = YAZ_DAEMON_DEBUG;
                 break;
             case -1:
                 std::cerr << "bad option: " << arg << std::endl;
@@ -69,6 +103,7 @@ int main(int argc, char **argv)
             std::cerr << "No configuration given\n";
             std::exit(1);
         }
+
         xmlDocPtr doc = xmlReadFile(fname,
                                     NULL, 
                                     XML_PARSE_XINCLUDE + XML_PARSE_NOBLANKS
@@ -85,9 +120,8 @@ int main(int argc, char **argv)
         }
         mp::FactoryStatic factory;
         mp::RouterFleXML router(doc, factory);
-        mp::Package pack;
-        pack.router(router).move();
-        xmlFreeDoc(doc);
+
+        yaz_daemon("metaproxy", mode, handler, &router, pidfile, uid);
     }
     catch (std::logic_error &e) {
         std::cerr << "std::logic error: " << e.what() << "\n";
