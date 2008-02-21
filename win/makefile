@@ -1,6 +1,6 @@
 # Copyright (C) 2005-2007, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.35 2007-09-19 10:29:01 adam Exp $
+# $Id: makefile,v 1.36 2008-02-21 10:16:40 adam Exp $
 
 # MS NMAKE makefile for metaproxy
 
@@ -82,10 +82,10 @@ test_pipe: $(TEST_PIPE)
 
 !if $(DEBUG)
 YAZD=yaz3d
-YAZPPD=yazpp2d
+YAZPPD=yazpp3d
 !else
 YAZD=yaz3
-YAZPPD=yazpp2
+YAZPPD=yazpp3
 !endif
 
 # YAZ includes & libs
