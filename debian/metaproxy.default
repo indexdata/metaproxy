@@ -1,0 +1,10 @@
+# Defaults for metaproxy initscript
+# sourced by /etc/init.d/metaproxy
+# installed at /etc/default/metaproxy by the maintainer scripts
+
+#
+# This is a POSIX shell fragment
+#
+
+# Additional options that are passed to the Daemon.
+DAEMON_OPTS="-D -u nobody -p /var/run/metaproxy.pid -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"

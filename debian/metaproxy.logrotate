@@ -1,0 +1,13 @@
+/var/log/metaproxy.log {
+	weekly
+	missingok
+	rotate 4
+	compress
+	delaycompress
+	notifempty
+	postrotate
+		if [ -f /var/run/metaproxy.pid ]; then
+			/etc/init.d/metaproxy force-reload > /dev/null
+		fi
+	endscript
+}

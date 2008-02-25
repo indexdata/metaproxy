@@ -1,4 +1,4 @@
-debian/tmp/etc/metaproxy.conf
+debian/tmp/etc/metaproxy/metaproxy.xml
 debian/tmp/usr/bin/metaproxy
 debian/tmp/usr/share/man/man1/*
 debian/tmp/usr/share/man/man3/*

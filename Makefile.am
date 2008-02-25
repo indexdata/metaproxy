@@ -1,6 +1,6 @@
 ## This file is part of Metaproxy
 ## Copyright (C) 2005-2007, Index Data ApS
-## $Id: Makefile.am,v 1.25 2008-02-14 14:25:41 marc Exp $
+## $Id: Makefile.am,v 1.26 2008-02-25 21:01:43 adam Exp $
 
 SUBDIRS = xml src etc doc
 
@@ -24,6 +24,9 @@ dist-hook:
 	cp $(srcdir)/debian/changelog $(distdir)/debian
 	cp $(srcdir)/debian/rules $(distdir)/debian
 	cp $(srcdir)/debian/*.install $(distdir)/debian
+	cp $(srcdir)/debian/metaproxy.default $(distdir)/debian
+	cp $(srcdir)/debian/metaproxy.init $(distdir)/debian
+	cp $(srcdir)/debian/metaproxy.logrotate $(distdir)/debian
 
 #cp $(srcdir)/debian/*.manpages $(distdir)/debian
 #cp $(srcdir)/debian/*.postinst $(distdir)/debian

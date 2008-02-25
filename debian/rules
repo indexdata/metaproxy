@@ -30,7 +30,7 @@ endif
 config.status: configure
 	dh_testdir
 	# Add here commands to configure the package.
-	CFLAGS="$(CFLAGS)" ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man 
+	CFLAGS="$(CFLAGS)" ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --with-yazpp=/usr/bin
 
 #--infodir=\$${prefix}/share/info --enable-shared --enable-static --with-xslt
 
@@ -82,16 +82,16 @@ binary-arch: build install
 	dh_installchangelogs 
 	dh_installexamples
 	mv debian/tmp/usr/share/doc/metaproxy debian/tmp/usr/share/doc/metaproxy-doc
-	mkdir debian/tmp/etc
-	cp debian/tmp/usr/share/metaproxy/etc/config1.xml debian/tmp/etc/metaproxy.conf
+	mkdir -p debian/tmp/etc/metaproxy
+	cp debian/tmp/usr/share/metaproxy/etc/config1.xml debian/tmp/etc/metaproxy/metaproxy.xml
 	dh_install 
 #	dh_installmenu
 #	dh_installdebconf	
-#	dh_installlogrotate
+	dh_installlogrotate
 #	dh_installemacsen
 #	dh_installpam
 #	dh_installmime
-#	dh_installinit
+	dh_installinit
 #	dh_installcron
 #	dh_installinfo
 	dh_installman

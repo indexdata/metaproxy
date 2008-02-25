@@ -1,4 +1,6 @@
-First Debian package
+--- 1.0.13 2008/02/DD
+
+First Debian package.
 
 The sru_z9350 filter now recognizes SRU parameter z-target as being
 a ZURL of the form host/database . 
