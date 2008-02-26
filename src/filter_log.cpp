@@ -1,4 +1,4 @@
-/* $Id: filter_log.cpp,v 1.33 2008-02-20 15:07:52 adam Exp $
+/* $Id: filter_log.cpp,v 1.34 2008-02-26 23:56:28 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -32,10 +32,11 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "util.hpp"
 #include "xmlutil.hpp"
 
-#include <fstream>
 #include <yaz/zgdu.h>
 #include <yaz/wrbuf.h>
+#include <yaz/log.h>
 #include <yaz/querytowrbuf.h>
+#include <stdio.h>
 
 
 namespace mp = metaproxy_1;
@@ -83,10 +84,10 @@ namespace metaproxy_1 {
         public:
             boost::mutex m_mutex;
             std::string m_fname;
-            std::ofstream fout;
-            std::ostream &out;
+            FILE *fhandle;
+            ~LFile();
             LFile(std::string fname);
-            LFile(std::string fname, std::ostream &use_this);
+            LFile(std::string fname, FILE *outf);
         };
         
     }
@@ -259,16 +260,14 @@ void yf::Log::Impl::process(mp::Package &package)
     }
     // scope for locking Ostream
     { 
+        std::ostringstream os;
         boost::mutex::scoped_lock scoped_lock(m_file->m_mutex);
  
         if (m_access)
         {
             if (gdu)          
             {
-                m_file->out
-                    //<< receive_time << " "
-                    //<< to_iso_string(receive_time) << " "
-                    << to_iso_extended_string(receive_time) << " "
+                os  << to_iso_extended_string(receive_time) << " "
                     << m_msg_config << " "
                     << package << " "
                     << "000000.000000" << " " 
@@ -281,10 +280,7 @@ void yf::Log::Impl::process(mp::Package &package)
         {
             if (gdu)          
             {
-                m_file->out
-                    //<< receive_time << " "
-                    //<< to_iso_string(receive_time) << " "
-                    << to_iso_extended_string(receive_time) << " "
+                os  << to_iso_extended_string(receive_time) << " "
                     << m_msg_config << " " << user << " "
                     << package << " "
                     << "000000.000000" << " " 
@@ -295,9 +291,9 @@ void yf::Log::Impl::process(mp::Package &package)
 
         if (m_req_session)
         {
-            m_file->out << receive_time << " " << m_msg_config;
-            m_file->out << " request id=" << package.session().id();
-            m_file->out << " close=" 
+            os << receive_time << " " << m_msg_config;
+            os << " request id=" << package.session().id();
+            os << " close=" 
                              << (package.session().is_closed() ? "yes" : "no")
                              << "\n";
         }
@@ -307,11 +303,11 @@ void yf::Log::Impl::process(mp::Package &package)
             if (gdu && gdu->which == Z_GDU_Z3950 &&
                 gdu->u.z3950->which == Z_APDU_initRequest)
             {
-                m_file->out << receive_time << " " << m_msg_config;
-                m_file->out << " init options:";
+                os << receive_time << " " << m_msg_config;
+                os << " init options:";
                 yaz_init_opt_decode(gdu->u.z3950->u.initRequest->options,
-                                    option_write, m_file.get());
-                m_file->out << "\n";
+                                    option_write, m_file->fhandle);
+                os << "\n";
             }
         }
         
@@ -320,11 +316,12 @@ void yf::Log::Impl::process(mp::Package &package)
             if (gdu)
             {
                 mp::odr odr(ODR_PRINT);
-                odr_set_stream(odr, m_file.get(), stream_write, 0);
+                odr_set_stream(odr, m_file->fhandle, stream_write, 0);
                 z_GDU(odr, &gdu, 0, 0);
             }
         }
-        m_file->out.flush();
+        fputs(os.str().c_str(), m_file->fhandle);
+        fflush(m_file->fhandle);
     }
     
     // unlocked during move
@@ -341,15 +338,13 @@ void yf::Log::Impl::process(mp::Package &package)
     // scope for locking Ostream 
     { 
         boost::mutex::scoped_lock scoped_lock(m_file->m_mutex);
+        std::ostringstream os;
 
         if (m_access)
         {
             if (gdu)
             {
-                m_file->out
-                    //<< send_time << " "
-                    //<< to_iso_string(send_time) << " "
-                    << to_iso_extended_string(send_time) << " "
+                os  << to_iso_extended_string(send_time) << " "
                     << m_msg_config << " "
                     << package << " "
                     << to_iso_string(duration) << " "
@@ -361,10 +356,7 @@ void yf::Log::Impl::process(mp::Package &package)
         {
             if (gdu)
             {
-                m_file->out
-                    //<< send_time << " "
-                    //<< to_iso_string(send_time) << " "
-                    << to_iso_extended_string(send_time) << " "
+                os  << to_iso_extended_string(send_time) << " "
                     << m_msg_config << " " << user << " "
                     << package << " "
                     << to_iso_string(duration) << " "
@@ -375,9 +367,9 @@ void yf::Log::Impl::process(mp::Package &package)
 
         if (m_res_session)
         {
-            m_file->out << send_time << " " << m_msg_config;
-            m_file->out << " response id=" << package.session().id();
-            m_file->out << " close=" 
+            os << send_time << " " << m_msg_config;
+            os << " response id=" << package.session().id();
+            os << " close=" 
                              << (package.session().is_closed() ? "yes " : "no ")
                              << "duration=" << duration      
                              << "\n";
@@ -388,11 +380,11 @@ void yf::Log::Impl::process(mp::Package &package)
             if (gdu && gdu->which == Z_GDU_Z3950 &&
                 gdu->u.z3950->which == Z_APDU_initResponse)
             {
-                m_file->out << receive_time << " " << m_msg_config;
-                m_file->out << " init options:";
+                os << receive_time << " " << m_msg_config;
+                os << " init options:";
                 yaz_init_opt_decode(gdu->u.z3950->u.initResponse->options,
-                                    option_write, m_file.get());
-                m_file->out << "\n";
+                                    option_write, m_file->fhandle);
+                os << "\n";
             }
         }
         
@@ -401,11 +393,12 @@ void yf::Log::Impl::process(mp::Package &package)
             if (gdu)
             {
                 mp::odr odr(ODR_PRINT);
-                odr_set_stream(odr, m_file.get(), stream_write, 0);
+                odr_set_stream(odr, m_file->fhandle, stream_write, 0);
                 z_GDU(odr, &gdu, 0, 0);
             }
         }
-        m_file->out.flush();
+        fputs(os.str().c_str(), m_file->fhandle);
+        fflush(m_file->fhandle);
     }
 }
 
@@ -424,7 +417,7 @@ void yf::Log::Impl::openfile(const std::string &fname)
     }
     // open stdout for empty file
     LFilePtr newfile(fname.length() == 0 
-                     ? new LFile(fname, std::cout) 
+                     ? new LFile(fname, yaz_log_file()) 
                      : new LFile(fname));
     filter_log_files.push_back(newfile);
     m_file = newfile;
@@ -433,28 +426,33 @@ void yf::Log::Impl::openfile(const std::string &fname)
 
 void yf::Log::Impl::stream_write(ODR o, void *handle, int type, const char *buf, int len)
 {
-    yf::Log::Impl::LFile *lfile = (yf::Log::Impl::LFile*) handle;
-    lfile->out.write(buf, len);
+    FILE *fhandle = (FILE*) handle;
+    fwrite(buf, len, 1, fhandle);
 }
 
 void yf::Log::Impl::option_write(const char *name, void *handle)
 {
-    yf::Log::Impl::LFile *lfile = (yf::Log::Impl::LFile*) handle;
-    lfile->out << " " << name;
+    FILE *fhandle = (FILE*) handle;
+    fprintf(fhandle, " %s", name);
 }
 
 
 yf::Log::Impl::LFile::LFile(std::string fname) : 
-    m_fname(fname), fout(fname.c_str(),std::ios_base::app), out(fout)
+    m_fname(fname)
+    
 {
+    fhandle = fopen(fname.c_str(), "a");
 }
 
-yf::Log::Impl::LFile::LFile(std::string fname, std::ostream &use_this) : 
-    m_fname(fname), out(use_this)
+yf::Log::Impl::LFile::LFile(std::string fname, FILE *outf) : 
+    m_fname(fname)
 {
+    fhandle = outf;
 }
 
-
+yf::Log::Impl::LFile::~LFile()
+{
+}
 
 
 static mp::filter::Base* filter_creator()
