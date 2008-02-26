@@ -1,4 +1,4 @@
-/* $Id: metaproxy_prog.cpp,v 1.14 2008-02-20 15:07:52 adam Exp $
+/* $Id: metaproxy_prog.cpp,v 1.15 2008-02-26 23:56:05 adam Exp $
    Copyright (c) 2005-2008, Index Data.
 
 This file is part of Metaproxy.
@@ -80,7 +80,6 @@ int main(int argc, char **argv)
                 break;
             case 'l':
                 yaz_log_init_file(arg);
-                yaz_log(YLOG_LOG, "Metaproxy " VERSION " started");
                 break;
             case 'p':
                 pidfile = arg;
@@ -105,6 +104,7 @@ int main(int argc, char **argv)
             std::exit(1);
         }
 
+        yaz_log(YLOG_LOG, "Metaproxy " VERSION " started");
         xmlDocPtr doc = xmlReadFile(fname,
                                     NULL, 
                                     XML_PARSE_XINCLUDE + XML_PARSE_NOBLANKS
