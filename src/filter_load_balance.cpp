@@ -1,4 +1,4 @@
-/* $Id: filter_load_balance.cpp,v 1.10 2008-02-20 15:07:52 adam Exp $
+/* $Id: filter_load_balance.cpp,v 1.11 2008-02-27 11:08:49 adam Exp $
    Copyright (c) 2005-2007, Index Data.
 
 This file is part of Metaproxy.
@@ -28,7 +28,6 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 
 #include <boost/thread/mutex.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <yaz/zgdu.h>
 
@@ -248,14 +247,6 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
     }
 }
             
-// getting timestamp for receiving of package
-//boost::posix_time::ptime receive_time
-//    = boost::posix_time::microsec_clock::local_time();
-// //<< receive_time << " "
-// //<< to_iso_string(receive_time) << " "
-//<< to_iso_extended_string(receive_time) << " "
-
-
 // statistic manipulating functions, 
 void yf::LoadBalance::Impl::add_dead(unsigned long session_id){
 

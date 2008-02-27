@@ -35,6 +35,8 @@ fi
 AC_CHECK_LIB(dl,dlopen)
 AC_CHECK_LIB(m,main)
 
+AC_CHECK_FUNCS([localtime_r])
+
 ## YAZPP checks
 YAZPP_INIT([threads],[1.1.0])
 if test -z "$YAZPPLIB"; then
@@ -48,9 +50,6 @@ CPPFLAGS="$YAZPPINC $CPPFLAGS"
 AX_BOOST([1.32])
 if test "$ax_cv_boost_base" = "no"; then
     AC_MSG_ERROR([install libboost-dev or similar])
-fi
-if test "$ax_cv_boost_date_time" = "no"; then
-    AC_MSG_ERROR([install libboost-date-time-dev or similar])
 fi
 if test "$ax_cv_boost_thread" = "no"; then
     AC_MSG_ERROR([install libboost-thread-dev or similar])

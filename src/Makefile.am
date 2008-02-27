@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.66 2007-11-02 17:25:33 adam Exp $
+## $Id: Makefile.am,v 1.67 2008-02-27 11:08:49 adam Exp $
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
@@ -78,7 +78,7 @@ check_PROGRAMS = \
 	test_filter1 test_filter2 \
 	test_session1 test_session2 \
 	test_thread_pool_observer \
-	test_boost_threads test_boost_time \
+	test_boost_threads \
 	test_filter_auth_simple \
 	test_filter_factory \
 	test_filter_frontend_net \
@@ -103,7 +103,6 @@ test_filter2_SOURCES=test_filter2.cpp
 test_session1_SOURCES=test_session1.cpp
 test_session2_SOURCES=test_session2.cpp
 test_boost_threads_SOURCES=test_boost_threads.cpp
-test_boost_time_SOURCES=test_boost_time.cpp
 test_thread_pool_observer_SOURCES = test_thread_pool_observer.cpp
 test_filter_auth_simple_SOURCES = test_filter_auth_simple.cpp
 test_filter_factory_SOURCES = test_filter_factory.cpp
@@ -129,7 +128,6 @@ test_filter2_LDADD = $(TESTLDADD)
 test_session1_LDADD = $(TESTLDADD)
 test_session2_LDADD = $(TESTLDADD)
 test_boost_threads_LDADD = $(TESTLDADD)
-test_boost_time_LDADD = $(TESTLDADD)
 test_filter_auth_simple_LDADD = $(TESTLDADD)
 test_filter_factory_LDADD = $(TESTLDADD)
 test_filter_frontend_net_LDADD = $(TESTLDADD)

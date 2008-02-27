@@ -18,7 +18,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<!-- $Id: book.xml,v 1.62 2007-09-18 19:15:53 adam Exp $ -->
+<!-- $Id: book.xml,v 1.63 2008-02-27 11:08:49 adam Exp $ -->
 <book id="metaproxy">
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
@@ -279,8 +279,6 @@
     apt-get install libyazpp2-dev
     apt-get install libboost-dev
     apt-get install libboost-thread-dev
-    apt-get install libboost-date-time-dev
-    apt-get install libboost-program-options-dev
     apt-get install libboost-test-dev
    </screen>
    <para>

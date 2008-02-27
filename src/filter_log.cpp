@@ -1,5 +1,5 @@
-/* $Id: filter_log.cpp,v 1.34 2008-02-26 23:56:28 adam Exp $
-   Copyright (c) 2005-2007, Index Data.
+/* $Id: filter_log.cpp,v 1.35 2008-02-27 11:08:49 adam Exp $
+   Copyright (c) 2005-2008, Index Data.
 
 This file is part of Metaproxy.
 
@@ -25,8 +25,8 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include <string>
 #include <sstream>
+#include <iomanip>
 #include <boost/thread/mutex.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "gduutil.hpp"
 #include "util.hpp"
@@ -36,8 +36,9 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/wrbuf.h>
 #include <yaz/log.h>
 #include <yaz/querytowrbuf.h>
+#include <yaz/timing.h>
 #include <stdio.h>
-
+#include <time.h>
 
 namespace mp = metaproxy_1;
 namespace yf = metaproxy_1::filter;
@@ -71,7 +72,8 @@ namespace metaproxy_1 {
             bool m_res_session;
             bool m_init_options;
             LFilePtr m_file;
-            // Only used during configure stage (no threading), 
+            std::string m_time_format;
+            // Only used during confiqgure stage (no threading), 
             // for performance avoid opening files which other log filter 
             // instances already have opened
             static std::list<LFilePtr> filter_log_files;
@@ -88,6 +90,9 @@ namespace metaproxy_1 {
             ~LFile();
             LFile(std::string fname);
             LFile(std::string fname, FILE *outf);
+            void log(const std::string &date_format,
+                     std::ostringstream &os);
+            void flush();
         };
         
     }
@@ -118,22 +123,9 @@ void yf::Log::process(mp::Package &package) const
 }
 
 
-// define Implementation stuff
-
 // static initialization
 std::list<yf::Log::Impl::LFilePtr> yf::Log::Impl::filter_log_files;
 
-
-// yf::Log::Impl::Impl()
-// {
-//     m_access = true;
-//     m_req_apdu = false;
-//     m_res_apdu = false;
-//     m_req_session = false;
-//     m_res_session = false;
-//     m_init_options = false;
-//     openfile("");
-// }
 
 yf::Log::Impl::Impl(const std::string &x)
     : m_msg_config(x),
@@ -143,7 +135,8 @@ yf::Log::Impl::Impl(const std::string &x)
       m_res_apdu(false),
       m_req_session(false),
       m_res_session(false),
-      m_init_options(false)
+      m_init_options(false),
+      m_time_format("%H:%M:%S-%d/%m")
 {
     openfile("");
 }
@@ -166,6 +159,10 @@ void yf::Log::Impl::configure(const xmlNode *ptr)
         {
             std::string fname = mp::xml::get_text(ptr);
             openfile(fname);
+        }
+        else if (!strcmp((const char *) ptr->name, "time-format"))
+        {
+            m_time_format = mp::xml::get_text(ptr);
         }
         else if (!strcmp((const char *) ptr->name, "category"))
         {
@@ -204,6 +201,10 @@ void yf::Log::Impl::configure(const xmlNode *ptr)
                                  "init-options"))
                     m_init_options = 
                         mp::xml::get_bool(attr->children, true);
+                else if (!strcmp((const char *) attr->name, 
+                                 "init-options"))
+                    m_init_options = 
+                        mp::xml::get_bool(attr->children, true);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
@@ -224,9 +225,7 @@ void yf::Log::Impl::process(mp::Package &package)
     Z_GDU *gdu = package.request().get();
     std::string user("-");
 
-    // getting timestamp for receiving of package
-    boost::posix_time::ptime receive_time
-        = boost::posix_time::microsec_clock::local_time();
+    yaz_timing_t timer = yaz_timing_create();
 
     // scope for session lock
     {
@@ -260,19 +259,18 @@ void yf::Log::Impl::process(mp::Package &package)
     }
     // scope for locking Ostream
     { 
-        std::ostringstream os;
         boost::mutex::scoped_lock scoped_lock(m_file->m_mutex);
  
         if (m_access)
         {
             if (gdu)          
             {
-                os  << to_iso_extended_string(receive_time) << " "
-                    << m_msg_config << " "
+                std::ostringstream os;
+                os  << m_msg_config << " "
                     << package << " "
-                    << "000000.000000" << " " 
-                    << *gdu
-                    << "\n";
+                    << "0.000000" << " " 
+                    << *gdu;
+                m_file->log(m_time_format, os);
             }
         }
 
@@ -280,22 +278,23 @@ void yf::Log::Impl::process(mp::Package &package)
         {
             if (gdu)          
             {
-                os  << to_iso_extended_string(receive_time) << " "
-                    << m_msg_config << " " << user << " "
+                std::ostringstream os;
+                os  << m_msg_config << " " << user << " "
                     << package << " "
-                    << "000000.000000" << " " 
-                    << *gdu
-                    << "\n";
+                    << "0.000000" << " " 
+                    << *gdu;
+                m_file->log(m_time_format, os);
             }
         }
 
         if (m_req_session)
         {
-            os << receive_time << " " << m_msg_config;
+            std::ostringstream os;
+            os << m_msg_config;
             os << " request id=" << package.session().id();
             os << " close=" 
-                             << (package.session().is_closed() ? "yes" : "no")
-                             << "\n";
+               << (package.session().is_closed() ? "yes" : "no");
+            m_file->log(m_time_format, os);
         }
 
         if (m_init_options)
@@ -303,11 +302,11 @@ void yf::Log::Impl::process(mp::Package &package)
             if (gdu && gdu->which == Z_GDU_Z3950 &&
                 gdu->u.z3950->which == Z_APDU_initRequest)
             {
-                os << receive_time << " " << m_msg_config;
-                os << " init options:";
+                std::ostringstream os;
+                os << m_msg_config << " init options:";
                 yaz_init_opt_decode(gdu->u.z3950->u.initRequest->options,
-                                    option_write, m_file->fhandle);
-                os << "\n";
+                                    option_write, &os);
+                m_file->log(m_time_format, os);
             }
         }
         
@@ -320,8 +319,6 @@ void yf::Log::Impl::process(mp::Package &package)
                 z_GDU(odr, &gdu, 0, 0);
             }
         }
-        fputs(os.str().c_str(), m_file->fhandle);
-        fflush(m_file->fhandle);
     }
     
     // unlocked during move
@@ -329,50 +326,49 @@ void yf::Log::Impl::process(mp::Package &package)
 
     gdu = package.response().get();
 
-    // getting timestamp for sending of package
-    boost::posix_time::ptime send_time
-        = boost::posix_time::microsec_clock::local_time();
-
-    boost::posix_time::time_duration duration = send_time - receive_time;
+    yaz_timing_stop(timer);
+    double duration = yaz_timing_get_real(timer);
 
     // scope for locking Ostream 
     { 
         boost::mutex::scoped_lock scoped_lock(m_file->m_mutex);
-        std::ostringstream os;
 
         if (m_access)
         {
             if (gdu)
             {
-                os  << to_iso_extended_string(send_time) << " "
-                    << m_msg_config << " "
+                std::ostringstream os;
+                os  << m_msg_config << " "
                     << package << " "
-                    << to_iso_string(duration) << " "
-                    << *gdu
-                    << "\n";
-            }   
+                    << std::fixed << std::setprecision (6) << duration
+                    << " "
+                    << *gdu;
+                m_file->log(m_time_format, os);
+            }
         }
         if (m_user_access)
         {
             if (gdu)
             {
-                os  << to_iso_extended_string(send_time) << " "
-                    << m_msg_config << " " << user << " "
+                std::ostringstream os;
+                os  << m_msg_config << " " << user << " "
                     << package << " "
-                    << to_iso_string(duration) << " "
-                    << *gdu
-                    << "\n";
+                    << std::fixed << std::setprecision (6) << duration << " "
+                    << *gdu;
+                m_file->log(m_time_format, os);
             }   
         }
 
         if (m_res_session)
         {
-            os << send_time << " " << m_msg_config;
+            std::ostringstream os;
+            os << m_msg_config;
             os << " response id=" << package.session().id();
             os << " close=" 
-                             << (package.session().is_closed() ? "yes " : "no ")
-                             << "duration=" << duration      
-                             << "\n";
+               << (package.session().is_closed() ? "yes " : "no ")
+               << "duration=" 
+               << std::fixed << std::setprecision (6) << duration;
+            m_file->log(m_time_format, os);
         }
 
         if (m_init_options)
@@ -380,11 +376,12 @@ void yf::Log::Impl::process(mp::Package &package)
             if (gdu && gdu->which == Z_GDU_Z3950 &&
                 gdu->u.z3950->which == Z_APDU_initResponse)
             {
-                os << receive_time << " " << m_msg_config;
+                std::ostringstream os;
+                os << m_msg_config;
                 os << " init options:";
                 yaz_init_opt_decode(gdu->u.z3950->u.initResponse->options,
-                                    option_write, m_file->fhandle);
-                os << "\n";
+                                    option_write, &os);
+                m_file->log(m_time_format, os);
             }
         }
         
@@ -397,9 +394,9 @@ void yf::Log::Impl::process(mp::Package &package)
                 z_GDU(odr, &gdu, 0, 0);
             }
         }
-        fputs(os.str().c_str(), m_file->fhandle);
-        fflush(m_file->fhandle);
     }
+    m_file->flush();
+    yaz_timing_destroy(&timer);
 }
 
 
@@ -415,10 +412,7 @@ void yf::Log::Impl::openfile(const std::string &fname)
             return;
         }
     }
-    // open stdout for empty file
-    LFilePtr newfile(fname.length() == 0 
-                     ? new LFile(fname, yaz_log_file()) 
-                     : new LFile(fname));
+    LFilePtr newfile(new LFile(fname));
     filter_log_files.push_back(newfile);
     m_file = newfile;
 }
@@ -426,14 +420,14 @@ void yf::Log::Impl::openfile(const std::string &fname)
 
 void yf::Log::Impl::stream_write(ODR o, void *handle, int type, const char *buf, int len)
 {
-    FILE *fhandle = (FILE*) handle;
-    fwrite(buf, len, 1, fhandle);
+    FILE *f = (FILE*) handle;
+    fwrite(buf, len, 1, f ? f : yaz_log_file());
 }
 
 void yf::Log::Impl::option_write(const char *name, void *handle)
 {
-    FILE *fhandle = (FILE*) handle;
-    fprintf(fhandle, " %s", name);
+    std::ostringstream *os = (std::ostringstream *) handle;
+    *os << " " << name;
 }
 
 
@@ -441,19 +435,46 @@ yf::Log::Impl::LFile::LFile(std::string fname) :
     m_fname(fname)
     
 {
-    fhandle = fopen(fname.c_str(), "a");
-}
-
-yf::Log::Impl::LFile::LFile(std::string fname, FILE *outf) : 
-    m_fname(fname)
-{
-    fhandle = outf;
+    if (fname.c_str())
+        fhandle = fopen(fname.c_str(), "a");
+    else
+        fhandle = 0;
 }
 
 yf::Log::Impl::LFile::~LFile()
 {
 }
 
+void yf::Log::Impl::LFile::log(const std::string &date_format,
+                               std::ostringstream &os)
+{
+    if (fhandle)
+    {
+        char datestr[80];
+        time_t ti = time(0);
+#if HAVE_LOCALTIME_R
+        struct tm tm0, *tm = &tm0;
+        localtime_r(&ti, tm);
+#else
+        struct tm *tm = localtime(&ti);
+#endif
+        if (strftime(datestr, sizeof(datestr)-1, date_format.c_str(), tm))
+        {
+            fputs(datestr, fhandle);
+            fputs(" ", fhandle);
+        }
+        fputs(os.str().c_str(), fhandle);
+        fputc('\n', fhandle);
+    }    
+    else
+        yaz_log(YLOG_LOG, "%s", os.str().c_str());
+}
+
+void yf::Log::Impl::LFile::flush()
+{
+    if (fhandle)
+        fflush(fhandle);
+}
 
 static mp::filter::Base* filter_creator()
 {
