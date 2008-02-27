@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config5.xml,v 1.9 2008-02-27 11:08:49 adam Exp $ -->
+<!-- $Id: config5.xml,v 1.10 2008-02-27 21:31:57 adam Exp $ -->
 <!-- Uses dummy backend + query rewrite filter.. -->
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
@@ -21,8 +21,8 @@
       </filter>
       <filter type="log">
         <message>B</message>
-	<filename>my.log</filename> 
 	<time-format>%Y%m%d-%H%M%S</time-format> 
+	<filename>my.log</filename> 
 	<category init-options="true" request-session="true" response-session="true"
 		  request-apdu="true" response-apdu="true"
 		  />
