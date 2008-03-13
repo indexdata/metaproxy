@@ -15,7 +15,7 @@ EXTRA_DIST = Doxyfile.in NEWS README LICENSE \
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure 
 
 dist-hook:
-	if test -x /usr/bin/cvs2cl -a -d CVS; then cvs2cl ; fi
+	if test -x /usr/bin/git -a -d .git; then git log >ChangeLog ; cp ChangeLog $(distdir); fi
 	mkdir $(distdir)/win
 	-cp $(srcdir)/win/* $(distdir)/win
 	mkdir $(distdir)/debian
