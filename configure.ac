@@ -47,7 +47,7 @@ CPPFLAGS="$YAZPPINC $CPPFLAGS"
 
 # check for Boost C++ development libs and headers
 
-AX_BOOST([1.32])
+AX_BOOST([1.33])
 if test "$ax_cv_boost_base" = "no"; then
     AC_MSG_ERROR([install libboost-dev or similar])
 fi
