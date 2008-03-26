@@ -158,10 +158,8 @@
      <listitem>
       <para>
        The popular C++ library. Initial versions of Metaproxy
-       was built with 1.33.0. Version 1.33.1 works too. Metaproxy
-       also compiles with Boost 1.34.1 but the tests do
-       <emphasis>not</emphasis> compile, because the Test API
-       of Boost has changed.
+       was built with 1.32 but this is no longer supported.
+       Metaproxy is known to work with Boost version 1.33 / 1.34.
       </para>
      </listitem>
     </varlistentry>
