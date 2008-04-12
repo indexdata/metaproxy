@@ -52,7 +52,6 @@ libmetaproxy_la_SOURCES = \
 LDADD = libmetaproxy.la \
 	$(YAZPPLALIB) \
 	$(BOOST_DATE_TIME_LIB) \
-	$(BOOST_PROGRAM_OPTIONS_LIB) \
 	$(BOOST_THREAD_LIB)
 
 bin_PROGRAMS = metaproxy

@@ -114,7 +114,7 @@ echo \
   Boost Version:              ${BOOST_VERSION}               
   Boost Include:              ${BOOST_CPPFLAGS}               
   Boost linker flags:         ${BOOST_LDFLAGS}               
-  Boost Libs:                 ${BOOST_DATE_TIME_LIB} ${BOOST_PROGRAM_OPTIONS_LIB} ${BOOST_THREAD_LIB}               
+  Boost Libs:                 ${BOOST_DATE_TIME_LIB} ${BOOST_THREAD_LIB}               
   YAZPP Version:              ${YAZPPVERSION}
   YAZPP Include:              ${YAZPPINC}
   YAZPP La Lib:               ${YAZPPLALIB}
