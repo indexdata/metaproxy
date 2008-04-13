@@ -47,18 +47,7 @@ CPPFLAGS="$YAZPPINC $CPPFLAGS"
 
 # check for Boost C++ development libs and headers
 
-AX_BOOST([1.33])
-if test "$ax_cv_boost_base" = "no"; then
-    AC_MSG_ERROR([install libboost-dev or similar])
-fi
-if test "$ax_cv_boost_thread" = "no"; then
-    AC_MSG_ERROR([install libboost-thread-dev or similar])
-fi
-if test "$ax_cv_boost_unit_test_framework" = "no"; then
-    AC_MSG_ERROR([install libboost-test-dev or similar])
-fi
-    
-
+ID_BOOST([thread test], [1.33])
 
 # Checks for header files.
 ##AC_HEADER_STDC

@@ -4,7 +4,7 @@ MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
 AM_CXXFLAGS = $(BOOST_CPPFLAGS)
 
-AM_LDFLAGS = $(BOOST_LDFLAGS)
+AM_LDFLAGS =
 
 EXTRA_DIST=Jamfile.in
 
@@ -51,7 +51,7 @@ libmetaproxy_la_SOURCES = \
 
 LDADD = libmetaproxy.la \
 	$(YAZPPLALIB) \
-	$(BOOST_DATE_TIME_LIB) \
+	$(BOOST_LIB) \
 	$(BOOST_THREAD_LIB)
 
 bin_PROGRAMS = metaproxy
@@ -118,7 +118,7 @@ test_filter_virt_db_SOURCES = test_filter_virt_db.cpp
 test_ses_map_SOURCES = test_ses_map.cpp
 test_router_flexml_SOURCES = test_router_flexml.cpp
 
-TESTLDADD = $(LDADD) $(BOOST_UNIT_TEST_FRAMEWORK_LIB)
+TESTLDADD = $(LDADD) $(BOOST_TEST_LIB)
 
 test_package1_LDADD = $(TESTLDADD)
 test_pipe_LDADD = $(TESTLDADD)
