@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!-- $Id: config5.xml,v 1.10 2008-02-27 21:31:57 adam Exp $ -->
 <!-- Uses dummy backend + query rewrite filter.. -->
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>

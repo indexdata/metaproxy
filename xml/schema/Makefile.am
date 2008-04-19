@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.3 2006-11-29 14:49:20 marc Exp $
 
 xmlschemadatadir = $(pkgdatadir)/xml/schema
 

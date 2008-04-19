@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.3 2007-12-14 08:09:28 marc Exp $
 
 xmlxsltdatadir = $(pkgdatadir)/xml/xslt
 

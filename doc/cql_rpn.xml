@@ -4,7 +4,6 @@
  <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
 ]>
-<!-- $Id: cql_rpn.xml,v 1.3 2007-05-22 11:05:45 adam Exp $ -->
 <refentry id="ref-cql_rpn">
  <refmeta>
   <refentrytitle>cql_rpn</refentrytitle>

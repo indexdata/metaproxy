@@ -4,7 +4,6 @@
  <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
 ]>
-<!-- $Id: virt_db.xml,v 1.8 2007-05-22 11:05:45 adam Exp $ -->
 <refentry id="ref-virt_db">
  <refmeta>
   <refentrytitle>virt_db</refentrytitle>

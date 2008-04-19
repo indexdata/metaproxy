@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!-- $Id: config-zurg.xml,v 1.12 2007-01-25 10:28:06 adam Exp $ -->
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <routes>

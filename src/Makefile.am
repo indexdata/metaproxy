@@ -1,4 +1,5 @@
-## $Id: Makefile.am,v 1.67 2008-02-27 11:08:49 adam Exp $
+## This file is part of Metaproxy
+## Copyright (C) 2005-2008 Index Data
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 

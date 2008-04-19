@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!-- $Id: config0.xml,v 1.6 2008-02-27 11:08:49 adam Exp $ -->
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <filters>

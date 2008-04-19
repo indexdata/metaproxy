@@ -1,4 +1,3 @@
-## $Id: Makefile.am,v 1.40 2007-07-10 09:43:06 adam Exp $
 SUBDIRS = common
 
 SUFFIXES=.3mp .1 .pdf .tkl .esp .xml 

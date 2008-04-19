@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!-- $Id: retrieval-info.xml,v 1.4 2007-01-25 10:28:06 adam Exp $ -->
 <retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
   <retrieval syntax="grs-1"/>
   <retrieval syntax="usmarc" name="F"/>

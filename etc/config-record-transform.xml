@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!-- $Id: config-record-transform.xml,v 1.4 2006-12-12 11:01:40 marc Exp $ -->
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <filters>

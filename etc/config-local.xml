@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!-- $Id: config-local.xml,v 1.3 2006-11-29 13:00:53 marc Exp $ -->
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <routes>

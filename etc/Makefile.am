@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.14 2008-02-14 15:31:30 marc Exp $
 
 # This doesn't actually build anything, it just tests whether the
 # configuration files here correspond with the schema.

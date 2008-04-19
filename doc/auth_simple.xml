@@ -4,7 +4,6 @@
  <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
 ]>
-<!-- $Id: auth_simple.xml,v 1.10 2007-05-22 11:05:45 adam Exp $ -->
 <refentry id="ref-auth_simple">
  <refmeta>
   <refentrytitle>auth_simple</refentrytitle>

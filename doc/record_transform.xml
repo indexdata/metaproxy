@@ -4,7 +4,6 @@
  <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
 ]>
-<!-- $Id: record_transform.xml,v 1.5 2007-05-22 11:05:45 adam Exp $ -->
 <refentry id="ref-record_transform">
  <refmeta>
   <refentrytitle>record_transform</refentrytitle>

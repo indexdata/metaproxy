@@ -4,7 +4,6 @@
  <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
 ]>
-<!-- $Id: metaproxy.xml,v 1.9 2008-02-20 12:39:34 adam Exp $ -->
 <refentry id="ref-metaproxy">
  <refmeta>
   <refentrytitle>metaproxy</refentrytitle>

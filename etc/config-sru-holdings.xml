@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!-- $Id: config-sru-holdings.xml,v 1.1 2008-01-30 11:42:01 adam Exp $ -->
 
 <!-- This an example of an SRU enabled server which allows holdings to
 be fetched from Z39.50 OPAC records from a Z39.50 target. The virt_db
