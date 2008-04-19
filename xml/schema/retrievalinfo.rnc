@@ -1,7 +1,6 @@
 # Metaproxy XML config file schemas
-#  $Id: retrievalinfo.rnc,v 1.6 2007-01-26 14:46:31 adam Exp $
 # 
-#   Copyright (c) 2005-2007, Index Data.
+#   Copyright (c) 2005-2008 Index Data.
 # 
 #   See the LICENSE file for details
 # 
