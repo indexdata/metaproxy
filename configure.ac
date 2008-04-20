@@ -2,19 +2,17 @@
 ## Process this file with autoconf to produce a configure script.
 
 # Autoconf and automake setup
-AC_PREREQ(2.60)
+AC_PREREQ([2.60])
 AC_INIT([metaproxy],[1.0.13],[metaproxy-help@indexdata.dk])
 
-AC_CONFIG_HEADERS(src/config.hpp)
+AC_CONFIG_HEADERS([src/config.hpp])
 
 AC_CONFIG_SRCDIR([configure.ac]) 
 AC_CONFIG_AUX_DIR([config])
 AC_CANONICAL_SYSTEM
-##AC_PREFIX_DEFAULT(`pwd`/install) 
 
 AM_INIT_AUTOMAKE([1.9])
 
-# Checks for programs.
 AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_INSTALL
@@ -24,7 +22,7 @@ AC_PROG_RANLIB
 AM_PROG_LIBTOOL
 
 # Default language to use for tests (some tests may switch to C++)
-AC_LANG(C)
+AC_LANG([C])
 
 if test "$enable_shared" = "yes"; then
     AC_DEFINE([HAVE_DL_SUPPORT],[1],
@@ -32,8 +30,8 @@ if test "$enable_shared" = "yes"; then
 fi
 
 # Checks for libraries.
-AC_CHECK_LIB(dl,dlopen)
-AC_CHECK_LIB(m,main)
+AC_CHECK_LIB([dl],[dlopen])
+AC_CHECK_LIB([m],[main])
 
 AC_CHECK_FUNCS([localtime_r])
 
@@ -45,22 +43,9 @@ fi
 YAZ_DOC
 CPPFLAGS="$YAZPPINC $CPPFLAGS"
 
-# check for Boost C++ development libs and headers
+ID_BOOST([thread test],[1.33])
 
-ID_BOOST([thread test], [1.33])
-
-# Checks for header files.
-##AC_HEADER_STDC
-##AC_HEADER_SYS_WAIT
-##AC_HEADER_TIME 
-AC_CHECK_HEADERS(sys/select.h sys/socket.h)
-
-# Checks for typedefs, structures, and compiler characteristics.
-##AC_TYPE_SIZE_T 
-##AC_CHECK_SIZEOF(int)
-##AC_CHECK_SIZEOF(long int)
-
-# Checks for library functions.
+AC_CHECK_HEADERS([sys/select.h sys/socket.h])
 
 AC_CONFIG_FILES([
         Doxyfile
