@@ -44,6 +44,12 @@ YAZ_DOC
 CPPFLAGS="$YAZPPINC $CPPFLAGS"
 
 ID_BOOST([thread test],[1.33])
+if test -z "${BOOST_THREAD_LIB}"; then
+    AC_MSG_ERROR([Boost thread development libraries required])
+fi
+if test -z "${BOOST_TEST_LIB}"; then
+    AC_MSG_ERROR([Boost unit test framework libraries required])
+fi
 
 AC_CHECK_HEADERS([sys/select.h sys/socket.h])
 
