@@ -93,10 +93,10 @@ manref.xml: $(XMLMAN) $(srcdir)/common/stripref.xsl
 	done
 
 multi.png: multi.svg
-	inkscape --export-png=$@ --export-area=0:0:1050:500 $?
+	unset DISPLAY; inkscape --export-png=$@ --export-area=0:0:1050:500 $?
 
 multi.eps: multi.svg
-	inkscape --export-eps=$@ --export-bbox-page $?
+	unset DISPLAY; inkscape --export-eps=$@ --export-bbox-page $?
 
 .eps.pdf:
 	epstopdf -hires $?
