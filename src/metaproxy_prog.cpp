@@ -85,7 +85,8 @@ int main(int argc, char **argv)
                 uid = arg;
                 break;
             case 'V':
-                std::cout << "Metaproxy " VERSION "\n";
+                std::cout << VERSION "\n";
+                std::exit(0);
                 break;
             case 'X':
                 mode = YAZ_DAEMON_DEBUG;
@@ -97,7 +98,7 @@ int main(int argc, char **argv)
         }
         if (!fname)
         {
-            std::cerr << "No configuration given\n";
+            std::cerr << "No configuration given; use -h for help\n";
             std::exit(1);
         }
 
