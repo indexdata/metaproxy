@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
+#include <boost/thread/xtime.hpp>
 
 #include <yaz/zgdu.h>
 #include <yaz/log.h>
@@ -76,6 +77,7 @@ namespace metaproxy_1 {
         public:
             // number of seconds to wait before we give up request
             int m_timeout_sec;
+            int m_max_sockets;
             std::string m_default_target;
             std::string m_force_target;
             boost::mutex m_mutex;
@@ -181,6 +183,7 @@ yazpp_1::IPDU_Observer *yf::Z3950Client::Assoc::sessionNotify(
 yf::Z3950Client::Z3950Client() :  m_p(new yf::Z3950Client::Rep)
 {
     m_p->m_timeout_sec = 30;
+    m_p->m_max_sockets = 0;
 }
 
 yf::Z3950Client::~Z3950Client() {
@@ -279,6 +282,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
             return 0;
         }
     }
+
     std::list<std::string> dblist;
     std::string host;
     mp::util::split_zurl(target, host, dblist);
@@ -286,6 +290,33 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     if (dblist.size())
     {
         ; // z3950_client: Databases in vhost ignored
+    }
+
+    while (m_max_sockets)
+    {
+        int number = 0;
+        it = m_clients.begin();
+        for (; it != m_clients.end(); it++)
+        {
+            yf::Z3950Client::Assoc *as = it->second;
+            if (!strcmp(as->get_hostname(), host.c_str()))
+                number++;
+        }
+        if (number < m_max_sockets)
+            break;
+        boost::xtime xt;
+        xtime_get(&xt, boost::TIME_UTC);
+
+        xt.sec += 15;
+        if (!m_cond_session_ready.timed_wait(lock, xt))
+        {
+            mp::odr odr;
+
+            package.response() = odr.create_initResponse(
+                apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, "max sessions");
+            package.session().close();
+            return 0;
+        }
     }
 
     yazpp_1::SocketManager *sm = new yazpp_1::SocketManager;
@@ -370,7 +401,7 @@ void yf::Z3950Client::Rep::release_assoc(Package &package)
             // wait until no one is waiting for it.
             while (it->second->m_queue_len)
                 m_cond_session_ready.wait(lock);
-            
+ 
             // the Z_Assoc and PDU_Assoc must be destroyed before
             // the socket manager.. so pull that out.. first..
             yazpp_1::SocketManager *s = it->second->m_socket_manager;
@@ -409,6 +440,10 @@ void yf::Z3950Client::configure(const xmlNode *ptr, bool test_only)
         else if (!strcmp((const char *) ptr->name, "force_target"))
         {
             m_p->m_force_target = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name, "max-sockets"))
+        {
+            m_p->m_max_sockets = mp::xml::get_int(ptr->children, 0);
         }
         else
         {
