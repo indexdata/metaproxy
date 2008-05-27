@@ -21,13 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef WIN32
-#include <winsock.h>
-#endif
-
-#if HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
 
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
