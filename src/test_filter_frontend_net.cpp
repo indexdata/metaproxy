@@ -15,11 +15,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-/* $Id: test_filter_frontend_net.cpp,v 1.20 2008-02-20 15:07:53 adam Exp $
-   Copyright (c) 2005-2007, Index Data.
-
-   See the LICENSE file for details
- */
 
 #include "config.hpp"
 #include <iostream>
