@@ -46,6 +46,7 @@ namespace yf = metaproxy_1::filter;
 namespace metaproxy_1 {
 
     namespace filter {
+        // key for session.. We'll only share sessions with same InitKey
         class SessionShared::InitKey {
         public:
             bool operator < (const SessionShared::InitKey &k) const;
@@ -53,13 +54,13 @@ namespace metaproxy_1 {
             InitKey(const InitKey &);
             ~InitKey();
         private:
-            InitKey &operator = (const InitKey &k);
             char *m_idAuthentication_buf;
             int m_idAuthentication_size;
             char *m_otherInfo_buf;
             int m_otherInfo_size;
             ODR m_odr;
         };
+        // worker thread .. for expiry of sessions
         class SessionShared::Worker {
         public:
             Worker(SessionShared::Rep *rep);
@@ -67,6 +68,7 @@ namespace metaproxy_1 {
         private:
             SessionShared::Rep *m_p;
         };
+        // backend result set
         class SessionShared::BackendSet {
         public:
             std::string m_result_set_id;
@@ -84,6 +86,7 @@ namespace metaproxy_1 {
                 const Z_APDU *apdu_req,
                 const BackendInstancePtr bp);
         };
+        // backend connection instance
         class SessionShared::BackendInstance {
             friend class Rep;
             friend class BackendClass;
@@ -98,6 +101,7 @@ namespace metaproxy_1 {
             mp::Package * m_close_package;
             ~BackendInstance();
         };
+        // backends of some class (all with same InitKey)
         class SessionShared::BackendClass : boost::noncopyable {
             friend class Rep;
             friend struct Frontend;
@@ -108,7 +112,7 @@ namespace metaproxy_1 {
             BackendInstancePtr get_backend(const Package &package);
             void use_backend(BackendInstancePtr b);
             void release_backend(BackendInstancePtr b);
-            void expire();
+            void expire_class();
             yazpp_1::GDU m_init_request;
             yazpp_1::GDU m_init_response;
             boost::mutex m_mutex_backend_class;
@@ -123,6 +127,7 @@ namespace metaproxy_1 {
                          int session_ttl);
             ~BackendClass();
         };
+        // frontend result set
         class SessionShared::FrontendSet {
             Databases m_databases;
             yazpp_1::Yaz_Z_Query m_query;
@@ -134,6 +139,7 @@ namespace metaproxy_1 {
                 const yazpp_1::Yaz_Z_Query &query);
             FrontendSet();
         };
+        // frontend session
         struct SessionShared::Frontend {
             Frontend(Rep *rep);
             ~Frontend();
@@ -157,6 +163,7 @@ namespace metaproxy_1 {
             BackendClassPtr m_backend_class;
             FrontendSets m_frontend_sets;
         };            
+        // representation
         class SessionShared::Rep {
             friend class SessionShared;
             friend struct Frontend;
@@ -852,7 +859,7 @@ void yf::SessionShared::Worker::operator() (void)
     m_p->expire();
 }
 
-void yf::SessionShared::BackendClass::expire()
+void yf::SessionShared::BackendClass::expire_class()
 {
     time_t now;
     time(&now);
@@ -895,7 +902,7 @@ void yf::SessionShared::Rep::expire()
         
         BackendClassMap::const_iterator b_it = m_backend_map.begin();
         for (; b_it != m_backend_map.end(); b_it++)
-            b_it->second->expire();
+            b_it->second->expire_class();
     }
 }
 
