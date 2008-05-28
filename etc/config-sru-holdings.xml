@@ -38,6 +38,13 @@ The Z39.50 is set, instead via the new x-target SRU parameter .
            <!-- XSLT transforms could be performed here -->
           </backend>
         </retrieval>
+        <retrieval syntax="xml" name="marcxml"
+                   identifier="info:srw/schema/1/marcxml-v1.1">
+          <backend syntax="usmarc" name="F">
+            <marc inputformat="marc" outputformat="marcxml"
+                  inputcharset="marc-8"/>
+          </backend>
+        </retrieval>
       </retrievalinfo>
     </filter>
   </filters>
@@ -49,12 +56,15 @@ The Z39.50 is set, instead via the new x-target SRU parameter .
 	<!-- <category apdu="true"/> -->
       </filter>
       <filter refid="sru"/>
-      <filter refid="retrieve"/>
       <filter type="log">
-        <message>Z3950</message>
+        <message>FrontendZ3950</message>
       </filter>
+      <filter refid="retrieve"/>
 
       <filter type="session_shared"/>
+      <filter type="log">
+        <message>BackendZ3950</message>
+      </filter>
       <filter type="z3950_client">
 	<timeout>30</timeout>
       </filter>
