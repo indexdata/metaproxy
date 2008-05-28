@@ -29,8 +29,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/srw.h>
 #include <yaz/pquery.h>
 #include <yaz/oid_db.h>
+#include <yaz/log.h>
 
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/condition.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -52,8 +54,14 @@ namespace metaproxy_1 {
             union SRW_query {char * cql; char * xcql; char * pqf;};
             typedef const int& SRW_query_type;
             std::map<std::string, const xmlNode *> m_database_explain;
-        private:
 
+            typedef std::map<std::string, int> ActiveUrlMap;
+
+            boost::mutex m_mutex;
+            boost::condition m_cond_url_ready;
+            ActiveUrlMap m_active_urls;
+        private:
+            void sru(metaproxy_1::Package &package, Z_GDU *zgdu_req);
             bool z3950_build_query(mp::odr &odr_en, Z_Query *z_query, 
                                    const SRW_query &query, 
                                    SRW_query_type query_type) const;
@@ -91,6 +99,8 @@ namespace metaproxy_1 {
             int z3950_to_srw_diag(mp::odr &odr_en, 
                                   Z_SRW_searchRetrieveResponse *srw_res,
                                   Z_DefaultDiagFormat *ddf) const;
+
+
         };
     }
 }
@@ -144,18 +154,8 @@ void yf::SRUtoZ3950::Impl::configure(const xmlNode *confignode)
     }
 }
 
-void yf::SRUtoZ3950::Impl::process(mp::Package &package)
+void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
 {
-    Z_GDU *zgdu_req = package.request().get();
-
-    // ignoring all non HTTP_Request packages
-    if (!zgdu_req || !(zgdu_req->which == Z_GDU_HTTP_Request)){
-        package.move();
-        return;
-    }
-    
-    // only working on  HTTP_Request packages now
-
     bool ok = true;    
 
     mp::odr odr_de(ODR_DECODE);
@@ -294,6 +294,49 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
                                 sru_pdu_res, charset, stylesheet);
 }
 
+
+void yf::SRUtoZ3950::Impl::process(mp::Package &package)
+{
+    Z_GDU *zgdu_req = package.request().get();
+
+    // ignoring all non HTTP_Request packages
+    if (!zgdu_req || !(zgdu_req->which == Z_GDU_HTTP_Request)){
+        package.move();
+        return;
+    }
+    
+    // only working on HTTP_Request packages now
+
+    // see if HTTP request is already being executed..
+    // we consider only the SRU - GET case..
+    if (zgdu_req->u.HTTP_Request->content_len == 0)
+    {
+        const char *path = zgdu_req->u.HTTP_Request->path;
+        boost::mutex::scoped_lock lock(m_mutex);
+        while (1)
+        {
+            ActiveUrlMap::iterator it = m_active_urls.find(path);
+            if (it == m_active_urls.end())
+            {
+                m_active_urls[path] = 1;
+                break;
+            }
+            yaz_log(YLOG_LOG, "Waiting for %s to complete", path);
+            m_cond_url_ready.wait(lock);
+        }
+    }
+    sru(package, zgdu_req);
+    if (zgdu_req->u.HTTP_Request->content_len == 0)
+    {
+        const char *path = zgdu_req->u.HTTP_Request->path;
+        boost::mutex::scoped_lock lock(m_mutex);
+
+        ActiveUrlMap::iterator it = m_active_urls.find(path);
+
+        m_active_urls.erase(it);
+        m_cond_url_ready.notify_all();
+    }
+}
 
 
 bool 
