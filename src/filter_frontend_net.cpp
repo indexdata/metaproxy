@@ -148,8 +148,18 @@ void mp::ThreadPoolPackage::result()
                 "unhandled Z39.50 request");
 
             m_session->send_Z_PDU(apdu_response, &len);
-            m_package->session().close();
         }
+        else if (z_gdu && z_gdu->which == Z_GDU_HTTP_Request)
+        {
+            // For HTTP, respond with Server Error
+            int len;
+            mp::odr odr;
+            Z_GDU *zgdu_res 
+                = odr.create_HTTP_Response(m_package->session(), 
+                                           z_gdu->u.HTTP_Request, 500);
+            m_session->send_GDU(zgdu_res, &len);
+        }
+        m_package->session().close();
     }
 
     if (m_session->m_no_requests == 0 && m_package->session().is_closed())
