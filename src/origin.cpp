@@ -26,7 +26,7 @@ namespace mp = metaproxy_1;
 mp::Origin::Origin(std::string listen_host, 
                    unsigned int listen_port) 
     : m_type(API), m_address(""), m_origin_id(0),
-      m_listen_host(listen_host), m_listen_port(listen_port)
+      m_listen_host(listen_host), m_listen_port(listen_port), m_max_sockets(0)
 {
 }
 
@@ -50,7 +50,15 @@ unsigned int & mp::Origin::listen_port()
     return m_listen_port;
 };
 
+void mp::Origin::set_max_sockets(int max_sockets)
+{
+    m_max_sockets = max_sockets;
+}
 
+int mp::Origin::get_max_sockets()
+{
+    return m_max_sockets;
+}
 
 void mp::Origin::set_tcpip_address(std::string addr, unsigned long s)
 {

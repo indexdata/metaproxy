@@ -203,11 +203,18 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         package.move();
         return 0;
     }
+    
+    int max_sockets = package.origin().get_max_sockets();
+    if (max_sockets == 0)
+        max_sockets = m_max_sockets;
+    
+    std::string host;
+
     it = m_clients.find(package.session());
     if (it != m_clients.end())
     {
         it->second->m_queue_len++;
-        while(true)
+        while (true)
         {
 #if 0
             // double init .. NOT working yet
@@ -249,7 +256,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         target = m_default_target;
         std::list<std::string> vhosts;
         mp::util::remove_vhost_otherinfo(&apdu->u.initRequest->otherInfo,
-                                         vhosts);
+                                             vhosts);
         size_t no_vhosts = vhosts.size();
         if (no_vhosts == 1)
         {
@@ -282,17 +289,18 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
             return 0;
         }
     }
-
+    
     std::list<std::string> dblist;
-    std::string host;
     mp::util::split_zurl(target, host, dblist);
     
     if (dblist.size())
     {
         ; // z3950_client: Databases in vhost ignored
     }
+    
+    // see if we have reached max number of clients (max-sockets)
 
-    while (m_max_sockets)
+    while (max_sockets)
     {
         int number = 0;
         it = m_clients.begin();
@@ -302,16 +310,17 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
             if (!strcmp(as->get_hostname(), host.c_str()))
                 number++;
         }
-        if (number < m_max_sockets)
+        yaz_log(YLOG_LOG, "Found %d connections for %s", number, host.c_str());
+        if (number < max_sockets)
             break;
         boost::xtime xt;
         xtime_get(&xt, boost::TIME_UTC);
-
+        
         xt.sec += 15;
         if (!m_cond_session_ready.timed_wait(lock, xt))
         {
             mp::odr odr;
-
+            
             package.response() = odr.create_initResponse(
                 apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, "max sessions");
             package.session().close();
@@ -409,6 +418,7 @@ void yf::Z3950Client::Rep::release_assoc(Package &package)
             delete s;    // then manager
             m_clients.erase(it);
         }
+        yaz_log(YLOG_LOG, "Notify all release_assoc");
         m_cond_session_ready.notify_all();
     }
 }

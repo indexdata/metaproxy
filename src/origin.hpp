@@ -51,6 +51,11 @@ namespace metaproxy_1 {
         /// set client IP info - left val in assignment
         void set_tcpip_address(std::string addr, unsigned long id);
 
+        /// set max sockets (for outgoing connections to a given target)
+        void set_max_sockets(int max_sockets);
+
+        /// set max sockets (for outgoing connections to a given target)
+        int get_max_sockets();
     private:
         friend std::ostream& 
         std::operator<<(std::ostream& os,  metaproxy_1::Origin& o);
@@ -64,6 +69,7 @@ namespace metaproxy_1 {
         unsigned int m_origin_id;
         std::string m_listen_host;
         unsigned int m_listen_port;
+        int m_max_sockets;
     };
 
 }

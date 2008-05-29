@@ -217,6 +217,10 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
         {
             zurl = std::string(arg->value);
         }
+        else if (!strcmp(arg->name, "x-max-sockets"))
+        {
+            package.origin().set_max_sockets(atoi(arg->value));
+        }
 
 
     // filter acts as sink for SRU explain requests
