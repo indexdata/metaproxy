@@ -55,9 +55,30 @@
   <para>
    This filter does not handle CQL-to-PQF translations. In case that
    the backends do not understand CQL, you need to append the
-   <literal>cql_pqf</literal> metaproxy filter. This filter
-   still needs to be implemented.
-   </para>
+   <literal>cql_pqf</literal> metaproxy filter.
+  </para>
+  <para>
+    This module supports the following SRU extra parameters:
+    <variablelist>
+      <varlistentry>
+	<term>x-target</term>
+	<listitem>
+	  <para>
+	    Specifies backend Z39.50 target.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>x-max-sockets</term>
+	<listitem>
+	  <para>
+	    Specifies maximum number of sockets to use for a Z39.50 backend
+	    client (for one given target host/db).
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </para>
  </refsect1>
 
  <refsect1><title>EXAMPLES</title>
