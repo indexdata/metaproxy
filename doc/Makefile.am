@@ -37,7 +37,7 @@ MANFILES = metaproxy.1 \
 	multi.3mp query_rewrite.3mp \
         record_transform.3mp\
 	session_shared.3mp \
-        sru_z3950.xml\
+        sru_z3950.3mp \
 	template.3mp \
 	virt_db.3mp \
 	z3950_client.3mp \
