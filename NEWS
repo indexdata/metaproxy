@@ -1,3 +1,20 @@
+--- 1.0.14 2008/06/09
+
+Fixed the value of SRU record schema in searchRetrieve response. It was set
+to a fixed value of "dc" before.
+
+Serialize identical SRU requests. This is useful if HTTP client software
+fires identical requests against metaproxy.
+
+Allow Z39.50 target to be specified for SRU requests by using SRU extra
+parameter x-target. Allows SRU to contact arbitrary Z39.50 targets and
+avoid static configuration. This facility is handled by the sru_z3950 module
+and the z3950_client module.
+
+Allow maximum number of sockets to be used for a Z39.50 client by the
+use of SRU extra parameter x-max-sockets. This facility is handled by the
+sru_z3950 module and the z3950_client module.
+
 --- 1.0.13.1 2008/02/29
 
 Simplified check for Boost libraries.
