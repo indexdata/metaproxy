@@ -48,11 +48,11 @@ libmetaproxy_la_SOURCES = \
 	util.cpp util.hpp \
 	xmlutil.cpp xmlutil.hpp
 
-libmetaproxy_la_LIBADD = $(YAZPPLIB) $(BOOST_LIB) $(BOOST_THREAD_LIB)
+libmetaproxy_la_LIBADD = $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB)
 
-# Rules for programs..
+# Rules for lib
 
-LDADD = libmetaproxy.la 
+LDADD = libmetaproxy.la $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB)
 
 bin_PROGRAMS = metaproxy
 noinst_PROGRAMS = ex_filter_frontend_net ex_router_flexml tstdl
