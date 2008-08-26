@@ -73,7 +73,7 @@ metaproxy.pdf: $(XMLFILES) multi.pdf
 	for i in $(PNGFILES) common/id.png multi.pdf; do \
 		if test ! -f $$i; then cp $(srcdir)/$$i $$i; fi; \
 	done
-	dblatex $(MAINXML)
+	$(PDF_COMPILE) $(MAINXML)
 	mv book.pdf metaproxy.pdf
 
 metaproxyj.pdf: $(XMLFILES) multi.pdf
