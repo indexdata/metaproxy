@@ -7,10 +7,12 @@ libtoolize=libtoolize
 autoheader=autoheader
 
 test -d config || mkdir config
-if test -d m4/.git -a -d doc/common/.git; then
-    :
-else
-    git submodule init
+if test .git; then
+    if test -d m4/.git -a -d doc/common/.git; then
+        :
+    else
+        git submodule init
+    fi
     git submodule update
 fi
 
