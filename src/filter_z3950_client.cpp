@@ -406,17 +406,13 @@ void yf::Z3950Client::Rep::release_assoc(Package &package)
         {
             // destroy hint (send_and_receive)
             it->second->m_destroyed = true;
-            
-            // wait until no one is waiting for it.
-            while (it->second->m_queue_len)
-                m_cond_session_ready.wait(lock);
- 
-            // the Z_Assoc and PDU_Assoc must be destroyed before
-            // the socket manager.. so pull that out.. first..
-            yazpp_1::SocketManager *s = it->second->m_socket_manager;
-            delete it->second;  // destroy Z_Assoc
-            delete s;    // then manager
-            m_clients.erase(it);
+            if (it->second->m_queue_len == 0)
+            {
+                yazpp_1::SocketManager *s = it->second->m_socket_manager;
+                delete it->second;  // destroy Z_Assoc
+                delete s;    // then manager
+                m_clients.erase(it);
+            }
         }
         yaz_log(YLOG_LOG, "Notify all release_assoc");
         m_cond_session_ready.notify_all();
