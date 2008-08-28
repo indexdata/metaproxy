@@ -84,7 +84,8 @@ namespace metaproxy_1 {
             bool search(
                 Package &frontend_package,
                 const Z_APDU *apdu_req,
-                const BackendInstancePtr bp);
+                const BackendInstancePtr bp,
+                bool &fatal_error);
         };
         // backend connection instance
         class SessionShared::BackendInstance {
@@ -277,7 +278,15 @@ void yf::SessionShared::BackendClass::remove_backend(BackendInstancePtr b)
     while (it != m_backend_list.end())
     {
         if (*it == b)
+        {
+             mp::odr odr;
+            (*it)->m_close_package->response() = odr.create_close(
+                0, Z_Close_lackOfActivity, 0);
+            (*it)->m_close_package->session().close();
+            (*it)->m_close_package->move();
+            
             it = m_backend_list.erase(it);
+        }
         else
             it++;
     }
@@ -483,7 +492,8 @@ yf::SessionShared::BackendSet::BackendSet(
 bool yf::SessionShared::BackendSet::search(
     mp::Package &frontend_package,
     const Z_APDU *frontend_apdu,
-    const BackendInstancePtr bp)
+    const BackendInstancePtr bp,
+    bool & fatal_error)
 {
     Package search_package(bp->m_session, frontend_package.origin());
 
@@ -507,7 +517,8 @@ bool yf::SessionShared::BackendSet::search(
     search_package.request() = apdu_req;
 
     search_package.move();
-    
+    fatal_error = false;  // assume backend session is good
+
     Z_Records *z_records_diag = 0;
     Z_GDU *gdu = search_package.response().get();
     if (!search_package.session().is_closed()
@@ -523,11 +534,15 @@ bool yf::SessionShared::BackendSet::search(
         }
         if (z_records_diag)
         {
+            // there could be diagnostics that are so bad.. that 
+            // we simply mark the error as fatal..  For now we assume
+            // we can resume
             if (frontend_apdu->which == Z_APDU_searchRequest)
             {
                 Z_APDU *f_apdu = odr.create_searchResponse(frontend_apdu, 
                                                            0, 0);
                 Z_SearchResponse *f_resp = f_apdu->u.searchResponse;
+                *f_resp->searchStatus = *b_resp->searchStatus;
                 f_resp->records = z_records_diag;
                 frontend_package.response() = f_apdu;
                 return false;
@@ -556,6 +571,7 @@ bool yf::SessionShared::BackendSet::search(
         f_apdu = odr.create_close(
             frontend_apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
     frontend_package.response() = f_apdu;
+    fatal_error = true; // weired response.. bad backend
     return false;
 }
 
@@ -684,9 +700,13 @@ void yf::SessionShared::Frontend::get_set(mp::Package &package,
     // we must search ...
     BackendSetPtr new_set(new BackendSet(result_set_id,
                                          databases, query));
-    if (!new_set->search(package, apdu_req, found_backend))
+    bool fatal_error = false;
+    if (!new_set->search(package, apdu_req, found_backend, fatal_error))
     {
-        bc->remove_backend(found_backend);
+        if (fatal_error)
+            bc->remove_backend(found_backend);
+        else
+            bc->release_backend(found_backend);
         return; // search error 
     }
     found_set = new_set;
