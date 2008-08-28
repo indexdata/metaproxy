@@ -414,7 +414,6 @@ void yf::Z3950Client::Rep::release_assoc(Package &package)
                 m_clients.erase(it);
             }
         }
-        yaz_log(YLOG_LOG, "Notify all release_assoc");
         m_cond_session_ready.notify_all();
     }
 }
