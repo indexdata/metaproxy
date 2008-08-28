@@ -1,0 +1,8 @@
+files
+libmetaproxy
+metaproxy
+metaproxy-doc
+tmp
+*.log
+*.debhelper
+*.substvars
