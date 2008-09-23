@@ -219,7 +219,8 @@ void mp::ZAssocChild::failNotify()
     // TODO: send Package to signal "close"
     if (m_session.is_closed())
     {
-        delete this;
+        if (m_no_requests == 0)
+            delete this;
 	return;
     }
     m_no_requests++;
