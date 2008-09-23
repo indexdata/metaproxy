@@ -84,13 +84,13 @@ namespace metaproxy_1 {
     class ThreadPoolPackage : public mp::IThreadPoolMsg {
     public:
         ThreadPoolPackage(mp::Package *package, mp::ZAssocChild *ses) :
-            m_session(ses), m_package(package) { };
+            m_assoc_child(ses), m_package(package) { };
         ~ThreadPoolPackage();
         IThreadPoolMsg *handle();
         void result();
         
     private:
-        mp::ZAssocChild *m_session;
+        mp::ZAssocChild *m_assoc_child;
         mp::Package *m_package;
         
     };
@@ -123,14 +123,14 @@ mp::ThreadPoolPackage::~ThreadPoolPackage()
 
 void mp::ThreadPoolPackage::result()
 {
-    m_session->m_no_requests--;
+    m_assoc_child->m_no_requests--;
 
     yazpp_1::GDU *gdu = &m_package->response();
 
     if (gdu->get())
     {
 	int len;
-	m_session->send_GDU(gdu->get(), &len);
+	m_assoc_child->send_GDU(gdu->get(), &len);
     }
     else if (!m_package->session().is_closed())
     {
@@ -147,7 +147,7 @@ void mp::ThreadPoolPackage::result()
                 z_gdu->u.z3950, Z_Close_systemProblem, 
                 "unhandled Z39.50 request");
 
-            m_session->send_Z_PDU(apdu_response, &len);
+            m_assoc_child->send_Z_PDU(apdu_response, &len);
         }
         else if (z_gdu && z_gdu->which == Z_GDU_HTTP_Request)
         {
@@ -157,14 +157,14 @@ void mp::ThreadPoolPackage::result()
             Z_GDU *zgdu_res 
                 = odr.create_HTTP_Response(m_package->session(), 
                                            z_gdu->u.HTTP_Request, 500);
-            m_session->send_GDU(zgdu_res, &len);
+            m_assoc_child->send_GDU(zgdu_res, &len);
         }
         m_package->session().close();
     }
 
-    if (m_session->m_no_requests == 0 && m_package->session().is_closed())
+    if (m_assoc_child->m_no_requests == 0 && m_package->session().is_closed())
     {
-        m_session->close();
+        m_assoc_child->close();
     }
     delete this;
 }
