@@ -70,6 +70,7 @@ namespace metaproxy_1 {
             int m_queue_len;
             int m_time_elapsed;
             int m_time_max;
+            int m_time_connect_max;
             std::string m_host;
         };
 
@@ -100,7 +101,7 @@ yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
        m_socket_manager(socket_manager), m_PDU_Observable(PDU_Observable),
        m_package(0), m_in_use(true), m_waiting(false), 
        m_destroyed(false), m_connected(false), m_queue_len(1),
-       m_time_elapsed(0), m_time_max(timeout_sec), 
+       m_time_elapsed(0), m_time_max(timeout_sec),  m_time_connect_max(10),
        m_host(host)
 {
     // std::cout << "create assoc " << this << "\n";
@@ -139,7 +140,8 @@ void yf::Z3950Client::Assoc::failNotify()
 void yf::Z3950Client::Assoc::timeoutNotify()
 {
     m_time_elapsed++;
-    if (m_time_elapsed >= m_time_max)
+    if ((m_connected && m_time_elapsed >= m_time_max)
+        || (!m_connected && m_time_elapsed >= m_time_connect_max))
     {
         m_waiting = false;
 
