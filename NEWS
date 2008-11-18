@@ -1,3 +1,5 @@
+Implemented facility to change current working directory (-w).
+
 --- 1.0.15 2008/11/18
 
 Fixed reference counting bug in Z39.50 client module (could cause SEGV).

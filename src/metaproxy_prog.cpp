@@ -31,6 +31,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "router_flexml.hpp"
 #include "factory_static.hpp"
 
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 namespace mp = metaproxy_1;
 
 static void handler(void *data)
@@ -52,7 +56,7 @@ int main(int argc, char **argv)
         const char *pidfile = 0;
         const char *uid = 0;
 
-        while ((ret = options("c{config}:Dh{help}l:p:u:V{version}X", 
+        while ((ret = options("c{config}:Dh{help}l:p:u:V{version}w:X", 
                               argv, argc, &arg)) != -2)
         {
             switch (ret)
@@ -72,6 +76,7 @@ int main(int argc, char **argv)
                     " -l f          log file f\n"
                     " -p f          pid file f\n"
                     " -u id         change uid to id\n"
+                    " -w dir        changes working directory to dir\n"
                     " -X            debug mode (no fork/daemon mode)\n"
                           << std::endl;
                 break;
@@ -88,6 +93,12 @@ int main(int argc, char **argv)
                 std::cout << VERSION "\n";
                 std::exit(0);
                 break;
+            case 'w':
+                if (chdir(arg)) 
+                {
+                    std::cerr << "chdir " << arg << " failed" << std::endl;
+                    std::exit(1);
+                }
             case 'X':
                 mode = YAZ_DAEMON_DEBUG;
                 break;

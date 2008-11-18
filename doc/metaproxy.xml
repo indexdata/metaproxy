@@ -25,6 +25,7 @@
    <arg choice="opt"><option>-l <replaceable>logfile</replaceable></option></arg>
    <arg choice="opt"><option>-p <replaceable>pidfile</replaceable></option></arg>
    <arg choice="opt"><option>-u <replaceable>ID</replaceable></option></arg>
+   <arg choice="opt"><option>-w <replaceable>dir</replaceable></option></arg>
    <arg choice="opt"><option>-X</option></arg>
   </cmdsynopsis>
  </refsynopsisdiv>
@@ -86,6 +87,13 @@
     <term>-u <replaceable>ID</replaceable></term>
     <listitem><para>
       Makes Metaproxy changes its identity to ID after startup.
+     </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-w <replaceable>dir</replaceable></term>
+    <listitem><para>
+      Changes working directory to <replaceable>dir</replaceable>.
      </para></listitem>
    </varlistentry>
 
