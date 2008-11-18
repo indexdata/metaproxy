@@ -15,9 +15,9 @@ YAZ_DIR=..\..\yaz
 YAZPP_DIR=..\..\yazpp
 
 # Boost
-BOOST=\program files\boost\boost_1_34_1
-BOOST_VERSION=1_34_1
-BOOST_TOOLSET=vc80 # vc80 for VS 2005, vc71 for 2003
+BOOST=\program files\boost\boost_1_35_0
+BOOST_VERSION=1_35
+BOOST_TOOLSET=vc90 # vc90 for VS2008, vc80 for VS 2005, vc71 for 2003
 BOOST_MODEL=mt
 
 # libxml2 + libxslt + associates
@@ -30,10 +30,9 @@ LIBXSLT_DIR=\libxslt-1.1.24.win32
 
 default: all
 
-all: dirs config yaz yazpp libxslt dll progs
+all: dirs config yaz yazpp libxslt progs
 
-progs: metaproxy ex_filter_frontend_net test_pipe
-
+progs: metaproxy ex_filter_frontend_net # test_pipe does not work
 NSIS="c:\program files\nsis\makensis.exe"
 
 nsis: all
@@ -64,14 +63,11 @@ TMP=$(TMPDIR)
 ############### Targets - what to make
 ###########################################################
 
-PROJECT_DLL=$(BINDIR)\metaproxy.dll
-PROJECT_IMPLIB=$(LIBDIR)\metaproxy.lib
 EX_FILTER_FRONTEND_NET=$(BINDIR)\ex_filter_frontend_net.exe
 METAPROXY_PROG=$(BINDIR)\metaproxy.exe
 TEST_PIPE=$(BINDIR)\test_pipe.exe
 
 # shortcut names defined here
-dll: $(PROJECT_DLL)
 ex_filter_frontend_net: $(EX_FILTER_FRONTEND_NET)
 metaproxy: $(METAPROXY_PROG)
 test_pipe: $(TEST_PIPE)
@@ -131,9 +127,10 @@ BOOST_LIB_SUFFIX=$(BOOST_TOOLSET)-$(BOOST_MODEL)-$(BOOST_VERSION).lib
 BOOST_DEF = /I"$(BOOST)"
 BOOST_LIB = \
     "$(BOOST)\lib\libboost_date_time-$(BOOST_LIB_SUFFIX)" \
-    "$(BOOST)\lib\libboost_program_options-$(BOOST_LIB_SUFFIX)" \
-    "$(BOOST)\lib\libboost_thread-$(BOOST_LIB_SUFFIX)" \
-    "$(BOOST)\lib\libboost_unit_test_framework-$(BOOST_LIB_SUFFIX)"
+    "$(BOOST)\lib\libboost_thread-$(BOOST_LIB_SUFFIX)"  
+
+#"$(BOOST)\lib\libboost_program_options-$(BOOST_LIB_SUFFIX)" \
+# "$(BOOST)\lib\libboost_unit_test_framework-$(BOOST_LIB_SUFFIX)"
 
 
 LIBXSLT_DEF = \
@@ -296,16 +293,7 @@ $(PROJECT_RES): $(PROJECT_RC)
 ############### Linking
 ###########################################################
 
-$(PROJECT_DLL) $(PROJECT_IMPLIB): "$(BINDIR)" $(PROJECT_DLL_OBJS)
-	$(LINK) \
-		$(LNKOPT) \
-		$(LINK_LIBS) \
-		$(DLL_LINK_OPTIONS) \
-		$(PROJECT_DLL_OBJS) \
-		/out:"$(PROJECT_DLL)" \
-		/implib:"$(PROJECT_IMPLIB)"
-
-$(EX_FILTER_FRONTEND_NET) : "$(BINDIR)" $(EX_FILTER_FRONTEND_NET_OBJS) $(PROJECT_IMPLIB)
+$(EX_FILTER_FRONTEND_NET) : "$(BINDIR)" $(EX_FILTER_FRONTEND_NET_OBJS) $(PROJECT_DLL_OBJS)
 	$(LINK) \
 		$(LNKOPT) \
 		$(PROG_LINK_OPTIONS) \
@@ -314,22 +302,22 @@ $(EX_FILTER_FRONTEND_NET) : "$(BINDIR)" $(EX_FILTER_FRONTEND_NET_OBJS) $(PROJECT
 		$(EX_FILTER_FRONTEND_NET_OBJS) \
 		/out:$(EX_FILTER_FRONTEND_NET) 
 
-$(METAPROXY_PROG) : "$(BINDIR)" $(METAPROXY_OBJS) $(PROJECT_IMPLIB)
+$(METAPROXY_PROG) : "$(BINDIR)" $(METAPROXY_OBJS) $(PROJECT_DLL_OBJS)
 	$(LINK) \
 		$(LNKOPT) \
 		$(PROG_LINK_OPTIONS) \
 		$(LINK_LIBS) \
-		$(PROJECT_DLL_OBJS) \
 		$(METAPROXY_OBJS) \
+		$(PROJECT_DLL_OBJS) \
 		/out:$(METAPROXY_PROG) 
 
-$(TEST_PIPE) : "$(BINDIR)" $(TEST_PIPE_OBJS) $(PROJECT_IMPLIB)
+$(TEST_PIPE) : "$(BINDIR)" $(TEST_PIPE_OBJS) $(PROJECT_DLL_OBJS)
 	$(LINK) \
 		$(LNKOPT) \
 		$(PROG_LINK_OPTIONS) \
 		$(LINK_LIBS) \
-		$(TEST_PIPE_OBJS) \
 		$(PROJECT_DLL_OBJS) \
+		$(TEST_PIPE_OBJS) \
 		/out:$(TEST_PIPE)
 
 ############## clean

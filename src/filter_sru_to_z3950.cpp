@@ -16,6 +16,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+// make std::min actually work on Windows
+#define NOMINMAX 1
+
 #include "config.hpp"
 #include "filter.hpp"
 #include "package.hpp"
