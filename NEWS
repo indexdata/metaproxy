@@ -1,3 +1,7 @@
+--- 1.0.15 2008/11/18
+
+Fixed reference counting bug in Z39.50 client module (could cause SEGV).
+
 --- 1.0.14 2008/06/09
 
 Fixed the value of SRU record schema in searchRetrieve response. It was set
