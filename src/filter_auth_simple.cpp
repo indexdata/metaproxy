@@ -115,7 +115,8 @@ void mp::filter::AuthSimple::config_userRegister(std::string filename)
             strerror(errno));
 
     char buf[1000];
-    while (fgets(buf, sizeof buf, fp)) {
+    while (fgets(buf, sizeof buf, fp))
+    {
         if (*buf == '\n' || *buf == '#')
             continue;
         buf[strlen(buf)-1] = 0;
@@ -133,14 +134,15 @@ void mp::filter::AuthSimple::config_userRegister(std::string filename)
         boost::split(tmp.dbs, databasesp, boost::is_any_of(","));
         m_p->userRegister[buf] = tmp;
 
-        if (0) {                // debugging
+        if (0)
+        {                // debugging
             printf("Added user '%s' -> password '%s'\n", buf, passwdp);
             std::list<std::string>::const_iterator i;
-            for (i = tmp.dbs.begin(); i != tmp.dbs.end(); i++) {
+            for (i = tmp.dbs.begin(); i != tmp.dbs.end(); i++)
                 printf("db '%s'\n", (*i).c_str());
-            }
         }
     }
+    fclose(fp);
 }
 
 
