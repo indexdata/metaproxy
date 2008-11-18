@@ -111,6 +111,9 @@ dist-hook:
 		cp $$p $(distdir); \
 	done
 
+doc-clean:
+	rm -f *.html *.[0-9] *.?mp *.pdf *.tkl
+
 install-data-hook:
 	if test -f index.html; then d=.; else d="$(srcdir)"; fi; \
 	for p in $$d/*.html; do \
