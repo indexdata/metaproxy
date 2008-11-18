@@ -34,6 +34,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef WIN32
+#include <direct.h>
+#endif
 
 namespace mp = metaproxy_1;
 
