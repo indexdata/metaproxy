@@ -1180,7 +1180,6 @@ void mp::filter::Multi::configure(const xmlNode * ptr, bool test_only)
         {
             std::string route = mp::xml::get_route(ptr);
             std::string target = mp::xml::get_text(ptr);
-            std::cout << "route=" << route << " target=" << target << "\n";
             m_p->m_target_route[target] = route;
         }
         else if (!strcmp((const char *) ptr->name, "hideunavailable"))
