@@ -335,7 +335,6 @@ static void reject_init(mp::Package &package, int err, const char *addinfo) {
     Z_GDU *gdu = package.request().get();
     mp::odr odr;
     Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950, err, addinfo);
-    apdu->u.initResponse->implementationName = "YP2/YAZ";
     *apdu->u.initResponse->result = 0; // reject
     package.response() = apdu;
     package.session().close();
