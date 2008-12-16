@@ -30,6 +30,7 @@
   <xs:element name="metaproxy">
     <xs:complexType>
       <xs:sequence>
+        <xs:element minOccurs="0" ref="mp:dlpath"/>
         <xs:element ref="mp:start"/>
         <xs:element minOccurs="0" ref="mp:filters"/>
         <xs:element ref="mp:routes"/>
@@ -43,6 +44,7 @@
       </xs:attribute>
     </xs:complexType>
   </xs:element>
+  <xs:element name="dlpath" type="xs:string"/>
   <xs:element name="start">
     <xs:complexType>
       <xs:attribute name="route" use="required" type="xs:NCName"/>

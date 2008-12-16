@@ -46,6 +46,11 @@
       <attribute name="version">
         <value>1.0</value>
       </attribute>
+      <optional>
+        <element name="mp:dlpath">
+          <data type="string"/>
+        </element>
+      </optional>
       <element name="mp:start">
         <attribute name="route">
           <data type="NCName"/>

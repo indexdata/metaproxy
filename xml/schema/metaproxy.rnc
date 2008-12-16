@@ -30,6 +30,7 @@ any = (text | element * { attribute * { text }*, any })*
 metaproxy =
   element mp:metaproxy {
     attribute version { "1.0" },
+    element mp:dlpath { xsd:string }?,
     element mp:start {
             attribute route { xsd:NCName }
     },
