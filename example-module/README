@@ -1,0 +1,12 @@
+This is a very simplified example of a loadable metaproxy module
+
+There is a simple makefile, that does not depend (very much) on the
+main metaproxy stuff.
+
+You can run the server with 
+
+   make run
+
+Then connect to it with a yaz-client localhost:9000. The module sees the 
+init request, and rejects it with a system error.
+
