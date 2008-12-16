@@ -107,13 +107,99 @@
   </variablelist>
  </refsect1>
 
+ <refsect1><title>CONFIGURATION</title>
+   <para>Metaproxy's configuration is XML based. All elements
+     should be in namespace <literal>http://indexdata.com/metaproxy</literal>.
+   </para>
+   <para>
+     The root element must be named <literal>metaproxy</literal> and
+     must specify a version. Currently the version must be
+     <literal>1.0</literal>. The children elements of metaproxy
+     are:
+     <variablelist>
+       <varlistentry>
+	 <term>dlpath</term>
+	 <listitem>
+	   <para>
+	     Specifies the path for Loadable filter modules
+	   </para>
+	 </listitem>
+       </varlistentry>
+       <varlistentry>
+	 <term>start</term>
+	 <listitem>
+	   <para>
+	     Specifies the start route. Takes a <literal>route</literal>
+	     attribute with the name of the route.
+	   </para>
+	 </listitem>
+       </varlistentry>
+       <varlistentry>
+	 <term>filters</term>
+	 <listitem>
+	   <para>
+	     Specifies all filters. Includes one ore more 
+	     <literal>filter</literal> elements with filter-specific
+	     configuration material.
+	   </para>
+	 </listitem>
+       </varlistentry>
+       <varlistentry>
+	 <term>routes</term>
+	 <listitem>
+	   <para>
+	     Specifies all routes. Includes one or more
+	     <literal>route</literal> elements. Each <literal>route</literal>
+	     in turn includes one or more filter specifications.
+	   </para>
+	 </listitem>
+       </varlistentry>
+     </variablelist>
+   </para>
+   <para>
+     The configuration is described in more detail in the
+     <ulink url="&url.metaproxy.doc;">Metaproxy manual</ulink>.
+   </para>
+ </refsect1>
  <refsect1><title>EXAMPLES</title>
-  <para>
-   Start server with configuration in <filename>my.xml</filename>.
-   <screen>
-    metaproxy --config my.xml
+   <para>
+     The configuration below specifies a simple Z39.50 proxy and
+     illustrates most configuration elements of Metaproxy.
+   </para>
+   <screen><![CDATA[
+<?xml version="1.0"?>
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
+  <dlpath>/usr/local/metaproxy/filters</dlpath>
+  <start route="start"/>
+  <filters>
+    <filter id="frontend" type="frontend_net">
+      <threads>10</threads>
+      <port>@:9000</port>
+    </filter>
+    <filter id="backend" type="z3950_client">
+     <timeout>30</timeout>
+     <default_target>z3950.indexdata.dk</default_target>
+    </filter>
+  </filters>
+  <routes>  
+    <route id="start">
+      <filter refid="frontend"/>
+      <filter type="log">
+        <message>log</message>
+      </filter>
+      <filter refid="backend"/>
+      <filter type="bounce"/>
+    </route>
+  </routes>
+</metaproxy>
+]]>
    </screen>
-  </para>
+   <para>
+     Start server with configuration in <filename>my.xml</filename>.
+     <screen>
+       metaproxy --config my.xml
+     </screen>
+   </para>
  </refsect1> 
 
  <refsect1><title>FILES</title>
@@ -183,7 +269,7 @@
   </para>
   <para>
    The Metaproxy
-   <ulink url="http://www.indexdata.com/metaproxy/doc/">manual</ulink>.
+   <ulink url="&url.metaproxy.doc;">manual</ulink>.
   </para>
  </refsect1>
 
