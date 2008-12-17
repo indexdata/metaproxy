@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <iostream>
 #include <map>
 #include <list>
+#include <yaz/log.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -116,8 +117,8 @@ void mp::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
 
         if (!m_factory->exist(type_value))
         {
-            std::cout << "about to load " << type_value << ", path=" << 
-                m_dl_path << "\n";
+            yaz_log(YLOG_LOG, "Loading %s (dlpath %s)",
+                    type_value.c_str(), m_dl_path.c_str());
             m_factory->add_creator_dl(type_value, m_dl_path);
         }
         mp::filter::Base* filter_base = m_factory->create(type_value);
@@ -208,8 +209,8 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
             {
                 if (!m_factory->exist(type_value))
                 {
-                    std::cout << "about to load " << type_value << ", path=" << 
-                        m_dl_path << "\n";
+                    yaz_log(YLOG_LOG, "Loading %s (dlpath %s)",
+                            type_value.c_str(), m_dl_path.c_str());
                     m_factory->add_creator_dl(type_value, m_dl_path);
                 }
                 mp::filter::Base* filter_base = m_factory->create(type_value);
