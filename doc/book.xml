@@ -1125,11 +1125,19 @@ Figure out what additional information we need in:
     &lt;metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0"&gt;
    </screen>
    <para>
-    The top-level element is &lt;metaproxy&gt;.  This contains a
-    &lt;start&gt; element, a &lt;filters&gt; element and a
-    &lt;routes&gt; element, in that order.  &lt;filters&gt; is
-    optional; the other two are mandatory.  All three are
-    non-repeatable.
+    The top-level element is &lt;metaproxy&gt;.  This contains
+    a &lt;dlpath&gt; element,
+    a &lt;start&gt; element,
+    a &lt;filters&gt; element and
+    a &lt;routes&gt; element, in that order.  &lt;dlpath&gt; and
+    &lt;filters&gt; are optional; the other two are mandatory.
+    All four are non-repeatable.
+   </para>
+   <para>
+     The &lt;dlpath;&gt; element contains a text element which 
+     specifies the location of filter modules. This is only needed
+     if Metaproxy must load 3rd party filters (most filters with Metaproxy
+     are built into the Metaproxy application).
    </para>
   <para>
     The &lt;start&gt; element is empty, but carries a
@@ -1182,6 +1190,7 @@ Figure out what additional information we need in:
    </para>
    <screen><![CDATA[<?xml version="1.0"?>
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
+  <dlpath>/usr/lib/metaproxy/modules</dlpath>
   <start route="start"/>
   <filters>
     <filter id="frontend" type="frontend_net">
