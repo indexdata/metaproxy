@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/options.h>
 #include <yaz/daemon.h>
 
+#include <yaz/sc.h>
 #include <iostream>
 #include <stdexcept>
 #include <libxml/xinclude.h>
@@ -36,6 +37,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 #ifdef WIN32
 #include <direct.h>
+#include <io.h>
+#include <process.h>
 #endif
 
 namespace mp = metaproxy_1;
@@ -48,7 +51,9 @@ static void handler(void *data)
     pack.router(*routerp).move();
 }
     
-int main(int argc, char **argv)
+static int sc_main(
+    yaz_sc_t s,
+    int argc, char **argv)
 {
     try 
     {
@@ -81,6 +86,11 @@ int main(int argc, char **argv)
                     " -u id         change uid to id\n"
                     " -w dir        changes working directory to dir\n"
                     " -X            debug mode (no fork/daemon mode)\n"
+#ifdef WIN32
+                    " -install      install windows service\n"
+                    " -remove       remove windows service\n"
+#endif
+
                           << std::endl;
                 break;
             case 'l':
@@ -94,26 +104,32 @@ int main(int argc, char **argv)
                 break;
             case 'V':
                 std::cout << VERSION "\n";
-                std::exit(0);
+                return 0;
                 break;
             case 'w':
-                if (chdir(arg)) 
+                if (
+#ifdef WIN32
+                    _chdir(arg)
+#else
+                    chdir(arg)
+#endif
+                   ) 
                 {
                     std::cerr << "chdir " << arg << " failed" << std::endl;
-                    std::exit(1);
+                    return 1;
                 }
             case 'X':
                 mode = YAZ_DAEMON_DEBUG;
                 break;
             case -1:
                 std::cerr << "bad option: " << arg << std::endl;
-                std::exit(1);
+                return 1;
             }
         }
         if (!fname)
         {
             std::cerr << "No configuration given; use -h for help\n";
-            std::exit(1);
+            return 1;
         }
 
         yaz_log(YLOG_LOG, "Metaproxy " VERSION " started");
@@ -124,32 +140,51 @@ int main(int argc, char **argv)
         
         if (!doc)
         {
-            std::cerr << "XML parsing failed\n";
-            std::exit(1);
+            yaz_log (YLOG_FATAL,"XML parsing failed");
+            return 1;
         }
         // and perform Xinclude then
         if (xmlXIncludeProcess(doc) > 0) {
-            std::cerr << "processing XInclude directive\n";
+            yaz_log (YLOG_LOG, "processing XInclude directive");
         }
         mp::FactoryStatic factory;
         mp::RouterFleXML router(doc, factory, false);
 
+        yaz_sc_running(s);
+
         yaz_daemon("metaproxy", mode, handler, &router, pidfile, uid);
     }
     catch (std::logic_error &e) {
-        std::cerr << "std::logic error: " << e.what() << "\n";
-        std::exit(1);
+        yaz_log (YLOG_FATAL,"std::logic error: %s" , e.what() );
+        return 1;
     }
     catch (std::runtime_error &e) {
-        std::cerr << "std::runtime error: " << e.what() << "\n";
-        std::exit(1);
+        yaz_log (YLOG_FATAL, "std::runtime error: %s" , e.what() );
+        return 1;
     }
     catch ( ... ) {
-        std::cerr << "Unknown Exception" << std::endl;
-        std::exit(1);
+        yaz_log (YLOG_FATAL, "Unknown Exception");
+        return 1;
     }
-    std::exit(0);
+    return 0;
 }
+
+static void sc_stop(yaz_sc_t s)
+{
+    return;
+}
+
+int main(int argc, char **argv)
+{
+    int ret;
+    yaz_sc_t s = yaz_sc_create("metaproxy", "metaproxy");
+
+    ret = yaz_sc_program(s, argc, argv, sc_main, sc_stop);
+
+    yaz_sc_destroy(&s);
+    exit(ret);
+}
+
 
 
 /*
