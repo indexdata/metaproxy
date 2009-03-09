@@ -158,7 +158,7 @@
       <para>
        The popular C++ library. Initial versions of Metaproxy
        was built with 1.32 but this is no longer supported.
-       Metaproxy is known to work with Boost version 1.33 / 1.34 / 1.35.
+       Metaproxy is known to work with Boost version 1.33 through 1.38.
       </para>
      </listitem>
     </varlistentry>
@@ -185,67 +185,98 @@
     tools binary packages. If, for example, Libxml2/libxslt are already
     installed as development packages use those (and omit compilation).
    </para>
-   
-   <para>
-    Libxml2/libxslt:
-   </para>
-   <screen>
-    gunzip -c libxml2-version.tar.gz|tar xf -
-    cd libxml2-version
-    ./configure
-    make
-    su
-    make install
-   </screen>
-   <screen>
-    gunzip -c libxslt-version.tar.gz|tar xf -
-    cd libxslt-version
-    ./configure
-    make
-    su
-    make install
-   </screen>
-   <para>
-    YAZ/YAZ++:
-   </para>
-   <screen>
-    gunzip -c yaz-version.tar.gz|tar xf -
-    cd yaz-version
-    ./configure
-    make
-    su
-    make install
-   </screen>
-   <screen>
-    gunzip -c yazpp-version.tar.gz|tar xf -
-    cd yazpp-version
-    ./configure
-    make
-    su
-    make install
-   </screen>
-   <para>
-    Boost:
-   </para>
-   <screen>
-    gunzip -c boost-version.tar.gz|tar xf -
-    cd boost-version
-    ./configure
-    make
-    su
-    make install
-   </screen>
-   <para>
-    Metaproxy:
-   </para>
-   <screen>
-    gunzip -c metaproxy-version.tar.gz|tar xf -
-    cd metaproxy-version
-    ./configure
-    make
-    su
-    make install
-   </screen>
+
+   <section id="libxml2.fromsource">
+    <title>Libxml2/libxslt</title>
+    <para>
+     Libxml2/libxslt:
+    </para>
+    <screen>
+     gunzip -c libxml2-version.tar.gz|tar xf -
+     cd libxml2-version
+     ./configure
+     make
+     su
+     make install
+    </screen>
+    <screen>
+     gunzip -c libxslt-version.tar.gz|tar xf -
+     cd libxslt-version
+     ./configure
+     make
+     su
+     make install
+    </screen>
+   </section>
+   <section id="yaz.fromsource">
+    <title>YAZ/YAZ++</title>
+    <screen>
+     gunzip -c yaz-version.tar.gz|tar xf -
+     cd yaz-version
+     ./configure
+     make
+     su
+     make install
+    </screen>
+    <screen>
+     gunzip -c yazpp-version.tar.gz|tar xf -
+     cd yazpp-version
+     ./configure
+     make
+     su
+     make install
+    </screen>
+   </section>
+   <section>
+    <title id="boost.fromsource">Boost</title>
+    <para>
+     Metaproxy needs components thread and test from
+     Boost.
+    </para>
+    <screen>
+     gunzip -c boost-version.tar.gz|tar xf -
+     cd boost-version
+     ./configure --with-libraries=thread,test --with-toolset=gcc
+     make
+     su
+     make install
+    </screen>
+    <para>
+     However, under the hood bjam is used. You can invoke that with
+    </para>
+    <screen>
+     ./bjam --toolset=gcc --with-thread --with-test stage
+    </screen>
+    <para>
+     Replace <literal>stage</literal> with <literal>clean</literal> /
+     <literal>install</literal> to perform clean and install respectively.
+    </para>
+    <para>
+     Add <literal>--prefix=DIR</literal> to install Boost in other
+     prefix than <literal>/usr/local</literal>.
+    </para>
+   </section>
+   <section id="metaproxy.fromsource">
+    <title>Metaproxy</title>
+    <screen>
+     gunzip -c metaproxy-version.tar.gz|tar xf -
+     cd metaproxy-version
+     ./configure
+     make
+     su
+     make install
+    </screen>
+    <para>
+     You may have to tell configure where Boost is installed by supplying
+     options <literal>--with-boost</literal> and <literal>--with-boost-toolset</literal>.
+     The former sets the PREFIX for Boost (same as --prefix for Boost above).
+     The latter the compiler toolset (eg. gcc34).
+    </para>
+    <para>
+     Pass <literal>--help</literal> to configure to get a list of 
+     available options.
+    </para>
+   </section>
   </section>
 
   <section id="installation.debian">
