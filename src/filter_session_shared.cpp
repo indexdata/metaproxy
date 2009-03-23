@@ -629,6 +629,9 @@ void yf::SessionShared::Frontend::get_set(mp::Package &package,
                                           BackendInstancePtr &found_backend,
                                           BackendSetPtr &found_set)
 {
+    bool session_restarted = false;
+
+restart:
     std::string result_set_id;
     BackendClassPtr bc = m_backend_class;
     {
@@ -709,6 +712,14 @@ void yf::SessionShared::Frontend::get_set(mp::Package &package,
             bc->release_backend(found_backend);
         return; // search error 
     }
+    if (!session_restarted && new_set->m_result_set_size < 0)
+    {
+        bc->remove_backend(found_backend);
+        session_restarted = true;
+        found_backend.reset();
+        goto restart;
+    }
+
     found_set = new_set;
     found_set->timestamp();
     found_backend->m_sets.push_back(found_set);
