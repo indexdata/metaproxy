@@ -36,6 +36,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
 #include <yazpp/z-query.h>
+#include <yazpp/record-cache.h>
 #include <map>
 #include <iostream>
 #include <time.h>
@@ -77,6 +78,7 @@ namespace metaproxy_1 {
             yazpp_1::Yaz_Z_Query m_query;
             time_t m_time_last_use;
             void timestamp();
+            yazpp_1::RecordCache m_record_cache;
             BackendSet(
                 const std::string &result_set_id,
                 const Databases &databases,
@@ -809,6 +811,33 @@ void yf::SessionShared::Frontend::present(mp::Package &package,
     if (!found_set)
         return;
 
+    Z_NamePlusRecordList *npr_res = 0;
+    if (found_set->m_record_cache.lookup(odr, &npr_res, 
+                                         *req->resultSetStartPoint,
+                                         *req->numberOfRecordsRequested,
+                                         req->preferredRecordSyntax,
+                                         req->recordComposition))
+    {
+        Z_APDU *f_apdu_res = odr.create_presentResponse(apdu_req, 0, 0);
+        Z_PresentResponse *f_resp = f_apdu_res->u.presentResponse;
+
+        yaz_log(YLOG_LOG, "Found %d+%d records in cache %p",
+                *req->resultSetStartPoint,                      
+                *req->numberOfRecordsRequested,
+                &found_set->m_record_cache);        
+
+        *f_resp->numberOfRecordsReturned = *req->numberOfRecordsRequested;
+        *f_resp->nextResultSetPosition = 
+            *req->resultSetStartPoint + *req->numberOfRecordsRequested;
+        // f_resp->presentStatus assumed OK.
+        f_resp->records = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
+        f_resp->records->which = Z_Records_DBOSD;
+        f_resp->records->u.databaseOrSurDiagnostics = npr_res;
+        package.response() = f_apdu_res;
+        bc->release_backend(found_backend);
+        return;
+    }
+                              
     Z_APDU *p_apdu = zget_APDU(odr, Z_APDU_presentRequest);
     Z_PresentRequest *p_req = p_apdu->u.presentRequest;
     p_req->preferredRecordSyntax = req->preferredRecordSyntax;
@@ -840,6 +869,19 @@ void yf::SessionShared::Frontend::present(mp::Package &package,
         f_resp->records = b_resp->records;
         f_resp->otherInfo = b_resp->otherInfo;
         package.response() = f_apdu_res;
+
+        if (b_resp->records && b_resp->records->which ==  Z_Records_DBOSD)
+        {
+            yaz_log(YLOG_LOG, "Adding %d+%d records to cache %p",
+                    *req->resultSetStartPoint,                      
+                    *f_resp->numberOfRecordsReturned,
+                    &found_set->m_record_cache);        
+            found_set->m_record_cache.add(
+                odr,
+                b_resp->records->u.databaseOrSurDiagnostics,
+                *req->resultSetStartPoint,                      
+                *f_resp->numberOfRecordsReturned);
+        }
         bc->release_backend(found_backend);
     }
     else
