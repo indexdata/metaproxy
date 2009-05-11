@@ -328,8 +328,8 @@ void yf::LoadBalance::Impl::add_session(unsigned long session_id,
     {
         TargetStat stat;
         stat.sessions = 1;
-        stat.packages = 0;  // no idea why the defaut constructor TargetStat()
-        stat.deads = 0;     // is not initializig this correctly to zero ??
+        stat.packages = 0;
+        stat.deads = 0;
         m_target_stat.insert(std::make_pair(target, stat));
         // std:.cout << "add_session " << session_id << " " << target 
         //          << " s:1\n";
