@@ -283,7 +283,8 @@ void yf::LoadBalance::Impl::add_package(unsigned long session_id)
         itarg = m_target_stat.find(target);
         if (itarg != m_target_stat.end()
             && itarg->second.packages 
-               < std::numeric_limits<unsigned int>::max()){
+               < std::numeric_limits<unsigned int>::max())
+        {
             itarg->second.packages += 1;
             // std:.cout << "add_package " << session_id << " " << target 
             //          << " p:" << itarg->second.packages << "\n";
@@ -370,7 +371,7 @@ void yf::LoadBalance::Impl::remove_session(unsigned long session_id)
     //          << " s:" << itarg->second.sessions << "\n";
     
     // clearing empty sessions and targets
-    if (itarg->second.sessions == 0 && itarg->second.deads == 0 )
+    if (itarg->second.sessions == 0 && itarg->second.deads == 0)
     {
         m_target_stat.erase(itarg);
         m_session_target.erase(isess);
@@ -393,12 +394,12 @@ unsigned int yf::LoadBalance::Impl::cost(std::string target)
 {
     unsigned int cost;
 
-    if (target.size() != 0){
+    if (target.size() != 0)
+    {
         std::map<std::string, TargetStat>::iterator itarg;        
         itarg = m_target_stat.find(target);
-        if (itarg != m_target_stat.end()){
+        if (itarg != m_target_stat.end())
             cost = itarg->second.cost();
-        }
     }
     
     //std::cout << "cost " << target << " c:" << cost << "\n";
@@ -409,12 +410,12 @@ unsigned int yf::LoadBalance::Impl::dead(std::string target)
 {
     unsigned int dead;
 
-    if (target.size() != 0){
+    if (target.size() != 0)
+    {
         std::map<std::string, TargetStat>::iterator itarg;        
         itarg = m_target_stat.find(target);
-        if (itarg != m_target_stat.end()){
+        if (itarg != m_target_stat.end())
             dead = itarg->second.deads;
-        }
     }
     
     //std::cout << "dead " << target << " d:" << dead << "\n";
