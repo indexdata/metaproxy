@@ -41,9 +41,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
 
-namespace metaproxy_1 {
-    namespace filter {
-        class LoadBalance::Impl {
+namespace metaproxy_1
+{
+    namespace filter
+    {
+        class LoadBalance::Impl
+        {
         public:
             Impl();
             ~Impl();
@@ -109,10 +112,6 @@ void yf::LoadBalance::process(mp::Package &package) const
 }
 
 
-// define Implementation stuff
-
-
-
 yf::LoadBalance::Impl::Impl()
 {
 }
@@ -132,18 +131,19 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
     bool is_closed_back = false;
 
     // checking for closed front end packages
-    if (package.session().is_closed()){
+    if (package.session().is_closed())
+    {
         is_closed_front = true;
     }    
 
     Z_GDU *gdu_req = package.request().get();
 
     // passing anything but z3950 packages
-    if (gdu_req && gdu_req->which == Z_GDU_Z3950){
-
+    if (gdu_req && gdu_req->which == Z_GDU_Z3950)
+    {
         // target selecting only on Z39.50 init request
-        if (gdu_req->u.z3950->which == Z_APDU_initRequest){
-
+        if (gdu_req->u.z3950->which == Z_APDU_initRequest)
+        {
             mp::odr odr_en(ODR_ENCODE);
             Z_InitRequest *org_init = gdu_req->u.z3950->u.initRequest;
 
@@ -154,23 +154,26 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
             
             // choosing one target according to load-balancing algorithm  
             
-            if (vhosts.size()){
+            if (vhosts.size())
+            {
                 std::string target;
                 unsigned int cost = std::numeric_limits<unsigned int>::max();
-                
                 { //locking scope for local databases
                     boost::mutex::scoped_lock scoped_lock(m_mutex);
                     
                     // load-balancing algorithm goes here
                     //target = *vhosts.begin();
-                    for(std::list<std::string>::const_iterator ivh 
-                            = vhosts.begin(); 
-                        ivh != vhosts.end();
-                        ivh++){
-                        if ((*ivh).size() != 0){
+                    for (std::list<std::string>::const_iterator ivh 
+                             = vhosts.begin(); 
+                         ivh != vhosts.end();
+                         ivh++)
+                    {
+                        if ((*ivh).size() != 0)
+                        {
                             unsigned int vhcost 
                                 = yf::LoadBalance::Impl::cost(*ivh);
-                            if (cost > vhcost){
+                            if (cost > vhcost)
+                            {
                                 cost = vhcost;
                                 target = *ivh;
                             }
@@ -187,17 +190,18 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
                 mp::util::set_vhost_otherinfo(&(org_init->otherInfo), 
                                               odr_en, target, 1);
                 package.request() = gdu_req;
-        }
-            
+            }
         }
         // frontend Z39.50 close request is added to statistics and marked
-        else if (gdu_req->u.z3950->which == Z_APDU_close){
+        else if (gdu_req->u.z3950->which == Z_APDU_close)
+        {
             is_closed_front = true;
             boost::mutex::scoped_lock scoped_lock(m_mutex);        
             add_package(package.session().id());
         }    
         // any other Z39.50 package is added to statistics
-        else {
+        else
+        {
             boost::mutex::scoped_lock scoped_lock(m_mutex);        
             add_package(package.session().id());
         }
@@ -206,7 +210,6 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
     // moving all package types 
     package.move();
 
-
     // checking for closed back end packages
     if (package.session().is_closed())
         is_closed_back = true;
@@ -214,23 +217,26 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
     Z_GDU *gdu_res = package.response().get();
 
     // passing anything but z3950 packages
-    if (gdu_res && gdu_res->which == Z_GDU_Z3950){
-
+    if (gdu_res && gdu_res->which == Z_GDU_Z3950)
+    {
         // session closing only on Z39.50 close response
-        if (gdu_res->u.z3950->which == Z_APDU_close){
+        if (gdu_res->u.z3950->which == Z_APDU_close)
+        {
             is_closed_back = true;
             boost::mutex::scoped_lock scoped_lock(m_mutex);
             remove_package(package.session().id());
         } 
         // any other Z39.50 package is removed from statistics
-        else {
+        else
+        {
             boost::mutex::scoped_lock scoped_lock(m_mutex);
             remove_package(package.session().id());
         }
     }
 
     // finally removing sessions and marking deads
-    if (is_closed_back || is_closed_front){        
+    if (is_closed_back || is_closed_front)
+    {
         boost::mutex::scoped_lock scoped_lock(m_mutex);
 
         // marking backend dead if backend closed without fronted close 
@@ -245,32 +251,34 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
 }
             
 // statistic manipulating functions, 
-void yf::LoadBalance::Impl::add_dead(unsigned long session_id){
-
-    
+void yf::LoadBalance::Impl::add_dead(unsigned long session_id)
+{
     std::string target = find_session_target(session_id);
 
-    if (target.size() != 0){
+    if (target.size() != 0)
+    {
         std::map<std::string, TargetStat>::iterator itarg;        
         itarg = m_target_stat.find(target);
         if (itarg != m_target_stat.end()
-            && itarg->second.deads < std::numeric_limits<unsigned int>::max()){
+            && itarg->second.deads < std::numeric_limits<unsigned int>::max())
+        {
             itarg->second.deads += 1;
             // std:.cout << "add_dead " << session_id << " " << target 
             //          << " d:" << itarg->second.deads << "\n";
         }
     }
-};
+}
 
 //void yf::LoadBalance::Impl::clear_dead(unsigned long session_id){
 //    std::cout << "clear_dead " << session_id << "\n";
 //};
 
-void yf::LoadBalance::Impl::add_package(unsigned long session_id){
-
+void yf::LoadBalance::Impl::add_package(unsigned long session_id)
+{
     std::string target = find_session_target(session_id);
 
-    if (target.size() != 0){
+    if (target.size() != 0)
+    {
         std::map<std::string, TargetStat>::iterator itarg;        
         itarg = m_target_stat.find(target);
         if (itarg != m_target_stat.end()
@@ -281,42 +289,47 @@ void yf::LoadBalance::Impl::add_package(unsigned long session_id){
             //          << " p:" << itarg->second.packages << "\n";
         }
     }
-};
+}
 
-void yf::LoadBalance::Impl::remove_package(unsigned long session_id){
+void yf::LoadBalance::Impl::remove_package(unsigned long session_id)
+{
     std::string target = find_session_target(session_id);
 
-    if (target.size() != 0){
+    if (target.size() != 0)
+    {
         std::map<std::string, TargetStat>::iterator itarg;        
         itarg = m_target_stat.find(target);
         if (itarg != m_target_stat.end()
-            && itarg->second.packages > 0){
+            && itarg->second.packages > 0)
+        {
             itarg->second.packages -= 1;
             // std:.cout << "remove_package " << session_id << " " << target 
             //          << " p:" << itarg->second.packages << "\n";
         }
     }
-};
+}
 
 void yf::LoadBalance::Impl::add_session(unsigned long session_id, 
-                                        std::string target){
-
+                                        std::string target)
+{
     // finding and adding session
     std::map<unsigned long, std::string>::iterator isess;
     isess = m_session_target.find(session_id);
-    if (isess == m_session_target.end()){
+    if (isess == m_session_target.end())
+    {
         m_session_target.insert(std::make_pair(session_id, target));
     }
 
     // finding and adding target statistics
     std::map<std::string, TargetStat>::iterator itarg;
     itarg = m_target_stat.find(target);
-    if (itarg == m_target_stat.end()){
+    if (itarg == m_target_stat.end())
+    {
         TargetStat stat;
         stat.sessions = 1;
         stat.packages = 0;  // no idea why the defaut constructor TargetStat()
         stat.deads = 0;     // is not initializig this correctly to zero ??
-       m_target_stat.insert(std::make_pair(target, stat));
+        m_target_stat.insert(std::make_pair(target, stat));
         // std:.cout << "add_session " << session_id << " " << target 
         //          << " s:1\n";
     } 
@@ -326,10 +339,10 @@ void yf::LoadBalance::Impl::add_session(unsigned long session_id,
         // std:.cout << "add_session " << session_id << " " << target 
         //          << " s:" << itarg->second.sessions << "\n";
     }
-};
+}
 
-void yf::LoadBalance::Impl::remove_session(unsigned long session_id){
-
+void yf::LoadBalance::Impl::remove_session(unsigned long session_id)
+{
     std::string target;
 
     // finding session
@@ -343,7 +356,8 @@ void yf::LoadBalance::Impl::remove_session(unsigned long session_id){
     // finding target statistics
     std::map<std::string, TargetStat>::iterator itarg;
     itarg = m_target_stat.find(target);
-    if (itarg == m_target_stat.end()){
+    if (itarg == m_target_stat.end())
+    {
         m_session_target.erase(isess);
         return;
     }
@@ -356,15 +370,15 @@ void yf::LoadBalance::Impl::remove_session(unsigned long session_id){
     //          << " s:" << itarg->second.sessions << "\n";
     
     // clearing empty sessions and targets
-    if (itarg->second.sessions == 0 && itarg->second.deads == 0 ){
+    if (itarg->second.sessions == 0 && itarg->second.deads == 0 )
+    {
         m_target_stat.erase(itarg);
         m_session_target.erase(isess);
     }
-};
+}
 
-std::string 
-yf::LoadBalance::Impl::find_session_target(unsigned long session_id){
-
+std::string yf::LoadBalance::Impl::find_session_target(unsigned long session_id)
+{
     std::string target;
     std::map<unsigned long, std::string>::iterator isess;
     isess = m_session_target.find(session_id);
@@ -375,8 +389,8 @@ yf::LoadBalance::Impl::find_session_target(unsigned long session_id){
 
 
 // cost functions
-unsigned int yf::LoadBalance::Impl::cost(std::string target){
-
+unsigned int yf::LoadBalance::Impl::cost(std::string target)
+{
     unsigned int cost;
 
     if (target.size() != 0){
@@ -389,10 +403,10 @@ unsigned int yf::LoadBalance::Impl::cost(std::string target){
     
     //std::cout << "cost " << target << " c:" << cost << "\n";
     return cost;
-};
+}
 
-unsigned int yf::LoadBalance::Impl::dead(std::string target){
-
+unsigned int yf::LoadBalance::Impl::dead(std::string target)
+{
     unsigned int dead;
 
     if (target.size() != 0){
@@ -405,9 +419,7 @@ unsigned int yf::LoadBalance::Impl::dead(std::string target){
     
     //std::cout << "dead " << target << " d:" << dead << "\n";
     return dead;
-};
-
-
+}
 
 
 static mp::filter::Base* filter_creator()
