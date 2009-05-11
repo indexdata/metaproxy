@@ -392,7 +392,7 @@ std::string yf::LoadBalance::Impl::find_session_target(unsigned long session_id)
 // cost functions
 unsigned int yf::LoadBalance::Impl::cost(std::string target)
 {
-    unsigned int cost;
+    unsigned int cost = 0;
 
     if (target.size() != 0)
     {
@@ -408,7 +408,7 @@ unsigned int yf::LoadBalance::Impl::cost(std::string target)
 
 unsigned int yf::LoadBalance::Impl::dead(std::string target)
 {
-    unsigned int dead;
+    unsigned int dead = 0;
 
     if (target.size() != 0)
     {
