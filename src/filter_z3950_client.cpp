@@ -274,7 +274,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
                 package.response() = odr.create_initResponse(
                     apdu,
                     YAZ_BIB1_INIT_NEGOTIATION_OPTION_REQUIRED,
-                    "z3950_client: No virtal host given");
+                    "z3950_client: No vhost given");
                 
                 package.session().close();
                 return 0;
