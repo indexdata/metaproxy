@@ -304,17 +304,32 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
 
     while (max_sockets)
     {
+        int no_not_in_use = 0;
         int number = 0;
         it = m_clients.begin();
         for (; it != m_clients.end(); it++)
         {
             yf::Z3950Client::Assoc *as = it->second;
             if (!strcmp(as->get_hostname(), host.c_str()))
+            {
                 number++;
+                if (!as->m_in_use)
+                    no_not_in_use++;
+            }
         }
-        yaz_log(YLOG_LOG, "Found %d connections for %s", number, host.c_str());
+        yaz_log(YLOG_LOG, "Found %d/%d connections for %s", number, max_sockets,
+                host.c_str());
         if (number < max_sockets)
             break;
+        if (no_not_in_use == 0) // all in use..
+        {
+            mp::odr odr;
+            
+            package.response() = odr.create_initResponse(
+                apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, "max sessions");
+            package.session().close();
+            return 0;
+        }
         boost::xtime xt;
         xtime_get(&xt, boost::TIME_UTC);
         
