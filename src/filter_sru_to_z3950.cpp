@@ -363,6 +363,28 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
     Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_initRequest);
     Z_InitRequest *init_req = apdu->u.initRequest;
 
+    Z_IdAuthentication *auth = NULL;
+    if (sru_pdu_req->username && !sru_pdu_req->password)
+    {
+        yaz_log(YLOG_LOG, "username: %s\n", sru_pdu_req->username);
+        auth = (Z_IdAuthentication *) odr_malloc(odr_en, sizeof(Z_IdAuthentication));
+        auth->which = Z_IdAuthentication_open;
+        auth->u.open = odr_strdup(odr_en, sru_pdu_req->username);
+    }
+    else if (sru_pdu_req->username && sru_pdu_req->password)
+    {
+        yaz_log(YLOG_LOG, "username/password: %s/%s\n",
+                sru_pdu_req->username, sru_pdu_req->password);
+        auth = (Z_IdAuthentication *) odr_malloc(odr_en, sizeof(Z_IdAuthentication));
+        auth->which = Z_IdAuthentication_idPass;
+        auth->u.idPass = (Z_IdPass *) odr_malloc(odr_en, sizeof(Z_IdPass));
+        auth->u.idPass->groupId = NULL;
+        auth->u.idPass->password = odr_strdup(odr_en, sru_pdu_req->password);
+        auth->u.idPass->userId = odr_strdup(odr_en, sru_pdu_req->username);
+    }
+
+    init_req->idAuthentication = auth;
+    
     //TODO: add user name in apdu
     //TODO: add user passwd in apdu
     //init_req->idAuthentication = org_init->idAuthentication;
