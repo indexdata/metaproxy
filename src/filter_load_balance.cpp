@@ -26,6 +26,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <boost/thread/mutex.hpp>
 
+#include <yaz/diagbib1.h>
+#include <yaz/log.h>
 #include <yaz/zgdu.h>
 
 // remove max macro if already defined (defined later in <limits>)
@@ -126,10 +128,8 @@ void yf::LoadBalance::Impl::configure(const xmlNode *xmlnode)
 
 void yf::LoadBalance::Impl::process(mp::Package &package)
 {
-
     bool is_closed_front = false;
-    bool is_closed_back = false;
-
+    
     // checking for closed front end packages
     if (package.session().is_closed())
     {
@@ -144,53 +144,74 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
         // target selecting only on Z39.50 init request
         if (gdu_req->u.z3950->which == Z_APDU_initRequest)
         {
-            mp::odr odr_en(ODR_ENCODE);
-            Z_InitRequest *org_init = gdu_req->u.z3950->u.initRequest;
+            yazpp_1::GDU base_req(gdu_req);
+            Z_APDU *apdu = base_req.get()->u.z3950;
 
-            // extracting virtual hosts
+            Z_InitRequest *org_init = base_req.get()->u.z3950->u.initRequest;
+            mp::odr odr_en(ODR_ENCODE);
+
             std::list<std::string> vhosts;
-            
             mp::util::remove_vhost_otherinfo(&(org_init->otherInfo), vhosts);
-            
-            // choosing one target according to load-balancing algorithm  
-            
-            if (vhosts.size())
+            // get lowest of all vhosts.. Remove them if individually if
+            // they turn out to be bad..
+            while (1)
             {
                 std::string target;
+                std::list<std::string>::iterator ivh = vhosts.begin();
                 unsigned int cost = std::numeric_limits<unsigned int>::max();
-                { //locking scope for local databases
+                { 
                     boost::mutex::scoped_lock scoped_lock(m_mutex);
                     
-                    // load-balancing algorithm goes here
-                    //target = *vhosts.begin();
-                    for (std::list<std::string>::const_iterator ivh 
-                             = vhosts.begin(); 
-                         ivh != vhosts.end();
-                         ivh++)
+                    for (; ivh != vhosts.end(); )
                     {
                         if ((*ivh).size() != 0)
                         {
                             unsigned int vhcost 
                                 = yf::LoadBalance::Impl::cost(*ivh);
+                            yaz_log(YLOG_LOG, "Consider %s cost=%u vhcost=%u",
+                                    (*ivh).c_str(), cost, vhcost);
                             if (cost > vhcost)
                             {
                                 cost = vhcost;
                                 target = *ivh;
+                                ivh = vhosts.erase(ivh);
                             }
+                            else
+                                ivh++;
                         }
-                     } 
-
-                    // updating local database
-                    add_session(package.session().id(), target);
-                    yf::LoadBalance::Impl::cost(target);
-                    add_package(package.session().id());
+                        else
+                            ivh++;
+                    }
                 }
-                
+                if (target.length() == 0)
+                    break;
                 // copying new target into init package
-                mp::util::set_vhost_otherinfo(&(org_init->otherInfo), 
+
+                yazpp_1::GDU init_gdu(base_req);
+                Z_InitRequest *init_req = init_gdu.get()->u.z3950->u.initRequest;
+                
+                mp::util::set_vhost_otherinfo(&(init_req->otherInfo), 
                                               odr_en, target, 1);
-                package.request() = gdu_req;
+                
+                package.request() = init_gdu;
+                
+                // moving all package types 
+                package.move();
+                
+                // checking for closed back end packages
+                if (!package.session().is_closed())
+                {
+                    add_session(package.session().id(), target);
+                    return;
+                }
+                yaz_log(YLOG_LOG, "Other round..");
             }
+            mp::odr odr;
+            package.response() = odr.create_initResponse(
+                apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
+                "load_balance: no available targets");
+            package.session().close();
+            return;
         }
         // frontend Z39.50 close request is added to statistics and marked
         else if (gdu_req->u.z3950->which == Z_APDU_close)
@@ -206,9 +227,11 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
             add_package(package.session().id());
         }
     }
-        
+
     // moving all package types 
     package.move();
+
+    bool is_closed_back = false;
 
     // checking for closed back end packages
     if (package.session().is_closed())
@@ -286,8 +309,6 @@ void yf::LoadBalance::Impl::add_package(unsigned long session_id)
                < std::numeric_limits<unsigned int>::max())
         {
             itarg->second.packages += 1;
-            // std:.cout << "add_package " << session_id << " " << target 
-            //          << " p:" << itarg->second.packages << "\n";
         }
     }
 }
@@ -304,8 +325,6 @@ void yf::LoadBalance::Impl::remove_package(unsigned long session_id)
             && itarg->second.packages > 0)
         {
             itarg->second.packages -= 1;
-            // std:.cout << "remove_package " << session_id << " " << target 
-            //          << " p:" << itarg->second.packages << "\n";
         }
     }
 }
@@ -331,14 +350,10 @@ void yf::LoadBalance::Impl::add_session(unsigned long session_id,
         stat.packages = 0;
         stat.deads = 0;
         m_target_stat.insert(std::make_pair(target, stat));
-        // std:.cout << "add_session " << session_id << " " << target 
-        //          << " s:1\n";
     } 
     else if (itarg->second.sessions < std::numeric_limits<unsigned int>::max())
     {
         itarg->second.sessions += 1;
-        // std:.cout << "add_session " << session_id << " " << target 
-        //          << " s:" << itarg->second.sessions << "\n";
     }
 }
 
