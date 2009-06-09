@@ -54,8 +54,6 @@ namespace metaproxy_1 {
             void configure(const xmlNode *xmlnode);
             void process(metaproxy_1::Package &package);
         private:
-            union SRW_query {char * cql; char * xcql; char * pqf;};
-            typedef const int& SRW_query_type;
             std::map<std::string, const xmlNode *> m_database_explain;
 
             typedef std::map<std::string, int> ActiveUrlMap;
@@ -66,13 +64,15 @@ namespace metaproxy_1 {
         private:
             void sru(metaproxy_1::Package &package, Z_GDU *zgdu_req);
             bool z3950_build_query(mp::odr &odr_en, Z_Query *z_query, 
-                                   const SRW_query &query, 
-                                   SRW_query_type query_type) const;
+                                   const Z_SRW_searchRetrieveRequest *req
+                                   ) const;
 
             bool z3950_init_request(mp::Package &package, 
                                     mp::odr &odr_en,
                                     std::string zurl,
-                                    Z_SRW_PDU *sru_pdu_res) const;
+                                    Z_SRW_PDU *sru_pdu_res,
+                                    const Z_SRW_PDU *sru_pdu_req
+                ) const;
 
             bool z3950_close_request(mp::Package &package) const;
 
@@ -247,7 +247,8 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
         ok = mp_util::check_sru_query_exists(package, odr_en, 
                                              sru_pdu_res, sr_req);
 
-        if (ok && z3950_init_request(package, odr_en, zurl, sru_pdu_res))
+        if (ok && z3950_init_request(package, odr_en,
+                                     zurl, sru_pdu_res, sru_pdu_req))
         {
             ok = z3950_search_request(package, odr_en,
                                       sru_pdu_res, sr_req, zurl);
@@ -281,7 +282,8 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
                                YAZ_SRW_UNSUPP_OPERATION, "scan");
  
         // to be used when we do scan
-        if (false && z3950_init_request(package, odr_en, zurl, sru_pdu_res))
+        if (false && z3950_init_request(package, odr_en, zurl, sru_pdu_res,
+                                        sru_pdu_req))
         {
             z3950_scan_request(package, odr_en, sru_pdu_res, sr_req);    
             z3950_close_request(package);
@@ -350,7 +352,8 @@ bool
 yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package, 
                                          mp::odr &odr_en,
                                          std::string zurl,
-                                         Z_SRW_PDU *sru_pdu_res) const
+                                         Z_SRW_PDU *sru_pdu_res,
+                                         const Z_SRW_PDU *sru_pdu_req) const
 {
     // prepare Z3950 package
     Package z3950_package(package.session(), package.origin());
@@ -359,6 +362,7 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
     // set initRequest APDU
     Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_initRequest);
     Z_InitRequest *init_req = apdu->u.initRequest;
+
     //TODO: add user name in apdu
     //TODO: add user passwd in apdu
     //init_req->idAuthentication = org_init->idAuthentication;
@@ -477,9 +481,7 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
     Z_Query *z_query = (Z_Query *) odr_malloc(odr_en, sizeof(Z_Query));
     z_searchRequest->query = z_query;
  
-    if (!z3950_build_query(odr_en, z_query, 
-                           (const SRW_query&)sr_req->query, 
-                           sr_req->query_type))
+    if (!z3950_build_query(odr_en, z_query, sr_req))
     {    
         yaz_add_srw_diagnostic(odr_en,
                                &(sru_pdu_res->u.response->diagnostics), 
@@ -820,10 +822,10 @@ yf::SRUtoZ3950::Impl::z3950_scan_request(mp::Package &package,
 }
 
 bool yf::SRUtoZ3950::Impl::z3950_build_query(mp::odr &odr_en, Z_Query *z_query, 
-                                            const SRW_query &query, 
-                                            SRW_query_type query_type) const
+                                             const Z_SRW_searchRetrieveRequest *req
+    ) const
 {        
-    if (query_type == Z_SRW_query_type_cql)
+    if (req->query_type == Z_SRW_query_type_cql)
     {
         Z_External *ext = (Z_External *) 
             odr_malloc(odr_en, sizeof(*ext));
@@ -832,21 +834,21 @@ bool yf::SRUtoZ3950::Impl::z3950_build_query(mp::odr &odr_en, Z_Query *z_query,
         ext->indirect_reference = 0;
         ext->descriptor = 0;
         ext->which = Z_External_CQL;
-        ext->u.cql = const_cast<char *>(query.cql);
+        ext->u.cql = odr_strdup(odr_en, req->query.cql);
         
         z_query->which = Z_Query_type_104;
         z_query->u.type_104 =  ext;
         return true;
     }
 
-    if (query_type == Z_SRW_query_type_pqf)
+    if (req->query_type == Z_SRW_query_type_pqf)
     {
         Z_RPNQuery *RPNquery;
         YAZ_PQF_Parser pqf_parser;
         
         pqf_parser = yaz_pqf_create ();
         
-        RPNquery = yaz_pqf_parse (pqf_parser, odr_en, query.pqf);
+        RPNquery = yaz_pqf_parse (pqf_parser, odr_en, req->query.pqf);
         if (!RPNquery)
         {
             std::cout << "TODO: Handeling of bad PQF\n";
