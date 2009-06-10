@@ -1,4 +1,20 @@
-Implemented facility to change current working directory (-w).
+--- 1.0.16 2008/06/10
+
+SRU to Z39.50 filter honors x-username and x-password. If only
+x-username is given that translates to open authentication (Z39.50v2). If
+both x-username and x-password is present that translates to idPass
+authentication (Z39.50v3).
+
+New facility to change current working directory (-w).
+
+Update to upstream skeleton of init.d script. Should fix bug #2619.
+
+Filter session_shared now caches records (used to only cache connections
+and result sets).
+
+Filter session_shared now invalidates a Z39.50 session if a server
+returns -1 hits. This facility was also part of yazproxy and gets around
+a bug in Voyager-based Z39.50 servers.
 
 --- 1.0.15 2008/11/18
 
