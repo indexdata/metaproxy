@@ -232,7 +232,7 @@ void yf::BackendTest::process(Package &package) const
             Z_InitRequest *req = apdu_req->u.initRequest;
             Z_InitResponse *resp = apdu_res->u.initResponse;
 
-            resp->implementationName = "backend_test";
+            resp->implementationName = odr_strdup(odr, "backend_test");
             if (ODR_MASK_GET(req->options, Z_Options_namedResultSets))
                 m_p->m_support_named_result_sets = true;
             
