@@ -1,4 +1,4 @@
---- 1.0.16 2008/06/10
+--- 1.0.16 2009/06/10
 
 SRU to Z39.50 filter honors x-username and x-password. If only
 x-username is given that translates to open authentication (Z39.50v2). If
