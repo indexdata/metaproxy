@@ -124,7 +124,16 @@ void ThreadPoolSocketObserver::socketNotify(int event)
 #ifdef WIN32
         recv(m_p->m_pipe.read_fd(), buf, 1, 0);
 #else
-        read(m_p->m_pipe.read_fd(), buf, 1);
+        ssize_t r = read(m_p->m_pipe.read_fd(), buf, 1);
+        if (r != 1)
+        {
+            if (r == (ssize_t) (-1))
+                yaz_log(YLOG_WARN|YLOG_ERRNO,
+                        "ThreadPoolSocketObserver::socketNotify. read fail");
+            else
+                yaz_log(YLOG_WARN,
+                        "ThreadPoolSocketObserver::socketNotify. read returned 0");
+        }
 #endif
         IThreadPoolMsg *out;
         {
@@ -160,7 +169,16 @@ void ThreadPoolSocketObserver::run(void *p)
 #ifdef WIN32
             send(m_p->m_pipe.write_fd(), "", 1, 0);
 #else
-            write(m_p->m_pipe.write_fd(), "", 1);
+            ssize_t r = write(m_p->m_pipe.write_fd(), "", 1);
+            if (r != 1)
+            {
+                if (r == (ssize_t) (-1))
+                    yaz_log(YLOG_WARN|YLOG_ERRNO,
+                            "ThreadPoolSocketObserver::run. write fail");
+                else
+                    yaz_log(YLOG_WARN,
+                            "ThreadPoolSocketObserver::run. write returned 0");
+            }
 #endif
         }
     }

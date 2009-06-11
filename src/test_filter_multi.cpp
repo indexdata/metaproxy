@@ -43,14 +43,11 @@ public:
         }
        
         Z_GDU *gdu = package.request().get();
-        if (gdu)
+        if (gdu && gdu->which == Z_GDU_Z3950)
         {
             // std::cout << "Got PDU. Sending init response\n";
             mp::odr odr;
-            Z_APDU *apdu = zget_APDU(odr, Z_APDU_initResponse);
-            
-            apdu->u.initResponse->implementationName = "YP2/YAZ";
-            
+            Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950, 0, 0);
             package.response() = apdu;
         }
         package.move();

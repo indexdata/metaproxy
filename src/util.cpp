@@ -478,6 +478,13 @@ Z_APDU *mp::odr::create_initResponse(const Z_APDU *in_apdu,
             zget_init_diagnostics(m_odr, error, addinfo);
         *apdu->u.initResponse->result = 0;
     }
+    apdu->u.initResponse->implementationName =
+        odr_prepend(m_odr, "Metaproxy",
+                    apdu->u.initResponse->implementationName);
+    apdu->u.initResponse->implementationVersion = 
+        odr_prepend(m_odr,
+                    VERSION, apdu->u.initResponse->implementationVersion);
+                   
     return apdu;
 }
 

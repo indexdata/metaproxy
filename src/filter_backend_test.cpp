@@ -44,6 +44,8 @@ namespace metaproxy_1 {
     namespace filter {
         class Session_info {
             int dummy;
+        public:
+            Session_info() { dummy = 0; };
         };
         class BackendTest::Rep {
             friend class BackendTest;

@@ -109,6 +109,7 @@ namespace metaproxy_1 {
                        int mediumSetPresentNumber,
                        int result_set_size,
                        int &number_to_present);
+
     };
 
     class odr : public boost::noncopyable {

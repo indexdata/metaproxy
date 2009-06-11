@@ -158,11 +158,11 @@ bool mp_util::build_sru_explain(metaproxy_1::Package &package,
 
 
 bool mp_util::build_sru_response(mp::Package &package, 
-                                             mp::odr &odr_en,
-                                             Z_SOAP *soap,
-                                             const Z_SRW_PDU *sru_pdu_res,
-                                             char *charset,
-                                             const char *stylesheet) 
+                                 mp::odr &odr_en,
+                                 Z_SOAP *soap,
+                                 const Z_SRW_PDU *sru_pdu_res,
+                                 char *charset,
+                                 const char *stylesheet) 
 {
 
     // SRU request package translation to Z3950 package
@@ -185,7 +185,8 @@ bool mp_util::build_sru_response(mp::Package &package,
         //http_res->code = http_code;
         
         std::string ctype("text/xml");
-        if (charset){
+        if (charset)
+        {
             ctype += "; charset=";
             ctype += charset;
         }
@@ -195,13 +196,10 @@ bool mp_util::build_sru_response(mp::Package &package,
 
          // packaging Z_SOAP into HTML response
          static Z_SOAP_Handler soap_handlers[4] = {
-              {"http://www.loc.gov/zing/srw/", 0,
-               (Z_SOAP_fun) yaz_srw_codec},
-              {"http://www.loc.gov/zing/srw/v1.0/", 0,
-               (Z_SOAP_fun) yaz_srw_codec},
-              {"http://www.loc.gov/zing/srw/update/", 0,
-               (Z_SOAP_fun) yaz_ucp_codec},
-              {0, 0, 0}
+             {(char *)YAZ_XMLNS_SRU_v1_1, 0, (Z_SOAP_fun) yaz_srw_codec},
+             {(char *)YAZ_XMLNS_SRU_v1_0, 0,  (Z_SOAP_fun) yaz_srw_codec},
+             {(char *)YAZ_XMLNS_UPDATE_v0_9, 0, (Z_SOAP_fun) yaz_ucp_codec},
+             {0, 0, 0}
          };
 
 

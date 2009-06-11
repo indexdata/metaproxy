@@ -38,7 +38,7 @@ class Worker
 {
     public:
         Worker(int nr = 0) 
-            :  m_nr(nr){};
+            :  m_nr(nr), m_id(0) {};
         
         void operator() (void) {
             for (int i=0; i < 100; ++i)

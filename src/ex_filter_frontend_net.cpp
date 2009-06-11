@@ -55,7 +55,7 @@ public:
                               "Content-Type", "text/plain");
             
             http_res->content_buf = 
-                odr_strdup(odr, "Welcome to YP2");
+                odr_strdup(odr, "Welcome to Metaproxy");
             http_res->content_len = strlen(http_res->content_buf);
             
             package.response() = gdu;

@@ -144,8 +144,11 @@ static int sc_main(
             return 1;
         }
         // and perform Xinclude then
-        if (xmlXIncludeProcess(doc) > 0) {
-            yaz_log (YLOG_LOG, "processing XInclude directive");
+        int r = xmlXIncludeProcess(doc);
+        if (r == -1)
+        {
+            yaz_log(YLOG_FATAL, "XInclude processing failed");
+            return 1;
         }
         mp::FactoryStatic factory;
         mp::RouterFleXML router(doc, factory, false);
@@ -159,11 +162,11 @@ static int sc_main(
         return 1;
     }
     catch (std::runtime_error &e) {
-        yaz_log (YLOG_FATAL, "std::runtime error: %s" , e.what() );
+        yaz_log(YLOG_FATAL, "std::runtime error: %s" , e.what() );
         return 1;
     }
     catch ( ... ) {
-        yaz_log (YLOG_FATAL, "Unknown Exception");
+        yaz_log(YLOG_FATAL, "Unknown Exception");
         return 1;
     }
     return 0;
