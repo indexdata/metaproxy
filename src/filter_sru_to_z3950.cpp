@@ -63,15 +63,17 @@ namespace metaproxy_1 {
             ActiveUrlMap m_active_urls;
         private:
             void sru(metaproxy_1::Package &package, Z_GDU *zgdu_req);
-            bool z3950_build_query(mp::odr &odr_en, Z_Query *z_query, 
-                                   const Z_SRW_searchRetrieveRequest *req
-                                   ) const;
+            bool z3950_build_query(
+                mp::odr &odr_en, Z_Query *z_query, 
+                const Z_SRW_searchRetrieveRequest *req
+                ) const;
 
-            bool z3950_init_request(mp::Package &package, 
-                                    mp::odr &odr_en,
-                                    std::string zurl,
-                                    Z_SRW_PDU *sru_pdu_res,
-                                    const Z_SRW_PDU *sru_pdu_req
+            bool z3950_init_request(
+                mp::Package &package, 
+                mp::odr &odr_en,
+                std::string zurl,
+                Z_SRW_PDU *sru_pdu_res,
+                const Z_SRW_PDU *sru_pdu_req
                 ) const;
 
             bool z3950_close_request(mp::Package &package) const;
@@ -81,28 +83,27 @@ namespace metaproxy_1 {
                 mp::odr &odr_en,
                 Z_SRW_PDU *sru_pdu_res,
                 Z_SRW_searchRetrieveRequest const *sr_req,
-                std::string zurl) const;
+                std::string zurl
+                ) const;
 
             bool z3950_present_request(
                 mp::Package &package,
                 mp::odr &odr_en,
                 Z_SRW_PDU *sru_pdu_res,
-                Z_SRW_searchRetrieveRequest const *sr_req) const;
-
-            bool z3950_scan_request(mp::Package &package,
-                                    mp::odr &odr_en,
-                                    Z_SRW_PDU *sru_pdu_res,
-                                    Z_SRW_scanRequest 
-                                    const *sr_req) const;
-
-            bool z3950_to_srw_diagnostics_ok(mp::odr &odr_en, 
-                                  Z_SRW_searchRetrieveResponse *srw_res,
-                                  Z_Records *records) const;
-
-            int z3950_to_srw_diag(mp::odr &odr_en, 
-                                  Z_SRW_searchRetrieveResponse *srw_res,
-                                  Z_DefaultDiagFormat *ddf) const;
-
+                Z_SRW_searchRetrieveRequest const *sr_req
+                ) const;
+            
+            bool z3950_to_srw_diagnostics_ok(
+                mp::odr &odr_en, 
+                Z_SRW_searchRetrieveResponse *srw_res,
+                Z_Records *records
+                ) const;
+            
+            int z3950_to_srw_diag(
+                mp::odr &odr_en, 
+                Z_SRW_searchRetrieveResponse *srw_res,
+                Z_DefaultDiagFormat *ddf
+                ) const;
 
         };
     }
@@ -130,7 +131,8 @@ void yf::SRUtoZ3950::Impl::configure(const xmlNode *confignode)
 {
     const xmlNode * dbnode;
     
-    for (dbnode = confignode->children; dbnode; dbnode = dbnode->next){
+    for (dbnode = confignode->children; dbnode; dbnode = dbnode->next)
+    {
         if (dbnode->type != XML_ELEMENT_NODE)
             continue;
         
@@ -138,14 +140,16 @@ void yf::SRUtoZ3950::Impl::configure(const xmlNode *confignode)
         mp::xml::check_element_mp(dbnode, "database");
 
         for (struct _xmlAttr *attr = dbnode->properties; 
-             attr; attr = attr->next){
+             attr; attr = attr->next)
+        {
             
             mp::xml::check_attribute(attr, "", "name");
             database = mp::xml::get_text(attr);
              
             const xmlNode *explainnode;
             for (explainnode = dbnode->children; 
-                 explainnode; explainnode = explainnode->next){
+                 explainnode; explainnode = explainnode->next)
+            {
                 if (explainnode->type != XML_ELEMENT_NODE)
                     continue;
                 if (explainnode)
@@ -174,11 +178,13 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
 
     // assign explain config XML DOM node if database is known
     const xmlNode *explainnode = 0;
-    if (idbexp != m_database_explain.end()){
+    if (idbexp != m_database_explain.end())
+    {
         explainnode = idbexp->second;
     }
     // just moving package if database is not known
-    else {
+    else
+    {
         package.move();
         return;
     }
@@ -191,8 +197,8 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
 
     // filter acts as sink for non-valid SRU requests
     if (! (sru_pdu_req = mp_util::decode_sru_request(package, odr_de, odr_en, 
-                                            sru_pdu_res, &soap,
-                                            charset, stylesheet)))
+                                                     sru_pdu_res, &soap,
+                                                     charset, stylesheet)))
     {
         if (soap)
         {
@@ -225,9 +231,10 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
             package.origin().set_max_sockets(atoi(arg->value));
         }
 
+    assert(sru_pdu_req);
 
     // filter acts as sink for SRU explain requests
-    if (sru_pdu_req && sru_pdu_req->which == Z_SRW_explain_request)
+    if (sru_pdu_req->which == Z_SRW_explain_request)
     {
         Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
         //mp_util::build_simple_explain(package, odr_en, sru_pdu_res, 
@@ -235,9 +242,8 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
         mp_util::build_sru_explain(package, odr_en, sru_pdu_res, 
                                    sruinfo, explainnode, er_req);
     }
-    else if (sru_pdu_req 
-        && sru_pdu_req->which == Z_SRW_searchRetrieve_request
-        && sru_pdu_req->u.request)
+    else if (sru_pdu_req->which == Z_SRW_searchRetrieve_request
+             && sru_pdu_req->u.request)
     {   // searchRetrieve
         Z_SRW_searchRetrieveRequest *sr_req = sru_pdu_req->u.request;   
         
@@ -267,12 +273,9 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
     }
 
     // scan
-    else if (sru_pdu_req 
-             && sru_pdu_req->which == Z_SRW_scan_request
+    else if (sru_pdu_req->which == Z_SRW_scan_request
              && sru_pdu_req->u.scan_request)
     {
-        Z_SRW_scanRequest  *sr_req = sru_pdu_req->u.scan_request;   
-
         sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_scan_response);
         
         // we do not do scan at the moment, therefore issuing a diagnostic
@@ -280,22 +283,15 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
                                &(sru_pdu_res->u.scan_response->diagnostics), 
                                &(sru_pdu_res->u.scan_response->num_diagnostics), 
                                YAZ_SRW_UNSUPP_OPERATION, "scan");
- 
-        // to be used when we do scan
-        if (false && z3950_init_request(package, odr_en, zurl, sru_pdu_res,
-                                        sru_pdu_req))
-        {
-            z3950_scan_request(package, odr_en, sru_pdu_res, sr_req);    
-            z3950_close_request(package);
-        }        
     }
     else
     {
-        //std::cout << "SRU OPERATION NOT SUPPORTED \n";
         sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
         
-        // TODO: make nice diagnostic return package 
-        return;
+        yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.explain_response->diagnostics), 
+                               &(sru_pdu_res->u.explain_response->num_diagnostics), 
+                               YAZ_SRW_UNSUPP_OPERATION, "unknown");
     }
 
     // build and send SRU response
@@ -309,7 +305,8 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
     Z_GDU *zgdu_req = package.request().get();
 
     // ignoring all non HTTP_Request packages
-    if (!zgdu_req || !(zgdu_req->which == Z_GDU_HTTP_Request)){
+    if (!zgdu_req || !(zgdu_req->which == Z_GDU_HTTP_Request))
+    {
         package.move();
         return;
     }
@@ -366,15 +363,12 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
     Z_IdAuthentication *auth = NULL;
     if (sru_pdu_req->username && !sru_pdu_req->password)
     {
-        yaz_log(YLOG_LOG, "username: %s\n", sru_pdu_req->username);
         auth = (Z_IdAuthentication *) odr_malloc(odr_en, sizeof(Z_IdAuthentication));
         auth->which = Z_IdAuthentication_open;
         auth->u.open = odr_strdup(odr_en, sru_pdu_req->username);
     }
     else if (sru_pdu_req->username && sru_pdu_req->password)
     {
-        yaz_log(YLOG_LOG, "username/password: %s/%s\n",
-                sru_pdu_req->username, sru_pdu_req->password);
         auth = (Z_IdAuthentication *) odr_malloc(odr_en, sizeof(Z_IdAuthentication));
         auth->which = Z_IdAuthentication_idPass;
         auth->u.idPass = (Z_IdPass *) odr_malloc(odr_en, sizeof(Z_IdPass));
@@ -385,13 +379,6 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
 
     init_req->idAuthentication = auth;
     
-    //TODO: add user name in apdu
-    //TODO: add user passwd in apdu
-    //init_req->idAuthentication = org_init->idAuthentication;
-    //init_req->implementationId = "IDxyz";
-    //init_req->implementationName = "NAMExyz";
-    //init_req->implementationVersion = "VERSIONxyz";
-
     ODR_MASK_SET(init_req->options, Z_Options_search);
     ODR_MASK_SET(init_req->options, Z_Options_present);
     ODR_MASK_SET(init_req->options, Z_Options_namedResultSets);
@@ -415,7 +402,8 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
     z3950_package.move();
 
     // dead Z3950 backend detection
-    if (z3950_package.session().is_closed()){
+    if (z3950_package.session().is_closed())
+    {
         yaz_add_srw_diagnostic(odr_en,
                                &(sru_pdu_res->u.response->diagnostics),
                                &(sru_pdu_res->u.response->num_diagnostics),
@@ -459,7 +447,8 @@ yf::SRUtoZ3950::Impl::z3950_close_request(mp::Package &package) const
     //    && z3950_gdu->u.z3950->which == Z_APDU_close)
     //    return true;
 
-    if (z3950_package.session().is_closed()){
+    if (z3950_package.session().is_closed())
+    {
         return true;
     }
     return false;
@@ -777,70 +766,6 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
     }
     
     return true;
-}
-
-bool 
-yf::SRUtoZ3950::Impl::z3950_scan_request(mp::Package &package,
-                                        mp::odr &odr_en,
-                                        Z_SRW_PDU *sru_pdu_res,
-                                        Z_SRW_scanRequest const *sr_req) const 
-{
-    assert(sru_pdu_res->u.scan_response);
-
-    Package z3950_package(package.session(), package.origin());
-    z3950_package.copy_filter(package); 
-    //mp::odr odr_en(ODR_ENCODE);
-    Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_scanRequest);
-
-    //TODO: add stuff in apdu
-    Z_ScanRequest *z_scanRequest = apdu->u.scanRequest;
-
-    // database repackaging
-    z_scanRequest->num_databaseNames = 1;
-    z_scanRequest->databaseNames = (char**)
-        odr_malloc(odr_en, sizeof(char *));
-    if (sr_req->database)
-        z_scanRequest->databaseNames[0] 
-            = odr_strdup(odr_en, const_cast<char *>(sr_req->database));
-    else
-        z_scanRequest->databaseNames[0] 
-            = odr_strdup(odr_en, "Default");
-
-
-    // query repackaging
-    // CQL or XCQL scan is not possible in Z3950, flagging a diagnostic
-    if (sr_req->query_type != Z_SRW_query_type_pqf)
-    {        
-        //send_to_srw_client_error(7, "query");
-        return false;
-    }
-
-    // PQF query repackaging
-    // need to use Z_AttributesPlusTerm structure, not Z_Query
-    // this can be digget out of a 
-    // Z_query->type1(Z_RPNQuery)->RPNStructure(Z_RPNStructure)
-    //   ->u.simple(Z_Operand)->u.attributesPlusTerm(Z_AttributesPlusTerm )
-
-    //Z_Query *z_query = (Z_Query *) odr_malloc(odr_en, sizeof(Z_Query));
-    //z_searchRequest->query = z_query;
-
-    //if (!z3950_build_query(odr_en, z_query, 
-    //                       (const SRW_query&)sr_req->query, 
-    //                       sr_req->query_type))
-    //{    
-        //send_to_srw_client_error(7, "query");
-    //    return false;
-    //}
-
-    // TODO: 
-
-    z3950_package.request() = apdu;
-    std::cout << "z3950_scan_request " << *apdu << "\n";   
-
-    z3950_package.move();
-    //TODO: check success condition
-    return true;
-    return false;
 }
 
 bool yf::SRUtoZ3950::Impl::z3950_build_query(mp::odr &odr_en, Z_Query *z_query, 
