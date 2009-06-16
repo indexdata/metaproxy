@@ -1,7 +1,5 @@
 Metaproxy - a universal Z39.50/SRU router.
 
-$Id: README,v 1.2 2006-06-09 16:48:18 adam Exp $
-
 The "doc" directory contains documentation in HTML.
 You can also read it online at http://www.indexdata.dk/metaproxy/
 
