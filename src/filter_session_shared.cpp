@@ -87,7 +87,7 @@ namespace metaproxy_1 {
                 Package &frontend_package,
                 const Z_APDU *apdu_req,
                 const BackendInstancePtr bp,
-                bool &fatal_error);
+                Z_Records **z_records);
         };
         // backend connection instance
         class SessionShared::BackendInstance {
@@ -491,11 +491,16 @@ yf::SessionShared::BackendSet::BackendSet(
     timestamp();
 }
 
+static int get_diagnostic(Z_DefaultDiagFormat *r)
+{
+    return *r->condition;
+}
+
 bool yf::SessionShared::BackendSet::search(
     mp::Package &frontend_package,
     const Z_APDU *frontend_apdu,
     const BackendInstancePtr bp,
-    bool & fatal_error)
+    Z_Records **z_records)
 {
     Package search_package(bp->m_session, frontend_package.origin());
 
@@ -519,46 +524,14 @@ bool yf::SessionShared::BackendSet::search(
     search_package.request() = apdu_req;
 
     search_package.move();
-    fatal_error = false;  // assume backend session is good
 
-    Z_Records *z_records_diag = 0;
     Z_GDU *gdu = search_package.response().get();
     if (!search_package.session().is_closed()
         && gdu && gdu->which == Z_GDU_Z3950 
         && gdu->u.z3950->which == Z_APDU_searchResponse)
     {
         Z_SearchResponse *b_resp = gdu->u.z3950->u.searchResponse;
-        if (b_resp->records)
-        {
-            if (b_resp->records->which == Z_Records_NSD 
-                || b_resp->records->which == Z_Records_multipleNSD)
-                z_records_diag = b_resp->records;
-        }
-        if (z_records_diag)
-        {
-            // there could be diagnostics that are so bad.. that 
-            // we simply mark the error as fatal..  For now we assume
-            // we can resume
-            if (frontend_apdu->which == Z_APDU_searchRequest)
-            {
-                Z_APDU *f_apdu = odr.create_searchResponse(frontend_apdu, 
-                                                           0, 0);
-                Z_SearchResponse *f_resp = f_apdu->u.searchResponse;
-                *f_resp->searchStatus = *b_resp->searchStatus;
-                f_resp->records = z_records_diag;
-                frontend_package.response() = f_apdu;
-                return false;
-            }
-            if (frontend_apdu->which == Z_APDU_presentRequest)
-            {
-                Z_APDU *f_apdu = odr.create_presentResponse(frontend_apdu, 
-                                                            0, 0);
-                Z_PresentResponse *f_resp = f_apdu->u.presentResponse;
-                f_resp->records = z_records_diag;
-                frontend_package.response() = f_apdu;
-                return false;
-            }
-        }
+        *z_records = b_resp->records;
         m_result_set_size = *b_resp->resultCount;
         return true;
     }
@@ -573,7 +546,6 @@ bool yf::SessionShared::BackendSet::search(
         f_apdu = odr.create_close(
             frontend_apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
     frontend_package.response() = f_apdu;
-    fatal_error = true; // weired response.. bad backend
     return false;
 }
 
@@ -705,14 +677,67 @@ restart:
     // we must search ...
     BackendSetPtr new_set(new BackendSet(result_set_id,
                                          databases, query));
-    bool fatal_error = false;
-    if (!new_set->search(package, apdu_req, found_backend, fatal_error))
+    Z_Records *z_records = 0;
+    if (!new_set->search(package, apdu_req, found_backend, &z_records))
     {
-        if (fatal_error)
-            bc->remove_backend(found_backend);
-        else
-            bc->release_backend(found_backend);
+        bc->remove_backend(found_backend);
         return; // search error 
+    }
+
+    if (z_records)
+    {
+        int condition = 0;
+        if (z_records->which == Z_Records_NSD)
+        {
+            condition =
+                get_diagnostic(z_records->u.nonSurrogateDiagnostic);
+        }
+        else if (z_records->which == Z_Records_multipleNSD)
+        {
+            if (z_records->u.multipleNonSurDiagnostics->num_diagRecs >= 1
+                && 
+                
+                z_records->u.multipleNonSurDiagnostics->diagRecs[0]->which ==
+                Z_DiagRec_defaultFormat)
+            {
+                condition = get_diagnostic(
+                    z_records->u.multipleNonSurDiagnostics->diagRecs[0]->u.defaultFormat);
+                
+            }
+        }
+        if (!session_restarted &&
+            condition == YAZ_BIB1_TEMPORARY_SYSTEM_ERROR)
+        {
+            bc->remove_backend(found_backend);
+            session_restarted = true;
+            found_backend.reset();
+            goto restart;
+
+        }
+
+        if (condition)
+        {
+            mp::odr odr;
+            if (apdu_req->which == Z_APDU_searchRequest)
+            {
+                Z_APDU *f_apdu = odr.create_searchResponse(apdu_req, 
+                                                           0, 0);
+                Z_SearchResponse *f_resp = f_apdu->u.searchResponse;
+                *f_resp->searchStatus = Z_SearchResponse_none;
+                f_resp->records = z_records;
+                package.response() = f_apdu;
+            }
+            if (apdu_req->which == Z_APDU_presentRequest)
+            {
+                Z_APDU *f_apdu = odr.create_presentResponse(apdu_req, 
+                                                            0, 0);
+                Z_PresentResponse *f_resp = f_apdu->u.presentResponse;
+                f_resp->records = z_records;
+                package.response() = f_apdu;
+            }
+            bc->release_backend(found_backend);
+            return; // search error 
+        }
     }
     if (!session_restarted && new_set->m_result_set_size < 0)
     {
