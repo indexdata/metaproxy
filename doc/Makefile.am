@@ -2,7 +2,7 @@ SUBDIRS = common
 
 SUFFIXES=.3mp .1 .pdf .tkl .esp .xml 
 
-XMLFILES = book.xml manref.xml copyright.xml
+XMLFILES = book.xml manref.xml copyright.xml gpl-2.0.xml
 
 MAINXML = $(srcdir)/book.xml
 
