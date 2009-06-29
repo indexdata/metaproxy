@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yazpp/z-assoc.h>
 #include <yazpp/pdu-assoc.h>
 #include <yazpp/socket-manager.h>
+#include <yazpp/limit-connect.h>
 #include <yaz/log.h>
 
 #include <iostream>
@@ -43,8 +44,8 @@ namespace metaproxy_1 {
             std::vector<std::string> m_ports;
             int m_listen_duration;
             int m_session_timeout;
+            int m_connect_max;
             yazpp_1::SocketManager mySocketManager;
-            
             ZAssocServer **az;
         };
     }
@@ -97,7 +98,8 @@ namespace metaproxy_1 {
     class ZAssocServer : public yazpp_1::Z_Assoc {
     public:
         ~ZAssocServer();
-        ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable, int timeout);
+        ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable, int timeout,
+                     int connect_max);
         void set_package(const mp::Package *package);
         void set_thread_pool(ThreadPoolSocketObserver *m_thread_pool_observer);
     private:
@@ -113,6 +115,8 @@ namespace metaproxy_1 {
         mp::ThreadPoolSocketObserver *m_thread_pool_observer;
         const mp::Package *m_package;
         int m_session_timeout;
+        int m_connect_max;
+        yazpp_1::LimitConnect limit_connect;
     };
 }
 
@@ -245,8 +249,9 @@ void mp::ZAssocChild::connectNotify()
 }
 
 mp::ZAssocServer::ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable,
-                               int timeout)
-    :  Z_Assoc(PDU_Observable), m_session_timeout(timeout)
+                               int timeout, int connect_max)
+    :  Z_Assoc(PDU_Observable), m_session_timeout(timeout),
+       m_connect_max(connect_max)
 {
     m_package = 0;
 }
@@ -265,6 +270,16 @@ void mp::ZAssocServer::set_thread_pool(ThreadPoolSocketObserver *observer)
 yazpp_1::IPDU_Observer *mp::ZAssocServer::sessionNotify(yazpp_1::IPDU_Observable
 						 *the_PDU_Observable, int fd)
 {
+
+    const char *peername = the_PDU_Observable->getpeername();
+    if (peername)
+    {
+        limit_connect.add_connect(peername);
+        limit_connect.cleanup(false);
+        int con_sz = limit_connect.get_total(peername);
+        if (m_connect_max && con_sz > m_connect_max)
+            return 0;
+    }
     mp::ZAssocChild *my =
 	new mp::ZAssocChild(the_PDU_Observable, m_thread_pool_observer,
                              m_package);
@@ -392,6 +407,10 @@ void mp::filter::FrontendNet::configure(const xmlNode * ptr, bool test_only)
                                                    + timeout_str);
             m_p->m_session_timeout = timeout;
         }
+        else if (!strcmp((const char *) ptr->name, "connect-max"))
+        {
+            m_p->m_connect_max = mp::xml::get_int(ptr->children, 0);
+        }
         else
         {
             throw mp::filter::FilterException("Bad element " 
@@ -419,7 +438,8 @@ void mp::filter::FrontendNet::set_ports(std::vector<std::string> &ports)
         
         // create ZAssoc with PDU Assoc
         m_p->az[i] = new mp::ZAssocServer(as, 
-                                          m_p->m_session_timeout);
+                                          m_p->m_session_timeout,
+                                          m_p->m_connect_max);
         if (m_p->az[i]->server(m_p->m_ports[i].c_str()))
         {
             throw mp::filter::FilterException("Unable to bind to address " 

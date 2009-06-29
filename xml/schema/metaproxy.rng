@@ -218,6 +218,11 @@
         <data type="integer"/>
       </element>
     </optional>
+    <optional>
+      <element name="mp:connect-max">
+        <data type="integer"/>
+      </element>
+    </optional>
   </define>
   <define name="filter_http_file">
     <attribute name="type">

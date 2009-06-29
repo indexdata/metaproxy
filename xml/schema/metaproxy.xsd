@@ -185,11 +185,13 @@
       <xs:element minOccurs="0" ref="mp:threads"/>
       <xs:element maxOccurs="unbounded" ref="mp:port"/>
       <xs:element minOccurs="0" ref="mp:timeout"/>
+      <xs:element minOccurs="0" ref="mp:connect-max"/>
     </xs:sequence>
   </xs:group>
   <xs:element name="threads" type="xs:integer"/>
   <xs:element name="port" type="xs:string"/>
   <xs:element name="timeout" type="xs:integer"/>
+  <xs:element name="connect-max" type="xs:integer"/>
   <xs:attributeGroup name="filter_frontend_net">
     <xs:attribute name="type" use="required">
       <xs:simpleType>

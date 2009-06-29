@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <time.h>
 #include <yaz/log.h>
+#include <yazpp/bw.h>
 #include "package.hpp"
 #include "util.hpp"
 
@@ -31,11 +32,12 @@ namespace metaproxy_1 {
     namespace filter {
         class Limit::Ses {
         public:
-            Yaz_bw bw_stat;
-            Yaz_bw pdu_stat;
-            Yaz_bw search_stat;
+            yazpp_1::Yaz_bw bw_stat;
+            yazpp_1::Yaz_bw pdu_stat;
+            yazpp_1::Yaz_bw search_stat;
             Ses() : bw_stat(60), pdu_stat(60), search_stat(60) {};
         };
+
         class Limit::Impl {
         public:
             Impl();
@@ -43,10 +45,8 @@ namespace metaproxy_1 {
             void process(metaproxy_1::Package & package);
             void configure(const xmlNode * ptr);
         private:
-            
             boost::mutex m_session_mutex;
             std::map<mp::Session,Limit::Ses *> m_sessions;
-
             int m_bw_max;
             int m_pdu_max;
             int m_search_max;
@@ -166,9 +166,6 @@ void yf::Limit::Impl::process(mp::Package &package)
             }
         }
         
-        yaz_log(YLOG_LOG, "sz = %d . total = %d", sz,
-                ses->bw_stat.get_total());
-        
         int bw_total = ses->bw_stat.get_total();
         int pdu_total = ses->pdu_stat.get_total();
         int search_total = ses->search_stat.get_total();
@@ -209,50 +206,6 @@ extern "C" {
     };
 }
 
-// bandwidth class (taken from YAZ Proxy)
-
-Yaz_bw::Yaz_bw(int sz)
-{
-    m_sec = 0;
-    m_size = sz;
-    m_bucket = new int[m_size];
-    m_ptr = 0;
-}
-
-Yaz_bw::~Yaz_bw()
-{
-    delete [] m_bucket;
-}
-
-int Yaz_bw::get_total()
-{
-    add_bytes(0);
-    int bw = 0;
-    int i;
-    for (i = 0; i<m_size; i++)
-        bw += m_bucket[i];
-    return bw;
-}
-
-void Yaz_bw::add_bytes(int b)
-{
-    long now = time(0);
-
-    if (now >= m_sec)
-    {
-        int d = now - m_sec;
-        if (d > m_size)
-            d = m_size;
-        while (--d >= 0)
-        {
-            if (++m_ptr == m_size)
-                m_ptr = 0;
-            m_bucket[m_ptr] = 0;
-        }
-        m_bucket[m_ptr] += b;
-    }
-    m_sec = now;
-}
 
 /*
  * Local variables:

@@ -56,6 +56,9 @@ namespace metaproxy_1 {
 
         /// set max sockets (for outgoing connections to a given target)
         int get_max_sockets();
+        
+        /// get tcpip address
+        std::string get_address();
     private:
         friend std::ostream& 
         std::operator<<(std::ostream& os,  metaproxy_1::Origin& o);

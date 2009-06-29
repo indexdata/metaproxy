@@ -4,6 +4,7 @@
   <filters>
     <filter id="frontend" type="frontend_net">
       <port>@:9000</port>
+      <connect-max>3</connect-max>
     </filter>
     <filter id="backend" type="z3950_client">
     </filter>

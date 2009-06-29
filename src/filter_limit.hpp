@@ -42,18 +42,6 @@ extern "C" {
     extern struct metaproxy_1_filter_struct metaproxy_1_filter_limit;
 }
 
-class Yaz_bw {
- public:
-    Yaz_bw(int sz);
-    ~Yaz_bw();
-    void add_bytes(int m);
-    int get_total();
- private:
-    long m_sec;   // time of most recent bucket
-    int *m_bucket;
-    int m_ptr;
-    int m_size;
-};
 #endif
 
 /*

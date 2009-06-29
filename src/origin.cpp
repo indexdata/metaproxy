@@ -67,6 +67,11 @@ void mp::Origin::set_tcpip_address(std::string addr, unsigned long s)
     m_origin_id = s;
 }
 
+std::string mp::Origin::get_address()
+{
+    return m_address;
+}
+
 std::ostream& std::operator<<(std::ostream& os,  mp::Origin& o)
 {
     if (o.m_address != "")
