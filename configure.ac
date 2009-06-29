@@ -36,7 +36,7 @@ AC_CHECK_LIB([m],[main])
 AC_CHECK_FUNCS([localtime_r])
 
 ## YAZPP checks
-YAZPP_INIT([threads],[1.1.2])
+YAZPP_INIT([threads],[1.1.3])
 if test -z "$YAZPPLIB"; then
     AC_MSG_ERROR([YAZ++ development libraries missing])
 fi
