@@ -15,6 +15,9 @@
 	<message>F</message>
 	<category init-options="true" apdu="false"/>
       </filter>
+      <filter type="limit">
+        <limit bandwidth="50000" pdu="100" search="5" retrieve="50"/>
+      </filter>
       <filter type="session_shared"> 
 	<resultset ttl="10" max="3"/>
 	<session ttl="30"/>

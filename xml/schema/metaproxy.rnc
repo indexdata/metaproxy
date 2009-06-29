@@ -62,6 +62,7 @@ filter =
     | filter_sru_z3950
     | filter_virt_db
     | filter_z3950_client
+    | filter_limit
 #    | filter_zeerex_explain
   }
 
@@ -197,6 +198,15 @@ filter_z3950_client =
   element mp:timeout { xsd:integer }?,
   element mp:default_target { xsd:string }?,
   element mp:force_target { xsd:string }?
+
+filter_limit =
+  attribute type { "limit" },
+  element mp:limit {
+    attribute bandwidth { xsd:integer }?,
+    attribute pdu { xsd:integer }?,
+    attribute search { xsd:integer }?,
+    attribute retrieve { xsd:integer }?
+  }?
 
 #filter_zeerex_explain =
 #  attribute type { "zeerex_explain" },

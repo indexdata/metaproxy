@@ -99,6 +99,7 @@
         <ref name="filter_sru_z3950"/>
         <ref name="filter_virt_db"/>
         <ref name="filter_z3950_client"/>
+        <ref name="filter_limit"/>
       </choice>
       <!--    | filter_zeerex_explain -->
     </element>
@@ -516,6 +517,35 @@
     <optional>
       <element name="mp:force_target">
         <data type="string"/>
+      </element>
+    </optional>
+  </define>
+  <define name="filter_limit">
+    <attribute name="type">
+      <value>limit</value>
+    </attribute>
+    <optional>
+      <element name="mp:limit">
+        <optional>
+          <attribute name="bandwidth">
+            <data type="integer"/>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="pdu">
+            <data type="integer"/>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="search">
+            <data type="integer"/>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="retrieve">
+            <data type="integer"/>
+          </attribute>
+        </optional>
       </element>
     </optional>
   </define>

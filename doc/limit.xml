@@ -1,0 +1,73 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" 
+    "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
+ <!ENTITY copyright SYSTEM "copyright.xml">
+ <!ENTITY % idcommon SYSTEM "common/common.ent">
+     %idcommon;
+]>
+<refentry id="ref-limit">
+ <refmeta>
+  <refentrytitle>limit</refentrytitle>
+  <manvolnum>3mp</manvolnum>
+  <refmiscinfo>Metaproxy Module</refmiscinfo>
+ </refmeta>
+ 
+ <refnamediv>
+  <refname>limit</refname>
+  <refpurpose> Metaproxy Module for imposing resource limits </refpurpose>
+ </refnamediv>
+ 
+ <refsect1><title>DESCRIPTION</title>
+  <para>
+   This filter offers a way to limit access for a single session to 
+   a resource (target) in order to obtain a fair resource sharing.
+  </para>
+  <para>
+   The limit section specifies bandwidth/pdu requests limits for an active
+   session. The filter records bandwidth/pdu requests during the last 60
+   seconds (1 minute). The limit may include the elements bandwidth, pdu,
+   retrieve and search. The bandwidth measures the number of bytes
+   transferred within the last minute. The pdu is the number of requests
+   in the last minute. The retrieve holds the maximum records to which may
+   be retrieved in one Present Request.
+   The search is the maximum number of searches within the last minute. 
+  </para>
+ </refsect1>
+
+ <refsect1><title>EXAMPLES</title>
+  <para>
+   Configuration:
+   <screen><![CDATA[
+    <filter type="limit">
+     <limit bandwidth="50000" pdu="100" search="5" retrieve="50"/>
+    </filter>
+]]>
+   </screen>
+  </para>
+ </refsect1> 
+ 
+ <refsect1><title>SEE ALSO</title>
+  <para>
+   <citerefentry>
+    <refentrytitle>metaproxy</refentrytitle>
+    <manvolnum>1</manvolnum>
+   </citerefentry>
+  </para>
+ </refsect1>
+ 
+ &copyright;
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:1
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-local-catalogs: nil
+sgml-namecase-general:t
+End:
+-->

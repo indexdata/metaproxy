@@ -46,7 +46,8 @@ libmetaproxy_la_SOURCES = \
 	sru_util.cpp sru_util.hpp \
 	thread_pool_observer.cpp thread_pool_observer.hpp \
 	util.cpp util.hpp \
-	xmlutil.cpp xmlutil.hpp
+	xmlutil.cpp xmlutil.hpp \
+	filter_limit.cpp filter_limit.hpp
 
 libmetaproxy_la_LIBADD = $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB)
 
