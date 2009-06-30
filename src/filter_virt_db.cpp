@@ -110,6 +110,7 @@ namespace metaproxy_1 {
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
+            bool pass_vhosts;
         };
     }
 }
@@ -472,6 +473,7 @@ yf::VirtualDB::Map::Map()
 
 yf::VirtualDB::VirtualDB() : m_p(new VirtualDB::Rep)
 {
+    m_p->pass_vhosts = false;
 }
 
 yf::VirtualDB::~VirtualDB() {
@@ -697,7 +699,12 @@ void yf::VirtualDB::process(mp::Package &package) const
         
         std::list<std::string> vhosts;
         mp::util::get_vhost_otherinfo(req->otherInfo, vhosts);
-        if (vhosts.size() == 0)
+
+        if (vhosts.size() > 0 && m_p->pass_vhosts)
+        {
+            package.move();
+        }
+        else
         {
             f->m_init_gdu = gdu;
             
@@ -732,8 +739,6 @@ void yf::VirtualDB::process(mp::Package &package) const
             package.response() = apdu;
             f->m_is_virtual = true;
         }
-        else
-            package.move();
     }
     else if (!f->m_is_virtual)
         package.move();
@@ -788,7 +793,11 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only)
     {
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
-        if (!strcmp((const char *) ptr->name, "virtual"))
+        if (!strcmp((const char *) ptr->name, "pass-vhosts"))
+        {
+            m_p->pass_vhosts = mp::xml::get_bool(ptr->children, false);
+        }
+        else if (!strcmp((const char *) ptr->name, "virtual"))
         {
             std::string database;
             std::list<std::string> targets;

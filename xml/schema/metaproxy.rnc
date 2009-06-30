@@ -186,6 +186,7 @@ filter_virt_db =
   attribute type { "virt_db" },
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
+  element mp:pass-vhosts { xsd:boolean }?,
   element mp:virtual {
     attribute route { xsd:NCName }?,
     element mp:database { xsd:NCName },

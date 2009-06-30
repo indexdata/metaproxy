@@ -403,9 +403,11 @@
   </xs:attributeGroup>
   <xs:group name="filter_virt_db">
     <xs:sequence>
+      <xs:element minOccurs="0" ref="mp:pass-vhosts"/>
       <xs:element maxOccurs="unbounded" ref="mp:virtual"/>
     </xs:sequence>
   </xs:group>
+  <xs:element name="pass-vhosts" type="xs:boolean"/>
   <xs:element name="virtual">
     <xs:complexType>
       <xs:sequence>

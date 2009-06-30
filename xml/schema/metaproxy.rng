@@ -477,6 +477,11 @@
         <data type="NCName"/>
       </attribute>
     </optional>
+    <optional>
+      <element name="mp:pass-vhosts">
+        <data type="boolean"/>
+      </element>
+    </optional>
     <oneOrMore>
       <element name="mp:virtual">
         <optional>
