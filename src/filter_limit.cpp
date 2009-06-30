@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <time.h>
 #include <yaz/log.h>
-#include <yazpp/bw.h>
+#include <yazpp/timestat.h>
 #include "package.hpp"
 #include "util.hpp"
 
@@ -32,9 +32,9 @@ namespace metaproxy_1 {
     namespace filter {
         class Limit::Ses {
         public:
-            yazpp_1::Yaz_bw bw_stat;
-            yazpp_1::Yaz_bw pdu_stat;
-            yazpp_1::Yaz_bw search_stat;
+            yazpp_1::TimeStat bw_stat;
+            yazpp_1::TimeStat pdu_stat;
+            yazpp_1::TimeStat search_stat;
             Ses() : bw_stat(60), pdu_stat(60), search_stat(60) {};
         };
 
