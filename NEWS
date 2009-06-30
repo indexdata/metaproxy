@@ -1,3 +1,12 @@
+--- 1.0.18 2009/06/30
+
+Added limit filter to put sleep (penalty) for heavy use.
+
+Filter frontend_net may be configured to limit the number of new connections
+from same IP to some value (connect-max).
+
+Fixed the load_balance filter.
+
 --- 1.0.17 2009/06/16
 
 Fix path for metaproxy executable for Debian init.d script.
