@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<!--
+1.   LCDB_UTF8_Port1        (e.g., z3950.loc.gov:7097/voyager)
+2.   LCDB_UTF8_Port2        (e.g., z3950.loc.gov:7098/voyager)
+3.   LCDB_MARC8_Port1       (e.g., z3950.loc.gov:7095/voyager)
+4.   LCDB_MARC8_Port2       (e.g., z3950.loc.gov:7096/voyager)
+5.   HLAS_UTF8              (e.g., z3950.loc.gov:7999/voyager)
+6.   HLAS_MARC8             (e.g., z3950.loc.gov:7990/voyager)
+7.   NLSBPH_UTF8            (e.g., z3950.loc.gov:7499/voyager)
+8.   NLSBPH_MARC8           (e.g., z3950.loc.gov:7490/voyager)
+9.   Name_Authority_File    (e.g., sun4.loc.gov:9018/NAF)
+10.  Subject_Authority_File (e.g., sun4.loc.gov:9019/SAF)
+11.  Server_in_the_UK       (e.g., blah.blah.uk:210/Aleph)
+12.  Server_in_California   (e.g., blah.blah.edu:210/Unicorn)
+13.  Performing_Arts_Encyclopedia (e.g., sun4.loc.gov:9013/PAE)
+14.  Veterans_History_Project (e.g., sun4.loc.gov:9013/VETS)
+
+
+MetaProxy could be configured to support accessing
+the following databaseNames (virtual databases):
+
+   LCDB_UTF8               (1 and 2 above with load balancing)
+   LCDB_MARC8              (3 and 4 above with load balancing)
+   AllVoyager              (1, 2, 5, 7 above with merged results)
+   Name_Authority_File     (Just 9 above)
+   Subject_Authority_File  (Just 10 above)
+   Authority_Files         (9 and 10 above)
+   LC_and_Friends          (1, 2, 5, 7, 11, 12, 13, and 14 above)
+-->
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
+  <start route="start"/>
+  <filters>
+    <filter id="frontend" type="frontend_net">
+      <port>@:7090</port>
+      <!-- maximum connections within a minute from same IP -->
+      <connect-max>10</connect-max> 
+    </filter>
+    <filter id="backend" type="z3950_client">
+    </filter>
+  </filters>
+  <routes>  
+    <route id="start">
+      <filter refid="frontend"/>
+      <filter type="sru_z3950"/>
+      <filter type="log">
+	<message>F</message>
+	<category init-options="true" apdu="false"/>
+      </filter>
+      <filter type="limit">
+        <limit bandwidth="50000" pdu="100" search="5" retrieve="50"/>
+      </filter>
+      <filter type="session_shared"> 
+	<resultset ttl="10" max="3"/>
+	<session ttl="30"/>
+      </filter>
+      <filter type="virt_db">
+        <virtual>
+          <database>LCDB_UTF8</database>
+          <target>z3950.loc.gov:7097/LCDB_UTF8</target>
+        </virtual>
+        <virtual>
+          <database>LCDB_MARC8</database>
+          <target>z3950.loc.gov:7095/LCDB_MARC8</target>
+        </virtual>
+        <virtual>
+          <database>HLAS_UTF8</database>
+          <target>z3950.loc.gov:7999/HLAS_MARC8</target>
+        </virtual>
+        <virtual>
+          <database>HLAS_MARC8</database>
+          <target>z3950.loc.gov:7990/HLAS_MARC8</target>
+        </virtual>
+        <virtual>
+          <database>NLSBPH_UTF8</database>
+          <target>z3950.loc.gov:7499/NLSBPH_UTF8</target>
+        </virtual>
+        <virtual>
+          <database>NLSBPH_MARC8</database>
+          <target>z3950.loc.gov:7490/NLSBPH_MARC8</target>
+        </virtual>
+        <virtual>
+          <database>Name_Authority_File</database>
+          <target>sun4.loc.gov:9018/NAF</target>
+        </virtual>
+        <virtual>
+          <database>Subject_Authority_File</database>
+          <target>sun4.loc.gov:9019/SAF</target>
+        </virtual>
+        <virtual>
+          <database>Server_in_the_UK</database>
+          <target>blah.blah.uk:210/Aleph</target>
+        </virtual>
+        <virtual>
+          <database>Server_in_Califorina</database>
+          <target>blah.blah.edu:210/Unicorn</target>
+        </virtual>
+        <virtual>
+          <database>Performing_Arts_Encylopedia</database>
+          <target>sun4.loc.gov:9013/PAE</target>
+        </virtual>
+        <virtual>
+          <database>Veterans_History_Project</database>
+          <target>sun4.loc.gov:9013/VETS</target>
+        </virtual>
+
+        <!-- merged results -->
+        <virtual>
+          <database>AllVoyager</database>
+          <target>z3950.loc.gov:7097/LCDB_UTF8</target>
+          <target>z3950.loc.gov:7999/HLAS_MARC8</target>
+        </virtual>
+
+      </filter>
+      <filter type="multi"/>
+      <filter type="log">
+	<message>C</message>
+	<category apdu="true"/>
+      </filter>
+      <filter type="virt_db">
+        <virtual>
+          <database>LCDB_UTF8</database>
+          <target>z3950.loc.gov:7097/voyager</target>
+          <target>z3950.loc.gov:7098/voyager</target>
+        </virtual>
+
+        <virtual>
+          <database>LCDB_MARC8</database>
+          <target>z3950.loc.gov:7095/voyager</target>
+          <target>z3950.loc.gov:7096/voyager</target>
+        </virtual>
+      </filter>
+      <filter type="load_balance"/>
+
+      <filter type="log">
+	<message>B</message>
+	<category apdu="true"/>
+      </filter>
+      <filter refid="backend"/>
+      <filter type="bounce"/>
+    </route>
+  </routes>
+</metaproxy>
+
