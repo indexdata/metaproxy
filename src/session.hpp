@@ -36,7 +36,7 @@ namespace metaproxy_1 {
             ++m_global_id;
             m_id =  m_global_id;
             m_close = false;
-        };
+        }
         
         /// copy session including old id
         Session(const Session &s) : m_id(s.m_id), m_close(s.m_close) {};
@@ -56,20 +56,21 @@ namespace metaproxy_1 {
         
         unsigned long id() const {
             return m_id;
-        };
+        }
         
         bool is_closed() const {
             return m_close;
-        };
+        }
         
         /// mark session closed, can not be unset
         void close() {
             m_close = true;
-        };
+        }
 
         bool operator == (Session &ses) const {
             return ses.m_id == m_id;
         }
+        
     private:
         
         unsigned long int m_id;
