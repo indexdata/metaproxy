@@ -29,23 +29,52 @@ the following databaseNames (virtual databases):
 -->
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
-  <filters>
-    <filter id="frontend" type="frontend_net">
-      <port>@:7090</port>
-      <!-- maximum connections within a minute from same IP -->
-      <connect-max>10</connect-max> 
-    </filter>
-    <filter id="backend" type="z3950_client">
-    </filter>
-  </filters>
   <routes>  
     <route id="start">
-      <filter refid="frontend"/>
+       <filter type="frontend_net">
+        <port>@:7090</port>
+        <!-- maximum connections within a minute from same IP -->
+        <connect-max>10</connect-max> 
+      </filter>
+
+      <!-- converts SRU to Z39.50 and back -->
       <filter type="sru_z3950"/>
+
       <filter type="log">
 	<message>F</message>
 	<category init-options="true" apdu="false"/>
       </filter>
+
+      <!-- converts CQL to RPN -->
+      <filter type="cql_rpn">
+        <conversion file="../etc/cql2pqf.txt"/>
+      </filter>
+
+      <!-- record transformations -->
+      <filter type="record_transform">
+        <retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
+          <retrieval syntax="xml" name="dc"
+                    identifier="info:srw/schema/1/dc-v1.1">
+          <backend syntax="usmarc" name="F">
+            <marc inputformat="marc" outputformat="marcxml"
+                  inputcharset="marc-8"/>
+            <xslt stylesheet="../xml/xslt/MARC21slim2DC.xsl"/>
+          </backend>
+        </retrieval>
+        <retrieval syntax="opac"/>
+        <retrieval syntax="xml" name="opac">
+          <backend syntax="opac" name="F">
+          <marc inputformat="marc" outputformat="marcxml"
+                inputcharset="marc-8"/>
+          </backend>
+        </retrieval>
+        <retrieval syntax="usmarc">
+          <backend syntax="usmarc" name="F">
+          </backend>
+          </retrieval>
+        </retrievalinfo>
+      </filter>
+
       <filter type="limit">
         <limit bandwidth="50000" pdu="100" search="5" retrieve="50"/>
       </filter>
@@ -135,7 +164,7 @@ the following databaseNames (virtual databases):
 	<message>B</message>
 	<category apdu="true"/>
       </filter>
-      <filter refid="backend"/>
+      <filter type="z3950_client"/>
       <filter type="bounce"/>
     </route>
   </routes>
