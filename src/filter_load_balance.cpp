@@ -76,11 +76,6 @@ namespace metaproxy_1
                 unsigned int deads;
                 unsigned int cost() {
                     unsigned int c = sessions + packages + deads;
-                    //std::cout << "stats  c:" << c 
-                    //          << " s:" << sessions 
-                    //          << " p:" << packages 
-                    //          << " d:" << deads 
-                    //          <<"\n";
                     return c;
                 }
             };
@@ -158,6 +153,10 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
             {
                 std::string target;
                 std::list<std::string>::iterator ivh = vhosts.begin();
+
+                Package init_pkg(package.session(), package.origin());
+                init_pkg.copy_filter(package);
+
                 unsigned int cost = std::numeric_limits<unsigned int>::max();
                 { 
                     boost::mutex::scoped_lock scoped_lock(m_mutex);
@@ -186,25 +185,26 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
                 if (target.length() == 0)
                     break;
                 // copying new target into init package
-
+                
                 yazpp_1::GDU init_gdu(base_req);
                 Z_InitRequest *init_req = init_gdu.get()->u.z3950->u.initRequest;
                 
                 mp::util::set_vhost_otherinfo(&(init_req->otherInfo), 
                                               odr_en, target, 1);
                 
-                package.request() = init_gdu;
+                init_pkg.request() = init_gdu;
                 
                 // moving all package types 
-                package.move();
+                init_pkg.move();
                 
                 // checking for closed back end packages
-                if (!package.session().is_closed())
+                if (!init_pkg.session().is_closed())
                 {
                     add_session(package.session().id(), target);
+
+                    package.response() = init_pkg.response();
                     return;
                 }
-                yaz_log(YLOG_LOG, "Other round..");
             }
             mp::odr odr;
             package.response() = odr.create_initResponse(
@@ -292,10 +292,6 @@ void yf::LoadBalance::Impl::add_dead(unsigned long session_id)
     }
 }
 
-//void yf::LoadBalance::Impl::clear_dead(unsigned long session_id){
-//    std::cout << "clear_dead " << session_id << "\n";
-//};
-
 void yf::LoadBalance::Impl::add_package(unsigned long session_id)
 {
     std::string target = find_session_target(session_id);
@@ -382,10 +378,6 @@ void yf::LoadBalance::Impl::remove_session(unsigned long session_id)
     if (itarg->second.sessions > 0)
         itarg->second.sessions -= 1;
 
-    // std:.cout << "remove_session " << session_id << " " << target 
-    //          << " s:" << itarg->second.sessions << "\n";
-    
-    // clearing empty sessions and targets
     if (itarg->second.sessions == 0 && itarg->second.deads == 0)
     {
         m_target_stat.erase(itarg);
@@ -416,8 +408,6 @@ unsigned int yf::LoadBalance::Impl::cost(std::string target)
         if (itarg != m_target_stat.end())
             cost = itarg->second.cost();
     }
-    
-    //std::cout << "cost " << target << " c:" << cost << "\n";
     return cost;
 }
 
@@ -432,8 +422,6 @@ unsigned int yf::LoadBalance::Impl::dead(std::string target)
         if (itarg != m_target_stat.end())
             dead = itarg->second.deads;
     }
-    
-    //std::cout << "dead " << target << " d:" << dead << "\n";
     return dead;
 }
 
