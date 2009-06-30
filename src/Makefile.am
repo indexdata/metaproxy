@@ -7,8 +7,6 @@ AM_CXXFLAGS = $(BOOST_CPPFLAGS)
 
 AM_LDFLAGS =
 
-EXTRA_DIST=Jamfile.in
-
 # Rules for the library..
 
 lib_LTLIBRARIES = libmetaproxy.la

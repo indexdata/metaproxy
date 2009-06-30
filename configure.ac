@@ -57,7 +57,6 @@ AC_CONFIG_FILES([
         Doxyfile
 	Makefile
 	src/Makefile
-	src/Jamfile
 	xml/Makefile
 	xml/schema/Makefile
 	xml/xslt/Makefile
