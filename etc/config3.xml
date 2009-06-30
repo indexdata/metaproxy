@@ -12,6 +12,7 @@
         <message>F</message>
       </filter>
       <filter type="virt_db">
+        <pass-vhosts>true</pass-vhosts>
         <virtual>
           <database>db1</database>
           <target>localhost:9999/Default</target>
