@@ -47,7 +47,12 @@ the following databaseNames (virtual databases):
 
       <!-- converts CQL to RPN -->
       <filter type="cql_rpn">
-        <conversion file="../etc/cql2pqf.txt"/>
+        <conversion file="cql2pqf.txt"/>
+      </filter>
+
+      <!-- RPN query filter -->
+      <filter type="query_rewrite">
+       <xslt stylesheet="pqf2pqf-loc.xsl"/>
       </filter>
 
       <!-- record transformations -->
@@ -83,6 +88,10 @@ the following databaseNames (virtual databases):
 	<session ttl="30"/>
       </filter>
       <filter type="virt_db">
+        <virtual>
+          <database>idtest</database>
+          <target>localhost:9999/Default</target>
+        </virtual>
         <virtual>
           <database>LCDB_UTF8</database>
           <target>z3950.loc.gov:7097/LCDB_UTF8</target>
@@ -159,7 +168,6 @@ the following databaseNames (virtual databases):
         </virtual>
       </filter>
       <filter type="load_balance"/>
-
       <filter type="log">
 	<message>B</message>
 	<category apdu="true"/>
