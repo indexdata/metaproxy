@@ -33,6 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_cql_to_rpn.hpp"
 #include "filter_frontend_net.hpp"
 #include "filter_http_file.hpp"
+#include "filter_limit.hpp"
 #include "filter_load_balance.hpp"
 #include "filter_log.hpp"
 #include "filter_multi.hpp"
@@ -44,7 +45,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_virt_db.hpp"
 #include "filter_z3950_client.hpp"
 #include "filter_zeerex_explain.hpp"
-#include "filter_limit.hpp"
 
 namespace mp = metaproxy_1;
 
@@ -57,6 +57,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_cql_to_rpn,
         &metaproxy_1_filter_frontend_net,        
         &metaproxy_1_filter_http_file,
+        &metaproxy_1_filter_limit,
         &metaproxy_1_filter_load_balance,
         &metaproxy_1_filter_log,
         &metaproxy_1_filter_multi,
@@ -68,7 +69,6 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_virt_db,
         &metaproxy_1_filter_z3950_client,
         &metaproxy_1_filter_zeerex_explain,
-        &metaproxy_1_filter_limit,
         0
     };
     int i;
