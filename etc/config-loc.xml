@@ -81,7 +81,7 @@ the following databaseNames (virtual databases):
     </filter>
 
   </filters>
-  <routes>  
+  <routes>
     <route id="start">
       <filter type="frontend_net">
         <port>@:7090</port>
@@ -178,7 +178,7 @@ the following databaseNames (virtual databases):
 
       </filter>
 
-      <!-- merge and route -->deals with merging of target results and is also
+      <!-- merge and route -->
       <filter type="multi">
         <target route="idtest">localhost*</target>
         <target route="lcdb_utf8">z3950.loc.gov:7097/LCDB_UTF8</target>
