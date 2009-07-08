@@ -53,6 +53,7 @@ filter =
     | filter_cql_rpn
     | filter_frontend_net
     | filter_http_file
+    | filter_limit
     | filter_load_balance
     | filter_log
     | filter_multi
@@ -62,7 +63,6 @@ filter =
     | filter_sru_z3950
     | filter_virt_db
     | filter_z3950_client
-    | filter_limit
 #    | filter_zeerex_explain
   }
 
@@ -180,7 +180,7 @@ filter_sru_z3950 =
   element mp:database {  
      attribute name { xsd:NCName },
      any        
-  }+
+  }*
 
 filter_virt_db =
   attribute type { "virt_db" },

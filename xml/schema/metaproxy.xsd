@@ -79,6 +79,7 @@
         <xs:element ref="mp:conversion"/>
         <xs:group ref="mp:filter_frontend_net"/>
         <xs:group ref="mp:filter_http_file"/>
+        <xs:group ref="mp:filter_limit"/>
         <xs:group ref="mp:filter_log"/>
         <xs:group ref="mp:filter_multi"/>
         <xs:element ref="mp:xslt"/>
@@ -87,7 +88,6 @@
         <xs:group ref="mp:filter_sru_z3950"/>
         <xs:group ref="mp:filter_virt_db"/>
         <xs:group ref="mp:filter_z3950_client"/>
-        <xs:group ref="mp:filter_limit"/>
       </xs:choice>
       <xs:attribute name="type">
         <xs:simpleType>
@@ -98,6 +98,7 @@
             <xs:enumeration value="cql_rpn"/>
             <xs:enumeration value="frontend_net"/>
             <xs:enumeration value="http_file"/>
+            <xs:enumeration value="limit"/>
             <xs:enumeration value="load_balance"/>
             <xs:enumeration value="log"/>
             <xs:enumeration value="multi"/>
@@ -107,7 +108,6 @@
             <xs:enumeration value="sru_z3950"/>
             <xs:enumeration value="virt_db"/>
             <xs:enumeration value="z3950_client"/>
-            <xs:enumeration value="limit"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
@@ -378,7 +378,7 @@
   </xs:attributeGroup>
   <xs:group name="filter_sru_z3950">
     <xs:sequence>
-      <xs:element maxOccurs="unbounded" ref="mp:database"/>
+      <xs:element minOccurs="0" maxOccurs="unbounded" ref="mp:database"/>
     </xs:sequence>
   </xs:group>
   <xs:element name="database">

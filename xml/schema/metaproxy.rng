@@ -90,6 +90,7 @@
         <ref name="filter_cql_rpn"/>
         <ref name="filter_frontend_net"/>
         <ref name="filter_http_file"/>
+        <ref name="filter_limit"/>
         <ref name="filter_load_balance"/>
         <ref name="filter_log"/>
         <ref name="filter_multi"/>
@@ -99,7 +100,6 @@
         <ref name="filter_sru_z3950"/>
         <ref name="filter_virt_db"/>
         <ref name="filter_z3950_client"/>
-        <ref name="filter_limit"/>
       </choice>
       <!--    | filter_zeerex_explain -->
     </element>
@@ -454,14 +454,14 @@
         <data type="NCName"/>
       </attribute>
     </optional>
-    <oneOrMore>
+    <zeroOrMore>
       <element name="mp:database">
         <attribute name="name">
           <data type="NCName"/>
         </attribute>
         <ref name="any"/>
       </element>
-    </oneOrMore>
+    </zeroOrMore>
   </define>
   <define name="filter_virt_db">
     <attribute name="type">
