@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/zgdu.h>
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
+#include <yaz/match_glob.h>
 
 #include <vector>
 #include <algorithm>
@@ -106,11 +107,20 @@ namespace metaproxy_1 {
             void scan2(Package &package, Z_APDU *apdu);
             Rep *m_p;
         };            
-        struct Multi::Map {
-            Map(std::list<std::string> hosts, std::string route);
-            Map();
-            std::list<std::string> m_hosts;
+        class Multi::Map {
+            std::string m_target_pattern;
             std::string m_route;
+        public:
+            Map(std::string pattern, std::string route) : 
+                m_target_pattern(pattern), m_route(route) {};
+            bool match(const std::string target, std::string *ret) const {
+                if (yaz_match_glob(m_target_pattern.c_str(), target.c_str()))
+                {
+                    *ret = m_route;
+                    return true;
+                }
+                return false;
+            };
         };
         class Multi::Rep {
             friend class Multi;
@@ -120,7 +130,7 @@ namespace metaproxy_1 {
             FrontendPtr get_frontend(Package &package);
             void release_frontend(Package &package);
         private:
-            std::map<std::string,std::string> m_target_route;
+            std::list<Multi::Map> m_route_patterns;
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
@@ -209,15 +219,6 @@ yf::Multi::FrontendSet::FrontendSet()
 
 
 yf::Multi::FrontendSet::~FrontendSet()
-{
-}
-
-yf::Multi::Map::Map(std::list<std::string> hosts, std::string route)
-    : m_hosts(hosts), m_route(route) 
-{
-}
-
-yf::Multi::Map::Map()
 {
 }
 
@@ -388,7 +389,14 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
         Backend *b = new Backend;
         b->m_vhost = *t_it;
 
-        b->m_route = m_p->m_target_route[*t_it];
+        std::list<Multi::Map>::const_iterator it =
+            m_p->m_route_patterns.begin();
+        while (it != m_p->m_route_patterns.end()) {
+            if (it->match(*t_it, &b->m_route))
+                break;
+            it++;
+        }
+        // b->m_route = m_p->m_target_route[*t_it];
         // b->m_route unset
         b->m_package = PackagePtr(new Package(s, package.origin()));
 
@@ -1180,7 +1188,7 @@ void mp::filter::Multi::configure(const xmlNode * ptr, bool test_only)
         {
             std::string route = mp::xml::get_route(ptr);
             std::string target = mp::xml::get_text(ptr);
-            m_p->m_target_route[target] = route;
+            m_p->m_route_patterns.push_back(Multi::Map(target, route));
         }
         else if (!strcmp((const char *) ptr->name, "hideunavailable"))
         {
