@@ -19,13 +19,42 @@
  <refsect1><title>DESCRIPTION</title>
   <para>
    This filter allows one Z39.50 database to be me mapped to
-   another target; or even multiple targets..
+   another target; or even multiple targets.
+  </para>
+  <para>
+   The configuration of virt_db consists of zero or more 
+   <literal>&lt;virtual&gt;</literal> elements each describing the
+   Z39.50 virtual database recognized.
+   The name of the database is the text content of the
+   <literal>&lt;database&gt;</literal> element which should be
+   first element inside th virtual section.
+  </para>
+  <para>
+   Following that is one or more <literal>&lt;target&gt;</literal>
+   elements with the identifier of each target that the virtual database
+   maps to.
+  </para>
+  <para>
+   If multiple targets are given that has special meaning depending on the
+   filter following virt_db. If the following filter is load_balance, then
+   the load_balance filter will load balance between the targets given
+   (assuming they serve same content). If the following filter is multi,
+   then results will be merged from all targets instead.
+  </para>
+  <para>
+   The z3950_filter, on the other hand, does not support multiple targets.
+  </para>
+  <para>
+   For <literal>&lt;virtual&gt;</literal> a route may be given as
+   an attribute. This will make Metaproxy route traffic to the route
+   given. Note that virtual databases may not be combined if all
+   databases do not result in the same routing.
   </para>
  </refsect1>
  
  <refsect1><title>EXAMPLES</title>
   <para>
-   A typical configuration looks like this:
+   Consider this virt_db configuration:
    <screen><![CDATA[
     <filter type="virt_db">
       <virtual>
@@ -41,9 +70,22 @@
         <target>indexdata.com/gils</target>
         <target>localhost:9999/Default</target>
       </virtual>
+      <virtual route="special">
+        <database>db3</database>
+        <target>indexdata.com/special</target>
+      </virtual>
     </filter>
 ]]>
    </screen>
+   This will offer 4 databases, <literal>db1</literal>, 
+   <literal>db2</literal>, <literal>combined</literal> and
+   <literal>db3</literal>. If a Z39.50 specifies <literal>db1</literal>
+   and <literal>db2</literal> that will have same effect as specifying
+   the single database <literal>combined</literal>.
+  </para>
+  <para>
+   Since <literal>db3</literal> routes differently from the other databases,
+   this database may not be combined with the others.
   </para>
  </refsect1> 
  
@@ -57,6 +99,10 @@
   <para>
    <citerefentry>
     <refentrytitle>multi</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>
+   <citerefentry>
+    <refentrytitle>load_balance</refentrytitle>
     <manvolnum>3mp</manvolnum>
    </citerefentry>
   </para>

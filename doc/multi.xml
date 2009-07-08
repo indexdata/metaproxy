@@ -20,16 +20,16 @@
   <para>
    This filter multiplexes packages.
   </para>
- </refsect1>
- 
- <refsect1><title>EXAMPLES</title>
   <para>
-   A typical configuration looks like this:
-   <screen><![CDATA[
-    <filter type="multi">
-    </filter>
-]]>
-   </screen>
+   The multi filter consists of zero or more
+   <literal>&lt;target&gt;</literal> elements.
+   If a target matches a given target specified as CDATA in the
+   target element, the multi filter will route traffic to the route
+   given by the route attribute.
+  </para>
+  <para>
+   A target element is not required for multi-plexing to work.
+   It merely serves as a way to route differently. 
   </para>
   <para>
    If an empty
@@ -40,6 +40,21 @@
    but simply ignored (unless every one of the databases is
    unavailable).
   </para>
+ </refsect1>
+ 
+ <refsect1><title>EXAMPLES</title>
+  <para>
+   A typical configuration looks like this:
+   <screen><![CDATA[
+    <filter type="multi">
+     <target route="route1">z3950.loc.gov:7090/voyager</target>
+     <target route="route2">bagel.indexdata.dk/gils</target>
+     <target route="other">*</target>
+    </filter>
+]]>
+   </screen>
+  </para>
+
  </refsect1> 
  
  <refsect1><title>SEE ALSO</title>
