@@ -1,3 +1,11 @@
+--- 1.0.19 2009/07/08
+
+For filter multi, the target (for routing) may be given as a glob-pattern.
+
+More documentation for filters virt_db and multi.
+
+Update schema to allow for no database in sru_z3950 filter.
+
 --- 1.0.18 2009/06/30
 
 Added limit filter to put sleep (penalty) for heavy use.
