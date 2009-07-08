@@ -22,23 +22,35 @@
    This filter balances load among Z39.50 targets based on statistics
    gathered on number of open sessions and number of open package requests. 
   </para>
+  <para>
+   The load balancing is depending on targets to be specified (vhosts).
+   Most Z39.50 clients do not specify that. For this reason, this
+   filter is mostly used as a follower to filter virt_db.
+  </para>
  </refsect1>
  
  <refsect1><title>EXAMPLES</title>
   <para>
-   A typical configuration looks like this:
+   This configuration offers one database, <literal>Default</literal>,
+   which is load-balanced between two backend servers.
    <screen><![CDATA[
+    <filter type="virt_db"/>
+      <database>Default</database>
+      <target>host1:210/Default</target>
+      <target>host2:210/Default</target>
+    </filter>
     <filter type="load_balance"/>
 ]]>
    </screen>
   </para>
+  
  </refsect1> 
  
  <refsect1><title>SEE ALSO</title>
   <para>
    <citerefentry>
-    <refentrytitle>metaproxy</refentrytitle>
-    <manvolnum>1</manvolnum>
+    <refentrytitle>virt_db</refentrytitle>
+    <manvolnum>3mp</manvolnum>
    </citerefentry>
   </para>
  </refsect1>
