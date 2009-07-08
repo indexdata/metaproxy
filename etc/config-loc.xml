@@ -29,9 +29,61 @@ the following databaseNames (virtual databases):
 -->
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
+  <filters>
+    <!-- record transform for servers that return MARC8-encoded MARC -->
+    <filter id="marc8-records" type="record_transform">
+      <retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
+        <retrieval syntax="xml" name="dc"
+                   identifier="info:srw/schema/1/dc-v1.1">
+        <backend syntax="usmarc" name="F">
+          <marc inputformat="marc" outputformat="marcxml"
+                inputcharset="marc-8"/>
+          <xslt stylesheet="../xml/xslt/MARC21slim2DC.xsl"/>
+        </backend>
+      </retrieval>
+      <retrieval syntax="opac"/>
+      <retrieval syntax="xml" name="opac">
+        <backend syntax="opac" name="F">
+        <marc inputformat="marc" outputformat="marcxml"
+              inputcharset="marc-8"/>
+        </backend>
+      </retrieval>
+      <retrieval syntax="usmarc">
+        <backend syntax="usmarc" name="F">
+        </backend>
+        </retrieval>
+      </retrievalinfo>
+    </filter>
+
+    <!-- record transform for servers that return UTF8-encoded MARC -->
+    <filter id="utf8-records" type="record_transform">
+      <retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
+        <retrieval syntax="xml" name="dc"
+                   identifier="info:srw/schema/1/dc-v1.1">
+        <backend syntax="usmarc" name="F">
+          <marc inputformat="marc" outputformat="marcxml"
+                inputcharset="utf8"/>
+          <xslt stylesheet="../xml/xslt/MARC21slim2DC.xsl"/>
+        </backend>
+      </retrieval>
+      <retrieval syntax="opac"/>
+      <retrieval syntax="xml" name="opac">
+        <backend syntax="opac" name="F">
+        <marc inputformat="marc" outputformat="marcxml"
+              inputcharset="utf8"/>
+        </backend>
+      </retrieval>
+      <retrieval syntax="usmarc">
+        <backend syntax="usmarc" name="F">
+        </backend>
+        </retrieval>
+      </retrievalinfo>
+    </filter>
+
+  </filters>
   <routes>  
     <route id="start">
-       <filter type="frontend_net">
+      <filter type="frontend_net">
         <port>@:7090</port>
         <!-- maximum connections within a minute from same IP -->
         <connect-max>10</connect-max> 
@@ -50,34 +102,9 @@ the following databaseNames (virtual databases):
         <conversion file="cql2pqf.txt"/>
       </filter>
 
-      <!-- RPN query filter -->
+      <!-- RPN Query rewrite .. Does query check as well -->
       <filter type="query_rewrite">
        <xslt stylesheet="pqf2pqf-loc.xsl"/>
-      </filter>
-
-      <!-- record transformations -->
-      <filter type="record_transform">
-        <retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
-          <retrieval syntax="xml" name="dc"
-                    identifier="info:srw/schema/1/dc-v1.1">
-          <backend syntax="usmarc" name="F">
-            <marc inputformat="marc" outputformat="marcxml"
-                  inputcharset="marc-8"/>
-            <xslt stylesheet="../xml/xslt/MARC21slim2DC.xsl"/>
-          </backend>
-        </retrieval>
-        <retrieval syntax="opac"/>
-        <retrieval syntax="xml" name="opac">
-          <backend syntax="opac" name="F">
-          <marc inputformat="marc" outputformat="marcxml"
-                inputcharset="marc-8"/>
-          </backend>
-        </retrieval>
-        <retrieval syntax="usmarc">
-          <backend syntax="usmarc" name="F">
-          </backend>
-          </retrieval>
-        </retrievalinfo>
       </filter>
 
       <filter type="limit">
@@ -102,7 +129,7 @@ the following databaseNames (virtual databases):
         </virtual>
         <virtual>
           <database>HLAS_UTF8</database>
-          <target>z3950.loc.gov:7999/HLAS_MARC8</target>
+          <target>z3950.loc.gov:7999/HLAS_UTF8</target>
         </virtual>
         <virtual>
           <database>HLAS_MARC8</database>
@@ -145,22 +172,57 @@ the following databaseNames (virtual databases):
         <virtual>
           <database>AllVoyager</database>
           <target>z3950.loc.gov:7097/LCDB_UTF8</target>
-          <target>z3950.loc.gov:7999/HLAS_MARC8</target>
+          <target>z3950.loc.gov:7999/HLAS_UTF8</target>
+          <target>z3950.loc.gov:7999/NLSBPH_UTF8</target>
         </virtual>
 
       </filter>
-      <filter type="multi"/>
-      <filter type="log">
-	<message>C</message>
-	<category apdu="true"/>
+
+      <!-- merge and route -->deals with merging of target results and is also
+      <filter type="multi">
+        <target route="idtest">localhost*</target>
+        <target route="lcdb_utf8">z3950.loc.gov:7097/LCDB_UTF8</target>
+        <target route="lcdb_marc8">z3950.loc.gov:7095/LCDB_MARC8</target>
+        <target route="utf8">*UTF8</target>
       </filter>
+      <!-- other targets.. MARC-8 and foreign .. -->
+      <filter refid="marc8-records"/>
+      <filter type="z3950_client"/>
+      <filter type="bounce"/>
+    </route>
+
+    <!-- idtest -->
+    <route id="idtest">
+      <filter type="virt_db">
+        <virtual>
+          <database>Default</database>
+          <target>localhost:9001/Default</target>
+          <target>localhost:9002/Default</target>
+        </virtual>
+      </filter>
+      <filter type="load_balance"/>
+      <filter type="z3950_client"/>
+      <filter type="bounce"/>
+    </route>
+
+    <!-- lcdb utf8 -->
+    <route id="lcdb_utf8">
       <filter type="virt_db">
         <virtual>
           <database>LCDB_UTF8</database>
           <target>z3950.loc.gov:7097/voyager</target>
           <target>z3950.loc.gov:7098/voyager</target>
         </virtual>
+      </filter>
+      <filter type="load_balance"/>
+      <filter refid="utf8-records"/>
+      <filter type="z3950_client"/>
+      <filter type="bounce"/>
+    </route>
 
+    <!-- lcdb marc8 -->
+    <route id="lcdb_marc8">
+      <filter type="virt_db">
         <virtual>
           <database>LCDB_MARC8</database>
           <target>z3950.loc.gov:7095/voyager</target>
@@ -168,13 +230,18 @@ the following databaseNames (virtual databases):
         </virtual>
       </filter>
       <filter type="load_balance"/>
-      <filter type="log">
-	<message>B</message>
-	<category apdu="true"/>
-      </filter>
+      <filter refid="marc8-records"/>
       <filter type="z3950_client"/>
       <filter type="bounce"/>
     </route>
+
+    <!-- other utf8 targets -->
+    <route id="utf8">
+      <filter refid="utf8-records"/>
+      <filter type="z3950_client"/>
+      <filter type="bounce"/>
+    </route>
+
   </routes>
 </metaproxy>
 
