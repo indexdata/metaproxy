@@ -228,6 +228,7 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\filter_cql_to_rpn.obj \
 	$(OBJDIR)\filter_frontend_net.obj \
 	$(OBJDIR)\filter_http_file.obj \
+        $(OBJDIR)\filter_limit.obj \
         $(OBJDIR)\filter_load_balance.obj \
         $(OBJDIR)\filter_log.obj \
 	$(OBJDIR)\filter_multi.obj \
@@ -239,7 +240,6 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\filter_virt_db.obj \
         $(OBJDIR)\filter_z3950_client.obj \
         $(OBJDIR)\filter_zeerex_explain.obj \
-        $(OBJDIR)\filter_limit.obj \
 	$(OBJDIR)\gduutil.obj \
 	$(OBJDIR)\origin.obj \
 	$(OBJDIR)\package.obj \
