@@ -54,9 +54,90 @@
     <xsl:copy-of select="."/>
   </xsl:template>
 
-  <!-- throw diagnostic for unsupported use attributes -->
-  <xsl:template match="attr[@type=1][@value=12]">
-    <diagnostic code="114" addinfo="{@value}"/>
+  <!-- validate use attributes -->
+  <xsl:template match="attr[@type=1]">
+    <xsl:choose>
+       <xsl:when test="@value &gt;= 1 and @value &lt;= 11">
+         <xsl:copy-of select="."/>
+       </xsl:when>
+       <xsl:when test="@value &gt;= 13 and @value &lt;= 1010">
+         <xsl:copy-of select="."/>
+       </xsl:when>
+       <xsl:when test="@value &gt;= 1013 and @value &lt;= 1023">
+         <xsl:copy-of select="."/>
+       </xsl:when>
+       <xsl:when test="@value &gt;= 1025 and @value &lt;= 1030">
+         <xsl:copy-of select="."/>
+       </xsl:when>
+       <xsl:otherwise>
+         <diagnostic code="114" addinfo="{@value}"/>
+       </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- validate relation attributes -->
+  <xsl:template match="attr[@type=2]">
+    <xsl:choose>
+       <xsl:when test="@value &gt;= 1 and @value &lt;= 6">
+         <xsl:copy-of select="."/>
+       </xsl:when>
+       <xsl:otherwise>
+         <diagnostic code="117" addinfo="{@value}"/>
+       </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- validate position attributes -->
+  <xsl:template match="attr[@type=3]">
+    <xsl:choose>
+       <xsl:when test="@value &gt;= 1 and @value &lt;= 3">
+         <xsl:copy-of select="."/>
+       </xsl:when>
+       <xsl:otherwise>
+         <diagnostic code="119" addinfo="{@value}"/>
+       </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- validate structure attributes -->
+  <xsl:template match="attr[@type=4]">
+    <xsl:choose>
+       <xsl:when test="@value &gt;= 1 and @value &lt;= 6">
+         <xsl:copy-of select="."/>
+       </xsl:when>
+       <xsl:otherwise>
+         <diagnostic code="118" addinfo="{@value}"/>
+       </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- validate truncation attributes -->
+  <xsl:template match="attr[@type=5]">
+    <xsl:choose>
+       <xsl:when test="@value = 1 or @value = 100">
+         <xsl:copy-of select="."/>
+       </xsl:when>
+       <xsl:otherwise>
+         <diagnostic code="120" addinfo="{@value}"/>
+       </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- validate completeness attributes -->
+  <xsl:template match="attr[@type=6]">
+    <xsl:choose>
+       <xsl:when test="@value &gt;= 1 and @value &lt;= 3">
+         <xsl:copy-of select="."/>
+       </xsl:when>
+       <xsl:otherwise>
+         <diagnostic code="122" addinfo="{@value}"/>
+       </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- throw error for other types -->
+  <xsl:template match="attr[@type &gt;= 7]">
+     <diagnostic code="113" addinfo="{@type}"/>
   </xsl:template>
 
 </xsl:stylesheet>
