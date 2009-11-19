@@ -1,3 +1,5 @@
+--- 1.0.20 2009/11/19
+
 For filter virt_db, the database is a glob pattern and the virtual
 database sections are consulted in the order given.
 
