@@ -1,3 +1,6 @@
+For filter virt_db, the database is a glob pattern and the virtual
+database sections are consulted in the order given.
+
 --- 1.0.19 2009/07/08
 
 For filter multi, the target (for routing) may be given as a glob-pattern.

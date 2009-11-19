@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/zgdu.h>
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
+#include <yaz/match_glob.h>
 
 #include <map>
 #include <iostream>
@@ -50,8 +51,10 @@ namespace metaproxy_1 {
             std::string m_setname;
         };
         struct VirtualDB::Map {
-            Map(std::list<std::string> targets, std::string route);
+            Map(std::string database, std::list<std::string> targets, std::string route);
             Map();
+            bool match(const std::string db) const;
+            std::string m_dbpattern;
             std::list<std::string> m_targets;
             std::string m_route;
         };
@@ -105,7 +108,7 @@ namespace metaproxy_1 {
             FrontendPtr get_frontend(Package &package);
             void release_frontend(Package &package);
         private:
-            std::map<std::string, VirtualDB::Map>m_maps;
+            std::list<VirtualDB::Map>m_maps;
             typedef std::map<std::string,VirtualDB::Set>::iterator Sets_it;
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
@@ -142,8 +145,15 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::create_backend_from_databases
     std::map<std::string,bool> targets_dedup;
     for (; db_it != databases.end(); db_it++)
     {
-        std::map<std::string, VirtualDB::Map>::iterator map_it;
-        map_it = m_p->m_maps.find(mp::util::database_name_normalize(*db_it));
+        std::list<VirtualDB::Map>::const_iterator map_it;
+        map_it = m_p->m_maps.begin();
+        while (map_it != m_p->m_maps.end())
+        {
+            if (map_it->match(*db_it))
+                break;
+            map_it++;
+        }
+
         if (map_it == m_p->m_maps.end())  // database not found
         {
             error_code = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
@@ -152,8 +162,8 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::create_backend_from_databases
             return ptr;
         }
         std::list<std::string>::const_iterator t_it =
-            map_it->second.m_targets.begin();
-        for (; t_it != map_it->second.m_targets.end(); t_it++) {
+            map_it->m_targets.begin();
+        for (; t_it != map_it->m_targets.end(); t_it++) {
             if (!targets_dedup[*t_it])
             {
                 targets_dedup[*t_it] = true;
@@ -162,14 +172,14 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::create_backend_from_databases
         }
 
         // see if we have a route conflict.
-        if (!first_route && b->m_route != map_it->second.m_route)
+        if (!first_route && b->m_route != map_it->m_route)
         {
             // we have a conflict.. 
             error_code =  YAZ_BIB1_COMBI_OF_SPECIFIED_DATABASES_UNSUPP;
             BackendPtr ptr;
             return ptr;
         }
-        b->m_route = map_it->second.m_route;
+        b->m_route = map_it->m_route;
         first_route = false;
     }
     return b;
@@ -462,13 +472,22 @@ yf::VirtualDB::Set::~Set()
 {
 }
 
-yf::VirtualDB::Map::Map(std::list<std::string> targets, std::string route)
-    : m_targets(targets), m_route(route) 
+yf::VirtualDB::Map::Map(std::string database, 
+                        std::list<std::string> targets, std::string route)
+    : m_dbpattern(database), m_targets(targets), m_route(route) 
 {
 }
 
 yf::VirtualDB::Map::Map()
 {
+}
+
+bool yf::VirtualDB::Map::match(const std::string db) const
+{
+    std::string norm_db = mp::util::database_name_normalize(db);
+    if (yaz_match_glob(m_dbpattern.c_str(), norm_db.c_str()))
+        return true;
+    return false;
 }
 
 yf::VirtualDB::VirtualDB() : m_p(new VirtualDB::Rep)
@@ -492,21 +511,26 @@ void yf::VirtualDB::Frontend::fixup_npr_record(ODR odr, Z_NamePlusRecord *npr,
              db_it != b->m_frontend_databases.end(); db_it++)
         {
             // see which target it corresponds to.. (if any)
-            std::map<std::string,VirtualDB::Map>::const_iterator map_it;
-
-            map_it = m_p->m_maps.find(mp::util::database_name_normalize(*db_it));
+            std::list<VirtualDB::Map>::const_iterator map_it =
+                m_p->m_maps.begin();
+            while (map_it != m_p->m_maps.end())
+            {
+                if (map_it->match(*db_it))
+                    break;
+                map_it++;
+            }
             if (map_it != m_p->m_maps.end())
             { 
-                VirtualDB::Map m = map_it->second;
-                
-                std::list<std::string>::const_iterator t;
-                for (t = m.m_targets.begin(); t != m.m_targets.end(); t++)
+                std::list<std::string>::const_iterator t
+                    = map_it->m_targets.begin();
+                while (t != map_it->m_targets.end())
                 {
                     if (*t == b_database)
                     {
                         npr->databaseName = odr_strdup(odr, (*db_it).c_str());
                         return;
                     }
+                    t++;
                 }
             }
             
@@ -670,8 +694,8 @@ void yf::VirtualDB::add_map_db2targets(std::string db,
                                      std::list<std::string> targets,
                                      std::string route)
 {
-    m_p->m_maps[mp::util::database_name_normalize(db)] 
-        = VirtualDB::Map(targets, route);
+    m_p->m_maps.push_back(
+        VirtualDB::Map(mp::util::database_name_normalize(db), targets, route));
 }
 
 

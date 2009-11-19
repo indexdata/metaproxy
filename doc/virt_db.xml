@@ -27,7 +27,13 @@
    Z39.50 virtual database recognized.
    The name of the database is the text content of the
    <literal>&lt;database&gt;</literal> element which should be
-   first element inside th virtual section.
+   first element inside the virtual section. 
+  </para>
+  <para>
+   For Metaproxy 1.0.20 and later, the database is treated as a glob pattern.
+   This allows operators * (any number of any character) and 
+   ? (any single character). The virtual sections are inspected in
+   the order given. The first matching virtual database is used.
   </para>
   <para>
    Following that is one or more <literal>&lt;target&gt;</literal>
@@ -73,6 +79,10 @@
       <virtual route="special">
         <database>db3</database>
         <target>indexdata.com/special</target>
+      </virtual>
+      <virtual>
+        <database>*</database><!-- default -->
+        <target>localhost:9999</target>
       </virtual>
     </filter>
 ]]>
