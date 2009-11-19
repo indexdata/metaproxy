@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 	exit(1);
     }
     void *sym = dlsym(mod, argv[2]);
-    printf("sym=%p\n", sym);
+    cout << "sym=" << sym << endl;
     dlclose(mod);
     exit(0);
 #else
