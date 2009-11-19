@@ -682,8 +682,7 @@ void yf::VirtualDB::add_map_db2target(std::string db,
     std::list<std::string> targets;
     targets.push_back(target);
 
-    m_p->m_maps[mp::util::database_name_normalize(db)]
-        = VirtualDB::Map(targets, route);
+    add_map_db2targets(db, targets, route);
 }
 
 void yf::VirtualDB::process(mp::Package &package) const
