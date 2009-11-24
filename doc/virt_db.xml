@@ -38,7 +38,10 @@
   <para>
    Following that is one or more <literal>&lt;target&gt;</literal>
    elements with the identifier of each target that the virtual database
-   maps to.
+   maps to. If a database is given for a target (following a slash), that
+   database name is used as Z39.50 database for this target. If the
+   database is omitted for the target, the original (virtual) database
+   is used as Z39.50 database.
   </para>
   <para>
    If multiple targets are given that has special meaning depending on the
@@ -82,7 +85,7 @@
       </virtual>
       <virtual>
         <database>*</database><!-- default -->
-        <target>localhost:9999</target>
+        <target>localhost:9999</target><-- database not altered -->
       </virtual>
     </filter>
 ]]>
