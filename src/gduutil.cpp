@@ -139,7 +139,7 @@ static void dump_opt_string(std::ostream& os, const char *s)
         os << "-";
 }
 
-static void dump_opt_int(std::ostream& os, const int *i)
+static void dump_opt_int(std::ostream& os, const Odr_int *i)
 {
     os << " ";
     if (i)

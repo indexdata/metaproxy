@@ -846,7 +846,8 @@ void yf::SessionShared::Frontend::present(mp::Package &package,
         Z_APDU *f_apdu_res = odr.create_presentResponse(apdu_req, 0, 0);
         Z_PresentResponse *f_resp = f_apdu_res->u.presentResponse;
 
-        yaz_log(YLOG_LOG, "Found %d+%d records in cache %p",
+        yaz_log(YLOG_LOG, "Found " ODR_INT_PRINTF "+" ODR_INT_PRINTF 
+                " records in cache %p",
                 *req->resultSetStartPoint,                      
                 *req->numberOfRecordsRequested,
                 &found_set->m_record_cache);        
@@ -897,7 +898,8 @@ void yf::SessionShared::Frontend::present(mp::Package &package,
 
         if (b_resp->records && b_resp->records->which ==  Z_Records_DBOSD)
         {
-            yaz_log(YLOG_LOG, "Adding %d+%d records to cache %p",
+            yaz_log(YLOG_LOG, "Adding " ODR_INT_PRINTF "+" ODR_INT_PRINTF
+                    " records to cache %p",
                     *req->resultSetStartPoint,                      
                     *f_resp->numberOfRecordsReturned,
                     &found_set->m_record_cache);        

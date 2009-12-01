@@ -40,7 +40,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <algorithm>
+/* #include <algorithm> */
 #include <map>
 
 namespace mp = metaproxy_1;
@@ -538,8 +538,7 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
 
     // Finally, roll on and srw'fy number of records
     sru_pdu_res->u.response->numberOfRecords 
-        = (int *) odr_malloc(odr_en, sizeof(int *));
-    *(sru_pdu_res->u.response->numberOfRecords) = *(sr->resultCount);
+        = odr_intdup(odr_en, *sr->resultCount);
     
     // srw'fy nextRecordPosition
     //sru_pdu_res->u.response->nextRecordPosition 
@@ -643,10 +642,12 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
     
     // z3950'fy number of records requested 
     // protect against requesting records out of range
-    *apdu->u.presentRequest->numberOfRecordsRequested
-        = std::min(max_recs, 
-                   *sru_pdu_res->u.response->numberOfRecords - start + 1);
-    
+    if (max_recs < *sru_pdu_res->u.response->numberOfRecords - start + 1)
+        *apdu->u.presentRequest->numberOfRecordsRequested = max_recs;
+    else
+        *apdu->u.presentRequest->numberOfRecordsRequested =
+            *sru_pdu_res->u.response->numberOfRecords - start + 1;
+        
     // z3950'fy recordPacking
     int record_packing = Z_SRW_recordPacking_XML;
     if (sr_req->recordPacking && 's' == *(sr_req->recordPacking))

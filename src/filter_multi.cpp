@@ -976,7 +976,7 @@ void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
                     {
                         ScanTermInfo my;
 
-                        int *occur = ent->u.termInfo->globalOccurrences;
+                        Odr_int *occur = ent->u.termInfo->globalOccurrences;
                         my.m_count = occur ? *occur : 0;
 
                         if (ent->u.termInfo->term->which == Z_Term_general)
@@ -1017,7 +1017,7 @@ void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
                     {
                         ScanTermInfo my;
 
-                        int *occur = ent->u.termInfo->globalOccurrences;
+                        Odr_int *occur = ent->u.termInfo->globalOccurrences;
                         my.m_count = occur ? *occur : 0;
 
                         if (ent->u.termInfo->term->which == Z_Term_general)
