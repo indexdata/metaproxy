@@ -7,7 +7,7 @@
 DEBUG=0   # 0 for release, 1 for debug
 
 # Metaproxy version
-VERSION=1.0.21
+VERSION=1.0.22
 
 # YAZ and YAZ++ directories
 YAZ_DIR=..\..\yaz
