@@ -7,7 +7,7 @@
 DEBUG=0   # 0 for release, 1 for debug
 
 # Metaproxy version
-VERSION=1.0.20
+VERSION=1.0.21
 
 # YAZ and YAZ++ directories
 YAZ_DIR=..\..\yaz
@@ -22,8 +22,8 @@ BOOST_MODEL=mt
 # libxml2 + libxslt + associates
 ZLIB_DIR=\zlib-1.2.3.win32
 ICONV_DIR=\iconv-1.9.2.win32
-LIBXML2_DIR=\libxml2-2.7.1.win32
-LIBXSLT_DIR=\libxslt-1.1.24.win32
+LIBXML2_DIR=\libxml2-2.7.6.win32
+LIBXSLT_DIR=\libxslt-1.1.26.win32
 
 # The targets
 

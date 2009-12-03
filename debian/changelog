@@ -1,4 +1,10 @@
-metaproxy (1.0.20-1indexdata) karmic; urgency=low
+metaproxy (1.0.21-1indexdata) unstable; urgency=low
+
+  * Upstream.
+
+ -- Adam Dickmeiss <adam@indexdata.dk>  Thu, 03 Dec 2009 11:27:06 +0100
+
+metaproxy (1.0.20-1indexdata) unstable; urgency=low
 
   * Upstream.
 
