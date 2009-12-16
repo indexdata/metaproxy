@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
+  <!-- backend test target.. This is a target ala yaz-ztest, ie
+  target that returns dummy records for searches -->
   <start route="start"/>
   <filters>
     <filter id="frontend" type="frontend_net">

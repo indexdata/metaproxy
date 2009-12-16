@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
+  <!-- Offers virtual databases .. No authentication -->
   <start route="start"/>
   <routes>
     <route id="start">

@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
+  <!-- Offers a list of virtual databases, that may be only used
+  by certain users .. See example.simple-auth -->
   <start route="start"/>
   <filters>
     <filter id="frontend" type="frontend_net">
