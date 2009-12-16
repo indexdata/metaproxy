@@ -158,7 +158,7 @@ void yf::HttpFile::Rep::fetch_file(mp::Session &session,
     Z_HTTP_Response *hres = gdu->u.HTTP_Response;
     hres->content_len = sz;
     hres->content_buf = (char*) odr_malloc(o, hres->content_len);
-    if (fread(hres->content_buf, 1, hres->content_len, f) != 1)
+    if (fread(hres->content_buf, hres->content_len, 1, f) != 1)
     {
         fclose(f);
         Z_GDU *gdu = o.create_HTTP_Response(session, req, 500);
