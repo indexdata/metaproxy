@@ -19,7 +19,7 @@
      -->
      <!NOTATION PDF SYSTEM "PDF">
 ]>
-<book id="metaproxy">
+<book>
  <bookinfo>
   <title>Metaproxy - User's Guide and Reference</title>
   <authorgroup>
