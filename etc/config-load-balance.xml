@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!-- Load balances to backends 9001, 9002, 9003 on localhost -->
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <routes>
@@ -9,22 +10,10 @@
       </filter>
       <filter type="virt_db">
         <virtual>
-          <database>db9001</database>
-          <target>localhost:9001/Default</target>
-        </virtual>
-        <virtual>
-          <database>db9002</database>
-          <target>localhost:9002/Default</target>
-        </virtual>
-        <virtual>
-          <database>db9003</database>
-	  <target>localhost:9003/Default</target>
-        </virtual>
-        <virtual>
-          <database>Default</database>
-          <target>localhost:9001/Default</target>
-          <target>localhost:9002/Default</target>
-          <target>localhost:9003/Default</target>
+          <database>*</database>
+          <target>localhost:9001</target>
+          <target>localhost:9002</target>
+          <target>localhost:9003</target>
         </virtual>
       </filter>
       <filter type="log">
