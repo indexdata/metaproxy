@@ -183,7 +183,10 @@ void yf::Limit::Impl::process(mp::Package &package)
             }
         }
         if (package.session().is_closed())
+        {
             m_sessions.erase(package.session());
+            delete ses;
+        }
     }
     if (reduce)
     {
