@@ -202,6 +202,7 @@ the following databaseNames (virtual databases):
         </virtual>
       </filter>
       <filter type="load_balance"/>
+      <filter refid="marc8-records"/>
       <filter type="z3950_client"/>
       <filter type="bounce"/>
     </route>
