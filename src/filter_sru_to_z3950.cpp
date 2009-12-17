@@ -182,13 +182,6 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
     {
         explainnode = idbexp->second;
     }
-    // just moving package if database is not known
-    else
-    {
-        package.move();
-        return;
-    }
-    
 
     // decode SRU request
     Z_SOAP *soap = 0;
