@@ -64,6 +64,10 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_1 )
             mp::filter::FrontendNet nf;
         }
     }
+    catch (std::runtime_error &e) {
+        std::cerr << "std::runtime error: " << e.what() << std::endl;
+        BOOST_CHECK(false);
+    }
     catch ( ... ) {
         BOOST_CHECK (false);
     }
@@ -103,6 +107,10 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_2 )
             }
         }
     }
+    catch (std::runtime_error &e) {
+        std::cerr << "std::runtime error: " << e.what() << std::endl;
+        BOOST_CHECK(false);
+    }
     catch ( ... ) {
         BOOST_CHECK (false);
     }
@@ -133,6 +141,10 @@ BOOST_AUTO_TEST_CASE( test_filter_frontend_net_3 )
 	    pack.router(router).move(); 
         }
         BOOST_CHECK(true);
+    }
+    catch (std::runtime_error &e) {
+        std::cerr << "std::runtime error: " << e.what() << std::endl;
+        BOOST_CHECK(false);
     }
     catch ( ... ) {
         BOOST_CHECK (false);
