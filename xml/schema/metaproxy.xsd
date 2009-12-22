@@ -411,7 +411,7 @@
   <xs:element name="virtual">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="database" type="xs:NCName"/>
+        <xs:element name="database" type="xs:string"/>
         <xs:element maxOccurs="unbounded" name="target" type="xs:string"/>
       </xs:sequence>
       <xs:attribute name="route" type="xs:NCName"/>

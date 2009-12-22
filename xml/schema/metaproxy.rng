@@ -490,7 +490,7 @@
           </attribute>
         </optional>
         <element name="mp:database">
-          <data type="NCName"/>
+          <data type="string"/>
         </element>
         <oneOrMore>
           <element name="mp:target">
