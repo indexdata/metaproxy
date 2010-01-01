@@ -236,31 +236,24 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::init_backend(
         {
             b->m_named_result_sets = true;
         }
-        if (!*res->result)
+        if (*res->result)
         {
-            error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
-            mp::util::get_init_diagnostics(res, error_code, addinfo);
-            BackendPtr null;
-            return null; 
-        }
-    }
-    else
-    {
-        error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
-        // addinfo = database;
-        BackendPtr null;
-        return null;
-    }        
-    if (init_package.session().is_closed())
-    {
-        error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
-        // addinfo = database;
-        BackendPtr null;
-        return null;
-    }
+            m_backend_list.push_back(b);
+            return b;
 
-    m_backend_list.push_back(b);
-    return b;
+        }
+        error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
+        mp::util::get_init_diagnostics(res, error_code, addinfo);
+    }
+    if (!init_package.session().is_closed())
+    {
+        Package close_package(b->m_backend_session, package.origin());
+        close_package.copy_filter(package);
+        close_package.session().close();
+        close_package.move(b->m_route);  // closing it
+    }
+    BackendPtr null;
+    return null; 
 }
 
 void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
