@@ -1,3 +1,11 @@
+--- 1.0.23 2010/01/04
+
+Filter virt_db: Close backend filter session when Init rejected is received
+from it (in which case it's not really closed yet). This will ensure we don't
+run out of resources such as FDs in this case.
+
+sru_z3950 filter: Accept any database (including those not listed).
+
 --- 1.0.22 2009/12/03
 
 Prepare for 64-bit YAZ. yazproxy will still work with YAZ++ 1.1.4 or
