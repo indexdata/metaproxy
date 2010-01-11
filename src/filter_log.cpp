@@ -16,9 +16,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "filter_log.hpp"
 #include "config.hpp"
-#include "package.hpp"
+#include "filter_log.hpp"
+#include <metaproxy/package.hpp>
 
 #include <string>
 #include <sstream>
@@ -26,8 +26,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <boost/thread/mutex.hpp>
 
 #include "gduutil.hpp"
-#include "util.hpp"
-#include "xmlutil.hpp"
+#include <metaproxy/util.hpp>
+#include <metaproxy/xmlutil.hpp>
 
 #include <yaz/zgdu.h>
 #include <yaz/wrbuf.h>

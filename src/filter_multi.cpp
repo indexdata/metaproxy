@@ -20,15 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 
-#include "filter.hpp"
-#include "package.hpp"
+#include <metaproxy/filter.hpp>
+#include <metaproxy/package.hpp>
 
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include "util.hpp"
+#include <metaproxy/util.hpp>
 #include "filter_multi.hpp"
 
 #include <yaz/zgdu.h>

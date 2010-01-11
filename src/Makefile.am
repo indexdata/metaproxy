@@ -5,6 +5,8 @@ MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
 AM_CXXFLAGS = $(BOOST_CPPFLAGS)
 
+AM_CPPFLAGS = -I$(top_srcdir)/include
+
 AM_LDFLAGS =
 
 # Rules for the library..
@@ -15,7 +17,7 @@ libmetaproxy_la_LDFLAGS = -version-info 1:0:0 -export-dynamic
 libmetaproxy_la_SOURCES = \
 	factory_filter.cpp factory_filter.hpp \
 	factory_static.cpp factory_static.hpp \
-	filter.hpp filter.cpp \
+	filter.cpp \
 	filter_auth_simple.cpp filter_auth_simple.hpp \
 	filter_backend_test.cpp filter_backend_test.hpp \
 	filter_bounce.cpp filter_bounce.hpp \
@@ -35,17 +37,17 @@ libmetaproxy_la_SOURCES = \
 	filter_z3950_client.cpp filter_z3950_client.hpp \
 	filter_zeerex_explain.cpp  filter_zeerex_explain.hpp \
 	gduutil.cpp gduutil.hpp \
-	origin.cpp origin.hpp \
-	package.cpp package.hpp \
+	origin.cpp \
+	package.cpp \
 	pipe.cpp pipe.hpp \
 	plainfile.cpp \
-	router.hpp router_chain.hpp router_chain.cpp \
+	router_chain.hpp router_chain.cpp \
         router_flexml.hpp router_flexml.cpp \
-	session.cpp session.hpp \
+	session.cpp \
 	sru_util.cpp sru_util.hpp \
 	thread_pool_observer.cpp thread_pool_observer.hpp \
-	util.cpp util.hpp \
-	xmlutil.cpp xmlutil.hpp
+	util.cpp \
+	xmlutil.cpp 
 
 
 libmetaproxy_la_LIBADD = $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB)

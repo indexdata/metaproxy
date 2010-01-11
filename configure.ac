@@ -56,6 +56,7 @@ AC_CHECK_HEADERS([sys/select.h sys/socket.h])
 AC_CONFIG_FILES([
         Doxyfile
 	Makefile
+	include/Makefile include/metaproxy/Makefile
 	src/Makefile
 	xml/Makefile
 	xml/schema/Makefile

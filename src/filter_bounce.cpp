@@ -17,8 +17,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "filter_bounce.hpp"
-#include "package.hpp"
-#include "util.hpp"
+#include <metaproxy/package.hpp>
+#include <metaproxy/util.hpp>
 #include "gduutil.hpp"
 
 #include <yaz/zgdu.h>

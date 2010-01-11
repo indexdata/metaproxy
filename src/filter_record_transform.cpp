@@ -17,18 +17,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "config.hpp"
-#include "filter.hpp"
 #include "filter_record_transform.hpp"
-#include "package.hpp"
-#include "util.hpp"
+#include <metaproxy/package.hpp>
+#include <metaproxy/util.hpp>
 #include "gduutil.hpp"
-#include "xmlutil.hpp"
 
 #include <yaz/diagbib1.h>
 #include <yaz/zgdu.h>
 #include <yaz/retrieval.h>
-
-//#include <boost/thread/mutex.hpp>
 
 #include <iostream>
 

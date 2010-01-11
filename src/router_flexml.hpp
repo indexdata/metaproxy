@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef ROUTER_FLEXML_HPP
 #define ROUTER_FLEXML_HPP
 
-#include "router.hpp"
+#include <metaproxy/router.hpp>
 
 #include "factory_filter.hpp"
 

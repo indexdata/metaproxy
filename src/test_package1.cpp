@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <iostream>
 #include <stdexcept>
 
-#include "package.hpp"
+#include <metaproxy/package.hpp>
 
 #define BOOST_AUTO_TEST_MAIN
 #define BOOST_TEST_DYN_LINK

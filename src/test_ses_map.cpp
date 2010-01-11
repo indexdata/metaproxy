@@ -20,9 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <iostream>
 #include <stdexcept>
 
-#include "router.hpp"
-#include "session.hpp"
-#include "package.hpp"
+#include <metaproxy/package.hpp>
 
 #include <map>
 

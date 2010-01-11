@@ -18,10 +18,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 
-#include "filter.hpp"
-#include "package.hpp"
-#include "util.hpp"
 #include "filter_z3950_client.hpp"
+#include <metaproxy/package.hpp>
+#include <metaproxy/util.hpp>
 
 #include <map>
 #include <stdexcept>

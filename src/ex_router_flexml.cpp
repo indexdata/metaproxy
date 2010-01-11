@@ -23,8 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <iostream>
 #include <stdexcept>
 
-#include "filter.hpp"
-#include "package.hpp"
+#include <metaproxy/filter.hpp>
+#include <metaproxy/package.hpp>
 #include "router_flexml.hpp"
 #include "factory_static.hpp"
 

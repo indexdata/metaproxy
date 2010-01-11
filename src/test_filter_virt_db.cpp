@@ -20,14 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <iostream>
 #include <stdexcept>
 
-#include "util.hpp"
+#include <metaproxy/util.hpp>
 #include "filter_virt_db.hpp"
 #include "filter_backend_test.hpp"
 #include "filter_log.hpp"
 
 #include "router_chain.hpp"
-#include "session.hpp"
-#include "package.hpp"
+#include <metaproxy/package.hpp>
 
 #define BOOST_AUTO_TEST_MAIN
 #define BOOST_TEST_DYN_LINK

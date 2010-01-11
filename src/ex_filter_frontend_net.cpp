@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdexcept>
 
 #include <yaz/options.h>
-#include "util.hpp"
+#include <metaproxy/util.hpp>
 #include "filter_frontend_net.hpp"
 #include "filter_z3950_client.hpp"
 #include "filter_virt_db.hpp"
@@ -31,8 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_log.hpp"
 
 #include "router_chain.hpp"
-#include "session.hpp"
-#include "package.hpp"
+#include <metaproxy/package.hpp>
 
 namespace mp = metaproxy_1;
 

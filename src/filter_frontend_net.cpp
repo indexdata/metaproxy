@@ -18,10 +18,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 
-#include "util.hpp"
+#include <metaproxy/util.hpp>
 #include "pipe.hpp"
-#include "filter.hpp"
-#include "package.hpp"
+#include <metaproxy/filter.hpp>
+#include <metaproxy/package.hpp>
 #include "thread_pool_observer.hpp"
 #include "filter_frontend_net.hpp"
 #include <yazpp/z-assoc.h>

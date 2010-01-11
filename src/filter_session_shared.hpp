@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <list>
 #include <map>
 
-#include "filter.hpp"
+#include <metaproxy/filter.hpp>
 
 namespace metaproxy_1 {
     namespace filter {

@@ -18,8 +18,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 
-#include "filter.hpp"
-#include "package.hpp"
+#include <metaproxy/filter.hpp>
+#include <metaproxy/package.hpp>
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <boost/shared_ptr.hpp>
 #include <boost/format.hpp>
 
-#include "util.hpp"
+#include <metaproxy/util.hpp>
 #include "filter_session_shared.hpp"
 
 #include <yaz/log.h>

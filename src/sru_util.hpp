@@ -19,11 +19,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef YP2_SDU_UTIL_HPP
 #define YP2_SDU_UTIL_HPP
 
-#include "util.hpp"
-#include "package.hpp"
+#include <metaproxy/util.hpp>
+#include <metaproxy/package.hpp>
 
-//#include <yaz/zgdu.h>
-//#include <yaz/z-core.h>
 #include <yaz/srw.h>
 
 #include <iosfwd>

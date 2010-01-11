@@ -18,12 +18,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 #include "filter_bounce.hpp"
-#include "util.hpp"
+#include <metaproxy/util.hpp>
 #include "gduutil.hpp"
-//#include "sru_util.hpp"
 #include "router_chain.hpp"
-#include "session.hpp"
-#include "package.hpp"
+#include <metaproxy/package.hpp>
 
 #include <iostream>
 #include <stdexcept>

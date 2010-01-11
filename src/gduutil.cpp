@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "gduutil.hpp"
-#include "util.hpp"
+#include <metaproxy/util.hpp>
 
 #include <yaz/wrbuf.h>
 #include <yaz/oid_db.h>

@@ -17,11 +17,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "config.hpp"
-#include "session.hpp"
-#include "package.hpp"
-#include "filter.hpp"
+#include <metaproxy/package.hpp>
+#include <metaproxy/filter.hpp>
 #include "filter_load_balance.hpp"
-#include "util.hpp"
+#include <metaproxy/util.hpp>
 
 
 #include <boost/thread/mutex.hpp>

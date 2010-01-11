@@ -16,13 +16,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "config.hpp"
+
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
-#include "config.hpp"
-#include "filter.hpp"
+#include <metaproxy/filter.hpp>
 #include "router_chain.hpp"
-#include "package.hpp"
+#include <metaproxy/package.hpp>
 
 #include <iostream>
 

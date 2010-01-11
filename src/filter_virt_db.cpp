@@ -18,15 +18,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 
-#include "filter.hpp"
-#include "package.hpp"
+#include "filter_virt_db.hpp"
+#include <metaproxy/package.hpp>
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include "util.hpp"
-#include "filter_virt_db.hpp"
+#include <metaproxy/util.hpp>
 
 #include <yaz/zgdu.h>
 #include <yaz/otherinfo.h>

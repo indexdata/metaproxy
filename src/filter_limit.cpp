@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <time.h>
 #include <yaz/log.h>
 #include <yazpp/timestat.h>
-#include "package.hpp"
-#include "util.hpp"
+#include <metaproxy/package.hpp>
+#include <metaproxy/util.hpp>
 
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;

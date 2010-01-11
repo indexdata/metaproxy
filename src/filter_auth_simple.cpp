@@ -18,13 +18,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 
-#include "filter.hpp"
-#include "package.hpp"
+#include <metaproxy/filter.hpp>
+#include <metaproxy/package.hpp>
 
 #include <boost/thread/mutex.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include "util.hpp"
+#include <metaproxy/util.hpp>
 #include "filter_auth_simple.hpp"
 
 #include <yaz/zgdu.h>

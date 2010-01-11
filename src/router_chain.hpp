@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define ROUTER_CHAIN_HPP
 
 
-#include "router.hpp"
+#include <metaproxy/router.hpp>
 
 #include <boost/scoped_ptr.hpp>
 #include <stdexcept>

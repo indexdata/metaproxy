@@ -1,7 +1,7 @@
 ## This file is part of Metaproxy
 ## Copyright (C) 2005-2010 Index Data
 
-SUBDIRS = xml src etc doc
+SUBDIRS = xml include src etc doc
 
 ACLOCAL_AMFLAGS = -I m4
 

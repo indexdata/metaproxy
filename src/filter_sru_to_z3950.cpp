@@ -20,9 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define NOMINMAX 1
 
 #include "config.hpp"
-#include "filter.hpp"
-#include "package.hpp"
-#include "util.hpp"
+#include <metaproxy/package.hpp>
+#include <metaproxy/util.hpp>
 #include "gduutil.hpp"
 #include "sru_util.hpp"
 #include "filter_sru_to_z3950.hpp"

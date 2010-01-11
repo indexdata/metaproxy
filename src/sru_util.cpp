@@ -17,10 +17,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "sru_util.hpp"
-#include "util.hpp"
-
-//#include <yaz/wrbuf.h>
-//#include <yaz/querytowrbuf.h>
+#include <metaproxy/util.hpp>
 
 #include <iostream>
 #include <string>
