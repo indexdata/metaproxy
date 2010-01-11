@@ -16,7 +16,7 @@ Description: Metaproxy Z39.50/SRU router (main executable)
  the binary ANSI/NISO Z39.50  and the information search and retrieval web
  service SRU as well as functioning as a limited HTTP server. 
  .
- This packages includes the main Metaproxy executable.
+ This package includes the main Metaproxy executable.
 
 Package: libmetaproxy
 Section: libs
@@ -29,7 +29,20 @@ Description: Metaproxy Z39.50/SRU router (main executable)
  the binary ANSI/NISO Z39.50  and the information search and retrieval web
  service SRU as well as functioning as a limited HTTP server. 
  .
- This packages includes the Metaproxy libraries.
+ This package includes the Metaproxy libraries.
+
+Package: libmetaproxy-dev
+Section: libdevel
+Architecture: any
+Depends: libmetaproxy (= ${Source-Version}), libyazpp3-dev (>= 1.1.4), libxslt1-dev, libboost-dev, libgnutls-dev
+Description: Metaproxy Z39.50/SRU router (main executable)
+ This is a universal router, proxy and encapsulated metasearcher
+ for information retrieval protocols. It accepts, processes, interprets
+ and redirects requests from IR clients using standard protocols such as
+ the binary ANSI/NISO Z39.50  and the information search and retrieval web
+ service SRU as well as functioning as a limited HTTP server. 
+ .
+ This package includes development libraries and C++ header files.
 
 Package: metaproxy-doc
 Section: doc
@@ -41,4 +54,4 @@ Description: Metaproxy Z39.50/SRU router (documentation)
  the binary ANSI/NISO Z39.50  and the information search and retrieval web
  service SRU as well as functioning as a limited HTTP server. 
  .
- This packages includes HTML documentation for Metaproxy.
+ This package includes HTML documentation for Metaproxy.
