@@ -12,7 +12,7 @@ AM_LDFLAGS =
 # Rules for the library..
 
 lib_LTLIBRARIES = libmetaproxy.la
-libmetaproxy_la_LDFLAGS = -version-info 1:0:0 -export-dynamic
+libmetaproxy_la_LDFLAGS = -version-info 2:0:0 -export-dynamic
 
 libmetaproxy_la_SOURCES = \
 	factory_filter.cpp factory_filter.hpp \

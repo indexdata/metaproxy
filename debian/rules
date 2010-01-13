@@ -101,9 +101,9 @@ binary-arch: build install
 	dh_fixperms
 #	dh_perl
 #	dh_python
-	dh_makeshlibs -V 'libmetaproxy (>= 1.0.13)'
+	dh_makeshlibs -V 'libmetaproxy2 (>= 1.0.13)'
 	dh_installdeb
-	dh_shlibdeps  -l debian/libmetaproxy/usr/lib
+	dh_shlibdeps  -l debian/libmetaproxy2/usr/lib
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
