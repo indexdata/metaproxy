@@ -114,7 +114,7 @@ dist-hook:
 	done
 
 doc-clean:
-	rm -f *.html *.[0-9] *.?mp *.pdf *.tkl
+	rm -f manref.xml *.html *.[0-9] *.?mp *.pdf *.tkl
 
 install-data-hook:
 	if test -f index.html; then d=.; else d="$(srcdir)"; fi; \
