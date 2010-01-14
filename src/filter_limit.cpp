@@ -24,6 +24,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yazpp/timestat.h>
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
@@ -191,7 +194,11 @@ void yf::Limit::Impl::process(mp::Package &package)
     if (reduce)
     {
         yaz_log(YLOG_LOG, "sleeping %d seconds", reduce);
+#ifdef WIN32
+        Sleep(reduce * 1000);
+#else
         sleep(reduce);
+#endif
     }
 }
 

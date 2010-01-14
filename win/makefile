@@ -14,8 +14,8 @@ YAZ_DIR=..\..\yaz
 YAZPP_DIR=..\..\yazpp
 
 # Boost
-BOOST=\program files\boost\boost_1_35_0
-BOOST_VERSION=1_35
+BOOST=\program files\boost\boost_1_40
+BOOST_VERSION=1_40
 BOOST_TOOLSET=vc90 # vc90 for VS2008, vc80 for VS 2005, vc71 for 2003
 BOOST_MODEL=mt
 
@@ -76,11 +76,11 @@ test_pipe: $(TEST_PIPE)
 ###########################################################
 
 !if $(DEBUG)
-YAZD=yaz3d
-YAZPPD=yazpp3d
+YAZD=yaz4d
+YAZPPD=yazpp4d
 !else
-YAZD=yaz3
-YAZPPD=yazpp3
+YAZD=yaz4
+YAZPPD=yazpp4
 !endif
 
 # YAZ includes & libs
@@ -127,6 +127,7 @@ BOOST_DEF = /I"$(BOOST)"
 BOOST_LIB = \
     "$(BOOST)\lib\libboost_date_time-$(BOOST_LIB_SUFFIX)" \
     "$(BOOST)\lib\libboost_thread-$(BOOST_LIB_SUFFIX)"  
+    
 
 #"$(BOOST)\lib\libboost_program_options-$(BOOST_LIB_SUFFIX)" \
 # "$(BOOST)\lib\libboost_unit_test_framework-$(BOOST_LIB_SUFFIX)"
