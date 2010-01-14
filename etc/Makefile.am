@@ -19,7 +19,8 @@ xmlconfig = $(srcdir)/config-bytarget.xml \
     $(srcdir)/config3.xml \
     $(srcdir)/config4.xml \
     $(srcdir)/config5.xml \
-    $(srcdir)/retrieval-info.xml
+    $(srcdir)/retrieval-info.xml \
+    $(srcdir)/config.debian.xml
 
 config = example.simple-auth example.target-auth pqf2pqf.xsl explain.xml
 
