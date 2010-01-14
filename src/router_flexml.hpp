@@ -43,11 +43,6 @@ namespace metaproxy_1
         ~RouterFleXML();
 
         virtual RoutePos *createpos() const;
-        class XMLError1 : public std::runtime_error {
-        public:
-            XMLError1(const std::string msg) :
-                std::runtime_error("XMLError : " + msg) {} ;
-        };
     private:
         boost::scoped_ptr<Rep> m_p;
     };
