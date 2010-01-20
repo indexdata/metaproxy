@@ -1,3 +1,8 @@
+--- 1.1.0 2010/01/20
+
+Package based on YAZ version 4 and YAZ++ 1.2.0. It now includes a
+development package to facilitate 3rd party Metaproxy modules.
+
 --- 1.0.23 2010/01/04
 
 Filter virt_db: Close backend filter session when Init rejected is received
