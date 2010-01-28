@@ -1,3 +1,9 @@
+--- 1.1.1 2010/01/28
+
+Debian package now installs /etc/metaproxy/metaproxy.xml which
+includes all XML files /etc/metaproxy/filters-enabled .
+The include facility uses YAZ' yaz_xml_include_simple (YAZ 4.0.1).
+
 --- 1.1.0 2010/01/20
 
 Package based on YAZ version 4 and YAZ++ 1.2.0. It now includes a
