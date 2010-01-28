@@ -74,7 +74,7 @@ int main(int argc, char **argv)
         if (doc)
         {
             mp::FactoryStatic factory;
-            mp::RouterFleXML router(doc, factory, false);
+            mp::RouterFleXML router(doc, factory, false, 0);
 
 	    mp::Package pack;
 	 

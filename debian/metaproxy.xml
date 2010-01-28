@@ -1,18 +1,11 @@
 <?xml version="1.0"?>
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
-  <!-- Z39.50 proxy which relays to target specified in Init otherinfo 
-  (VAL_RPOXY). If no target is given, it relays to target
-  z3950.indexdata.dk -->
   <dlpath>/usr/lib/metaproxy/modules</dlpath>
   <start route="start"/>
   <filters>
     <filter id="frontend" type="frontend_net">
       <threads>50</threads>
       <port>@:9000</port>
-    </filter>
-    <filter id="backend" type="z3950_client">
-     <timeout>30</timeout>
-     <default_target>z3950.indexdata.dk</default_target>
     </filter>
   </filters>
   <routes>  
@@ -21,7 +14,7 @@
       <filter type="log">
         <message>log</message>
       </filter>
-      <filter refid="backend"/>
+      <include src="filters-enabled/*.xml"/>
       <filter type="bounce"/>
     </route>
   </routes>

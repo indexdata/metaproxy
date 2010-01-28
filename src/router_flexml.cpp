@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <map>
 #include <list>
 #include <yaz/log.h>
+#include <yaz/xml_include.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -47,7 +48,8 @@ namespace metaproxy_1 {
         friend class RouterFleXML::Pos;
         Rep();
 
-        void base(xmlDocPtr doc, mp::FactoryFilter &factory, bool test_only);
+        void base(xmlDocPtr doc, mp::FactoryFilter &factory, bool test_only,
+                  const char *file_include_path);
 
         typedef std::map<std::string,
                          boost::shared_ptr<const mp::filter::Base > >
@@ -61,7 +63,8 @@ namespace metaproxy_1 {
 
         std::string m_dl_path;
 
-        void parse_xml_config_dom(xmlDocPtr doc, bool test_only);
+        void parse_xml_config_dom(xmlDocPtr doc, bool test_only,
+                                  const char *file_include_path);
 
         void parse_xml_filters(xmlDocPtr doc, const xmlNode *node,
             bool test_only);
@@ -235,12 +238,20 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
 }
 
 void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
-                                                 bool test_only)
+                                                 bool test_only,
+                                                 const char *file_include_path)
 {
     if (!doc)
         throw mp::XMLError("Empty XML Document");
     
     const xmlNode* root = xmlDocGetRootElement(doc);
+
+    if (file_include_path)
+    {
+        int r = yaz_xml_include_simple((xmlNode *) root, file_include_path);
+        if (r)
+            throw mp::XMLError("YAZ XML Include failed");
+    }
     
     mp::xml::check_element_mp(root,  "metaproxy");
 
@@ -300,18 +311,18 @@ mp::RouterFleXML::Rep::Rep() : m_xinclude(false)
 }
 
 void mp::RouterFleXML::Rep::base(xmlDocPtr doc, mp::FactoryFilter &factory,
-    bool test_only)
+                                 bool test_only, const char *file_include_path)
 {
     m_factory = &factory;
-    parse_xml_config_dom(doc, test_only);
+    parse_xml_config_dom(doc, test_only, file_include_path);
     m_start_route = "start";
 }
 
 mp::RouterFleXML::RouterFleXML(xmlDocPtr doc, mp::FactoryFilter &factory,
-    bool test_only)
+                               bool test_only, const char *file_include_path)
     : m_p(new Rep)
 {
-    m_p->base(doc, factory, test_only);
+    m_p->base(doc, factory, test_only, file_include_path);
 }
 
 mp::RouterFleXML::RouterFleXML(std::string xmlconf, mp::FactoryFilter &factory,
@@ -326,7 +337,7 @@ mp::RouterFleXML::RouterFleXML(std::string xmlconf, mp::FactoryFilter &factory,
         throw mp::XMLError("xmlParseMemory failed");
     else
     {
-        m_p->base(doc, factory, test_only);
+        m_p->base(doc, factory, test_only, 0);
         xmlFreeDoc(doc);
     }
 }

@@ -150,8 +150,20 @@ static int sc_main(
             yaz_log(YLOG_FATAL, "XInclude processing failed");
             return 1;
         }
+        WRBUF base_path = wrbuf_alloc();
+        const char *last_p = strrchr(fname,
+#ifdef WIN32
+                                     '\\'
+#else
+                                     '/'
+#endif
+            );
+        if (last_p)
+            wrbuf_write(base_path, fname, last_p - fname);
+        
         mp::FactoryStatic factory;
-        mp::RouterFleXML router(doc, factory, false);
+        mp::RouterFleXML router(doc, factory, false, wrbuf_cstr(base_path));
+        wrbuf_destroy(base_path);
 
         yaz_sc_running(s);
 

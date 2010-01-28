@@ -83,7 +83,7 @@ binary-arch: build install
 	dh_installexamples
 	mv debian/tmp/usr/share/doc/metaproxy debian/tmp/usr/share/doc/metaproxy-doc
 	mkdir -p debian/tmp/etc/metaproxy
-	cp debian/tmp/usr/share/metaproxy/etc/config.debian.xml debian/tmp/etc/metaproxy/metaproxy.xml
+	cp debian/metaproxy.xml debian/tmp/etc/metaproxy/metaproxy.xml
 	dh_install 
 #	dh_installmenu
 #	dh_installdebconf	

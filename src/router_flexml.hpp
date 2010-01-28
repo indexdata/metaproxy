@@ -38,7 +38,7 @@ namespace metaproxy_1
         RouterFleXML(std::string xmlconf, metaproxy_1::FactoryFilter &factory,
             bool test_only);
         RouterFleXML(xmlDocPtr doc, metaproxy_1::FactoryFilter &factory,
-            bool test_only);
+                     bool test_only, const char *file_include_path);
         
         ~RouterFleXML();
 
