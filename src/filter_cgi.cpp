@@ -49,7 +49,6 @@ namespace metaproxy_1 {
 
 yf::CGI::CGI() : m_p(new Rep)
 {
-
 }
 
 yf::CGI::~CGI()
@@ -91,11 +90,14 @@ void yf::CGI::process(mp::Package &package) const
             int r;
             pid_t pid;
             int status;
-
+            int fd;
+            
             pid = ::fork();
             switch (pid)
             {
             case 0: /* child */
+                for (fd = 3; fd <= 1023; fd++)
+                    close(fd);
                 setenv("PATH_INFO", path_info.c_str(), 1);
                 setenv("QUERY_STRING", query_string.c_str(), 1);
                 r = execl(it->program.c_str(), it->program.c_str(), (char *) 0);
