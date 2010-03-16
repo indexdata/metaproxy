@@ -19,6 +19,7 @@ xmlconfig = $(srcdir)/config-bytarget.xml \
     $(srcdir)/config3.xml \
     $(srcdir)/config4.xml \
     $(srcdir)/config5.xml \
+    $(srcdir)/config-cgi.xml \
     $(srcdir)/retrieval-info.xml
 
 config = example.simple-auth example.target-auth pqf2pqf.xsl explain.xml
@@ -29,7 +30,7 @@ xsd = $(srcdir)/../xml/schema/metaproxy.xsd
 
 etcdata_DATA = $(xmlconfig) $(config)
 
-EXTRA_DIST = $(etcdata_DATA)
+EXTRA_DIST = $(etcdata_DATA) cgi.sh
 
 .PHONY: check_rng
 check_rng: 

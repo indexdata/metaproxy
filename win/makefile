@@ -224,6 +224,7 @@ PROJECT_DLL_OBJS = \
 	$(OBJDIR)\factory_static.obj \
         $(OBJDIR)\filter.obj \
 	$(OBJDIR)\filter_auth_simple.obj \
+	$(OBJDIR)\filter_cgi.obj \
         $(OBJDIR)\filter_backend_test.obj \
         $(OBJDIR)\filter_bounce.obj \
         $(OBJDIR)\filter_cql_to_rpn.obj \

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
+  <!-- backend test target.. This is a target ala yaz-ztest, ie
+  target that returns dummy records for searches -->
+  <start route="start"/>
+  <filters>
+    <filter id="frontend" type="frontend_net">
+      <port>@:9000</port>
+    </filter>
+  </filters>
+  <routes>  
+    <route id="start">
+      <filter refid="frontend"/>
+      <filter type="log"><category user-access="true" apdu="true" /></filter>
+      <filter type="cgi">
+         <map path="/mycgi" exec="./cgi.sh"/>
+      </filter>
+      <filter type="bounce"/>
+    </route>
+  </routes>
+</metaproxy>
+

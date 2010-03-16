@@ -21,6 +21,7 @@ libmetaproxy_la_SOURCES = \
 	filter_auth_simple.cpp filter_auth_simple.hpp \
 	filter_backend_test.cpp filter_backend_test.hpp \
 	filter_bounce.cpp filter_bounce.hpp \
+	filter_cgi.cpp filter_cgi.hpp \
 	filter_cql_to_rpn.cpp filter_cql_to_rpn.hpp \
 	filter_frontend_net.cpp filter_frontend_net.hpp \
 	filter_http_file.cpp filter_http_file.hpp \

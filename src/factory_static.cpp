@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_auth_simple.hpp"
 #include "filter_backend_test.hpp"
 #include "filter_bounce.hpp"
+#include "filter_cgi.hpp"
 #include "filter_cql_to_rpn.hpp"
 #include "filter_frontend_net.hpp"
 #include "filter_http_file.hpp"
@@ -54,6 +55,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_auth_simple,
         &metaproxy_1_filter_backend_test,
         &metaproxy_1_filter_bounce,
+        &metaproxy_1_filter_cgi,
         &metaproxy_1_filter_cql_to_rpn,
         &metaproxy_1_filter_frontend_net,        
         &metaproxy_1_filter_http_file,
