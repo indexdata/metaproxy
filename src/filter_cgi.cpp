@@ -43,16 +43,30 @@ namespace metaproxy_1 {
         class CGI::Rep {
             friend class CGI;
             std::list<CGI::Exec> exec_map;
+            std::map<pid_t,pid_t> children;
+            boost::mutex m_mutex;
+        public:
+            ~Rep();
         };
     }
 }
 
 yf::CGI::CGI() : m_p(new Rep)
 {
+    
+}
+
+yf::CGI::Rep::~Rep()
+{
+    std::map<pid_t,pid_t>::const_iterator it;
+    boost::mutex::scoped_lock lock(m_mutex);
+    
+    for (it = children.begin(); it != children.end(); it++)
+        kill(it->second, SIGTERM);
 }
 
 yf::CGI::~CGI()
-{  // must have a destructor because of boost::scoped_ptr
+{
 }
 
 void yf::CGI::process(mp::Package &package) const
@@ -90,14 +104,11 @@ void yf::CGI::process(mp::Package &package) const
             int r;
             pid_t pid;
             int status;
-            int fd;
             
             pid = ::fork();
             switch (pid)
             {
             case 0: /* child */
-                for (fd = 3; fd <= 1023; fd++)
-                    close(fd);
                 setenv("PATH_INFO", path_info.c_str(), 1);
                 setenv("QUERY_STRING", query_string.c_str(), 1);
                 r = execl(it->program.c_str(), it->program.c_str(), (char *) 0);
@@ -111,8 +122,18 @@ void yf::CGI::process(mp::Package &package) const
                 package.response() = zgdu_res;
                 break;
             default: /* parent */
+                if (pid)
+                {
+                    boost::mutex::scoped_lock lock(m_p->m_mutex);
+                    m_p->children[pid] = pid;
+                }
                 waitpid(pid, &status, 0);
 
+                if (pid)
+                {
+                    boost::mutex::scoped_lock lock(m_p->m_mutex);
+                    m_p->children.erase(pid);
+                }
                 zgdu_res = odr.create_HTTP_Response(
                     package.session(), zgdu_req->u.HTTP_Request, 200);
                 package.response() = zgdu_res;
