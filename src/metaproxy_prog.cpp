@@ -35,6 +35,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include <signal.h>
 #ifdef WIN32
 #include <direct.h>
 #include <io.h>
@@ -43,10 +44,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace mp = metaproxy_1;
 
+mp::RouterFleXML *routerp = 0;
+
+static void sig_term_handler(int s)
+{
+    if (routerp)
+    {
+        delete routerp;
+    }
+    exit(0);
+}
+
 static void handler(void *data)
 {
-    mp::RouterFleXML *routerp = (mp::RouterFleXML*) data;
-
+    routerp = (mp::RouterFleXML*) data;
+    
+    signal(SIGTERM, sig_term_handler);
     mp::Package pack;
     pack.router(*routerp).move();
 }
@@ -162,12 +175,13 @@ static int sc_main(
             wrbuf_write(base_path, fname, last_p - fname);
         
         mp::FactoryStatic factory;
-        mp::RouterFleXML router(doc, factory, false, wrbuf_cstr(base_path));
+        mp::RouterFleXML *router =
+            new mp::RouterFleXML(doc, factory, false, wrbuf_cstr(base_path));
         wrbuf_destroy(base_path);
 
         yaz_sc_running(s);
 
-        yaz_daemon("metaproxy", mode, handler, &router, pidfile, uid);
+        yaz_daemon("metaproxy", mode, handler, router, pidfile, uid);
     }
     catch (std::logic_error &e) {
         yaz_log (YLOG_FATAL,"std::logic error: %s" , e.what() );
