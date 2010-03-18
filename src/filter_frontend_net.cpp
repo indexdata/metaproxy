@@ -312,6 +312,7 @@ mp::filter::FrontendNet::FrontendNet() : m_p(new Rep)
     m_p->m_no_threads = 5;
     m_p->m_listen_duration = 0;
     m_p->m_session_timeout = 300; // 5 minutes
+    m_p->m_connect_max = 0;
     m_p->az = 0;
 }
 
