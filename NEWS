@@ -1,3 +1,8 @@
+--- 1.1.2 2010/03/18
+
+Metaproxy now kills all child processes that are spawned by
+modules (in case of fork, exec).
+
 --- 1.1.1 2010/01/28
 
 Debian package now installs /etc/metaproxy/metaproxy.xml which
