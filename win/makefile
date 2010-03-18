@@ -7,7 +7,7 @@
 DEBUG=0   # 0 for release, 1 for debug
 
 # Metaproxy version
-VERSION=1.1.1
+VERSION=1.1.2
 
 # YAZ and YAZ++ directories
 YAZ_DIR=..\..\yaz
@@ -224,9 +224,9 @@ PROJECT_DLL_OBJS = \
 	$(OBJDIR)\factory_static.obj \
         $(OBJDIR)\filter.obj \
 	$(OBJDIR)\filter_auth_simple.obj \
-	$(OBJDIR)\filter_cgi.obj \
         $(OBJDIR)\filter_backend_test.obj \
         $(OBJDIR)\filter_bounce.obj \
+	$(OBJDIR)\filter_cgi.obj \
         $(OBJDIR)\filter_cql_to_rpn.obj \
 	$(OBJDIR)\filter_frontend_net.obj \
 	$(OBJDIR)\filter_http_file.obj \
