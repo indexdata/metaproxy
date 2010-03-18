@@ -46,22 +46,30 @@ namespace mp = metaproxy_1;
 
 mp::RouterFleXML *routerp = 0;
 
+#if HAVE_UNISTD_H
+static pid_t process_group = 0;
+
 static void sig_term_handler(int s)
 {
-    if (routerp)
-    {
-        delete routerp;
-    }
+    kill(-process_group, SIGTERM); /* kill all children processes as well */
     exit(0);
 }
+#endif
 
 static void handler(void *data)
 {
     routerp = (mp::RouterFleXML*) data;
+
+#if HAVE_UNISTD_H    
+    /* make the current working process group leader */
+    setpgid(0, 0);
+    process_group = getpgid(0); // save process group ID
     
     signal(SIGTERM, sig_term_handler);
+#endif
+
     mp::Package pack;
-    pack.router(*routerp).move();
+    pack.router(*routerp).move(); /* should never exit */
 }
     
 static int sc_main(
