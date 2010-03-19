@@ -87,6 +87,7 @@
         <ref name="filter_auth_simple"/>
         <ref name="filter_backend_test"/>
         <ref name="filter_bounce"/>
+        <ref name="filter_cgi"/>
         <ref name="filter_cql_rpn"/>
         <ref name="filter_frontend_net"/>
         <ref name="filter_http_file"/>
@@ -558,6 +559,21 @@
         </optional>
       </element>
     </optional>
+  </define>
+  <define name="filter_cgi">
+    <attribute name="type">
+      <value>cgi</value>
+    </attribute>
+    <zeroOrMore>
+      <element name="mp:map">
+        <attribute name="path">
+          <data type="string"/>
+        </attribute>
+        <attribute name="exec">
+          <data type="string"/>
+        </attribute>
+      </element>
+    </zeroOrMore>
   </define>
 </grammar>
 <!--

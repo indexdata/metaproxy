@@ -50,6 +50,7 @@ filter =
     | filter_auth_simple
     | filter_backend_test
     | filter_bounce
+    | filter_cgi
     | filter_cql_rpn
     | filter_frontend_net
     | filter_http_file
@@ -209,6 +210,13 @@ filter_limit =
     attribute search { xsd:integer }?,
     attribute retrieve { xsd:integer }?
   }?
+
+filter_cgi =
+  attribute type { "cgi" },
+  element mp:map {
+    attribute path { xsd:string },
+    attribute exec { xsd:string }
+  }*
 
 #filter_zeerex_explain =
 #  attribute type { "zeerex_explain" },

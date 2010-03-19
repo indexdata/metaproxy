@@ -76,6 +76,7 @@
     <xs:complexType>
       <xs:choice minOccurs="0">
         <xs:group ref="mp:filter_auth_simple"/>
+        <xs:group ref="mp:filter_cgi"/>
         <xs:element ref="mp:conversion"/>
         <xs:group ref="mp:filter_frontend_net"/>
         <xs:group ref="mp:filter_http_file"/>
@@ -95,6 +96,7 @@
             <xs:enumeration value="auth_simple"/>
             <xs:enumeration value="backend_test"/>
             <xs:enumeration value="bounce"/>
+            <xs:enumeration value="cgi"/>
             <xs:enumeration value="cql_rpn"/>
             <xs:enumeration value="frontend_net"/>
             <xs:enumeration value="http_file"/>
@@ -466,6 +468,26 @@
       <xs:simpleType>
         <xs:restriction base="xs:token">
           <xs:enumeration value="limit"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:group name="filter_cgi">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" ref="mp:map"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:element name="map">
+    <xs:complexType>
+      <xs:attribute name="path" use="required" type="xs:string"/>
+      <xs:attribute name="exec" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="filter_cgi">
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="cgi"/>
         </xs:restriction>
       </xs:simpleType>
     </xs:attribute>
