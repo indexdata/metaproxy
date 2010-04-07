@@ -23,6 +23,30 @@
    sends HTTP/Z39.50 messages to other filters.
   </para>
  </refsect1>
+
+ <refsect1><title>CONFIGURATION</title>
+  <para>
+   Element <literal>port</literal> is a repeating element (1 or more). The
+   text content specifies a listening port.
+  </para>
+  <para>
+   Element <literal>threads</literal> is an optional element. The
+   text content specifies number of worker threads for the following
+   filters to use. The default value is 5 (5 worker threads).
+  </para>
+  <para>
+   Element <literal>timeout</literal> is an optional element. The
+   text content is treated as an integer that specifies the session timeout
+   in seconds for a client session (using the frontend net filter). The
+   default value is 300 (5 minutes).
+  </para>
+  <para>
+   Element <literal>connect-max</literal> is an optional element. The
+   text content is treated as an integer that specifies maximum number
+   of TCP sessions from the same original IP. The special value 0 means
+   : no connection limit. This is also the default if this element is omitted.
+  </para>
+ </refsect1>
  
  <refsect1><title>EXAMPLES</title>
   <para>
