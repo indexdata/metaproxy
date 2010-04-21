@@ -253,9 +253,7 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
             
             if (ok 
                 && sru_pdu_res->u.response->numberOfRecords
-                && *(sru_pdu_res->u.response->numberOfRecords)
-                && sr_req->maximumRecords
-                && *(sr_req->maximumRecords))
+                && *(sru_pdu_res->u.response->numberOfRecords))
                 
                 ok = z3950_present_request(package, odr_en,
                                            sru_pdu_res,
@@ -541,11 +539,11 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
 }
 
 bool 
-yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package, 
-                                            mp::odr &odr_en,
-                                            Z_SRW_PDU *sru_pdu_res,
-                                            Z_SRW_searchRetrieveRequest 
-                                            const *sr_req)
+yf::SRUtoZ3950::Impl::z3950_present_request(
+    mp::Package &package, 
+    mp::odr &odr_en,
+    Z_SRW_PDU *sru_pdu_res,
+    const Z_SRW_searchRetrieveRequest *sr_req)
     const
 {
     assert(sru_pdu_res->u.response);
@@ -621,143 +619,128 @@ yf::SRUtoZ3950::Impl::z3950_present_request(mp::Package &package,
     // exit on all these above diagnostics
     if (!send_z3950_present)
         return false;
-
-    // now packaging the z3950 present request
-    Package z3950_package(package.session(), package.origin());
-    z3950_package.copy_filter(package); 
-    Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_presentRequest);
-
-    assert(apdu->u.presentRequest);
-
-    // z3950'fy start record position
-    *apdu->u.presentRequest->resultSetStartPoint = start;
     
-    // z3950'fy number of records requested 
-    // protect against requesting records out of range
-    if (max_recs < *sru_pdu_res->u.response->numberOfRecords - start + 1)
-        *apdu->u.presentRequest->numberOfRecordsRequested = max_recs;
-    else
-        *apdu->u.presentRequest->numberOfRecordsRequested =
-            *sru_pdu_res->u.response->numberOfRecords - start + 1;
-        
-    // z3950'fy recordPacking
-    int record_packing = Z_SRW_recordPacking_XML;
-    if (sr_req->recordPacking && 's' == *(sr_req->recordPacking))
-        record_packing = Z_SRW_recordPacking_string;
-    
-    // RecordSyntax will always be XML
-    apdu->u.presentRequest->preferredRecordSyntax
-        = odr_oiddup(odr_en, yaz_oid_recsyn_xml);
+    if (max_recs > *sru_pdu_res->u.response->numberOfRecords - start)
+        max_recs = *sru_pdu_res->u.response->numberOfRecords - start + 1;
 
-    // z3950'fy record schema
-    if (sr_req->recordSchema)
-    {
-        apdu->u.presentRequest->recordComposition 
-            = (Z_RecordComposition *) 
-            odr_malloc(odr_en, sizeof(Z_RecordComposition));
-        apdu->u.presentRequest->recordComposition->which 
-            = Z_RecordComp_simple;
-        apdu->u.presentRequest->recordComposition->u.simple 
-            = mp_util::build_esn_from_schema(odr_en,
-                                             (const char *) 
-                                             sr_req->recordSchema); 
-    }
-
-    // z3950'fy time to live - flagged as diagnostics above
-    //if (sr_req->resultSetTTL)
-
-    // attaching Z3950 package to filter chain
-    z3950_package.request() = apdu;
-
-    // sending Z30.50 present request 
-    z3950_package.move();
-
-    //check successful Z3950 present response
-    Z_GDU *z3950_gdu = z3950_package.response().get();
-    if (!z3950_gdu || z3950_gdu->which != Z_GDU_Z3950 
-        || z3950_gdu->u.z3950->which != Z_APDU_presentResponse
-        || !z3950_gdu->u.z3950->u.presentResponse)
-
-    {
-        yaz_add_srw_diagnostic(odr_en,
-                               &(sru_pdu_res->u.response->diagnostics), 
-                               &(sru_pdu_res->u.response->num_diagnostics), 
-                               YAZ_SRW_SYSTEM_TEMPORARILY_UNAVAILABLE, 0);
-        return false;
-    }
-
-
-    // everything fine, continuing
-
-    Z_PresentResponse *pr = z3950_gdu->u.z3950->u.presentResponse;
     Z_SRW_searchRetrieveResponse *sru_res = sru_pdu_res->u.response;
-        
-
-    // checking non surrogate diagnostics in Z3950 present response package
-    if (!z3950_to_srw_diagnostics_ok(odr_en, sru_pdu_res->u.response, 
-                                     pr->records))
-        return false;
-    
-
-    
-    // copy all records if existing
-    if (pr->records && pr->records->which == Z_Records_DBOSD)
+    // srw'fy number of returned records
+    sru_res->num_records = max_recs;
+    sru_res->records = (Z_SRW_record *) odr_malloc(odr_en, 
+                                                   sru_res->num_records 
+                                                   * sizeof(Z_SRW_record));
+    int num = 0;
+    while (num < max_recs)
     {
-        // srw'fy number of returned records
-        sru_res->num_records
-            = pr->records->u.databaseOrSurDiagnostics->num_records;
+        // now packaging the z3950 present request
+        Package z3950_package(package.session(), package.origin());
+        z3950_package.copy_filter(package); 
+        Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_presentRequest);
         
-        sru_res->records 
-            = (Z_SRW_record *) odr_malloc(odr_en, 
-                                          sru_res->num_records 
-                                             * sizeof(Z_SRW_record));
+        assert(apdu->u.presentRequest);
         
-
-        // srw'fy nextRecordPosition
-        // next position never zero or behind the last z3950 record 
-        if (pr->nextResultSetPosition
-            && *(pr->nextResultSetPosition) > 0 
-            && *(pr->nextResultSetPosition) 
-               <= *(sru_pdu_res->u.response->numberOfRecords))
-            sru_res->nextRecordPosition 
-                = odr_intdup(odr_en, *(pr->nextResultSetPosition));
+        *apdu->u.presentRequest->resultSetStartPoint = start + num;
+        *apdu->u.presentRequest->numberOfRecordsRequested = max_recs - num;
         
-        // inserting all records
-        for (int i = 0; i < sru_res->num_records; i++)
+        // set response packing to be same as "request" packing..
+        int record_packing = Z_SRW_recordPacking_XML;
+        if (sr_req->recordPacking && 's' == *(sr_req->recordPacking))
+            record_packing = Z_SRW_recordPacking_string;
+        
+        // RecordSyntax will always be XML
+        apdu->u.presentRequest->preferredRecordSyntax
+            = odr_oiddup(odr_en, yaz_oid_recsyn_xml);
+        
+        // z3950'fy record schema
+        if (sr_req->recordSchema)
         {
-            int position = i + *apdu->u.presentRequest->resultSetStartPoint;
-            Z_NamePlusRecord *npr 
-                = pr->records->u.databaseOrSurDiagnostics->records[i];
+            apdu->u.presentRequest->recordComposition 
+                = (Z_RecordComposition *) 
+                odr_malloc(odr_en, sizeof(Z_RecordComposition));
+            apdu->u.presentRequest->recordComposition->which 
+                = Z_RecordComp_simple;
+            apdu->u.presentRequest->recordComposition->u.simple 
+                = mp_util::build_esn_from_schema(odr_en,
+                                                 (const char *) 
+                                                 sr_req->recordSchema); 
+        }
+        
+        // attaching Z3950 package to filter chain
+        z3950_package.request() = apdu;
+        
+        // sending Z30.50 present request 
+        z3950_package.move();
+        
+        //check successful Z3950 present response
+        Z_GDU *z3950_gdu = z3950_package.response().get();
+        if (!z3950_gdu || z3950_gdu->which != Z_GDU_Z3950 
+            || z3950_gdu->u.z3950->which != Z_APDU_presentResponse
+            || !z3950_gdu->u.z3950->u.presentResponse)
             
-            sru_res->records[i].recordPacking = record_packing;
-            
-            if (npr->which == Z_NamePlusRecord_databaseRecord &&
-                npr->u.databaseRecord->direct_reference 
-                && !oid_oidcmp(npr->u.databaseRecord->direct_reference,
-                               yaz_oid_recsyn_xml))
+        {
+            yaz_add_srw_diagnostic(odr_en,
+                                   &(sru_pdu_res->u.response->diagnostics), 
+                                   &(sru_pdu_res->u.response->num_diagnostics), 
+                                   YAZ_SRW_SYSTEM_TEMPORARILY_UNAVAILABLE, 0);
+            return false;
+        }
+        // everything fine, continuing
+        
+        Z_PresentResponse *pr = z3950_gdu->u.z3950->u.presentResponse;
+        
+        // checking non surrogate diagnostics in Z3950 present response package
+        if (!z3950_to_srw_diagnostics_ok(odr_en, sru_pdu_res->u.response, 
+                                         pr->records))
+            return false;
+        
+        // if anything but database or surrogate diagnostics, stop
+        if (!pr->records || pr->records->which != Z_Records_DBOSD)
+            break;
+        else
+        {
+            // inserting all records
+            int returned_recs =
+                pr->records->u.databaseOrSurDiagnostics->num_records;
+            for (int i = 0; i < returned_recs; i++)
             {
-                // got XML record back
-                Z_External *r = npr->u.databaseRecord;
-                sru_res->records[i].recordPosition = 
-                    odr_intdup(odr_en, position);
-                sru_res->records[i].recordSchema = sr_req->recordSchema;
-                sru_res->records[i].recordData_buf
-                    = odr_strdupn(odr_en, 
-                                  (const char *)r->u.octet_aligned->buf, 
-                                  r->u.octet_aligned->len);
-                sru_res->records[i].recordData_len 
-                    = r->u.octet_aligned->len;
+                int position = i + *apdu->u.presentRequest->resultSetStartPoint;
+                Z_NamePlusRecord *npr 
+                    = pr->records->u.databaseOrSurDiagnostics->records[i];
+                
+                sru_res->records[i + num].recordPacking = record_packing;
+                
+                if (npr->which == Z_NamePlusRecord_databaseRecord &&
+                    npr->u.databaseRecord->direct_reference 
+                    && !oid_oidcmp(npr->u.databaseRecord->direct_reference,
+                                   yaz_oid_recsyn_xml))
+                {
+                    // got XML record back
+                    Z_External *r = npr->u.databaseRecord;
+                    sru_res->records[i + num].recordPosition = 
+                        odr_intdup(odr_en, position);
+                    sru_res->records[i + num].recordSchema = sr_req->recordSchema;
+                    sru_res->records[i + num].recordData_buf
+                        = odr_strdupn(odr_en, 
+                                      (const char *)r->u.octet_aligned->buf, 
+                                      r->u.octet_aligned->len);
+                    sru_res->records[i + num].recordData_len 
+                        = r->u.octet_aligned->len;
+                }
+                else
+                {
+                    // not XML or no database record at all
+                    yaz_mk_sru_surrogate(
+                        odr_en, sru_res->records + i + num, position,
+                        YAZ_SRW_RECORD_NOT_AVAILABLE_IN_THIS_SCHEMA, 0);
+                }
             }
-            else
-            {
-                // not XML or no database record at all
-                yaz_mk_sru_surrogate(
-                    odr_en, sru_res->records + i, position,
-                    YAZ_SRW_RECORD_NOT_AVAILABLE_IN_THIS_SCHEMA, 0);
-            }
+            num += returned_recs;
         }
     }
-    
+    sru_res->num_records = num;
+    if (start - 1 + num < *sru_pdu_res->u.response->numberOfRecords)
+        sru_res->nextRecordPosition =
+            odr_intdup(odr_en, start + num);
     return true;
 }
 
