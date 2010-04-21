@@ -281,9 +281,24 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         {
             Z_PresentResponse *pr 
                 = zapdu.u.presentResponse;
-            if ((pr->presentStatus) && !*(pr->presentStatus))
+            if (pr->presentStatus && 
+                *pr->presentStatus != Z_PresentStatus_failure)
             {
-                os << "OK";
+                switch (*pr->presentStatus)
+                {
+                case Z_PresentStatus_success:
+                    os << "OK"; break;
+                case Z_PresentStatus_partial_1:
+                    os << "Partial-1"; break;
+                case Z_PresentStatus_partial_2:
+                    os << "Partial-2"; break;
+                case Z_PresentStatus_partial_3:
+                    os << "Partial-3"; break;
+                case Z_PresentStatus_partial_4:
+                    os << "Partial-4"; break;
+                default:
+                    os << "Unknown"; break;
+                }
                 //<< pr->referenceId << " "
                 if (pr->numberOfRecordsReturned)
                     os << " " << *(pr->numberOfRecordsReturned);
