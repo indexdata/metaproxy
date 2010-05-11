@@ -53,6 +53,13 @@ fi
 
 AC_CHECK_HEADERS([sys/select.h sys/socket.h])
 
+if test -d ${srcdir}/.git; then
+    SHA1=`git show --pretty=format:%H|head -1`
+else
+    SHA1=`head -1 ${srcdir}/ChangeLog|awk '{print $2}'`
+fi
+AC_DEFINE_UNQUOTED([VERSION_SHA1], "$SHA1", [SHA-1 from Git])
+
 AC_CONFIG_FILES([
         Doxyfile
 	Makefile

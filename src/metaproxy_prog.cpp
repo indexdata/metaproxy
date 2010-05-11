@@ -124,7 +124,11 @@ static int sc_main(
                 uid = arg;
                 break;
             case 'V':
-                std::cout << VERSION "\n";
+                std::cout << VERSION;
+#ifdef VERSION_SHA1
+                std::cout << " " VERSION_SHA1;
+#endif
+                std::cout << "\n";
                 return 0;
                 break;
             case 'w':
@@ -153,7 +157,12 @@ static int sc_main(
             return 1;
         }
 
-        yaz_log(YLOG_LOG, "Metaproxy " VERSION " started");
+        yaz_log(YLOG_LOG, "Metaproxy start " VERSION
+#ifdef VERSION_SHA1
+                " " VERSION_SHA1
+#endif
+            );
+        
         xmlDocPtr doc = xmlReadFile(fname,
                                     NULL, 
                                     XML_PARSE_XINCLUDE + XML_PARSE_NOBLANKS
