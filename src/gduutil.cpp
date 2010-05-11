@@ -237,20 +237,23 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
     case Z_APDU_searchResponse:
         os << " " << "searchResponse ";
         {
-            Z_SearchResponse *sr 
-                = zapdu.u.searchResponse;
-            if (sr->searchStatus && *(sr->searchStatus))
-            {
+            Z_SearchResponse *sr = zapdu.u.searchResponse;
+            if (!sr->searchStatus)
+                os << "Unknown";
+            else if (*sr->searchStatus)
                 os << "OK";
+            else
+                os << "Failure";
+            if (sr->records && sr->records->which != Z_Records_DBOSD)
+            {
+                os << " DIAG " << *sr->records;
+            }
+            else
+            {
                 dump_opt_int(os, sr->resultCount);
                 dump_opt_int(os, sr->numberOfRecordsReturned);
                 dump_opt_int(os, sr->nextResultSetPosition);
             }
-            else 
-                if (sr->records)
-                    os << "DIAG " << *(sr->records);
-                else
-                    os << "ERROR";
         }
         break;
     case Z_APDU_presentRequest:
@@ -281,8 +284,9 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         {
             Z_PresentResponse *pr 
                 = zapdu.u.presentResponse;
-            if (pr->presentStatus && 
-                *pr->presentStatus != Z_PresentStatus_failure)
+            if (!pr->presentStatus)
+                os << "Unknown";
+            else
             {
                 switch (*pr->presentStatus)
                 {
@@ -296,30 +300,19 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                     os << "Partial-3"; break;
                 case Z_PresentStatus_partial_4:
                     os << "Partial-4"; break;
+                case Z_PresentStatus_failure:
+                    os << "Failure"; break;
                 default:
                     os << "Unknown"; break;
                 }
-                //<< pr->referenceId << " "
-                if (pr->numberOfRecordsReturned)
-                    os << " " << *(pr->numberOfRecordsReturned);
-                else
-                    os << " -";
-                if (pr->nextResultSetPosition)
-                    os << " " << *(pr->nextResultSetPosition);
-                else
-                    os << " -";
             }
+            if (pr->records && pr->records->which != Z_Records_DBOSD)
+                os << " DIAG " << *pr->records;
             else
-                if (pr->records)
-                    os << "DIAG " << *(pr->records);
-                else
-                    os << "ERROR";
-
-            //os << "DIAG" << " "
-            //<< "-" << " "
-            //<< pr->referenceId << " "
-            //<< *(pr->numberOfRecordsReturned) << " "
-            //<< *(pr->nextResultSetPosition);
+            {
+                dump_opt_int(os, pr->numberOfRecordsReturned);
+                dump_opt_int(os, pr->nextResultSetPosition);
+            }
         }
         break;
     case Z_APDU_deleteResultSetRequest:
