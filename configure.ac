@@ -3,7 +3,7 @@
 
 # Autoconf and automake setup
 AC_PREREQ([2.60])
-AC_INIT([metaproxy],[1.1.3],[metaproxy-help@indexdata.dk])
+AC_INIT([metaproxy],[1.1.4],[metaproxy-help@indexdata.dk])
 
 AC_CONFIG_HEADERS([src/config.hpp])
 
@@ -36,7 +36,7 @@ AC_CHECK_LIB([m],[main])
 AC_CHECK_FUNCS([localtime_r])
 
 ## YAZPP checks
-YAZPP_INIT([threads],[1.2.1])
+YAZPP_INIT([threads],[1.2.2])
 if test -z "$YAZPPLIB"; then
     AC_MSG_ERROR([YAZ++ development libraries missing])
 fi

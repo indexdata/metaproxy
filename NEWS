@@ -1,3 +1,4 @@
+--- 1.1.4 2010/05/11
 
 Filter log: category access logs diagnostics even if searchStatus
 or presentStatus is 'success'.
