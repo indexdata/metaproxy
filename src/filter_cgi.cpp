@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/log.h>
 
 #include <unistd.h>
+#include <signal.h>
 #include <sys/wait.h>
 #include <sstream>
 
