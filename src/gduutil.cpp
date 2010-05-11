@@ -24,15 +24,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/querytowrbuf.h>
 
 #include <iostream>
-#include <list>
 
 namespace mp = metaproxy_1;
 
 // Doxygen doesn't like mp::gdu, so we use this instead
 namespace mp_util = metaproxy_1::util;
-
-
-
 
 std::ostream& std::operator<<(std::ostream& os,  Z_GDU& zgdu)
 {
@@ -66,7 +62,6 @@ std::ostream& std::operator<<(std::ostream& os, Z_HTTP_Request& httpreq)
     return os;
 }
 
-
 std::ostream& std::operator<<(std::ostream& os, Z_HTTP_Response& httpres)
 {
     os << httpres.code << " ";
@@ -76,7 +71,8 @@ std::ostream& std::operator<<(std::ostream& os, Z_HTTP_Response& httpres)
 
 std::ostream& std::operator<<(std::ostream& os, Z_Records & rs)
 {
-    switch(rs.which) {
+    switch (rs.which)
+    {
     case Z_Records_DBOSD :
         break;
     case Z_Records_NSD:
@@ -96,7 +92,8 @@ std::ostream& std::operator<<(std::ostream& os, Z_Records & rs)
 
 std::ostream& std::operator<<(std::ostream& os, Z_DiagRec& dr)
 {
-    switch(dr.which) {
+    switch (dr.which)
+    {
     case Z_DiagRec_defaultFormat:
         if (dr.u.defaultFormat)
             os << *(dr.u.defaultFormat);
@@ -116,7 +113,8 @@ std::ostream& std::operator<<(std::ostream& os, Z_DefaultDiagFormat& ddf)
     if (ddf.condition)
         os << *(ddf.condition) << " ";
 
-    switch(ddf.which) {
+    switch (ddf.which)
+    {
     case Z_DefaultDiagFormat_v2Addinfo:
         os << ddf.u.v2Addinfo;
         break;
@@ -345,8 +343,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
     case Z_APDU_scanRequest:
         os << " " << "scanRequest" << " ";
         { 
-            Z_ScanRequest *sr 
-                = zapdu.u.scanRequest;
+            Z_ScanRequest *sr = zapdu.u.scanRequest;
                         
             if (sr)
             {
@@ -377,17 +374,15 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
     case Z_APDU_scanResponse:
         os << " " << "scanResponse" << " ";
         {
-            Z_ScanResponse *sr 
-                = zapdu.u.scanResponse;
+            Z_ScanResponse *sr = zapdu.u.scanResponse;
             if (sr)
             {
                 if (!sr->scanStatus)
-                {
                     os << "OK";
-                }
                 else
                 {
-                    switch (*(sr->scanStatus)){
+                    switch (*sr->scanStatus)
+                    {
                     case Z_Scan_success:
                         os << "OK";
                         break;
@@ -476,48 +471,49 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         break;
     case Z_APDU_extendedServicesResponse:
         os << " " << "extendedServicesResponse";
-         { 
-             Z_ExtendedServicesResponse *er 
-                 = zapdu.u.extendedServicesResponse;
-             if (er)
-             {
-                 if (er->operationStatus)
-                 {
-                     os << " ";
-                     switch (*(er->operationStatus)){
-                     case Z_ExtendedServicesResponse_done:
-                         os << "OK";
-                         break;
-                     case Z_ExtendedServicesResponse_accepted:
-                         os << "ACCEPT";
-                         break;
-                     case Z_ExtendedServicesResponse_failure:
-                         if (er->num_diagnostics)
-                             os << "DIAG " << **(er->diagnostics);
-                         else
-                             os << "ERROR";
-                         break;
-                     default:
-                         os << "unknown";
-                     }
-                 }
-                 else
-                     os << " -";
-             }
-         }
+        { 
+            Z_ExtendedServicesResponse *er 
+                = zapdu.u.extendedServicesResponse;
+            if (er)
+            {
+                if (er->operationStatus)
+                {
+                    os << " ";
+                    switch (*er->operationStatus)
+                    {
+                    case Z_ExtendedServicesResponse_done:
+                        os << "OK";
+                        break;
+                    case Z_ExtendedServicesResponse_accepted:
+                        os << "ACCEPT";
+                        break;
+                    case Z_ExtendedServicesResponse_failure:
+                        if (er->num_diagnostics)
+                            os << "DIAG " << **(er->diagnostics);
+                        else
+                            os << "ERROR";
+                        break;
+                    default:
+                        os << "unknown";
+                    }
+                }
+                else
+                    os << " -";
+            }
+        }
         break;
     case Z_APDU_close:
         os  << " " << "close" << " ";
         { 
-            Z_Close  *c 
-                = zapdu.u.close;
+            Z_Close *c = zapdu.u.close;
             if (c)
             {
                 if (c->closeReason)
                 {
                     os << *(c->closeReason) << " ";
 
-                    switch (*(c->closeReason)) {
+                    switch (*c->closeReason)
+                    {
                     case Z_Close_finished:
                         os << "finished";
                         break;
