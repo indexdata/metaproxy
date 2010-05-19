@@ -191,10 +191,7 @@ LINK_LIBS=kernel32.lib user32.lib gdi32.lib advapi32.lib uuid.lib \
           $(YAZ_LIB) $(YAZPP_LIB) $(ICONV_LIB) $(LIBXSLT_LIB) \
 	  $(BOOST_LIB) 
 
-COMMON_LNK_OPTIONS= /nologo \
-                  /subsystem:windows \
-                  /machine:i386 \
-		  /incremental:no
+COMMON_LNK_OPTIONS= /nologo /subsystem:windows /incremental:no
 
 DEBUG_LNK_OPTIONS= /debug 
 
@@ -226,7 +223,6 @@ PROJECT_DLL_OBJS = \
 	$(OBJDIR)\filter_auth_simple.obj \
         $(OBJDIR)\filter_backend_test.obj \
         $(OBJDIR)\filter_bounce.obj \
-	$(OBJDIR)\filter_cgi.obj \
         $(OBJDIR)\filter_cql_to_rpn.obj \
 	$(OBJDIR)\filter_frontend_net.obj \
 	$(OBJDIR)\filter_http_file.obj \
