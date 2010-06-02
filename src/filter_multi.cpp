@@ -766,6 +766,14 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
         f_resp->records = z_records_diag;
         *f_resp->presentStatus = Z_PresentStatus_failure;
     }
+    else if (number < 0 || number > jobs.size())
+    {
+        f_apdu = 
+            odr.create_presentResponse(
+                apdu_req,
+                YAZ_BIB1_PRESENT_REQUEST_OUT_OF_RANGE,
+                0);
+    }
     else
     {
         f_resp->records = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
