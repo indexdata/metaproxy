@@ -267,7 +267,6 @@ void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     for (i = 0; i<req->num_databaseNames; i++)
         databases.push_back(req->databaseNames[i]);
 
-    BackendPtr b; // null for now
     Sets_it sets_it = m_sets.find(req->resultSetName);
     if (sets_it != m_sets.end())
     {
@@ -286,39 +285,22 @@ void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
             return;
         } 
         sets_it->second.m_backend->m_number_of_sets--;
-
-        // pick up any existing backend with a database match
-        std::list<BackendPtr>::const_iterator map_it;
-        map_it = m_backend_list.begin();
-        for (; map_it != m_backend_list.end(); map_it++)
-        {
-            BackendPtr tmp = *map_it;
-            if (tmp->m_frontend_databases == databases &&
-                (tmp->m_named_result_sets ||
-                 tmp->m_number_of_sets == 0))
-                break;
-        }
-        if (map_it != m_backend_list.end()) 
-            b = *map_it;
     }
-    else
+    // pick up any existing database with named result sets ..
+    // or one which has no result sets.. yet.
+    BackendPtr b; // null for now
+    std::list<BackendPtr>::const_iterator map_it;
+    map_it = m_backend_list.begin();
+    for (; map_it != m_backend_list.end(); map_it++)
     {
-        // new result set.
-
-        // pick up any existing database with named result sets ..
-        // or one which has no result sets.. yet.
-        std::list<BackendPtr>::const_iterator map_it;
-        map_it = m_backend_list.begin();
-        for (; map_it != m_backend_list.end(); map_it++)
+        BackendPtr tmp = *map_it;
+        if (tmp->m_frontend_databases == databases &&
+            (tmp->m_named_result_sets ||
+             tmp->m_number_of_sets == 0))
         {
-            BackendPtr tmp = *map_it;
-            if (tmp->m_frontend_databases == databases &&
-                (tmp->m_named_result_sets ||
-                 tmp->m_number_of_sets == 0))
-                break;
-        }
-        if (map_it != m_backend_list.end()) 
             b = *map_it;
+            break;
+        }
     }
     if (!b)  // no backend yet. Must create a new one
     {
