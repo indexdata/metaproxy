@@ -127,9 +127,7 @@ void yf::Limit::Impl::configure(const xmlNode *ptr)
 
 void yf::Limit::Impl::process(mp::Package &package)
 {
-    package.move();
-    int reduce = 0;
-
+    int sz = 0;
     {
         boost::mutex::scoped_lock scoped_lock(m_session_mutex);
 
@@ -145,14 +143,11 @@ void yf::Limit::Impl::process(mp::Package &package)
             m_sessions[package.session()] = ses;
         }
 
-        int sz = package.request().get_size() + package.response().get_size();
-        
-        ses->bw_stat.add_bytes(sz);
-        ses->pdu_stat.add_bytes(1);
-        
+
         Z_GDU *gdu = package.request().get();
         if (gdu && gdu->which == Z_GDU_Z3950)
         {
+            sz += package.request().get_size();
             // we're getting a Z39.50 package
             Z_APDU *apdu = gdu->u.z3950;
             if (apdu->which == Z_APDU_searchRequest)
@@ -168,6 +163,28 @@ void yf::Limit::Impl::process(mp::Package &package)
                 }
             }
         }
+    }
+    package.move();
+    int reduce = 0;
+    {
+        boost::mutex::scoped_lock scoped_lock(m_session_mutex);
+
+        yf::Limit::Ses *ses = 0;
+
+        std::map<mp::Session,yf::Limit::Ses *>::iterator it = 
+            m_sessions.find(package.session());
+        if (it != m_sessions.end())
+            ses = it->second;
+        else
+        {
+            ses = new yf::Limit::Ses;
+            m_sessions[package.session()] = ses;
+        }
+
+        sz += package.response().get_size();
+        
+        ses->bw_stat.add_bytes(sz);
+        ses->pdu_stat.add_bytes(1);
         
         int bw_total = ses->bw_stat.get_total();
         int pdu_total = ses->pdu_stat.get_total();
