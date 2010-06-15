@@ -1,3 +1,9 @@
+metaproxy (1.1.5-1indexdata) unstable; urgency=low
+
+  * Upstream.
+
+ -- Adam Dickmeiss <adam@indexdata.dk>  Tue, 15 Jun 2010 14:24:29 +0200
+
 metaproxy (1.1.4-1indexdata) unstable; urgency=low
 
   * Upstream.

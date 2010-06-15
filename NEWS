@@ -1,3 +1,11 @@
+--- 1.1.5 2010/06/15
+
+Filter multi throws diagnostic 'Present Out of Range' when
+appropriate - rather than returning 0 records.
+
+Filter virt_db: fix bad result reuse. Could happen if a result
+was overriden and a backend did not supported named result sets.
+
 --- 1.1.4 2010/05/11
 
 Filter log: category access logs diagnostics even if searchStatus
