@@ -233,7 +233,6 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         || !gdu_res->u.z3950->u.presentResponse)
 
     {
-        std::cout << "record-transform: error back present\n";
         package.session().close();
         return;
     }
