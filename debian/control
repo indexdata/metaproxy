@@ -3,7 +3,7 @@ Section: devel
 Standards-Version: 3.6.2
 Maintainer: Adam Dickmeiss <adam@indexdata.dk>
 Priority: extra
-Build-Depends: debhelper (>= 4), libyaz4-dev, libyazpp4-dev (>= 1.2.1), libxslt1-dev, libboost-dev, libboost-thread-dev, libboost-test-dev
+Build-Depends: debhelper (>= 4), libyaz4-dev, libyazpp4-dev (>= 1.2.3), libxslt1-dev, libboost-dev, libboost-thread-dev, libboost-test-dev
 
 Package: metaproxy
 Section: net
