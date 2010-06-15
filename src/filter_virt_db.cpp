@@ -293,7 +293,9 @@ void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
         for (; map_it != m_backend_list.end(); map_it++)
         {
             BackendPtr tmp = *map_it;
-            if (tmp->m_frontend_databases == databases)
+            if (tmp->m_frontend_databases == databases &&
+                (tmp->m_named_result_sets ||
+                 tmp->m_number_of_sets == 0))
                 break;
         }
         if (map_it != m_backend_list.end()) 
