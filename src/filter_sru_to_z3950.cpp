@@ -66,7 +66,7 @@ namespace metaproxy_1 {
                 mp::odr &odr_en, Z_Query *z_query, 
                 const Z_SRW_searchRetrieveRequest *req
                 ) const;
-
+            
             bool z3950_init_request(
                 mp::Package &package, 
                 mp::odr &odr_en,
@@ -156,7 +156,7 @@ void yf::SRUtoZ3950::Impl::configure(const xmlNode *confignode)
             }
             // assigning explain node to database name - no check yet 
             m_database_explain.insert(std::make_pair(database, explainnode));
-         }
+        }
     }
 }
 
@@ -407,7 +407,7 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
     if (z3950_gdu && z3950_gdu->which == Z_GDU_Z3950 
         && z3950_gdu->u.z3950->which == Z_APDU_initResponse 
         && *z3950_gdu->u.z3950->u.initResponse->result)
-         return true;
+        return true;
  
     yaz_add_srw_diagnostic(odr_en,
                            &(sru_pdu_res->u.response->diagnostics),
@@ -463,8 +463,8 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
 
 
     if (!mp_util::set_databases_from_zurl(odr_en, zurl,
-                                     &z_searchRequest->num_databaseNames,
-                                         &z_searchRequest->databaseNames))
+                                          &z_searchRequest->num_databaseNames,
+                                          &z_searchRequest->databaseNames))
     {
         z_searchRequest->num_databaseNames = 1;
         z_searchRequest->databaseNames = (char**)
@@ -475,7 +475,7 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
                 = odr_strdup(odr_en, const_cast<char *>(sr_req->database));
         else
             z_searchRequest->databaseNames[0] 
-            = odr_strdup(odr_en, "Default");
+                = odr_strdup(odr_en, "Default");
     }
 
     // z3950'fy query
@@ -805,8 +805,8 @@ yf::SRUtoZ3950::Impl::z3950_to_srw_diagnostics_ok(mp::odr &odr_en,
 
 int 
 yf::SRUtoZ3950::Impl::z3950_to_srw_diag(mp::odr &odr_en, 
-                                       Z_SRW_searchRetrieveResponse *sru_res,
-                                       Z_DefaultDiagFormat *ddf) const
+                                        Z_SRW_searchRetrieveResponse *sru_res,
+                                        Z_DefaultDiagFormat *ddf) const
 {
     int bib1_code = *ddf->condition;
     sru_res->num_diagnostics = 1;

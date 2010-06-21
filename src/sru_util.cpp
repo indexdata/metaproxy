@@ -102,7 +102,8 @@ bool mp_util::build_sru_explain(metaproxy_1::Package &package,
     // building SRU explain record
     std::string explain_xml;    
 
-    if (explain == 0){
+    if (explain == 0)
+    {
         explain_xml 
             = mp_util::to_string(
                 "<explain  xmlns=\"" + xmlns_explain + "\">\n"
@@ -119,7 +120,8 @@ bool mp_util::build_sru_explain(metaproxy_1::Package &package,
                                  "  </serverInfo>\n"
                                  "</explain>\n");
     }
-    else {
+    else
+    {
         // make new XML DOC with given explain node
         xmlDocPtr doc =  xmlNewDoc(BAD_CAST "1.0");
         xmlDocSetRootElement(doc, (xmlNode*)explain);
@@ -191,30 +193,30 @@ bool mp_util::build_sru_response(mp::Package &package,
         z_HTTP_header_add(odr_en, 
                           &http_res->headers, "Content-Type", ctype.c_str());
 
-         // packaging Z_SOAP into HTML response
-         static Z_SOAP_Handler soap_handlers[4] = {
-             {(char *)YAZ_XMLNS_SRU_v1_1, 0, (Z_SOAP_fun) yaz_srw_codec},
-             {(char *)YAZ_XMLNS_SRU_v1_0, 0,  (Z_SOAP_fun) yaz_srw_codec},
-             {(char *)YAZ_XMLNS_UPDATE_v0_9, 0, (Z_SOAP_fun) yaz_ucp_codec},
-             {0, 0, 0}
-         };
+        // packaging Z_SOAP into HTML response
+        static Z_SOAP_Handler soap_handlers[4] = {
+            {(char *)YAZ_XMLNS_SRU_v1_1, 0, (Z_SOAP_fun) yaz_srw_codec},
+            {(char *)YAZ_XMLNS_SRU_v1_0, 0,  (Z_SOAP_fun) yaz_srw_codec},
+            {(char *)YAZ_XMLNS_UPDATE_v0_9, 0, (Z_SOAP_fun) yaz_ucp_codec},
+            {0, 0, 0}
+        };
 
 
-         // empty stylesheet means NO stylesheet
-         if (stylesheet && *stylesheet == '\0')
-             stylesheet = 0;
+        // empty stylesheet means NO stylesheet
+        if (stylesheet && *stylesheet == '\0')
+            stylesheet = 0;
          
-         // encoding SRU package
+        // encoding SRU package
          
-         soap->u.generic->p  = (void*) sru_pdu_res;         
-         //int ret = 
-         z_soap_codec_enc_xsl(odr_en, &soap, 
-                              &http_res->content_buf, &http_res->content_len,
-                              soap_handlers, charset, stylesheet);
+        soap->u.generic->p  = (void*) sru_pdu_res;         
+        //int ret = 
+        z_soap_codec_enc_xsl(odr_en, &soap, 
+                             &http_res->content_buf, &http_res->content_len,
+                             soap_handlers, charset, stylesheet);
          
 
-         package.response() = zgdu_res;
-         return true;
+        package.response() = zgdu_res;
+        return true;
     }
     package.session().close();
     return false;
@@ -293,11 +295,11 @@ mp_util::check_sru_query_exists(mp::Package &package,
     }
     if ((sr_req->query_type == Z_SRW_query_type_xcql && !sr_req->query.xcql))
     {
-         yaz_add_srw_diagnostic(odr_en,
+        yaz_add_srw_diagnostic(odr_en,
                                &(sru_pdu_res->u.response->diagnostics), 
                                &(sru_pdu_res->u.response->num_diagnostics), 
-                                10, "XCQL query is empty");
-         return false;
+                               10, "XCQL query is empty");
+        return false;
     }
     if ((sr_req->query_type == Z_SRW_query_type_pqf && !sr_req->query.pqf))
     {
@@ -329,7 +331,8 @@ std::ostream& std::operator<<(std::ostream& os, Z_SRW_PDU& srw_pdu)
 {
     os << "SRU";
     
-    switch(srw_pdu.which) {
+    switch (srw_pdu.which)
+    {
     case  Z_SRW_searchRetrieve_request:
         os << " " << "searchRetrieveRequest";
         {
