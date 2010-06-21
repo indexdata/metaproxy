@@ -52,7 +52,7 @@ static pid_t process_group = 0;
 static void sig_term_handler(int s)
 {
     kill(-process_group, SIGTERM); /* kill all children processes as well */
-    exit(0);
+    _exit(0);
 }
 #endif
 
