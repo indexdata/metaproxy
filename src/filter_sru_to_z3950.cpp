@@ -487,7 +487,8 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
         yaz_add_srw_diagnostic(odr_en,
                                &(sru_pdu_res->u.response->diagnostics), 
                                &(sru_pdu_res->u.response->num_diagnostics), 
-                               7, "query");
+                               YAZ_SRW_MANDATORY_PARAMETER_NOT_SUPPLIED,
+                               "query");
         return false;
     }
 
@@ -512,7 +513,7 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
         yaz_add_srw_diagnostic(odr_en,
                                &(sru_pdu_res->u.response->diagnostics),
                                &(sru_pdu_res->u.response->num_diagnostics),
-                               2, 0);
+                               YAZ_SRW_SYSTEM_TEMPORARILY_UNAVAILABLE, 0);
         return false;
     }
     

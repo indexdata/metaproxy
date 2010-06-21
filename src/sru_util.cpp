@@ -286,11 +286,13 @@ mp_util::check_sru_query_exists(mp::Package &package,
         yaz_add_srw_diagnostic(odr_en,
                                &(sru_pdu_res->u.response->diagnostics), 
                                &(sru_pdu_res->u.response->num_diagnostics), 
-                               7, "query");
+                               YAZ_SRW_MANDATORY_PARAMETER_NOT_SUPPLIED,
+                               "query");
         yaz_add_srw_diagnostic(odr_en,
                                &(sru_pdu_res->u.response->diagnostics), 
                                &(sru_pdu_res->u.response->num_diagnostics), 
-                               10, "CQL query is empty");
+                               YAZ_SRW_QUERY_SYNTAX_ERROR,
+                               "CQL query is empty");
         return false;
     }
     if ((sr_req->query_type == Z_SRW_query_type_xcql && !sr_req->query.xcql))
@@ -298,7 +300,8 @@ mp_util::check_sru_query_exists(mp::Package &package,
         yaz_add_srw_diagnostic(odr_en,
                                &(sru_pdu_res->u.response->diagnostics), 
                                &(sru_pdu_res->u.response->num_diagnostics), 
-                               10, "XCQL query is empty");
+                               YAZ_SRW_QUERY_SYNTAX_ERROR,
+                               "XCQL query is empty");
         return false;
     }
     if ((sr_req->query_type == Z_SRW_query_type_pqf && !sr_req->query.pqf))
@@ -306,7 +309,8 @@ mp_util::check_sru_query_exists(mp::Package &package,
         yaz_add_srw_diagnostic(odr_en,
                                &(sru_pdu_res->u.response->diagnostics), 
                                &(sru_pdu_res->u.response->num_diagnostics), 
-                               10, "PQF query is empty");
+                               YAZ_SRW_QUERY_SYNTAX_ERROR,
+                               "PQF query is empty");
         return false;
     }
     return true;
