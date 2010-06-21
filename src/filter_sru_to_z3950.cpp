@@ -254,7 +254,7 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
             if (ok 
                 && sru_pdu_res->u.response->numberOfRecords
                 && *(sru_pdu_res->u.response->numberOfRecords))
-                
+
                 ok = z3950_present_request(package, odr_en,
                                            sru_pdu_res,
                                            sr_req);
@@ -624,11 +624,8 @@ yf::SRUtoZ3950::Impl::z3950_present_request(
         max_recs = *sru_pdu_res->u.response->numberOfRecords - start + 1;
 
     Z_SRW_searchRetrieveResponse *sru_res = sru_pdu_res->u.response;
-    // srw'fy number of returned records
-    sru_res->num_records = max_recs;
-    sru_res->records = (Z_SRW_record *) odr_malloc(odr_en, 
-                                                   sru_res->num_records 
-                                                   * sizeof(Z_SRW_record));
+    sru_res->records = (Z_SRW_record *)
+        odr_malloc(odr_en, max_recs * sizeof(Z_SRW_record));
     int num = 0;
     while (num < max_recs)
     {
