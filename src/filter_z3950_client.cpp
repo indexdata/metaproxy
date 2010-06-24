@@ -309,7 +309,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         for (; it != m_clients.end(); it++)
         {
             yf::Z3950Client::Assoc *as = it->second;
-            if (!strcmp(as->get_hostname(), host.c_str()))
+            if (!strcmp(as->m_host.c_str(), host.c_str()))
             {
                 number++;
                 if (!as->m_in_use)
