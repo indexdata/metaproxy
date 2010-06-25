@@ -766,7 +766,7 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
         f_resp->records = z_records_diag;
         *f_resp->presentStatus = Z_PresentStatus_failure;
     }
-    else if (number < 0 || number > jobs.size())
+    else if (number < 0 || (size_t) number > jobs.size())
     {
         f_apdu = 
             odr.create_presentResponse(
