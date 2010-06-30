@@ -377,13 +377,17 @@ yf::SessionShared::BackendInstancePtr yf::SessionShared::BackendClass::create_ba
 
     m_named_result_sets = false;
     Z_GDU *gdu = init_package.response().get();
-    if (!init_package.session().is_closed()
-        && gdu && gdu->which == Z_GDU_Z3950 
-        && gdu->u.z3950->which == Z_APDU_initResponse)
+    if (init_package.session().is_closed())
     {
+        /* already closed. We don't know why */
+        return null;
+    }
+    else if (gdu && gdu->which == Z_GDU_Z3950 
+             && gdu->u.z3950->which == Z_APDU_initResponse
+             && *gdu->u.z3950->u.initResponse->result)
+    {
+        /* successful init response */
         Z_InitResponse *res = gdu->u.z3950->u.initResponse;
-        if (!*res->result)
-            return null;
         m_init_response = gdu->u.z3950;
         if (ODR_MASK_GET(res->options, Z_Options_namedResultSets))
         {
@@ -392,7 +396,10 @@ yf::SessionShared::BackendInstancePtr yf::SessionShared::BackendClass::create_ba
     }
     else
     {
-        // did not receive an init response or closed
+        /* not init or init rejected */
+        init_package.copy_filter(frontend_package);
+        init_package.session().close();
+        init_package.move();
         return null;
     }
     bp->m_in_use = true;
@@ -610,7 +617,6 @@ restart:
     BackendClassPtr bc = m_backend_class;
     {
         boost::mutex::scoped_lock lock(bc->m_mutex_backend_class);
-     
         // look at each backend and see if we have a similar search
         BackendInstanceList::const_iterator it = bc->m_backend_list.begin();
         
