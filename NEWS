@@ -1,3 +1,10 @@
+
+session_shared: ensure backend session is closed if init rejected
+is received.
+
+z3950_client: fix NULL ptr reference that could occur if two clients
+connected concurrently and if max-sockets was in effect.
+
 --- 1.1.6 2010/06/21
 
 Fix bug 3497 - Metaproxy unstable while stopping.
