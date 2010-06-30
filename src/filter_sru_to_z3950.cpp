@@ -62,7 +62,7 @@ namespace metaproxy_1 {
             ActiveUrlMap m_active_urls;
         private:
             void sru(metaproxy_1::Package &package, Z_GDU *zgdu_req);
-            bool z3950_build_query(
+            int z3950_build_query(
                 mp::odr &odr_en, Z_Query *z_query, 
                 const Z_SRW_searchRetrieveRequest *req
                 ) const;
@@ -482,12 +482,13 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
     Z_Query *z_query = (Z_Query *) odr_malloc(odr_en, sizeof(Z_Query));
     z_searchRequest->query = z_query;
  
-    if (!z3950_build_query(odr_en, z_query, sr_req))
+    int sru_diagnostic = z3950_build_query(odr_en, z_query, sr_req);
+    if (sru_diagnostic)
     {    
         yaz_add_srw_diagnostic(odr_en,
                                &(sru_pdu_res->u.response->diagnostics), 
                                &(sru_pdu_res->u.response->num_diagnostics), 
-                               YAZ_SRW_MANDATORY_PARAMETER_NOT_SUPPLIED,
+                               sru_diagnostic,
                                "query");
         return false;
     }
@@ -742,8 +743,8 @@ yf::SRUtoZ3950::Impl::z3950_present_request(
     return true;
 }
 
-bool yf::SRUtoZ3950::Impl::z3950_build_query(mp::odr &odr_en, Z_Query *z_query, 
-                                             const Z_SRW_searchRetrieveRequest *req
+int yf::SRUtoZ3950::Impl::z3950_build_query(mp::odr &odr_en, Z_Query *z_query, 
+                                            const Z_SRW_searchRetrieveRequest *req
     ) const
 {        
     if (req->query_type == Z_SRW_query_type_cql)
@@ -759,7 +760,7 @@ bool yf::SRUtoZ3950::Impl::z3950_build_query(mp::odr &odr_en, Z_Query *z_query,
         
         z_query->which = Z_Query_type_104;
         z_query->u.type_104 =  ext;
-        return true;
+        return 0;
     }
 
     if (req->query_type == Z_SRW_query_type_pqf)
@@ -770,18 +771,18 @@ bool yf::SRUtoZ3950::Impl::z3950_build_query(mp::odr &odr_en, Z_Query *z_query,
         pqf_parser = yaz_pqf_create ();
         
         RPNquery = yaz_pqf_parse (pqf_parser, odr_en, req->query.pqf);
+
+        yaz_pqf_destroy(pqf_parser);
+
         if (!RPNquery)
-        {
-            std::cout << "TODO: Handeling of bad PQF\n";
-            std::cout << "TODO: Diagnostic to be send\n";
-        }
+            return YAZ_SRW_QUERY_SYNTAX_ERROR;
+
         z_query->which = Z_Query_type_1;
         z_query->u.type_1 =  RPNquery;
         
-        yaz_pqf_destroy(pqf_parser);
-        return true;
+        return 0;
     }
-    return false;
+    return YAZ_SRW_MANDATORY_PARAMETER_NOT_SUPPLIED;
 }
 
 
