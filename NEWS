@@ -1,3 +1,4 @@
+--- 1.1.6 2010/06/30
 
 session_shared: ensure backend session is closed if init rejected
 is received.
