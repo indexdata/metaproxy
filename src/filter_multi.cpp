@@ -461,8 +461,6 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
             bit = m_backend_list.erase(bit);
             continue;
         }
-        no_succeeded++;
-
         Z_GDU *gdu = p->response().get();
         if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
             Z_APDU_initResponse)
@@ -481,28 +479,30 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
             for (i = 0; i <= Z_ProtocolVersion_3; i++)
                 if (!ODR_MASK_GET(b_resp->protocolVersion, i))
                     ODR_MASK_CLEAR(f_resp->protocolVersion, i);
-            // reject if any of the backends reject
-            if (!*b_resp->result)
-                *f_resp->result = 0;
+            if (*b_resp->result)
+                no_succeeded++;
+            else
+                no_failed++;
         }
         else
-        {
-            // if any target does not return init return that (close or
-            // similar )
-            package.response() = p->response();
-            return;
-        }
+            no_failed++;
         bit++;
     }
     if (m_p->m_hide_unavailable)
     {
         if (no_succeeded == 0)
+        {
+            *f_resp->result = 0;
             package.session().close();
+        }
     }
     else
     {
         if (no_failed)
+        {
+            *f_resp->result = 0;
             package.session().close();
+        }
     }
     package.response() = f_apdu;
 }
