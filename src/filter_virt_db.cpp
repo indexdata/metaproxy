@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
 #include <yaz/match_glob.h>
+#include <yaz/log.h>
 
 #include <map>
 #include <iostream>
@@ -227,21 +228,21 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::init_backend(
 
     Z_GDU *gdu = init_package.response().get();
     // we hope to get an init response
-    if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
-        Z_APDU_initResponse)
+    error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
+    if (gdu && gdu->which == Z_GDU_Z3950
+        && gdu->u.z3950->which == Z_APDU_initResponse
+        && *gdu->u.z3950->u.initResponse->result)
     {
         Z_InitResponse *res = gdu->u.z3950->u.initResponse;
         if (ODR_MASK_GET(res->options, Z_Options_namedResultSets))
         {
             b->m_named_result_sets = true;
         }
-        if (*res->result)
+        if (*res->result && !init_package.session().is_closed())
         {
             m_backend_list.push_back(b);
             return b;
-
         }
-        error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
         mp::util::get_init_diagnostics(res, error_code, addinfo);
     }
     if (!init_package.session().is_closed())
