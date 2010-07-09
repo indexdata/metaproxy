@@ -34,6 +34,7 @@ namespace metaproxy_1 {
         virtual ~RouterChain();
         virtual RoutePos *createpos() const;
         RouterChain & append(const filter::Base &filter);
+        void start();
     private:
         boost::scoped_ptr<Rep> m_p;
         /// disabled because class is singleton

@@ -17,6 +17,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "router_chain.hpp"
+#include <metaproxy/filter.hpp>
 
 #include <list>
 
@@ -47,6 +48,14 @@ mp::RouterChain::RouterChain() : m_p(new mp::RouterChain::Rep)
 
 mp::RouterChain::~RouterChain()
 {
+}
+
+void mp::RouterChain::start()
+{
+    std::list<const filter::Base *>::const_iterator it;
+
+    for (it = m_p->m_filter_list.begin(); it != m_p->m_filter_list.end(); it++)
+        (*it)->start();
 }
 
 const mp::filter::Base *mp::RouterChain::Pos::move(const char *route)

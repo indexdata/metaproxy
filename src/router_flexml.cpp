@@ -395,6 +395,23 @@ mp::RouterFleXML::Pos::~Pos()
 }
 
 
+void mp::RouterFleXML::start()
+{
+    std::map<std::string,RouterFleXML::Route>::iterator route_it;
+
+    route_it = m_p->m_routes.begin();
+    while (route_it != m_p->m_routes.end())
+    {
+        RouterFleXML::Route route = route_it->second;
+
+        std::list<boost::shared_ptr<const mp::filter::Base> >::iterator it;
+
+        for (it = route.m_list.begin(); it != route.m_list.end(); it++)
+            (*it)->start();
+        route_it++;
+    }
+}
+
 /*
  * Local variables:
  * c-basic-offset: 4

@@ -38,6 +38,8 @@ namespace metaproxy_1 {
 
             /// configuration during filter load 
             virtual void configure(const xmlNode * ptr, bool test_only);
+
+            virtual void start() const;
         };
 
         class FilterException : public std::runtime_error {

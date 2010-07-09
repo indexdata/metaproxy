@@ -28,6 +28,12 @@ void mp::filter::Base::configure(const xmlNode * ptr, bool test_only)
     mp::xml::check_empty(ptr);
 }
 
+void mp::filter::Base::start() const
+{
+
+}
+
+
 /*
  * Local variables:
  * c-basic-offset: 4

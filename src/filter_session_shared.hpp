@@ -53,6 +53,7 @@ namespace metaproxy_1 {
             SessionShared();
             void process(metaproxy_1::Package & package) const;
             void configure(const xmlNode * ptr, bool test_only);
+            void start() const;
         private:
             boost::scoped_ptr<Rep> m_p;
         };

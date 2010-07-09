@@ -179,6 +179,7 @@ namespace metaproxy_1 {
         private:
             void init(Package &package, const Z_GDU *gdu,
                       FrontendPtr frontend);
+            void start();
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
@@ -1017,6 +1018,10 @@ yf::SessionShared::Rep::Rep()
     m_resultset_ttl = 30;
     m_resultset_max = 10;
     m_session_ttl = 90;
+}
+
+void yf::SessionShared::Rep::start()
+{
     yf::SessionShared::Worker w(this);
     m_thrds.add_thread(new boost::thread(w));
 }
@@ -1028,6 +1033,10 @@ yf::SessionShared::SessionShared() : m_p(new SessionShared::Rep)
 yf::SessionShared::~SessionShared() {
 }
 
+void yf::SessionShared::start() const
+{
+    m_p->start();
+}
 
 yf::SessionShared::Frontend::Frontend(Rep *rep) : m_is_virtual(false), m_p(rep)
 {

@@ -43,6 +43,7 @@ namespace metaproxy_1
         ~RouterFleXML();
 
         virtual RoutePos *createpos() const;
+        void start();
     private:
         boost::scoped_ptr<Rep> m_p;
     };

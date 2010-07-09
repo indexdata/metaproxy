@@ -67,6 +67,7 @@ static void handler(void *data)
     
     signal(SIGTERM, sig_term_handler);
 #endif
+    routerp->start();
 
     mp::Package pack;
     pack.router(*routerp).move(); /* should never exit */
