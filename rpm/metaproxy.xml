@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
+  <dlpath>/usr/lib/metaproxy/modules</dlpath>
+  <start route="start"/>
+  <filters>
+    <filter id="frontend" type="frontend_net">
+      <threads>50</threads>
+      <port>@:9000</port>
+    </filter>
+  </filters>
+  <routes>  
+    <route id="start">
+      <filter refid="frontend"/>
+      <filter type="log">
+        <message>log</message>
+      </filter>
+      <include src="filters-enabled/*.xml"/>
+      <filter type="bounce"/>
+    </route>
+  </routes>
+</metaproxy>
+

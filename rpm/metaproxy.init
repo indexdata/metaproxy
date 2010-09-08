@@ -1,0 +1,82 @@
+#!/bin/bash
+#
+# metaproxy    Startup script for Metaproxy
+#
+# chkconfig: 2345 85 15
+# description: Metaproxy SRU/Z39.50 router
+# processname: metaproxy
+# config: /etc/metaproxy/metaproxy.xml
+# config: /etc/sysconfig/metaproxy
+# pidfile: /var/run/metaproxy.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+OPTIONS="-u nobody -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"
+
+if [ -f /etc/sysconfig/metaproxy ]; then
+        . /etc/sysconfig/metaproxy
+fi
+
+DAEMON=${DAEMON-/usr/bin/metaproxy}
+prog=metaproxy
+pidfile=${PIDFILE-/var/run/metaproxy.pid}
+lockfile=${LOCKFILE-/var/lock/subsys/metaproxy}
+RETVAL=0
+
+start() {
+        echo -n $"Starting $prog: "
+        daemon --pidfile=${pidfile} $DAEMON $OPTIONS -D -p ${pidfile}
+        RETVAL=$?
+        echo
+        [ $RETVAL = 0 ] && touch ${lockfile}
+        return $RETVAL
+}
+
+stop() {
+	echo -n $"Stopping $prog: "
+	killproc -p ${pidfile} -d 10 $DAEMON
+	RETVAL=$?
+	echo
+	[ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
+}
+reload() {
+    stop
+    start
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  status)
+        status -p ${pidfile} $DAEMON
+	RETVAL=$?
+	;;
+  restart)
+	stop
+	start
+	;;
+  condrestart)
+	if [ -f ${pidfile} ] ; then
+		stop
+		start
+	fi
+	;;
+  reload)
+        reload
+	;;
+  configtest)
+	$DAEMON $OPTIONS -t
+	RETVAL=$?
+	;;
+  *)
+	echo $"Usage: $prog {start|stop|restart|help|configtest}"
+	exit 1
+esac
+
+exit $RETVAL
