@@ -1,6 +1,6 @@
 Summary: Z39.50/SRU router
 Name: metaproxy
-Version: 1.1.4
+Version: 1.2.1
 Release: 1
 License: GPL
 Group: Applications/Internet
@@ -11,7 +11,7 @@ BuildRequires: pkgconfig, libyazpp4, libxslt-devel, boost-devel
 Packager: Adam Dickmeiss <adam@indexdata.dk>
 URL: http://www.indexdata.com/metaproxy
 Group:  Applications/Internet
-Requires: libmetaproxy3
+# Requires: 
 
 %description
 Metaproxy daemon.
@@ -55,12 +55,15 @@ make prefix=${RPM_BUILD_ROOT}/%{_prefix} mandir=${RPM_BUILD_ROOT}/%{_mandir} \
 	libdir=${RPM_BUILD_ROOT}/%{_libdir} install
 rm ${RPM_BUILD_ROOT}/%{_libdir}/*.la
 rm -fr ${RPM_BUILD_ROOT}/%{_prefix}/share/metaproxy
-rm -fr ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy
+rm -f ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy/*
+mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy/modules
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/filters-enabled
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/filters-available
 mkdir -p ${RPM_BUILD_ROOT}/etc/logrotate.d
+mkdir -p ${RPM_BUILD_ROOT}/etc/rc.d/init.d
 install -m 644 rpm/metaproxy.xml ${RPM_BUILD_ROOT}/etc/metaproxy/metaproxy.xml
-install -m 755 rpm/metaproxy.init ${RPM_BUILD_ROOT}/etc/rc.2/init.d/metaproxy
+install -m 755 rpm/metaproxy.init ${RPM_BUILD_ROOT}/etc/rc.d/init.d/metaproxy
+install -m 644 rpm/metaproxy.logrotate  ${RPM_BUILD_ROOT}/etc/logrotate.d/metaproxy
 
 %clean
 rm -fr ${RPM_BUILD_ROOT}
@@ -71,21 +74,42 @@ rm -fr ${RPM_BUILD_ROOT}
 %{_libdir}/*.so.*
 %dir %{_libdir}/metaproxy/modules
 
+%post -n libmetaproxy3
+/sbin/ldconfig
+
+%postun -n libmetaproxy3
+/sbin/ldconfig
+
 %files -n libmetaproxy3-devel
 %defattr(-,root,root)
 %{_includedir}/metaproxy
 %{_libdir}/*.so
 %{_libdir}/*.a
 
+%files doc
+%defattr(-,root,root)
+%{_prefix}/share/doc/metaproxy
+
 %files
 %defattr(-,root,root)
 %{_bindir}/metaproxy
 %{_mandir}/man?/*
-
-%files doc
-%defattr(-,root,root)
-%{_prefix}/share/doc/metaproxy
 %config /etc/rc.d/init.d/metaproxy
 %config(noreplace) /etc/metaproxy/metaproxy.xml
 %dir /etc/metaproxy/filters-available
 %dir /etc/metaproxy/filters-enabled
+%config(noreplace) /etc/logrotate.d/metaproxy
+
+%post
+if [ $1 = 1 ]; then
+        /sbin/chkconfig --add metaproxy
+        /sbin/service metaproxy start > /dev/null 2>&1
+else
+        /sbin/service metaproxy restart > /dev/null 2>&1
+fi
+%preun
+if [ $1 = 0 ]; then
+        /sbin/service metaproxy stop > /dev/null 2>&1
+        /sbin/chkconfig --del metaproxy
+fi
+
