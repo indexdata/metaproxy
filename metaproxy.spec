@@ -74,11 +74,9 @@ rm -fr ${RPM_BUILD_ROOT}
 %{_libdir}/*.so.*
 %dir %{_libdir}/metaproxy/modules
 
-%post -n libmetaproxy3
-/sbin/ldconfig
+%post -n libmetaproxy3 -p /sbin/ldconfig
 
-%postun -n libmetaproxy3
-/sbin/ldconfig
+%postun -n libmetaproxy3 -p /sbin/ldconfig
 
 %files -n libmetaproxy3-devel
 %defattr(-,root,root)
