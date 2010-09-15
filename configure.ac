@@ -61,6 +61,7 @@ fi
 AC_DEFINE_UNQUOTED([VERSION_SHA1], "$SHA1", [SHA-1 from Git])
 
 AC_CONFIG_FILES([
+	metaproxy-config
         Doxyfile
 	Makefile
 	include/Makefile include/metaproxy/Makefile
@@ -73,6 +74,9 @@ AC_CONFIG_FILES([
         doc/common/Makefile
 	doc/common/print.dsl
 	etc/Makefile
+],[
+        sed s%echo_source=yes%echo_source=no%g < metaproxy-config > src/metaproxy-config && chmod +x metaproxy-config src/metaproxy-config
+
 ])
 
 AC_OUTPUT

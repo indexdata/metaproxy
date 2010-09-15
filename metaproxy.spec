@@ -83,6 +83,7 @@ rm -fr ${RPM_BUILD_ROOT}
 %{_includedir}/metaproxy
 %{_libdir}/*.so
 %{_libdir}/*.a
+%{_bindir}/metaproxy-config
 
 %files doc
 %defattr(-,root,root)

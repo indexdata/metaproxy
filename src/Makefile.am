@@ -9,6 +9,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 
 AM_LDFLAGS =
 
+bin_SCRIPTS = metaproxy-config
+
 # Rules for the library..
 
 lib_LTLIBRARIES = libmetaproxy.la

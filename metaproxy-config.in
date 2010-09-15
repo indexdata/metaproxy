@@ -1,0 +1,99 @@
+#!/bin/sh
+prefix=@prefix@
+echo_cflags=no
+echo_libs=no
+echo_help=no
+echo_tabs=no
+echo_source=yes
+echo_lalibs=no
+src_root=@abs_top_srcdir@
+build_root=@abs_top_builddir@
+
+libs="@YAZPPLIB@ @LIBS@"
+lalibs="@YAZPPLALIB@ @LIBS@"
+VERSION=@VERSION@
+
+usage()
+{
+	cat <<EOF
+Usage: metaproxy-config [OPTIONS] [LIBRARIES]
+Options:
+	[--prefix[=DIR]]
+	[--version]
+	[--libs]
+	[--lalibs]
+	[--cflags]
+EOF
+	exit $1
+}
+
+if test $# -eq 0; then
+	echo_help=yes
+fi
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --prefix=*)
+      prefix=$optarg
+      ;;
+    --prefix)
+      echo $prefix
+      exit 0
+      ;;
+    --version)
+      echo $VERSION
+      exit 0
+      ;;
+    --cflags)
+      echo_cflags=yes
+      ;;
+    --libs)
+      echo_libs=yes
+      ;;
+    --tabs)
+      echo_tabs=yes
+      ;;
+    --lalibs)
+      echo_lalibs=yes
+      ;;
+    -*)
+      echo_help=yes
+      ;;
+  esac
+  shift
+done
+
+INC="@YAZPPINC@"
+
+if test "$echo_source" = "yes"; then
+    LIB="-L${build_root}/src/.libs -lmetaproxy $libs"
+    LALIB="${build_root}/src/libmetaproxy.la $lalibs"
+    INC="-I${src_root}/include $INC"
+else
+    LIB="-lmetaproxy $libs"
+    if test "$prefix" != "/usr"; then
+	LIB="-L${prefix}/lib $LIB"
+    fi
+    LALIB=$LIB
+    if test "$prefix" != "/usr"; then
+	INC="-I${prefix}/include $INC"
+    fi
+fi
+
+if test "$echo_help" = "yes"; then
+	usage 1 1>&2
+fi
+if test "$echo_cflags" = "yes"; then
+    echo $INC
+fi
+if test "$echo_libs" = "yes"; then
+    echo $LIB
+fi
+if test "$echo_lalibs" = "yes"; then
+    echo $LALIB
+fi
