@@ -1,3 +1,7 @@
+--- 1.2.2 2010/09/15
+
+Add metaproxy-config for returning compiler flags, libraries.
+
 --- 1.2.1 2010/08/18
 
 Fix --with-boost=PREFIX .
