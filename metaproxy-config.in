@@ -68,7 +68,7 @@ while test $# -gt 0; do
   shift
 done
 
-INC="@YAZPPINC@"
+INC="@YAZPPINC@ @BOOST_CPPFLAGS@"
 
 if test "$echo_source" = "yes"; then
     LIB="-L${build_root}/src/.libs -lmetaproxy $libs"
