@@ -34,7 +34,7 @@ The Metaproxy libraries.
 %package -n libmetaproxy3-devel
 Summary: Metaproxy development package
 Group: Development/Libraries
-Requires: libmetaproxy3 = %{version} libyazpp4-devel
+Requires: libmetaproxy3 = %{version}, libyazpp4-devel, boost-devel
 
 %description -n libmetaproxy3-devel
 Development libraries and include files for the Metaproxy package.
