@@ -56,23 +56,29 @@ static void sig_term_handler(int s)
 }
 #endif
 
-static void handler(void *data)
+static void handler_debug(void *data)
 {
-    routerp = (mp::RouterFleXML*) data;
-
-#if HAVE_UNISTD_H    
-    /* make the current working process group leader */
-    setpgid(0, 0);
+#if HAVE_UNISTD_H
     process_group = getpgid(0); // save process group ID
     
     signal(SIGTERM, sig_term_handler);
 #endif
+    routerp = (mp::RouterFleXML*) data;
     routerp->start();
 
     mp::Package pack;
     pack.router(*routerp).move(); /* should never exit */
 }
     
+static void handler_normal(void *data)
+{
+#if HAVE_UNISTD_H
+    /* make the current working process group leader */
+    setpgid(0, 0);
+#endif
+    handler_debug(data);
+}
+
 static int sc_main(
     yaz_sc_t s,
     int argc, char **argv)
@@ -199,7 +205,8 @@ static int sc_main(
 
         yaz_sc_running(s);
 
-        yaz_daemon("metaproxy", mode, handler, router, pidfile, uid);
+        yaz_daemon("metaproxy", mode, mode == YAZ_DAEMON_DEBUG ?
+                   handler_debug : handler_normal, router, pidfile, uid);
     }
     catch (std::logic_error &e) {
         yaz_log (YLOG_FATAL,"std::logic error: %s" , e.what() );
