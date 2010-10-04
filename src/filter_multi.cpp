@@ -417,6 +417,8 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
         mp::util::set_vhost_otherinfo(&init_apdu->u.initRequest->otherInfo,
                                        odr, vhost_one);
 
+        init_apdu->u.initRequest->idAuthentication = req->idAuthentication;
+
         Z_InitRequest *req = init_apdu->u.initRequest;
         
         ODR_MASK_SET(req->options, Z_Options_search);
