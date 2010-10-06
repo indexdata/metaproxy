@@ -5,10 +5,15 @@
      %idcommon;
 ]>
 <refentry id="ref-zeerex_explain">
+ <refentryinfo>
+  <productname>Metaproxy</productname>
+  <info><orgname>Index Data</orgname></info>
+ </refentryinfo>
+
  <refmeta>
   <refentrytitle>zeerex_explain</refentrytitle>
   <manvolnum>3mp</manvolnum>
-  <refmiscinfo>Metaproxy Module</refmiscinfo>
+  <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
  </refmeta>
  
  <refnamediv>

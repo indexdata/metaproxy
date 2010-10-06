@@ -5,9 +5,15 @@
      %idcommon;
 ]>
 <refentry id="ref-metaproxy">
+ <refentryinfo>
+  <productname>Metaproxy</productname>
+  <info><orgname>Index Data</orgname></info>
+ </refentryinfo>
+
  <refmeta>
   <refentrytitle>metaproxy</refentrytitle>
   <manvolnum>1</manvolnum>
+  <refmiscinfo class="manual">Commands</refmiscinfo>
  </refmeta>
  
  <refnamediv>

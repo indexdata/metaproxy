@@ -5,11 +5,16 @@
      %idcommon;
 ]>
 <refentry id="ref-multi">
+ <refentryinfo>
+  <productname>Metaproxy</productname>
+  <info><orgname>Index Data</orgname></info>
+ </refentryinfo>
+
  <refmeta>
   <refentrytitle>multi</refentrytitle>
   <manvolnum>3mp</manvolnum>
-   <refmiscinfo>Metaproxy Module</refmiscinfo>
-</refmeta>
+  <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
+ </refmeta>
  
  <refnamediv>
   <refname>multi</refname>

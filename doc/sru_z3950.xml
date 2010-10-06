@@ -5,10 +5,15 @@
      %idcommon;
 ]>
 <refentry id="ref-sru_z3950">
+ <refentryinfo>
+  <productname>Metaproxy</productname>
+  <info><orgname>Index Data</orgname></info>
+ </refentryinfo>
+
  <refmeta>
   <refentrytitle>sru_z3950</refentrytitle>
   <manvolnum>3mp</manvolnum>
-  <refmiscinfo>Metaproxy Module</refmiscinfo>
+  <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
  </refmeta>
  
  <refnamediv>
