@@ -3,6 +3,8 @@
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
 
+DISTCLEANFILES = metaproxy-config
+
 AM_CXXFLAGS = $(BOOST_CPPFLAGS)
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
