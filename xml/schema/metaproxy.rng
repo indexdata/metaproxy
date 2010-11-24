@@ -431,6 +431,9 @@
         <attribute name="ttl">
           <data type="integer"/>
         </attribute>
+        <attribute name="optimizesearch">
+          <data type="boolean"/>
+        </attribute>
       </element>
     </optional>
     <optional>
