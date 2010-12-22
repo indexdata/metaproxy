@@ -360,6 +360,7 @@
     <xs:complexType>
       <xs:attribute name="max" use="required" type="xs:integer"/>
       <xs:attribute name="ttl" use="required" type="xs:integer"/>
+      <xs:attribute name="optimizesearch" use="required" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="session">
