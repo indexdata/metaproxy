@@ -8,7 +8,7 @@ ACLOCAL_AMFLAGS = -I m4
 AUTOMAKE_OPTIONS = foreign
 
 EXTRA_DIST = Doxyfile.in NEWS README LICENSE \
-             m4/yazpp.m4 m4/yaz.m4 m4/ax_boost.m4 \
+             m4/yazpp.m4 m4/yaz.m4 m4/boost.m4 \
              buildconf.sh metaproxy.spec metaproxy-config.in
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure 
