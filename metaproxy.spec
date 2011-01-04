@@ -7,6 +7,7 @@ Group: Applications/Internet
 Vendor: Index Data ApS <info@indexdata.dk>
 Source: metaproxy-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
+Prefix: %{_prefix} /etc/metaproxy
 BuildRequires: pkgconfig, libyazpp4, libxslt-devel, boost-devel
 Packager: Adam Dickmeiss <adam@indexdata.dk>
 URL: http://www.indexdata.com/metaproxy
