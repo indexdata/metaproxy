@@ -2,10 +2,10 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
     "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" 
 [
+     <!ENTITY copyright SYSTEM "copyright.xml">
      <!ENTITY % local SYSTEM "local.ent">
      %local;
      <!ENTITY manref SYSTEM "manref.xml">
-     <!ENTITY progref SYSTEM "progref.xml">
      <!ENTITY gpl2 SYSTEM "gpl-2.0.xml">
      <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
@@ -26,7 +26,7 @@
   </authorgroup>
   <releaseinfo>&version;</releaseinfo>
   <copyright>
-   <year>2005-2010</year>
+   <year>2005-2011</year>
    <holder>Index Data</holder>
   </copyright>
   <abstract>
@@ -2068,9 +2068,7 @@ Z>
 <appendix id="license">
  <title>License</title>
 
-  <para>
-   Metaproxy, Copyright &copy; 1995-2010 Index Data.
- </para>
+  &copyright;
 
   <para>
    Metaproxy is free software; you can redistribute it and/or modify it under
