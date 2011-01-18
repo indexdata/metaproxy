@@ -9,8 +9,79 @@
 # config: /etc/sysconfig/metaproxy
 # pidfile: /var/run/metaproxy.pid
 
-# Source function library.
-. /etc/rc.d/init.d/functions
+# start of compatibility layer for RedHat/SuSE init.d
+#
+# rc.status exist on SuSE. Provide dummy if unavailable
+if test -f /etc/rc.status; then
+    . /etc/rc.status
+else
+rc_status() {
+    echo ""
+}
+fi
+
+# functions exist on RedHat. Provide tiny subset if unavailable
+if test -f /etc/rc.d/init.d/functions; then
+	. /etc/rc.d/init.d/functions
+else
+daemon() {
+    pid_file=""
+    while test $# -gt 0; do
+	case $1 in
+           --pidfile)
+               pid_file=$2
+               shift 2
+               ;;
+           *)
+               break;
+               ;;
+        esac
+    done
+    startproc -p $pid_file $*
+}
+
+killproc() {
+    pid_file=""
+    delay=10
+    while test $# -gt 0; do
+	case $1 in
+           -p)
+               pid_file=$2
+               shift 2
+               ;;
+           -d)
+               delay=$2
+               shift 2
+               ;;
+           *)
+               break;
+               ;;
+        esac
+    done
+    /sbin/killproc -p $pid_file $*
+}
+status() {
+    pid_file=""
+    while test $# -gt 0; do
+	case $1 in
+           -p)
+               pid_file=$2
+               shift 2
+               ;;
+           *)
+               break;
+               ;;
+        esac
+    done
+    if test -f $pid_file && kill -0 `cat $pid_file`; then
+	echo "$DAEMON `cat $pid_file` is running"
+        return 0
+    fi
+    echo "$DAEMON is not running"
+    return 1
+}
+fi
+# end of compatibility layer for RedHat/SuSE
 
 OPTIONS="-u nobody -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"
 
@@ -26,9 +97,9 @@ RETVAL=0
 
 start() {
         echo -n $"Starting $prog: "
-        daemon --pidfile=${pidfile} $DAEMON $OPTIONS -D -p ${pidfile}
+        daemon --pidfile ${pidfile} $DAEMON $OPTIONS -D -p ${pidfile}
+	rc_status -v
         RETVAL=$?
-        echo
         [ $RETVAL = 0 ] && touch ${lockfile}
         return $RETVAL
 }
@@ -36,8 +107,8 @@ start() {
 stop() {
 	echo -n $"Stopping $prog: "
 	killproc -p ${pidfile} -d 10 $DAEMON
+	rc_status -v
 	RETVAL=$?
-	echo
 	[ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
 }
 reload() {
