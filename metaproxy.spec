@@ -61,9 +61,9 @@ mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy/modules
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/filters-enabled
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/filters-available
 mkdir -p ${RPM_BUILD_ROOT}/etc/logrotate.d
-mkdir -p ${RPM_BUILD_ROOT}/etc/rc.d/init.d
+mkdir -p ${RPM_BUILD_ROOT}/etc/init.d
 install -m 644 rpm/metaproxy.xml ${RPM_BUILD_ROOT}/etc/metaproxy/metaproxy.xml
-install -m 755 rpm/metaproxy.init ${RPM_BUILD_ROOT}/etc/rc.d/init.d/metaproxy
+install -m 755 rpm/metaproxy.init ${RPM_BUILD_ROOT}/etc/init.d/metaproxy
 install -m 644 rpm/metaproxy.logrotate  ${RPM_BUILD_ROOT}/etc/logrotate.d/metaproxy
 
 %clean
@@ -94,7 +94,7 @@ rm -fr ${RPM_BUILD_ROOT}
 %defattr(-,root,root)
 %{_bindir}/metaproxy
 %{_mandir}/man?/*
-%config /etc/rc.d/init.d/metaproxy
+%config /etc/init.d/metaproxy
 %config(noreplace) /etc/metaproxy/metaproxy.xml
 %dir /etc/metaproxy/filters-available
 %dir /etc/metaproxy/filters-enabled
