@@ -1,3 +1,13 @@
+--- 1.2.4 2011/01/27
+
+RPM package for Metaproxy works for both SLES11 and Centos 5.5.
+
+metaproxy-config: exec_prefix, libdir, includedir. Use these variables
+as determined by configure.
+
+RPM: Release includes 'indexdata' name. Use indexdata in release name so
+this package can be distinguished from other vendors.
+
 --- 1.2.3 2010/10/04
 
 Fix filter multi: relay idAuthentication parameters.
