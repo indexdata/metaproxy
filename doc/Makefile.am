@@ -1,5 +1,7 @@
 SUBDIRS = common
 
+INKSCAPE=inkscape
+
 SUFFIXES=.3mp .1 .pdf .tkl .esp .xml 
 
 XMLFILES = book.xml manref.xml copyright.xml gpl-2.0.xml
@@ -94,11 +96,12 @@ manref.xml: $(XMLMAN) $(srcdir)/common/stripref.xsl $(srcdir)/copyright.xml
 		xsltproc $(srcdir)/common/stripref.xsl $(srcdir)/$$i | sed 1d >> manref.xml; \
 	done
 
+
 multi.png: multi.svg
-	unset DISPLAY; inkscape --export-png=$@ --export-area=0:0:1050:500 $?
+	unset DISPLAY; ${INKSCAPE} --export-png=$@ --export-area=0:0:1050:500 $?
 
 multi.eps: multi.svg
-	unset DISPLAY; inkscape --export-eps=$@ --export-bbox-page $?
+	unset DISPLAY; ${INKSCAPE} --export-eps=$@ --export-bbox-page $?
 
 .eps.pdf:
 	epstopdf -hires $?
