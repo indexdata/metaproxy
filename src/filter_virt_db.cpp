@@ -212,6 +212,8 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::init_backend(
     req->implementationId = org_init->implementationId;
     req->implementationName = org_init->implementationName;
     req->implementationVersion = org_init->implementationVersion;
+    *req->preferredMessageSize = *org_init->preferredMessageSize;
+    *req->maximumRecordSize = *org_init->maximumRecordSize;
 
     ODR_MASK_SET(req->options, Z_Options_search);
     ODR_MASK_SET(req->options, Z_Options_present);
@@ -736,6 +738,9 @@ void yf::VirtualDB::process(mp::Package &package) const
                 else
                     break;
             
+            *resp->preferredMessageSize = *req->preferredMessageSize;
+            *resp->maximumRecordSize = *req->maximumRecordSize;
+
             package.response() = apdu;
             f->m_is_virtual = true;
         }
