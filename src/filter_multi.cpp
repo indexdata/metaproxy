@@ -422,6 +422,9 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
 
         breq->idAuthentication = req->idAuthentication;
         
+        *breq->preferredMessageSize = *req->preferredMessageSize;
+        *breq->maximumRecordSize = *req->maximumRecordSize;
+
         ODR_MASK_SET(breq->options, Z_Options_search);
         ODR_MASK_SET(breq->options, Z_Options_present);
         ODR_MASK_SET(breq->options, Z_Options_namedResultSets);
@@ -454,6 +457,9 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
 
     int no_failed = 0;
     int no_succeeded = 0;
+
+    Odr_int preferredMessageSize = *req->preferredMessageSize;
+    Odr_int maximumRecordSize = *req->maximumRecordSize;
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); )
     {
         PackagePtr p = (*bit)->m_package;
@@ -484,7 +490,13 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
                 if (!ODR_MASK_GET(b_resp->protocolVersion, i))
                     ODR_MASK_CLEAR(f_resp->protocolVersion, i);
             if (*b_resp->result)
+            {
                 no_succeeded++;
+                if (preferredMessageSize > *b_resp->preferredMessageSize)
+                    preferredMessageSize = *b_resp->preferredMessageSize;
+                if (maximumRecordSize > *b_resp->maximumRecordSize)
+                    maximumRecordSize = *b_resp->maximumRecordSize;
+            }
             else
                 no_failed++;
         }
@@ -492,6 +504,9 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
             no_failed++;
         bit++;
     }
+    *f_resp->preferredMessageSize = preferredMessageSize;
+    *f_resp->maximumRecordSize = maximumRecordSize;
+
     if (m_p->m_hide_unavailable)
     {
         if (no_succeeded == 0)
