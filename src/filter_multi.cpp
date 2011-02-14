@@ -419,16 +419,16 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
 
         init_apdu->u.initRequest->idAuthentication = req->idAuthentication;
 
-        Z_InitRequest *req = init_apdu->u.initRequest;
+        Z_InitRequest *breq = init_apdu->u.initRequest;
         
-        ODR_MASK_SET(req->options, Z_Options_search);
-        ODR_MASK_SET(req->options, Z_Options_present);
-        ODR_MASK_SET(req->options, Z_Options_namedResultSets);
-        ODR_MASK_SET(req->options, Z_Options_scan);
+        ODR_MASK_SET(breq->options, Z_Options_search);
+        ODR_MASK_SET(breq->options, Z_Options_present);
+        ODR_MASK_SET(breq->options, Z_Options_namedResultSets);
+        ODR_MASK_SET(breq->options, Z_Options_scan);
         
-        ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_1);
-        ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_2);
-        ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_3);
+        ODR_MASK_SET(breq->protocolVersion, Z_ProtocolVersion_1);
+        ODR_MASK_SET(breq->protocolVersion, Z_ProtocolVersion_2);
+        ODR_MASK_SET(breq->protocolVersion, Z_ProtocolVersion_3);
         
         b->m_package->request() = init_apdu;
 
