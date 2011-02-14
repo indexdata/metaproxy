@@ -1,3 +1,8 @@
+Filter virt_db and multi: relay init size parameters 
+preferredMessageSize and maximumRecordSize.
+
+Filter sru_z3950: increase init sz parameters from 1MB to 10 MB.
+
 --- 1.2.4 2011/01/27
 
 RPM package for Metaproxy works for both SLES11 and Centos 5.5.
