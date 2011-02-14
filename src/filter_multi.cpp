@@ -445,6 +445,7 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
     ODR_MASK_SET(f_resp->options, Z_Options_search);
     ODR_MASK_SET(f_resp->options, Z_Options_present);
     ODR_MASK_SET(f_resp->options, Z_Options_namedResultSets);
+    ODR_MASK_SET(f_resp->options, Z_Options_scan);
     
     ODR_MASK_SET(f_resp->protocolVersion, Z_ProtocolVersion_1);
     ODR_MASK_SET(f_resp->protocolVersion, Z_ProtocolVersion_2);
