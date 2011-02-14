@@ -368,6 +368,9 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
     }
 
     init_req->idAuthentication = auth;
+
+    *init_req->preferredMessageSize = 10*1024*1024;
+    *init_req->maximumRecordSize = 10*1024*1024;
     
     ODR_MASK_SET(init_req->options, Z_Options_search);
     ODR_MASK_SET(init_req->options, Z_Options_present);
