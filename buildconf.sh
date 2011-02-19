@@ -119,7 +119,7 @@ EOF
     if [ "`uname -s`" = FreeBSD ]; then
         cat <<EOF
   pkg_add -r autoconf262 automake110 libtool bison tcl84 \\
-             docbook-xsl libxml2 libxslt
+             docbook-xsl libxml2 libxslt boost-all
   pkg_add -r icu4
 EOF
     fi
