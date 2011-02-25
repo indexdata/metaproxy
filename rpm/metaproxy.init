@@ -27,7 +27,9 @@ if test -f /etc/rc.status; then
 	. /etc/rc.status
 else
 	rc_status() {
+		r=$?
 		echo ""
+		return $r
 	}
 fi
 
