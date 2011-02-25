@@ -22,75 +22,75 @@
 
 # start of compatibility layer for RedHat/SuSE init.d
 #
-# rc.status exist on SuSE. Provide dummy if unavailable
+# rc_status exist on SuSE. Provide dummy if unavailable
 if test -f /etc/rc.status; then
-    . /etc/rc.status
+	. /etc/rc.status
 else
-rc_status() {
-    echo ""
-}
+	rc_status() {
+		echo ""
+	}
 fi
 
 # functions exist on RedHat. Provide tiny subset if unavailable
 if test -f /etc/rc.d/init.d/functions; then
 	. /etc/rc.d/init.d/functions
 else
-daemon() {
-    pid_file=""
-    while test $# -gt 0; do
-	case $1 in
-           --pidfile)
-               pid_file=$2
-               shift 2
-               ;;
-           *)
-               break;
-               ;;
-        esac
-    done
-    startproc -p $pid_file $*
-}
+	daemon() {
+		pid_file=""
+		while test $# -gt 0; do
+			case $1 in
+				--pidfile)
+					pid_file=$2
+					shift 2
+					;;
+				*)
+					break;
+					;;
+			esac
+		done
+		startproc -p $pid_file $*
+	}
 
-killproc() {
-    pid_file=""
-    delay=10
-    while test $# -gt 0; do
-	case $1 in
-           -p)
-               pid_file=$2
-               shift 2
-               ;;
-           -d)
-               delay=$2
-               shift 2
-               ;;
-           *)
-               break;
-               ;;
-        esac
-    done
-    /sbin/killproc -p $pid_file $*
-}
-status() {
-    pid_file=""
-    while test $# -gt 0; do
-	case $1 in
-           -p)
-               pid_file=$2
-               shift 2
-               ;;
-           *)
-               break;
-               ;;
-        esac
-    done
-    if test -f $pid_file && kill -0 `cat $pid_file`; then
-	echo "$DAEMON `cat $pid_file` is running"
-        return 0
-    fi
-    echo "$DAEMON is not running"
-    return 1
-}
+	killproc() {
+		pid_file=""
+		delay=10
+		while test $# -gt 0; do
+			case $1 in
+				-p)
+					pid_file=$2
+					shift 2
+					;;
+				-d)
+					delay=$2
+					shift 2
+					;;
+				*)
+					break;
+					;;
+			esac
+		done
+		/sbin/killproc -p $pid_file $*
+	}
+	status() {
+		pid_file=""
+		while test $# -gt 0; do
+			case $1 in
+				-p)
+					pid_file=$2
+					shift 2
+					;;
+				*)
+					break;
+					;;
+			esac
+		done
+		if test -f $pid_file && kill -0 `cat $pid_file`; then
+			echo "$DAEMON `cat $pid_file` is running"
+			return 0
+		fi
+		echo "$DAEMON is not running"
+		return 1
+	}
 fi
 # end of compatibility layer for RedHat/SuSE
 
@@ -123,42 +123,47 @@ stop() {
 	[ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
 }
 reload() {
-    stop
-    start
+	stop
+	start
 }
 
 # See how we were called.
 case "$1" in
-  start)
-	start
-	;;
-  stop)
-	stop
-	;;
-  status)
-        status -p ${pidfile} $DAEMON
-	RETVAL=$?
-	;;
-  restart)
-	stop
-	start
-	;;
-  condrestart)
-	if [ -f ${pidfile} ] ; then
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	status)
+		status -p ${pidfile} $DAEMON
+		RETVAL=$?
+		;;
+	restart)
 		stop
 		start
-	fi
-	;;
-  reload)
-        reload
-	;;
-  configtest)
-	$DAEMON $OPTIONS -t
-	RETVAL=$?
-	;;
-  *)
-	echo $"Usage: $prog {start|stop|restart|help|configtest}"
-	exit 1
+		;;
+	condrestart)
+		if [ -f ${pidfile} ] ; then
+			stop
+			start
+		fi
+		;;
+	reload)
+		reload
+		;;
+	configtest)
+		$DAEMON $OPTIONS -t
+		RETVAL=$?
+		;;
+	*)
+		echo $"Usage: $prog {start|stop|restart|help|configtest}"
+		exit 1
 esac
 
 exit $RETVAL
+# Local Variables:
+# mode:shell-script
+# sh-indentation: 8
+# sh-basic-offset: 8
+# End:
