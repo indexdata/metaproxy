@@ -11,6 +11,7 @@
       </filter>
       <filter type="log">
         <message>F</message>
+	<category session="true" apdu="true"/>
       </filter>
       <filter type="virt_db">
         <pass-vhosts>true</pass-vhosts>
@@ -54,6 +55,7 @@
       </filter>
       <filter type="log">
         <message>B</message>
+	<category session="true"/>
       </filter>
       <filter type="z3950_client">
         <timeout>30</timeout>
