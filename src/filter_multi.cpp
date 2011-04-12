@@ -105,6 +105,7 @@ namespace metaproxy_1 {
             void present(Package &package, Z_APDU *apdu);
             void scan1(Package &package, Z_APDU *apdu);
             void scan2(Package &package, Z_APDU *apdu);
+            void relay_apdu(Package &package, Z_APDU *apdu);
             Rep *m_p;
         };            
         class Multi::Map {
@@ -924,6 +925,30 @@ Z_Entry *yf::Multi::ScanTermInfo::get_entry(ODR odr)
     return e;
 }
 
+void yf::Multi::Frontend::relay_apdu(mp::Package &package, Z_APDU *apdu_req)
+{
+    std::list<BackendPtr>::const_iterator bit;
+    for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
+    {
+        PackagePtr p = (*bit)->m_package;
+        mp::odr odr;
+    
+        p->request() = apdu_req;
+        p->copy_filter(package);
+    }
+    multi_move(m_backend_list);
+    for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
+    {
+        PackagePtr p = (*bit)->m_package;
+        
+        if (p->session().is_closed()) // if any backend closes, close frontend
+            package.session().close();
+        
+        package.response() = p->response();
+    }
+}
+
+
 void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
 {
     Z_ScanRequest *req = apdu_req->u.scanRequest;
@@ -1190,6 +1215,10 @@ void yf::Multi::process(mp::Package &package) const
         else if (apdu->which == Z_APDU_scanRequest)
         {
             f->scan2(package, apdu);
+        }
+        else if (apdu->which == Z_APDU_close)
+        {
+            f->relay_apdu(package, apdu);
         }
         else
         {
