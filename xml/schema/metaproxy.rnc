@@ -132,6 +132,7 @@ filter_log =
     attribute init-options { xsd:boolean }?,
     attribute request-session { xsd:boolean }?,
     attribute response-session { xsd:boolean }?,
+    attribute session { xsd:boolean }?,
     attribute apdu { xsd:boolean }?,
     attribute request-apdu { xsd:boolean }?,
     attribute response-apdu { xsd:boolean }?
@@ -201,7 +202,8 @@ filter_z3950_client =
   attribute name { xsd:NCName }?,
   element mp:timeout { xsd:integer }?,
   element mp:default_target { xsd:string }?,
-  element mp:force_target { xsd:string }?
+  element mp:force_target { xsd:string }?,
+  element mp:force_close { xsd:boolean }?
 
 filter_limit =
   attribute type { "limit" },

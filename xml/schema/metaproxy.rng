@@ -323,6 +323,11 @@
           </attribute>
         </optional>
         <optional>
+          <attribute name="session">
+            <data type="boolean"/>
+          </attribute>
+        </optional>
+        <optional>
           <attribute name="apdu">
             <data type="boolean"/>
           </attribute>
@@ -531,6 +536,11 @@
     <optional>
       <element name="mp:force_target">
         <data type="string"/>
+      </element>
+    </optional>
+    <optional>
+      <element name="mp:force_close">
+        <data type="boolean"/>
       </element>
     </optional>
   </define>

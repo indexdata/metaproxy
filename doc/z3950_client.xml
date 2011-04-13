@@ -55,6 +55,16 @@
       </para>
      </listitem>
     </varlistentry>
+    <varlistentry><term>force_close</term>
+     <listitem>
+      <para>
+       Is a boolean value (false, true). If true, the Z39.50 client will
+       terminate Z39.50 sessions with a close APDU followed by a socket close.
+       If false (default), the Z39.50 client will be transparent and only 
+       send a close if the peer client does it too.
+      </para>
+     </listitem>
+    </varlistentry>
    </variablelist>
   </para>
  </refsect1>
