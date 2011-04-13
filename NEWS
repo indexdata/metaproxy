@@ -1,3 +1,5 @@
+Filter virt_db and multi relays close APDU.
+
 Filter virt_db and multi: relay init size parameters 
 preferredMessageSize and maximumRecordSize.
 
