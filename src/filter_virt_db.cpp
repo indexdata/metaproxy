@@ -1,5 +1,5 @@
 /* This file is part of Metaproxy.
-   Copyright (C) 2005-2010 Index Data
+   Copyright (C) 2005-2011 Index Data
 
 Metaproxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -79,6 +79,7 @@ namespace metaproxy_1 {
             void search(Package &package, Z_APDU *apdu);
             void present(Package &package, Z_APDU *apdu);
             void scan(Package &package, Z_APDU *apdu);
+            int relay_apdu(Package &package, Z_APDU *apdu);
 
             void close(Package &package);
             typedef std::map<std::string,VirtualDB::Set>::iterator Sets_it;
@@ -212,6 +213,8 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::init_backend(
     req->implementationId = org_init->implementationId;
     req->implementationName = org_init->implementationName;
     req->implementationVersion = org_init->implementationVersion;
+    *req->preferredMessageSize = *org_init->preferredMessageSize;
+    *req->maximumRecordSize = *org_init->maximumRecordSize;
 
     ODR_MASK_SET(req->options, Z_Options_search);
     ODR_MASK_SET(req->options, Z_Options_present);
@@ -601,6 +604,27 @@ void yf::VirtualDB::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
     delete id;
 }
 
+int yf::VirtualDB::Frontend::relay_apdu(mp::Package &package, Z_APDU *apdu_req)
+{
+    int no = 0;
+    std::list<BackendPtr>::const_iterator map_it;
+    map_it = m_backend_list.begin();
+    for (; map_it != m_backend_list.end(); map_it++)
+    {
+        BackendPtr b = *map_it;
+        
+        Package relay_package(b->m_backend_session, package.origin());
+        relay_package.copy_filter(package);
+
+        relay_package.request() = yazpp_1::GDU(apdu_req);
+
+        relay_package.move(b->m_route);
+        package.response() = relay_package.response();
+        no++;
+    }
+    return no;
+}
+
 void yf::VirtualDB::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
 {
     Z_ScanRequest *req = apdu_req->u.scanRequest;
@@ -736,6 +760,9 @@ void yf::VirtualDB::process(mp::Package &package) const
                 else
                     break;
             
+            *resp->preferredMessageSize = *req->preferredMessageSize;
+            *resp->maximumRecordSize = *req->maximumRecordSize;
+
             package.response() = apdu;
             f->m_is_virtual = true;
         }
@@ -770,7 +797,15 @@ void yf::VirtualDB::process(mp::Package &package) const
         }
         else if (apdu->which == Z_APDU_close)
         {
-            package.session().close();
+            if (f->relay_apdu(package, apdu) == 0)
+            {
+                mp::odr odr;
+                
+                package.response() = odr.create_close(
+                    apdu, Z_Close_finished, "virt_db");
+                
+                package.session().close();
+            }
         }
         else
         {

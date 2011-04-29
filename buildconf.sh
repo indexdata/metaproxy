@@ -14,11 +14,11 @@ fi
 if [ "`uname -s`" = FreeBSD ]; then
     # FreeBSD intalls the various auto* tools with version numbers
     echo "Using special configuration for FreeBSD ..."
-    automake=automake19
-    aclocal="aclocal19 -I /usr/local/share/aclocal"
-    autoconf=autoconf259
-    libtoolize=libtoolize15
-    autoheader=autoheader259
+    automake=automake
+    aclocal="aclocal -I /usr/local/share/aclocal"
+    autoconf=autoconf
+    libtoolize=libtoolize
+    autoheader=autoheader
 fi
 
 if [ "`uname -s`" = Darwin ]; then
@@ -71,7 +71,8 @@ esac
 
 if $enable_configure; then
     if [ -n "$sh_cflags" ]; then
-	CFLAGS="$sh_cflags" CXXFLAGS="$sh_cxxflags" ./configure --disable-shared --enable-static $*
+	CFLAGS="$sh_cflags" CXXFLAGS="$sh_cxxflags" ./configure \
+		--disable-shared --enable-static --with-pic $*
     else
 	./configure $*
     fi
@@ -117,9 +118,9 @@ EOF
     fi
     if [ "`uname -s`" = FreeBSD ]; then
         cat <<EOF
-When building from a Git, you need these FreeBSD Ports:
-  autoconf259, automake19, libtool15, bison, tcl84,
-  docbook-xsl, libxml2, libxslt, g++-4.0, make
+  pkg_add -r autoconf262 automake110 libtool bison tcl84 \\
+             docbook-xsl libxml2 libxslt boost-all
+  pkg_add -r icu4
 EOF
     fi
 fi

@@ -1,5 +1,5 @@
 /* This file is part of Metaproxy.
-   Copyright (C) 2005-2010 Index Data
+   Copyright (C) 2005-2011 Index Data
 
 Metaproxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -105,6 +105,7 @@ namespace metaproxy_1 {
             void present(Package &package, Z_APDU *apdu);
             void scan1(Package &package, Z_APDU *apdu);
             void scan2(Package &package, Z_APDU *apdu);
+            void relay_apdu(Package &package, Z_APDU *apdu);
             Rep *m_p;
         };            
         class Multi::Map {
@@ -417,16 +418,22 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
         mp::util::set_vhost_otherinfo(&init_apdu->u.initRequest->otherInfo,
                                        odr, vhost_one);
 
-        Z_InitRequest *req = init_apdu->u.initRequest;
+
+        Z_InitRequest *breq = init_apdu->u.initRequest;
+
+        breq->idAuthentication = req->idAuthentication;
         
-        ODR_MASK_SET(req->options, Z_Options_search);
-        ODR_MASK_SET(req->options, Z_Options_present);
-        ODR_MASK_SET(req->options, Z_Options_namedResultSets);
-        ODR_MASK_SET(req->options, Z_Options_scan);
+        *breq->preferredMessageSize = *req->preferredMessageSize;
+        *breq->maximumRecordSize = *req->maximumRecordSize;
+
+        ODR_MASK_SET(breq->options, Z_Options_search);
+        ODR_MASK_SET(breq->options, Z_Options_present);
+        ODR_MASK_SET(breq->options, Z_Options_namedResultSets);
+        ODR_MASK_SET(breq->options, Z_Options_scan);
         
-        ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_1);
-        ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_2);
-        ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_3);
+        ODR_MASK_SET(breq->protocolVersion, Z_ProtocolVersion_1);
+        ODR_MASK_SET(breq->protocolVersion, Z_ProtocolVersion_2);
+        ODR_MASK_SET(breq->protocolVersion, Z_ProtocolVersion_3);
         
         b->m_package->request() = init_apdu;
 
@@ -443,6 +450,7 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
     ODR_MASK_SET(f_resp->options, Z_Options_search);
     ODR_MASK_SET(f_resp->options, Z_Options_present);
     ODR_MASK_SET(f_resp->options, Z_Options_namedResultSets);
+    ODR_MASK_SET(f_resp->options, Z_Options_scan);
     
     ODR_MASK_SET(f_resp->protocolVersion, Z_ProtocolVersion_1);
     ODR_MASK_SET(f_resp->protocolVersion, Z_ProtocolVersion_2);
@@ -450,6 +458,9 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
 
     int no_failed = 0;
     int no_succeeded = 0;
+
+    Odr_int preferredMessageSize = *req->preferredMessageSize;
+    Odr_int maximumRecordSize = *req->maximumRecordSize;
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); )
     {
         PackagePtr p = (*bit)->m_package;
@@ -480,7 +491,13 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
                 if (!ODR_MASK_GET(b_resp->protocolVersion, i))
                     ODR_MASK_CLEAR(f_resp->protocolVersion, i);
             if (*b_resp->result)
+            {
                 no_succeeded++;
+                if (preferredMessageSize > *b_resp->preferredMessageSize)
+                    preferredMessageSize = *b_resp->preferredMessageSize;
+                if (maximumRecordSize > *b_resp->maximumRecordSize)
+                    maximumRecordSize = *b_resp->maximumRecordSize;
+            }
             else
                 no_failed++;
         }
@@ -488,6 +505,9 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
             no_failed++;
         bit++;
     }
+    *f_resp->preferredMessageSize = preferredMessageSize;
+    *f_resp->maximumRecordSize = maximumRecordSize;
+
     if (m_p->m_hide_unavailable)
     {
         if (no_succeeded == 0)
@@ -905,6 +925,30 @@ Z_Entry *yf::Multi::ScanTermInfo::get_entry(ODR odr)
     return e;
 }
 
+void yf::Multi::Frontend::relay_apdu(mp::Package &package, Z_APDU *apdu_req)
+{
+    std::list<BackendPtr>::const_iterator bit;
+    for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
+    {
+        PackagePtr p = (*bit)->m_package;
+        mp::odr odr;
+    
+        p->request() = apdu_req;
+        p->copy_filter(package);
+    }
+    multi_move(m_backend_list);
+    for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
+    {
+        PackagePtr p = (*bit)->m_package;
+        
+        if (p->session().is_closed()) // if any backend closes, close frontend
+            package.session().close();
+        
+        package.response() = p->response();
+    }
+}
+
+
 void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
 {
     Z_ScanRequest *req = apdu_req->u.scanRequest;
@@ -1171,6 +1215,10 @@ void yf::Multi::process(mp::Package &package) const
         else if (apdu->which == Z_APDU_scanRequest)
         {
             f->scan2(package, apdu);
+        }
+        else if (apdu->which == Z_APDU_close)
+        {
+            f->relay_apdu(package, apdu);
         }
         else
         {

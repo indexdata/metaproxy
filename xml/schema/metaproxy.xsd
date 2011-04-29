@@ -262,6 +262,7 @@
       <xs:attribute name="init-options" type="xs:boolean"/>
       <xs:attribute name="request-session" type="xs:boolean"/>
       <xs:attribute name="response-session" type="xs:boolean"/>
+      <xs:attribute name="session" type="xs:boolean"/>
       <xs:attribute name="apdu" type="xs:boolean"/>
       <xs:attribute name="request-apdu" type="xs:boolean"/>
       <xs:attribute name="response-apdu" type="xs:boolean"/>
@@ -360,6 +361,7 @@
     <xs:complexType>
       <xs:attribute name="max" use="required" type="xs:integer"/>
       <xs:attribute name="ttl" use="required" type="xs:integer"/>
+      <xs:attribute name="optimizesearch" use="required" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="session">
@@ -435,10 +437,12 @@
       <xs:element minOccurs="0" ref="mp:timeout"/>
       <xs:element minOccurs="0" ref="mp:default_target"/>
       <xs:element minOccurs="0" ref="mp:force_target"/>
+      <xs:element minOccurs="0" ref="mp:force_close"/>
     </xs:sequence>
   </xs:group>
   <xs:element name="default_target" type="xs:string"/>
   <xs:element name="force_target" type="xs:string"/>
+  <xs:element name="force_close" type="xs:boolean"/>
   <xs:attributeGroup name="filter_z3950_client">
     <xs:attribute name="type" use="required">
       <xs:simpleType>

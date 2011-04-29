@@ -1,15 +1,20 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" 
-    "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" [
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN" 
+    "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
  <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
 ]>
 <refentry id="ref-z3950_client">
+ <refentryinfo>
+  <productname>Metaproxy</productname>
+  <info><orgname>Index Data</orgname></info>
+ </refentryinfo>
+
  <refmeta>
   <refentrytitle>z3950_client</refentrytitle>
   <manvolnum>3mp</manvolnum>
-   <refmiscinfo>Metaproxy Module</refmiscinfo>
-</refmeta>
+  <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
+ </refmeta>
  
  <refnamediv>
   <refname>z3950_client</refname>
@@ -47,6 +52,16 @@
       <para>
        Specifies the target (host) for the Z39.50 server to be used
        always (regardless of Init Request vhost).
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>force_close</term>
+     <listitem>
+      <para>
+       Is a boolean value (false, true). If true, the Z39.50 client will
+       terminate Z39.50 sessions with a close APDU followed by a socket close.
+       If false (default), the Z39.50 client will be transparent and only 
+       send a close if the peer client does it too.
       </para>
      </listitem>
     </varlistentry>

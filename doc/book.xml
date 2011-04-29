@@ -1,23 +1,14 @@
 <?xml version="1.0" standalone="no"?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1//EN"
-    "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" 
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+    "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" 
 [
+     <!ENTITY copyright SYSTEM "copyright.xml">
      <!ENTITY % local SYSTEM "local.ent">
      %local;
      <!ENTITY manref SYSTEM "manref.xml">
-     <!ENTITY progref SYSTEM "progref.xml">
      <!ENTITY gpl2 SYSTEM "gpl-2.0.xml">
      <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
-     <!-- Next line allows imagedata/@format="PDF" and is taken from 
-         http://lists.oasis-open.org/archives/docbook/200303/msg00163.html
-     -->
-     <!ENTITY % local.notation.class "| PDF">
-     <!-- Next line is necessary for some XML parsers, for reasons I
-          don't understand.  I got this from
-         http://lists.oasis-open.org/archives/docbook/200303/msg00180.html
-     -->
-     <!NOTATION PDF SYSTEM "PDF">
 ]>
 <book>
  <bookinfo>
@@ -35,7 +26,7 @@
   </authorgroup>
   <releaseinfo>&version;</releaseinfo>
   <copyright>
-   <year>2005-2010</year>
+   <year>2005-2011</year>
    <holder>Index Data</holder>
   </copyright>
   <abstract>
@@ -1658,13 +1649,8 @@ Z>
     merges them into a single Search response, which is what
     eventually makes it back to the client.
    </para>
-  </section>
 
-
-  <section id="multidb.picture">
-   <title>A picture is worth a thousand words (but only five hundred on 64-bit architectures)</title>
-   <simpara>
-    <inlinemediaobject>
+    <mediaobject>
      <imageobject>
       <imagedata fileref="multi.pdf" format="PDF" scale="50"/>
      </imageobject>
@@ -1681,13 +1667,10 @@ Z>
        document.]
       </phrase>
      </textobject>
-<!-- ### This used to work with an older version of DocBook
      <caption>
-      <para>Caption: progress of packages through filters.</para>
+      <para>A picture is worth a thousand words (but only five hundred on 64-bit architectures)</para>
      </caption>
--->
-    </inlinemediaobject>
-   </simpara>
+    </mediaobject>
   </section>
  </chapter>
 
@@ -2085,9 +2068,7 @@ Z>
 <appendix id="license">
  <title>License</title>
 
-  <para>
-   Metaproxy, Copyright &copy; 1995-2010 Index Data.
- </para>
+  &copyright;
 
   <para>
    Metaproxy is free software; you can redistribute it and/or modify it under

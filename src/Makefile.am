@@ -1,13 +1,17 @@
 ## This file is part of Metaproxy
-## Copyright (C) 2005-2010 Index Data
+## Copyright (C) 2005-2011 Index Data
 
 MAINTAINERCLEANFILES = Makefile.in config.in config.hpp
+
+DISTCLEANFILES = metaproxy-config
 
 AM_CXXFLAGS = $(BOOST_CPPFLAGS)
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
 AM_LDFLAGS =
+
+bin_SCRIPTS = metaproxy-config
 
 # Rules for the library..
 

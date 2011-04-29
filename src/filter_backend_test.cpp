@@ -1,5 +1,5 @@
 /* This file is part of Metaproxy.
-   Copyright (C) 2005-2010 Index Data
+   Copyright (C) 2005-2011 Index Data
 
 Metaproxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -258,6 +258,9 @@ void yf::BackendTest::process(Package &package) const
                 else
                     break;
 
+            *resp->preferredMessageSize = *req->preferredMessageSize;
+            *resp->maximumRecordSize = *req->maximumRecordSize;
+
             Session_info info;
             m_p->m_sessions.create(info, package.session());
         }
@@ -367,6 +370,12 @@ void yf::BackendTest::process(Package &package) const
                 *resp->numberOfRecordsReturned = number_returned;
                 *resp->nextResultSetPosition = next_position;
             }
+        }
+        else if (apdu_req->which == Z_APDU_close)
+        {
+            apdu_res = odr.create_close(apdu_req,
+                                        Z_Close_finished, 0);
+            package.session().close();
         }
         else
         {

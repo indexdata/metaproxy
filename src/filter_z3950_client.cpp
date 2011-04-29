@@ -1,5 +1,5 @@
 /* This file is part of Metaproxy.
-   Copyright (C) 2005-2010 Index Data
+   Copyright (C) 2005-2011 Index Data
 
 Metaproxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -66,6 +66,7 @@ namespace metaproxy_1 {
             bool m_waiting;
             bool m_destroyed;
             bool m_connected;
+            bool m_has_closed;
             int m_queue_len;
             int m_time_elapsed;
             int m_time_max;
@@ -78,6 +79,7 @@ namespace metaproxy_1 {
             // number of seconds to wait before we give up request
             int m_timeout_sec;
             int m_max_sockets;
+            bool m_force_close;
             std::string m_default_target;
             std::string m_force_target;
             boost::mutex m_mutex;
@@ -99,7 +101,8 @@ yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
     :  Z_Assoc(PDU_Observable),
        m_socket_manager(socket_manager), m_PDU_Observable(PDU_Observable),
        m_package(0), m_in_use(true), m_waiting(false), 
-       m_destroyed(false), m_connected(false), m_queue_len(1),
+       m_destroyed(false), m_connected(false), m_has_closed(false),
+       m_queue_len(1),
        m_time_elapsed(0), m_time_max(timeout_sec),  m_time_connect_max(10),
        m_host(host)
 {
@@ -185,6 +188,7 @@ yf::Z3950Client::Z3950Client() :  m_p(new yf::Z3950Client::Rep)
 {
     m_p->m_timeout_sec = 30;
     m_p->m_max_sockets = 0;
+    m_p->m_force_close = false;
 }
 
 yf::Z3950Client::~Z3950Client() {
@@ -198,12 +202,6 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     std::map<mp::Session,yf::Z3950Client::Assoc *>::iterator it;
     
     Z_GDU *gdu = package.request().get();
-    // only deal with Z39.50
-    if (!gdu || gdu->which != Z_GDU_Z3950)
-    {
-        package.move();
-        return 0;
-    }
     
     int max_sockets = package.origin().get_max_sockets();
     if (max_sockets == 0)
@@ -236,6 +234,11 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
             }
             m_cond_session_ready.wait(lock);
         }
+    }
+    if (!gdu || gdu->which != Z_GDU_Z3950)
+    {
+        package.move();
+        return 0;
     }
     // new Z39.50 session ..
     Z_APDU *apdu = gdu->u.z3950;
@@ -356,16 +359,30 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
 void yf::Z3950Client::Rep::send_and_receive(Package &package,
                                             yf::Z3950Client::Assoc *c)
 {
-    Z_GDU *gdu = package.request().get();
-
     if (c->m_destroyed)
         return;
+
+    c->m_package = &package;
+
+    if (package.session().is_closed() && c->m_connected && !c->m_has_closed
+        && m_force_close)
+    {
+        mp::odr odr;
+            
+        package.request() = odr.create_close(
+            0, Z_Close_finished, "z3950_client");
+        c->m_package = 0; // don't inspect response
+    }
+    Z_GDU *gdu = package.request().get();
 
     if (!gdu || gdu->which != Z_GDU_Z3950)
         return;
 
+    if (gdu->u.z3950->which == Z_APDU_close)
+        c->m_has_closed = true;
+
+    // prepare connect
     c->m_time_elapsed = 0;
-    c->m_package = &package;
     c->m_waiting = true;
     if (!c->m_connected)
     {
@@ -389,7 +406,7 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
     int len;
     c->send_GDU(gdu, &len);
 
-    switch(gdu->u.z3950->which)
+    switch (gdu->u.z3950->which)
     {
     case Z_APDU_triggerResourceControlRequest:
         // request only..
@@ -411,12 +428,8 @@ void yf::Z3950Client::Rep::release_assoc(Package &package)
     it = m_clients.find(package.session());
     if (it != m_clients.end())
     {
-        Z_GDU *gdu = package.request().get();
-        if (gdu && gdu->which == Z_GDU_Z3950)
-        {   // only Z39.50 packages lock in get_assoc.. release it
-            it->second->m_in_use = false;
-            it->second->m_queue_len--;
-        }
+        it->second->m_in_use = false;
+        it->second->m_queue_len--;
 
         if (package.session().is_closed())
         {
@@ -440,8 +453,8 @@ void yf::Z3950Client::process(Package &package) const
     if (c)
     {
         m_p->send_and_receive(package, c);
+        m_p->release_assoc(package);
     }
-    m_p->release_assoc(package);
 }
 
 void yf::Z3950Client::configure(const xmlNode *ptr, bool test_only)
@@ -465,6 +478,10 @@ void yf::Z3950Client::configure(const xmlNode *ptr, bool test_only)
         else if (!strcmp((const char *) ptr->name, "max-sockets"))
         {
             m_p->m_max_sockets = mp::xml::get_int(ptr->children, 0);
+        }
+        else if (!strcmp((const char *) ptr->name, "force_close"))
+        {
+            m_p->m_force_close = mp::xml::get_bool(ptr->children, 0);
         }
         else
         {

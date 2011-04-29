@@ -1,0 +1,171 @@
+#!/bin/bash
+#
+# metaproxy    Startup script for Metaproxy
+#
+# chkconfig: 2345 85 15
+# description: Metaproxy SRU/Z39.50 router
+# processname: metaproxy
+# config: /etc/metaproxy/metaproxy.xml
+# config: /etc/sysconfig/metaproxy
+# pidfile: /var/run/metaproxy.pid
+
+### BEGIN INIT INFO
+# Provides:            metaproxy
+# Required-Start:      $local_fs $remote_fs $network
+# Required-Stop:       $local_fs $remote_fs
+# Default-Start:       3 5
+# Default-Stop:        0 1 2 6
+# Short-Description:   Controls the metaproxy daemon
+# Description:         Controls the Metaproxy Z39.50/SRU router.
+### END INIT INFO
+
+
+# start of compatibility layer for RedHat/SuSE init.d
+#
+# rc_status exist on SuSE. Provide dummy if unavailable
+if test -f /etc/rc.status; then
+	. /etc/rc.status
+else
+	rc_status() {
+		r=$?
+		echo ""
+		return $r
+	}
+fi
+
+# functions exist on RedHat. Provide tiny subset if unavailable
+if test -f /etc/rc.d/init.d/functions; then
+	. /etc/rc.d/init.d/functions
+else
+	daemon() {
+		pid_file=""
+		while test $# -gt 0; do
+			case $1 in
+				--pidfile)
+					pid_file=$2
+					shift 2
+					;;
+				*)
+					break;
+					;;
+			esac
+		done
+		startproc -p $pid_file $*
+	}
+
+	killproc() {
+		pid_file=""
+		delay=10
+		while test $# -gt 0; do
+			case $1 in
+				-p)
+					pid_file=$2
+					shift 2
+					;;
+				-d)
+					delay=$2
+					shift 2
+					;;
+				*)
+					break;
+					;;
+			esac
+		done
+		/sbin/killproc -p $pid_file $*
+	}
+	status() {
+		pid_file=""
+		while test $# -gt 0; do
+			case $1 in
+				-p)
+					pid_file=$2
+					shift 2
+					;;
+				*)
+					break;
+					;;
+			esac
+		done
+		if test -f $pid_file && kill -0 `cat $pid_file`; then
+			echo "$DAEMON `cat $pid_file` is running"
+			return 0
+		fi
+		echo "$DAEMON is not running"
+		return 1
+	}
+fi
+# end of compatibility layer for RedHat/SuSE
+
+OPTIONS="-u nobody -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"
+
+if [ -f /etc/sysconfig/metaproxy ]; then
+        . /etc/sysconfig/metaproxy
+fi
+
+DAEMON=${DAEMON-/usr/bin/metaproxy}
+prog=metaproxy
+pidfile=${PIDFILE-/var/run/metaproxy.pid}
+lockfile=${LOCKFILE-/var/lock/subsys/metaproxy}
+RETVAL=0
+
+start() {
+        echo -n $"Starting $prog: "
+        daemon --pidfile ${pidfile} $DAEMON $OPTIONS -D -p ${pidfile}
+	rc_status -v
+        RETVAL=$?
+        [ $RETVAL = 0 ] && touch ${lockfile}
+        return $RETVAL
+}
+
+stop() {
+	echo -n $"Stopping $prog: "
+	killproc -p ${pidfile} -d 10 $DAEMON
+	rc_status -v
+	RETVAL=$?
+	[ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
+}
+reload() {
+	stop
+	start
+}
+
+# See how we were called.
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	status)
+		status -p ${pidfile} $DAEMON
+		RETVAL=$?
+		;;
+	restart)
+		stop
+		start
+		;;
+	condrestart)
+		if [ -f ${pidfile} ] ; then
+			stop
+			start
+		fi
+		;;
+	reload)
+		reload
+		;;
+	configtest)
+		$DAEMON $OPTIONS -t
+		RETVAL=$?
+		;;
+	*)
+		echo $"Usage: $prog {start|stop|restart|help|configtest}"
+		exit 1
+esac
+
+exit $RETVAL
+# Local Variables:
+# mode:shell-script
+# sh-indentation: 8
+# sh-basic-offset: 8
+# End:

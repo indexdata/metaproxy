@@ -1,5 +1,5 @@
 /* This file is part of Metaproxy.
-   Copyright (C) 2005-2010 Index Data
+   Copyright (C) 2005-2011 Index Data
 
 Metaproxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -190,6 +190,7 @@ namespace metaproxy_1 {
             int m_resultset_ttl;
             int m_resultset_max;
             int m_session_ttl;
+            bool m_optimize_search;
         };
     }
 }
@@ -618,25 +619,28 @@ restart:
     BackendClassPtr bc = m_backend_class;
     {
         boost::mutex::scoped_lock lock(bc->m_mutex_backend_class);
-        // look at each backend and see if we have a similar search
-        BackendInstanceList::const_iterator it = bc->m_backend_list.begin();
         
-        for (; it != bc->m_backend_list.end(); it++)
+        if (m_p->m_optimize_search)
         {
-            if (!(*it)->m_in_use)
+            // look at each backend and see if we have a similar search
+            BackendInstanceList::const_iterator it = bc->m_backend_list.begin();
+            for (; it != bc->m_backend_list.end(); it++)
             {
-                BackendSetList::const_iterator set_it = (*it)->m_sets.begin();
-                for (; set_it != (*it)->m_sets.end(); set_it++)
+                if (!(*it)->m_in_use)
                 {
-                    if ((*set_it)->m_databases == databases 
-                        && query.match(&(*set_it)->m_query))
+                    BackendSetList::const_iterator set_it = (*it)->m_sets.begin();
+                    for (; set_it != (*it)->m_sets.end(); set_it++)
                     {
-                        found_set = *set_it;
-                        found_backend = *it;
-                        bc->use_backend(found_backend);
-                        found_set->timestamp();
-                        // found matching set. No need to search again
-                        return;
+                        if ((*set_it)->m_databases == databases
+                            && query.match(&(*set_it)->m_query))
+                        {
+                            found_set = *set_it;
+                            found_backend = *it;
+                            bc->use_backend(found_backend);
+                            found_set->timestamp();
+                            // found matching set. No need to search again
+                            return;
+                        }
                     }
                 }
             }
@@ -1018,6 +1022,7 @@ yf::SessionShared::Rep::Rep()
     m_resultset_ttl = 30;
     m_resultset_max = 10;
     m_session_ttl = 90;
+    m_optimize_search = true;
 }
 
 void yf::SessionShared::Rep::start()
@@ -1172,6 +1177,11 @@ void yf::SessionShared::configure(const xmlNode *ptr, bool test_only)
                 {
                     m_p->m_resultset_max = 
                         mp::xml::get_int(attr->children, 10);
+                }
+                else if (!strcmp((const char *) attr->name, "optimizesearch"))
+                {
+                    m_p->m_optimize_search =
+                        mp::xml::get_bool(attr->children, true);
                 }
                 else
                     throw mp::filter::FilterException(
