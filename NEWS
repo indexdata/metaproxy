@@ -1,3 +1,5 @@
+--- 1.2.5 2011/05/06
+
 Filter z3950_client may be configured to always send a close APDU
 to backend target when connection/session is closed. This will only
 happen if close APDU is not already sent. Enabled by configuration
