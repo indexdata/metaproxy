@@ -3,7 +3,7 @@ to backend target when connection/session is closed. This will only
 happen if close APDU is not already sent. Enabled by configuration
 for z3950_client (force_close).
 
-Filter virt_db and multi relays close APDU.
+Filter virt_db and multi: relay close APDU.
 
 Filter virt_db and multi: relay init size parameters 
 preferredMessageSize and maximumRecordSize.
