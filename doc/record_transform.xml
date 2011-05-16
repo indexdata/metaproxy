@@ -25,7 +25,7 @@
   <para>
    This filter acts only on Z3950 present requests, and let all
    other types of packages and requests pass untouched. It's use is
-   twofold: blocking Z3950  present requests, which the backend
+   twofold: blocking Z3950 present requests, which the backend
    server does not understand and can not honor, and transforming
    the present syntax and elementset name according to the rules
    specified, to fetch only existing record formats, and transform
@@ -44,28 +44,10 @@
    describe the Z3950 identifier string.
   </para>
   <para>
-  Record transformations are invoked when the optional attributes
-  <literal>backendsyntax</literal> and <literal>backendname</literal>
-  as well as the <literal>&lt;convert&gt;</literal> element are specified.  
-  Record conversions come in two flavors:
-  <literal>&lt;marc&gt;</literal> binary conversions between different
-  binary MARC formats and MarcXML formats, and
-  <literal>&lt;xslt&gt;</literal> stylesheet transformations performed
-  on any kind of XML records. These conversions can be stacked in any
-  order, and are performed linearly in file order. 
-  </para>
-  <para>
-   The binary MARC record transformations
- <literal>&lt;marc&gt;</literal> are defined using the following
-   attributes: <literal>inputformat</literal>, <literal>outputformat</literal>,
-   <literal>inputcharset</literal> and  <literal>outputcharset</literal>.
-  </para>
-  <para>
-   XML <literal>&lt;xslt&gt;</literal> transformation instructions
-   accept only one mandatory <literal>stylesheet</literal> attribute,
-   which is either an absolute path, or a relative path from the
-   working directory of <literal>metaproxy</literal> to the location
-   of the requested XSLT stylesheet.
+    The <literal>&lt;retrieval&gt;</literal> element and the content
+    is described in the 
+    <ulink url="&url.yaz.retrieval;">Retrieval Facility</ulink> section
+    of the YAZ manual.
   </para>
  </refsect1>
  
@@ -73,37 +55,29 @@
   <para>
    A typical configuration looks like this:
    <screen><![CDATA[
-   <filter type="record_transform">
-     <retrievalinfo>
-        <retrieval syntax="grs-1"/>
-        <retrieval syntax="usmarc" name="F"/>
-        <retrieval syntax="usmarc" name="B"/>
-        <retrieval syntax="xml" name="marcxml"
-                   identifier="info:srw/schema/1/marcxml-v1.1"
-                   backendsyntax="usmarc" backendname="F">
-          <convert>
-            <marc inputformat="marc" outputformat="marcxml"
-                  inputcharset="marc-8"/>
-          </convert>
-        </retrieval>
-        <retrieval syntax="xml" name="danmarc"
-                   backendsyntax="usmarc" backendname="F">
-          <convert>
-            <marc inputformat="marc" outputformat="marcxchange"
-                  inputcharset="marc-8"/>
-          </convert>
-        </retrieval>
+    <filter type="record_transform">
+      <retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
         <retrieval syntax="xml" name="dc"
-                   identifier="info:srw/schema/1/dc-v1.1"
-                   backendsyntax="usmarc" backendname="F">
-          <convert>
+                   identifier="info:srw/schema/1/dc-v1.1">
+          <backend syntax="usmarc" name="F">
             <marc inputformat="marc" outputformat="marcxml"
                   inputcharset="marc-8"/>
-            <xslt stylesheet="xml/xslt/MARC21slim2DC.xsl"/>
-          </convert>
+            <xslt stylesheet="../xml/xslt/MARC21slim2DC.xsl"/>
+          </backend>
+        </retrieval>
+        <retrieval syntax="opac"/>
+        <retrieval syntax="xml" name="opac">
+          <backend syntax="opac" name="F">
+          <marc inputformat="marc" outputformat="marcxml"
+                inputcharset="marc-8"/>
+          </backend>
+        </retrieval>
+        <retrieval syntax="usmarc">
+          <backend syntax="usmarc" name="F">
+          </backend>
         </retrieval>
       </retrievalinfo>
-   </filter>
+    </filter>
 ]]>
    </screen>
   </para>
