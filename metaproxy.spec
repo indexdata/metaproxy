@@ -101,6 +101,7 @@ rm -fr ${RPM_BUILD_ROOT}
 %dir /etc/metaproxy/filters-available
 %dir /etc/metaproxy/filters-enabled
 %config(noreplace) /etc/logrotate.d/metaproxy
+%config(noreplace) /etc/sysconfig/metaproxy
 
 %post
 if [ $1 = 1 ]; then
