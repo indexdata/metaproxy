@@ -37,8 +37,8 @@
    <filter type="http_file">
     <mimetypes>/etc/mime.types</mimetypes>
     <area>
-     <documentroot>/var/www/metaproxy/html</port>
-     <prefix>/etc</prefixs>
+     <documentroot>/var/www/metaproxy/html</documentroot>
+     <prefix>/etc</prefix>
     </area>
    </filter>
 ]]>
