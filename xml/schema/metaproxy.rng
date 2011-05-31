@@ -491,7 +491,14 @@
         <data type="boolean"/>
       </element>
     </optional>
-    <oneOrMore>
+    <optional>
+      <element name="mp:torus">
+        <attribute name="url">
+          <data type="string"/>
+        </attribute>
+      </element>
+    </optional>
+    <zeroOrMore>
       <element name="mp:virtual">
         <optional>
           <attribute name="route">
@@ -507,7 +514,7 @@
           </element>
         </oneOrMore>
       </element>
-    </oneOrMore>
+    </zeroOrMore>
   </define>
   <define name="filter_z3950_client">
     <attribute name="type">

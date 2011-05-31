@@ -20,6 +20,7 @@ xmlconfig = $(srcdir)/config-bytarget.xml \
     $(srcdir)/config4.xml \
     $(srcdir)/config5.xml \
     $(srcdir)/config-cgi.xml \
+    $(srcdir)/config-torus.xml \
     $(srcdir)/retrieval-info.xml
 
 config = example.simple-auth example.target-auth pqf2pqf.xsl explain.xml

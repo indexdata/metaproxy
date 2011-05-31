@@ -248,6 +248,7 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\session.obj \
         $(OBJDIR)\sru_util.obj \
 	$(OBJDIR)\thread_pool_observer.obj \
+        $(OBJDIR)\torus.obj \
         $(OBJDIR)\util.obj \
         $(OBJDIR)\xmlutil.obj 
 

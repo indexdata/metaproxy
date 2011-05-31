@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <boost/shared_ptr.hpp>
 
 #include <metaproxy/util.hpp>
+#include "torus.hpp"
 
 #include <yaz/zgdu.h>
 #include <yaz/otherinfo.h>
@@ -115,6 +116,7 @@ namespace metaproxy_1 {
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
             bool pass_vhosts;
+            mp::Torus torus;
         };
     }
 }
@@ -821,7 +823,6 @@ void yf::VirtualDB::process(mp::Package &package) const
     m_p->release_frontend(package);
 }
 
-
 void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
@@ -855,6 +856,21 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only)
             }
             std::string route = mp::xml::get_route(ptr);
             add_map_db2targets(database, targets, route);
+        }
+        else if (!strcmp((const char *) ptr->name, "torus"))
+        {
+            std::string url;
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "url"))
+                    url = mp::xml::get_text(attr->children);
+                else
+                    throw mp::filter::FilterException(
+                        "Bad attribute " + std::string((const char *)
+                                                       attr->name));
+            }
+            m_p->torus.read_searchables(url);
         }
         else
         {
