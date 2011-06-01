@@ -29,6 +29,7 @@ namespace metaproxy_1 {
         Torus();
         ~Torus();
         void read_searchables(std::string url);
+        xmlDoc *get_doc();
     private:
         xmlDocPtr doc;
     };

@@ -161,15 +161,14 @@ mp::Torus::~Torus()
 
 void mp::Torus::read_searchables(std::string url)
 {
-    if (url.length() == 0)
-        return;
-
     if (doc)
     {
         xmlFreeDoc(doc);
         doc = 0;
     }
-       
+    if (url.length() == 0)
+        return;
+
     int code;
     WRBUF w = get_url(url.c_str(), 0, 0, &code);
     if (code == 200)
@@ -179,6 +178,11 @@ void mp::Torus::read_searchables(std::string url)
             yaz_log(YLOG_LOG, "xmlParseMemory OK");
     }
     wrbuf_destroy(w);
+}
+
+xmlDoc *mp::Torus::get_doc()
+{
+    return doc;
 }
 
 /*
