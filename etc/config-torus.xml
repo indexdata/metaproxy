@@ -14,7 +14,8 @@
 	<category session="true" apdu="true"/>
       </filter>
       <filter type="virt_db">
-        <torus url="http://localhost:8181/torus2/sample/records"/>
+        <torus
+         url="http://torus2dev.indexdata.com/torus2/searchable.mike/records/"/>
       </filter>
       <filter type="log">
         <message>M</message>
