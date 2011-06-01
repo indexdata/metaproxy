@@ -36,3 +36,4 @@ test_filter_bounce
 test_filter_record_transform
 test_filter_sru_to_z3950
 *.o
+metaproxy-config
