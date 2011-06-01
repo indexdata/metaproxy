@@ -439,6 +439,59 @@ void yf::VirtualDB::Rep::release_frontend(mp::Package &package)
     }
 }
 
+void yf::VirtualDB::refresh_torus(void)
+{
+    xmlDoc *doc = m_p->torus.get_doc();
+    xmlNode *ptr1 = 0;
+    if (doc && (ptr1 = xmlDocGetRootElement(doc)))
+    {
+        for (ptr1 = ptr1->children; ptr1; ptr1 = ptr1->next)
+        {
+            if (ptr1->type != XML_ELEMENT_NODE)
+                continue;
+            if (!strcmp((const char *) ptr1->name, "record"))
+            {
+                xmlNode *ptr2 = ptr1;
+                for (ptr2 = ptr2->children; ptr2; ptr2 = ptr2->next)
+                {
+                    if (ptr2->type != XML_ELEMENT_NODE)
+                        continue;
+                    if (!strcmp((const char *) ptr2->name, "layer"))
+                    {
+                        std::string database;
+                        std::string target;
+                        std::string route;
+                        std::string solr;
+                        xmlNode *ptr3 = ptr2;
+                        for (ptr3 = ptr3->children; ptr3; ptr3 = ptr3->next)
+                        {
+                            if (ptr3->type != XML_ELEMENT_NODE)
+                                continue;
+                            if (!strcmp((const char *) ptr3->name, "id"))
+                            {
+                                database = mp::xml::get_text(ptr3);
+                            }
+                            else if (!strcmp((const char *) ptr3->name, "zurl"))
+                            {
+                                target = mp::xml::get_text(ptr3);
+                            }
+                            else if (!strcmp((const char *) ptr3->name, "sru"))
+                            {
+                                solr = mp::xml::get_text(ptr3);
+                            }
+                        }
+                        if (solr.length() == 0 && 
+                            database.length() && target.length())
+                        {
+                            add_map_db2target(database, target, route);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 yf::VirtualDB::Set::Set(BackendPtr b, std::string setname)
     :  m_backend(b), m_setname(setname)
 {
@@ -694,8 +747,8 @@ void yf::VirtualDB::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
 
 
 void yf::VirtualDB::add_map_db2targets(std::string db, 
-                                     std::list<std::string> targets,
-                                     std::string route)
+                                       std::list<std::string> targets,
+                                       std::string route)
 {
     m_p->m_maps.push_back(
         VirtualDB::Map(mp::util::database_name_normalize(db), targets, route));
@@ -703,8 +756,8 @@ void yf::VirtualDB::add_map_db2targets(std::string db,
 
 
 void yf::VirtualDB::add_map_db2target(std::string db, 
-                                    std::string target,
-                                    std::string route)
+                                      std::string target,
+                                      std::string route)
 {
     std::list<std::string> targets;
     targets.push_back(target);
@@ -871,6 +924,7 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only)
                                                        attr->name));
             }
             m_p->torus.read_searchables(url);
+            refresh_torus();
         }
         else
         {
