@@ -53,11 +53,14 @@ namespace metaproxy_1 {
         };
         struct VirtualDB::Map {
             Map(std::string database, std::list<std::string> targets, std::string route);
+            Map(std::string database, std::string target, std::string route);
             Map();
             bool match(const std::string db) const;
             std::string m_dbpattern;
             std::list<std::string> m_targets;
             std::string m_route;
+        public:
+            std::string m_query_encoding;
         };
         struct VirtualDB::Backend {
             mp::Session m_backend_session;
@@ -109,6 +112,7 @@ namespace metaproxy_1 {
             
             FrontendPtr get_frontend(Package &package);
             void release_frontend(Package &package);
+            void refresh_torus();
         private:
             std::list<VirtualDB::Map>m_maps;
             typedef std::map<std::string,VirtualDB::Set>::iterator Sets_it;
@@ -439,52 +443,65 @@ void yf::VirtualDB::Rep::release_frontend(mp::Package &package)
     }
 }
 
-void yf::VirtualDB::refresh_torus(void)
+void yf::VirtualDB::Rep::refresh_torus(void)
 {
-    xmlDoc *doc = m_p->torus.get_doc();
-    xmlNode *ptr1 = 0;
-    if (doc && (ptr1 = xmlDocGetRootElement(doc)))
+    xmlDoc *doc = torus.get_doc();
+    if (!doc)
+        return;
+
+    xmlNode *ptr1 = xmlDocGetRootElement(doc);
+    if (!ptr1)
+        return ;
+
+    for (ptr1 = ptr1->children; ptr1; ptr1 = ptr1->next)
     {
-        for (ptr1 = ptr1->children; ptr1; ptr1 = ptr1->next)
+        if (ptr1->type != XML_ELEMENT_NODE)
+            continue;
+        if (!strcmp((const char *) ptr1->name, "record"))
         {
-            if (ptr1->type != XML_ELEMENT_NODE)
-                continue;
-            if (!strcmp((const char *) ptr1->name, "record"))
+            xmlNode *ptr2 = ptr1;
+            for (ptr2 = ptr2->children; ptr2; ptr2 = ptr2->next)
             {
-                xmlNode *ptr2 = ptr1;
-                for (ptr2 = ptr2->children; ptr2; ptr2 = ptr2->next)
+                if (ptr2->type != XML_ELEMENT_NODE)
+                    continue;
+                if (!strcmp((const char *) ptr2->name, "layer"))
                 {
-                    if (ptr2->type != XML_ELEMENT_NODE)
-                        continue;
-                    if (!strcmp((const char *) ptr2->name, "layer"))
+                    std::string database;
+                    std::string target;
+                    std::string route;
+                    std::string solr;
+                    std::string query_encoding;
+                    xmlNode *ptr3 = ptr2;
+                    for (ptr3 = ptr3->children; ptr3; ptr3 = ptr3->next)
                     {
-                        std::string database;
-                        std::string target;
-                        std::string route;
-                        std::string solr;
-                        xmlNode *ptr3 = ptr2;
-                        for (ptr3 = ptr3->children; ptr3; ptr3 = ptr3->next)
+                        if (ptr3->type != XML_ELEMENT_NODE)
+                            continue;
+                        if (!strcmp((const char *) ptr3->name, "id"))
                         {
-                            if (ptr3->type != XML_ELEMENT_NODE)
-                                continue;
-                            if (!strcmp((const char *) ptr3->name, "id"))
-                            {
-                                database = mp::xml::get_text(ptr3);
-                            }
-                            else if (!strcmp((const char *) ptr3->name, "zurl"))
-                            {
-                                target = mp::xml::get_text(ptr3);
-                            }
-                            else if (!strcmp((const char *) ptr3->name, "sru"))
-                            {
-                                solr = mp::xml::get_text(ptr3);
-                            }
+                            database = mp::xml::get_text(ptr3);
                         }
-                        if (solr.length() == 0 && 
-                            database.length() && target.length())
+                        else if (!strcmp((const char *) ptr3->name, "zurl"))
                         {
-                            add_map_db2target(database, target, route);
+                            target = mp::xml::get_text(ptr3);
                         }
+                        else if (!strcmp((const char *) ptr3->name, "sru"))
+                        {
+                            solr = mp::xml::get_text(ptr3);
+                        }
+                        else if (!strcmp((const char *) ptr3->name,
+                                         "queryEncoding"))
+                        {
+                            query_encoding = mp::xml::get_text(ptr3);
+                        }
+                    }
+                    if (solr.length() == 0 && 
+                        database.length() && target.length())
+                    {
+                        VirtualDB::Map vmap(
+                            mp::util::database_name_normalize(database),
+                            target, route);
+                        vmap.m_query_encoding = query_encoding;
+                        m_maps.push_back(vmap);
                     }
                 }
             }
@@ -512,6 +529,14 @@ yf::VirtualDB::Map::Map(std::string database,
     : m_dbpattern(database), m_targets(targets), m_route(route) 
 {
 }
+
+yf::VirtualDB::Map::Map(std::string database, 
+                        std::string target, std::string route)
+    : m_dbpattern(database), m_route(route) 
+{
+    m_targets.push_back(target);
+}
+
 
 yf::VirtualDB::Map::Map()
 {
@@ -758,11 +783,10 @@ void yf::VirtualDB::add_map_db2targets(std::string db,
 void yf::VirtualDB::add_map_db2target(std::string db, 
                                       std::string target,
                                       std::string route)
-{
-    std::list<std::string> targets;
-    targets.push_back(target);
 
-    add_map_db2targets(db, targets, route);
+{
+    m_p->m_maps.push_back(
+        VirtualDB::Map(mp::util::database_name_normalize(db), target, route));
 }
 
 void yf::VirtualDB::process(mp::Package &package) const
@@ -888,6 +912,7 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only)
         }
         else if (!strcmp((const char *) ptr->name, "virtual"))
         {
+            std::string query_encoding;
             std::string database;
             std::list<std::string> targets;
             xmlNode *v_node = ptr->children;
@@ -900,6 +925,8 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only)
                     database = mp::xml::get_text(v_node);
                 else if (mp::xml::is_element_mp(v_node, "target"))
                     targets.push_back(mp::xml::get_text(v_node));
+                else if (mp::xml::is_element_mp(v_node, "query-encoding"))
+                    targets.push_back(mp::xml::get_text(v_node));
                 else
                     throw mp::filter::FilterException
                         ("Bad element " 
@@ -908,7 +935,11 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only)
                             );
             }
             std::string route = mp::xml::get_route(ptr);
-            add_map_db2targets(database, targets, route);
+
+            VirtualDB::Map vmap(mp::util::database_name_normalize(database),
+                                targets, route);
+            vmap.m_query_encoding = query_encoding;
+            m_p->m_maps.push_back(vmap);
         }
         else if (!strcmp((const char *) ptr->name, "torus"))
         {
@@ -924,7 +955,7 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only)
                                                        attr->name));
             }
             m_p->torus.read_searchables(url);
-            refresh_torus();
+            m_p->refresh_torus();
         }
         else
         {

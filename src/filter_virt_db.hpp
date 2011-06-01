@@ -47,7 +47,6 @@ namespace metaproxy_1 {
             void add_map_db2target(std::string db,
                                    std::string target,
                                    std::string route);
-            void refresh_torus();
         private:
             boost::scoped_ptr<Rep> m_p;
         };
