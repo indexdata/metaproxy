@@ -24,7 +24,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
-
+#include <yaz/diagbib1.h>
+#include <yaz/log.h>
 #include <yaz/zgdu.h>
 
 namespace mp = metaproxy_1;
@@ -34,9 +35,15 @@ namespace metaproxy_1 {
     namespace filter {
         class Zoom::Backend {
             friend class Impl;
+            friend class Frontend;
             std::string zurl;
             ZOOM_connection m_connection;
             ZOOM_resultset m_resultset;
+            std::string m_frontend_database;
+        public:
+            Backend();
+            ~Backend();
+            void connect(std::string zurl);
         };
         class Zoom::Frontend {
             friend class Impl;
@@ -44,6 +51,11 @@ namespace metaproxy_1 {
             bool m_is_virtual;
             bool m_in_use;
             yazpp_1::GDU m_init_gdu;
+            std::list<BackendPtr> m_backend_list;
+            void handle_package(mp::Package &package);
+            void handle_search(mp::Package &package);
+            void handle_present(mp::Package &package);
+            BackendPtr get_backend_from_databases(std::string database);
         public:
             Frontend(Impl *impl);
             ~Frontend();
@@ -87,6 +99,23 @@ void yf::Zoom::process(mp::Package &package) const
 
 
 // define Implementation stuff
+
+yf::Zoom::Backend::Backend()
+{
+    m_connection = ZOOM_connection_create(0);
+    m_resultset = 0;
+}
+
+yf::Zoom::Backend::~Backend()
+{
+    ZOOM_connection_destroy(m_connection);
+    ZOOM_resultset_destroy(m_resultset);
+}
+
+void yf::Zoom::Backend::connect(std::string zurl)
+{
+    ZOOM_connection_connect(m_connection, zurl.c_str(), 0);
+}
 
 yf::Zoom::Frontend::Frontend(Impl *impl) : 
     m_p(impl), m_is_virtual(false), m_in_use(true)
@@ -154,6 +183,111 @@ void yf::Zoom::Impl::configure(const xmlNode *xmlnode)
 {
 }
 
+yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
+    std::string database)
+{
+    std::list<BackendPtr>::const_iterator map_it;
+    map_it = m_backend_list.begin();
+    for (; map_it != m_backend_list.end(); map_it++)
+        if ((*map_it)->m_frontend_database == database)
+            return *map_it;
+
+    BackendPtr b(new Backend);
+
+    std::string url = "localhost:9999/" + database;
+    yaz_log(YLOG_LOG, "new backend url=%s", url.c_str());
+    b->connect(url);
+    return b;
+}
+
+void yf::Zoom::Frontend::handle_search(mp::Package &package)
+{
+    Z_GDU *gdu = package.request().get();
+    Z_APDU *apdu_req = gdu->u.z3950;
+    Z_APDU *apdu_res = 0;
+    mp::odr odr;
+    Z_SearchRequest *sr = apdu_req->u.searchRequest;
+    if (sr->num_databaseNames != 1)
+    {
+        apdu_res = odr.create_searchResponse(
+            apdu_req, YAZ_BIB1_TOO_MANY_DATABASES_SPECIFIED, 0);
+        package.response() = apdu_res;
+        return;
+    }
+    BackendPtr b = get_backend_from_databases(sr->databaseNames[0]);
+    switch (sr->query->which)
+    {
+    case Z_Query_type_1:
+    case Z_Query_type_101:
+        apdu_res = 
+            odr.create_searchResponse(
+                apdu_req,
+                YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
+                "search filter do not handle type-1/type-101 yet");
+        package.response() = apdu_res;
+        break;
+    default:
+        apdu_res = 
+            odr.create_searchResponse(
+                apdu_req,
+                YAZ_BIB1_QUERY_TYPE_UNSUPP, 0);
+        package.response() = apdu_res;
+        return;
+    }
+}
+
+void yf::Zoom::Frontend::handle_present(mp::Package &package)
+{
+    Z_GDU *gdu = package.request().get();
+    Z_APDU *apdu_req = gdu->u.z3950;
+    mp::odr odr;
+    package.response() = odr.create_close(
+        apdu_req,
+        Z_Close_protocolError,
+        "zoom filter has not implemented present request yet");
+    package.session().close();
+}
+
+void yf::Zoom::Frontend::handle_package(mp::Package &package)
+{
+    Z_GDU *gdu = package.request().get();
+    if (!gdu)
+        ;
+    else if (gdu->which == Z_GDU_Z3950)
+    {
+        Z_APDU *apdu_req = gdu->u.z3950;
+        if (apdu_req->which == Z_APDU_initRequest)
+        {
+            mp::odr odr;
+            package.response() = odr.create_close(
+                apdu_req,
+                Z_Close_protocolError,
+                "double init");
+        }
+        else if (apdu_req->which == Z_APDU_searchRequest)
+        {
+            handle_search(package);
+        }
+        else if (apdu_req->which == Z_APDU_presentRequest)
+        {
+            handle_present(package);
+        }
+        else
+        {
+            mp::odr odr;
+            package.response() = odr.create_close(
+                apdu_req,
+                Z_Close_protocolError,
+                "zoom filter cannot handle this APDU");
+            package.session().close();
+        }
+    }
+    else
+    {
+        package.session().close();
+    }
+}
+
 void yf::Zoom::Impl::process(mp::Package &package)
 {
     FrontendPtr f = get_frontend(package);
@@ -161,17 +295,7 @@ void yf::Zoom::Impl::process(mp::Package &package)
 
     if (f->m_is_virtual)
     {
-        if (gdu->which == Z_GDU_Z3950)
-        {
-            Z_APDU *apdu = gdu->u.z3950;
-            mp::odr odr;
-            
-            package.response() = odr.create_close(
-                apdu,
-                Z_Close_protocolError,
-                "not implemented");
-        }
-        package.session().close();
+        f->handle_package(package);
     }
     else if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
              Z_APDU_initRequest)
