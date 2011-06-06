@@ -238,6 +238,7 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\filter_virt_db.obj \
         $(OBJDIR)\filter_z3950_client.obj \
         $(OBJDIR)\filter_zeerex_explain.obj \
+        $(OBJDIR)\filter_zoom.obj \
 	$(OBJDIR)\gduutil.obj \
 	$(OBJDIR)\origin.obj \
 	$(OBJDIR)\package.obj \

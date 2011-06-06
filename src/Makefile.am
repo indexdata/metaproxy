@@ -41,6 +41,7 @@ libmetaproxy_la_SOURCES = \
 	filter_virt_db.cpp filter_virt_db.hpp \
 	filter_z3950_client.cpp filter_z3950_client.hpp \
 	filter_zeerex_explain.cpp  filter_zeerex_explain.hpp \
+	filter_zoom.cpp filter_zoom.hpp \
 	gduutil.cpp gduutil.hpp \
 	origin.cpp \
 	package.cpp \
