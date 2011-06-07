@@ -30,6 +30,7 @@ namespace metaproxy_1 {
             class Impl;
             class Frontend;
             class Backend;
+            class Searchable;
             boost::scoped_ptr<Impl> m_p;
             typedef boost::shared_ptr<Frontend> FrontendPtr;
             typedef boost::shared_ptr<Backend> BackendPtr;

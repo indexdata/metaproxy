@@ -21,12 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/zoom.h>
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
+#include "torus.hpp"
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 #include <yaz/diagbib1.h>
 #include <yaz/log.h>
 #include <yaz/zgdu.h>
+#include <yaz/querytowrbuf.h>
 
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
@@ -43,7 +45,19 @@ namespace metaproxy_1 {
         public:
             Backend();
             ~Backend();
-            void connect(std::string zurl);
+            void connect(std::string zurl, int *error, const char **addinfo);
+            void search_pqf(const char *pqf, Odr_int *hits,
+                            int *error, const char **addinfo);
+            void set_option(const char *name, const char *value);
+            int get_error(const char **addinfo);
+        };
+        struct Zoom::Searchable {
+            std::string m_database;
+            std::string m_target;
+            std::string query_encoding;
+            std::string sru;
+            Searchable(std::string norm_db, std::string target);
+            ~Searchable();
         };
         class Zoom::Frontend {
             friend class Impl;
@@ -55,24 +69,31 @@ namespace metaproxy_1 {
             void handle_package(mp::Package &package);
             void handle_search(mp::Package &package);
             void handle_present(mp::Package &package);
-            BackendPtr get_backend_from_databases(std::string database);
+            BackendPtr get_backend_from_databases(std::string &database,
+                                                  int *error,
+                                                  const char **addinfo);
         public:
             Frontend(Impl *impl);
             ~Frontend();
         };
         class Zoom::Impl {
+            friend class Frontend;
         public:
             Impl();
             ~Impl();
             void process(metaproxy_1::Package & package);
-            void configure(const xmlNode * ptr);
+            void configure(const xmlNode * ptr, bool test_only);
         private:
             FrontendPtr get_frontend(mp::Package &package);
             void release_frontend(mp::Package &package);
+            void parse_torus(const xmlNode *ptr);
+
+            std::list<Zoom::Searchable>m_searchables;
 
             std::map<mp::Session, FrontendPtr> m_clients;            
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
+            mp::Torus torus;
         };
     }
 }
@@ -89,7 +110,7 @@ yf::Zoom::~Zoom()
 
 void yf::Zoom::configure(const xmlNode *xmlnode, bool test_only)
 {
-    m_p->configure(xmlnode);
+    m_p->configure(xmlnode, test_only);
 }
 
 void yf::Zoom::process(mp::Package &package) const
@@ -112,9 +133,45 @@ yf::Zoom::Backend::~Backend()
     ZOOM_resultset_destroy(m_resultset);
 }
 
-void yf::Zoom::Backend::connect(std::string zurl)
+void yf::Zoom::Backend::connect(std::string zurl,
+                                int *error, const char **addinfo)
 {
     ZOOM_connection_connect(m_connection, zurl.c_str(), 0);
+    *error = ZOOM_connection_error(m_connection, 0, addinfo);
+    yaz_log(YLOG_LOG, "ZOOM_connection_connect: error: %d", *error);
+}
+
+void yf::Zoom::Backend::search_pqf(const char *pqf, Odr_int *hits,
+                                   int *error, const char **addinfo)
+{
+    yaz_log(YLOG_LOG, "ZOOM_connection_search_pqf pqf=%s", pqf);
+    m_resultset = ZOOM_connection_search_pqf(m_connection, pqf);
+    *error = ZOOM_connection_error(m_connection, 0, addinfo);
+    yaz_log(YLOG_LOG, "ZOOM_connection_search_pqf: error: %d", *error);
+    if (*error == 0)
+        *hits = ZOOM_resultset_size(m_resultset);
+    else
+        *hits = 0;
+}
+
+void yf::Zoom::Backend::set_option(const char *name, const char *value)
+{
+    ZOOM_connection_option_set(m_connection, name, value);
+}
+
+int yf::Zoom::Backend::get_error(const char **addinfo)
+{
+    return ZOOM_connection_error(m_connection, 0, addinfo);
+}
+
+yf::Zoom::Searchable::Searchable(std::string database, 
+                                 std::string target)
+    : m_database(database), m_target(target)
+{
+}
+
+yf::Zoom::Searchable::~Searchable()
+{
 }
 
 yf::Zoom::Frontend::Frontend(Impl *impl) : 
@@ -179,12 +236,112 @@ yf::Zoom::Impl::~Impl()
 { 
 }
 
-void yf::Zoom::Impl::configure(const xmlNode *xmlnode)
+void yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
 {
+    if (!ptr1)
+        return ;
+    for (ptr1 = ptr1->children; ptr1; ptr1 = ptr1->next)
+    {
+        if (ptr1->type != XML_ELEMENT_NODE)
+            continue;
+        if (!strcmp((const char *) ptr1->name, "record"))
+        {
+            const xmlNode *ptr2 = ptr1;
+            for (ptr2 = ptr2->children; ptr2; ptr2 = ptr2->next)
+            {
+                if (ptr2->type != XML_ELEMENT_NODE)
+                    continue;
+                if (!strcmp((const char *) ptr2->name, "layer"))
+                {
+                    std::string database;
+                    std::string target;
+                    std::string route;
+                    std::string sru;
+                    std::string query_encoding;
+                    const xmlNode *ptr3 = ptr2;
+                    for (ptr3 = ptr3->children; ptr3; ptr3 = ptr3->next)
+                    {
+                        if (ptr3->type != XML_ELEMENT_NODE)
+                            continue;
+                        if (!strcmp((const char *) ptr3->name, "id"))
+                        {
+                            database = mp::xml::get_text(ptr3);
+                        }
+                        else if (!strcmp((const char *) ptr3->name, "zurl"))
+                        {
+                            target = mp::xml::get_text(ptr3);
+                        }
+                        else if (!strcmp((const char *) ptr3->name, "sru"))
+                        {
+                            sru = mp::xml::get_text(ptr3);
+                        }
+                        else if (!strcmp((const char *) ptr3->name,
+                                         "queryEncoding"))
+                        {
+                            query_encoding = mp::xml::get_text(ptr3);
+                        }
+                    }
+                    if (database.length() && target.length())
+                    {
+                        yaz_log(YLOG_LOG, "add db=%s target=%s", 
+                                database.c_str(), target.c_str());
+                        Zoom::Searchable searchable(
+                            mp::util::database_name_normalize(database),
+                            target);
+                        searchable.query_encoding = query_encoding;
+                        searchable.sru = sru;
+                        m_searchables.push_back(searchable);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
+{
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
+    {
+        if (ptr->type != XML_ELEMENT_NODE)
+            continue;
+        if (!strcmp((const char *) ptr->name, "records"))
+        {
+            parse_torus(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name, "torus"))
+        {
+            std::string url;
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "url"))
+                    url = mp::xml::get_text(attr->children);
+                else
+                    throw mp::filter::FilterException(
+                        "Bad attribute " + std::string((const char *)
+                                                       attr->name));
+            }
+            torus.read_searchables(url);
+            xmlDoc *doc = torus.get_doc();
+            if (doc)
+            {
+                xmlNode *ptr = xmlDocGetRootElement(doc);
+                parse_torus(ptr);
+            }
+        }
+        else
+        {
+            throw mp::filter::FilterException
+                ("Bad element " 
+                 + std::string((const char *) ptr->name)
+                 + " in zoom filter");
+        }
+    }
 }
 
 yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
-    std::string database)
+    std::string &database, int *error, const char **addinfo)
 {
     std::list<BackendPtr>::const_iterator map_it;
     map_it = m_backend_list.begin();
@@ -192,11 +349,45 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if ((*map_it)->m_frontend_database == database)
             return *map_it;
 
+    std::list<Zoom::Searchable>::const_iterator map_s =
+        m_p->m_searchables.begin();
+
+    std::string c_db = mp::util::database_name_normalize(database);
+
+    while (map_s != m_p->m_searchables.end())
+    {
+        yaz_log(YLOG_LOG, "consider db=%s map db=%s",
+                database.c_str(), map_s->m_database.c_str());
+        if (c_db.compare(map_s->m_database) == 0)
+            break;
+        map_s++;
+    }
+    if (map_s == m_p->m_searchables.end())
+    {
+        *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
+        *addinfo = database.c_str();
+        BackendPtr b;
+        return b;
+    }
     BackendPtr b(new Backend);
 
-    std::string url = "localhost:9999/" + database;
-    yaz_log(YLOG_LOG, "new backend url=%s", url.c_str());
-    b->connect(url);
+    if (map_s->query_encoding.length())
+        b->set_option("rpnCharset", map_s->query_encoding.c_str());
+
+    std::string url;
+    if (map_s->sru.length())
+    {
+        url = "http://" + map_s->m_target;
+        b->set_option("sru", map_s->sru.c_str());
+    }
+    else
+        url = map_s->m_target;
+
+    b->connect(url, error, addinfo);
+    if (*error == 0)
+    {
+        m_backend_list.push_back(b);
+    }
     return b;
 }
 
@@ -214,19 +405,39 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         package.response() = apdu_res;
         return;
     }
-    BackendPtr b = get_backend_from_databases(sr->databaseNames[0]);
-    switch (sr->query->which)
+
+    int error;
+    const char *addinfo;
+    std::string db(sr->databaseNames[0]);
+    BackendPtr b = get_backend_from_databases(db, &error, &addinfo);
+    if (error)
     {
-    case Z_Query_type_1:
-    case Z_Query_type_101:
         apdu_res = 
             odr.create_searchResponse(
-                apdu_req,
-                YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
-                "search filter do not handle type-1/type-101 yet");
+                apdu_req, error, addinfo);
         package.response() = apdu_res;
-        break;
-    default:
+        return;
+    }
+    Z_Query *query = sr->query;
+    if (query->which == Z_Query_type_1 || query->which == Z_Query_type_101)
+    {
+        WRBUF w = wrbuf_alloc();
+        yaz_rpnquery_to_wrbuf(w, query->u.type_1);
+        Odr_int hits;
+        int error;
+        const char *addinfo = 0;
+
+        b->search_pqf(wrbuf_cstr(w), &hits, &error, &addinfo);
+        wrbuf_destroy(w);
+
+        apdu_res = 
+            odr.create_searchResponse(
+                apdu_req, error, addinfo);
+        apdu_res->u.searchResponse->resultCount = odr_intdup(odr, hits);
+        package.response() = apdu_res;
+    }
+    else
+    {
         apdu_res = 
             odr.create_searchResponse(
                 apdu_req,
