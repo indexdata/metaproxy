@@ -1,6 +1,6 @@
 files
-libmetaproxy2
-libmetaproxy2-dev
+libmetaproxy3
+libmetaproxy3-dev
 metaproxy
 metaproxy-doc
 tmp
