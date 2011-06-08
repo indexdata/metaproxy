@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
+  <!-- Z39.50 proxy which relays to target specified in Init otherinfo 
+  (VAL_RPOXY). If no target is given, it relays to target
+  z3950.indexdata.dk -->
+  <start route="start"/>
+  <filters>
+    <filter id="frontend" type="frontend_net">
+      <threads>10</threads>
+      <port>@:9000</port>
+    </filter>
+    <filter id="backend" type="zoom">
+      <records>
+         <record>
+           <layer>
+             <id>z-local</id>
+             <zurl>localhost:9999/db01</zurl>
+             <queryEncoding>iso-8859-1</queryEncoding>
+	     <useTurboMarc>1</useTurboMarc>
+	     <elementSet>F</elementSet>
+	     <requestSyntax>MARC21</requestSyntax>
+	     <recordEncoding>MARC-8</recordEncoding>
+	     <transform>tmarc.xsl</transform>
+           </layer>
+         </record>
+         <record>
+           <layer>
+             <id>sru-local</id>
+             <zurl>localhost:9999/db02</zurl>
+             <sru>get</sru>
+             <queryEncoding>iso-8859-1</queryEncoding>
+           </layer>
+         </record>
+         <record>
+           <layer>
+             <id>z-unknown</id>
+             <zurl>localhost:9999/unknown</zurl>
+             <queryEncoding>iso-8859-1</queryEncoding>
+           </layer>
+         </record>
+      </records> 
+    </filter>
+  </filters>
+  <routes>  
+    <route id="start">
+      <filter refid="frontend"/>
+      <filter type="log">
+        <message>log</message>
+      </filter>
+      <filter refid="backend"/>
+      <filter type="bounce"/>
+    </route>
+  </routes>
+</metaproxy>
+
