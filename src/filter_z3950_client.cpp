@@ -465,7 +465,7 @@ void yf::Z3950Client::configure(const xmlNode *ptr, bool test_only)
             continue;
         if (!strcmp((const char *) ptr->name, "timeout"))
         {
-            m_p->m_timeout_sec = mp::xml::get_int(ptr->children, 30);
+            m_p->m_timeout_sec = mp::xml::get_int(ptr, 30);
         }
         else if (!strcmp((const char *) ptr->name, "default_target"))
         {
@@ -477,11 +477,11 @@ void yf::Z3950Client::configure(const xmlNode *ptr, bool test_only)
         }
         else if (!strcmp((const char *) ptr->name, "max-sockets"))
         {
-            m_p->m_max_sockets = mp::xml::get_int(ptr->children, 0);
+            m_p->m_max_sockets = mp::xml::get_int(ptr, 0);
         }
         else if (!strcmp((const char *) ptr->name, "force_close"))
         {
-            m_p->m_force_close = mp::xml::get_bool(ptr->children, 0);
+            m_p->m_force_close = mp::xml::get_bool(ptr, 0);
         }
         else
         {

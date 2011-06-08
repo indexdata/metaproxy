@@ -943,7 +943,7 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only)
             continue;
         if (!strcmp((const char *) ptr->name, "pass-vhosts"))
         {
-            m_p->pass_vhosts = mp::xml::get_bool(ptr->children, false);
+            m_p->pass_vhosts = mp::xml::get_bool(ptr, false);
         }
         else if (!strcmp((const char *) ptr->name, "virtual"))
         {

@@ -410,7 +410,7 @@ void mp::filter::FrontendNet::configure(const xmlNode * ptr, bool test_only)
         }
         else if (!strcmp((const char *) ptr->name, "connect-max"))
         {
-            m_p->m_connect_max = mp::xml::get_int(ptr->children, 0);
+            m_p->m_connect_max = mp::xml::get_int(ptr, 0);
         }
         else
         {
