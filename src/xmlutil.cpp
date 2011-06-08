@@ -45,9 +45,12 @@ std::string mp_xml::get_text(const xmlNode *ptr)
 
 bool mp_xml::get_bool(const xmlNode *ptr, bool default_value)
 {
+    if (ptr && ptr->type != XML_TEXT_NODE)
+        ptr = ptr->children;
     if (ptr && ptr->type == XML_TEXT_NODE && ptr->content)
     {
-        if (!strcmp((const char *) ptr->content, "true"))
+        if (!strcmp((const char *) ptr->content, "true")
+            || !strcmp((const char *) ptr->content, "1"))
             return true;
         else
             return false;
@@ -56,7 +59,9 @@ bool mp_xml::get_bool(const xmlNode *ptr, bool default_value)
 }
 
 int mp_xml::get_int(const xmlNode *ptr, int default_value)
-{
+{ 
+    if (ptr && ptr->type != XML_TEXT_NODE)
+        ptr = ptr->children;
     if (ptr && ptr->type == XML_TEXT_NODE && ptr->content)
     {
         return atoi((const char *) ptr->content);
