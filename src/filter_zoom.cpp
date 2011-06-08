@@ -23,6 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/util.hpp>
 #include "torus.hpp"
 
+#include <libxslt/xsltutils.h>
+#include <libxslt/transform.h>
+
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 #include <yaz/oid_db.h>
@@ -41,6 +44,11 @@ namespace metaproxy_1 {
             std::string target;
             std::string query_encoding;
             std::string sru;
+            std::string request_syntax;
+            std::string element_set;
+            std::string record_encoding;
+            std::string transform_xsl_fname;
+            bool use_turbomarc;
             bool piggyback;
             Searchable();
             ~Searchable();
@@ -52,8 +60,10 @@ namespace metaproxy_1 {
             ZOOM_connection m_connection;
             ZOOM_resultset m_resultset;
             std::string m_frontend_database;
+            SearchablePtr sptr;
+            xsltStylesheetPtr xsp;
         public:
-            Backend();
+            Backend(SearchablePtr sptr);
             ~Backend();
             void connect(std::string zurl, int *error, const char **addinfo);
             void search_pqf(const char *pqf, Odr_int *hits,
@@ -100,7 +110,7 @@ namespace metaproxy_1 {
             void release_frontend(mp::Package &package);
             void parse_torus(const xmlNode *ptr);
 
-            std::list<Zoom::Searchable>m_searchables;
+            std::list<Zoom::SearchablePtr>m_searchables;
 
             std::map<mp::Session, FrontendPtr> m_clients;            
             boost::mutex m_mutex;
@@ -133,7 +143,7 @@ void yf::Zoom::process(mp::Package &package) const
 
 // define Implementation stuff
 
-yf::Zoom::Backend::Backend()
+yf::Zoom::Backend::Backend(SearchablePtr ptr) : sptr(ptr)
 {
     m_connection = ZOOM_connection_create(0);
     m_resultset = 0;
@@ -141,6 +151,8 @@ yf::Zoom::Backend::Backend()
 
 yf::Zoom::Backend::~Backend()
 {
+    if (xsp)
+        xsltFreeStylesheet(xsp);
     ZOOM_connection_destroy(m_connection);
     ZOOM_resultset_destroy(m_resultset);
 }
@@ -186,6 +198,7 @@ int yf::Zoom::Backend::get_error(const char **addinfo)
 yf::Zoom::Searchable::Searchable()
 {
     piggyback = true;
+    use_turbomarc = false;
 }
 
 yf::Zoom::Searchable::~Searchable()
@@ -271,7 +284,7 @@ void yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
                     continue;
                 if (!strcmp((const char *) ptr2->name, "layer"))
                 {
-                    Zoom::Searchable s;
+                    Zoom::SearchablePtr s(new Searchable);
 
                     const xmlNode *ptr3 = ptr2;
                     for (ptr3 = ptr3->children; ptr3; ptr3 = ptr3->next)
@@ -280,31 +293,61 @@ void yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
                             continue;
                         if (!strcmp((const char *) ptr3->name, "id"))
                         {
-                            s.database = mp::xml::get_text(ptr3);
+                            s->database = mp::xml::get_text(ptr3);
                         }
                         else if (!strcmp((const char *) ptr3->name, "zurl"))
                         {
-                            s.target = mp::xml::get_text(ptr3);
+                            s->target = mp::xml::get_text(ptr3);
                         }
                         else if (!strcmp((const char *) ptr3->name, "sru"))
                         {
-                            s.sru = mp::xml::get_text(ptr3);
+                            s->sru = mp::xml::get_text(ptr3);
                         }
                         else if (!strcmp((const char *) ptr3->name,
                                          "queryEncoding"))
                         {
-                            s.query_encoding = mp::xml::get_text(ptr3);
+                            s->query_encoding = mp::xml::get_text(ptr3);
                         }
                         else if (!strcmp((const char *) ptr3->name,
                                          "piggyback"))
                         {
-                            s.piggyback = mp::xml::get_bool(ptr3, true);
+                            s->piggyback = mp::xml::get_bool(ptr3, true);
+                        }
+                        else if (!strcmp((const char *) ptr3->name,
+                                         "requestSyntax"))
+                        {
+                            s->request_syntax = mp::xml::get_text(ptr3);
+                        }
+                        else if (!strcmp((const char *) ptr3->name,
+                                         "elementSet"))
+                        {
+                            s->element_set = mp::xml::get_text(ptr3);
+                        }
+                        else if (!strcmp((const char *) ptr3->name,
+                                         "recordEncoding"))
+                        {
+                            s->record_encoding = mp::xml::get_text(ptr3);
+                        }
+                        else if (!strcmp((const char *) ptr3->name,
+                                         "transform"))
+                        {
+                            s->transform_xsl_fname = mp::xml::get_text(ptr3);
+                        }
+                        else if (!strcmp((const char *) ptr3->name,
+                                         "useTurboMarc"))
+                        {
+                            yaz_log(YLOG_LOG, "seeing useTurboMarc");
+                            s->use_turbomarc = mp::xml::get_bool(ptr3, false);
+                            yaz_log(YLOG_LOG, "value=%s",
+                                    s->use_turbomarc ? "1" : "0");
+                                    
                         }
                     }
-                    if (s.database.length() && s.target.length())
+                    if (s->database.length() && s->target.length())
                     {
-                        yaz_log(YLOG_LOG, "add db=%s target=%s", 
-                                s.database.c_str(), s.target.c_str());
+                        yaz_log(YLOG_LOG, "add db=%s target=%s turbomarc=%s", 
+                                s->database.c_str(), s->target.c_str(),
+                                s->use_turbomarc ? "1" : "0");
                         m_searchables.push_back(s);
                     }
                 }
@@ -362,14 +405,14 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (m_backend && m_backend->m_frontend_database == database)
         return m_backend;
 
-    std::list<Zoom::Searchable>::iterator map_s =
+    std::list<Zoom::SearchablePtr>::iterator map_s =
         m_p->m_searchables.begin();
 
     std::string c_db = mp::util::database_name_normalize(database);
 
     while (map_s != m_p->m_searchables.end())
     {
-        if (c_db.compare(map_s->database) == 0)
+        if (c_db.compare((*map_s)->database) == 0)
             break;
         map_s++;
     }
@@ -381,23 +424,48 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         return b;
     }
 
+    xsltStylesheetPtr xsp = 0;
+    if ((*map_s)->transform_xsl_fname.length())
+    {
+        xmlDoc *xsp_doc = xmlParseFile((*map_s)->transform_xsl_fname.c_str());
+        if (!xsp_doc)
+        {
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            *addinfo = "xmlParseFile failed";
+            BackendPtr b;
+            return b;
+        }
+        xsp = xsltParseStylesheetDoc(xsp_doc);
+        if (!xsp)
+        {
+            *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
+            *addinfo = "xsltParseStylesheetDoc failed";
+            BackendPtr b;
+            xmlFreeDoc(xsp_doc);
+            return b;
+        }
+    }
+
+    SearchablePtr sptr = *map_s;
+
     m_backend.reset();
 
-    BackendPtr b(new Backend);
+    BackendPtr b(new Backend(sptr));
 
+    b->xsp = xsp;
     b->m_frontend_database = database;
 
-    if (map_s->query_encoding.length())
-        b->set_option("rpnCharset", map_s->query_encoding.c_str());
+    if (sptr->query_encoding.length())
+        b->set_option("rpnCharset", sptr->query_encoding.c_str());
 
     std::string url;
-    if (map_s->sru.length())
+    if (sptr->sru.length())
     {
-        url = "http://" + map_s->target;
-        b->set_option("sru", map_s->sru.c_str());
+        url = "http://" + sptr->target;
+        b->set_option("sru", sptr->sru.c_str());
     }
     else
-        url = map_s->target;
+        url = sptr->target;
 
     b->connect(url, error, addinfo);
     if (*error == 0)
@@ -419,6 +487,7 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
 {
     *number_of_records_returned = 0;
     Z_Records *records = 0;
+    bool enable_pz2_transform = false;
 
     if (start < 0 || number_to_present <= 0)
         return records;
@@ -433,10 +502,35 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
     const char *syntax_name = 0;
 
     if (preferredRecordSyntax)
-        syntax_name =
-            yaz_oid_to_string_buf(preferredRecordSyntax, 0, oid_name_str);
+    {
+        if (!oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml)
+            && !strcmp(element_set_name, "pz2"))
+        {
+            if (b->sptr->request_syntax.length())
+            {
+                syntax_name = b->sptr->request_syntax.c_str();
+                enable_pz2_transform = true;
+            }
+        }
+        else
+        {
+            syntax_name =
+                yaz_oid_to_string_buf(preferredRecordSyntax, 0, oid_name_str);
+        }
+    }
+
+    yaz_log(YLOG_LOG, "enable_pz2_transform %s", enable_pz2_transform ?
+            "enabled" : "disabled");
+
     b->set_option("preferredRecordSyntax", syntax_name);
-        
+
+    if (enable_pz2_transform)
+    {
+        element_set_name = "F";
+        if (b->sptr->element_set.length())
+            element_set_name = b->sptr->element_set.c_str();
+    }
+
     b->set_option("elementSetName", element_set_name);
 
     b->present(start, number_to_present, recs, error, addinfo);
@@ -470,16 +564,72 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                 npr = zget_surrogateDiagRec(odr, odr_database, sur_error,
                                             addinfo);
             }
+            else if (enable_pz2_transform)
+            {
+                char rec_type_str[100];
+
+                strcpy(rec_type_str, b->sptr->use_turbomarc ?
+                       "txml" : "xml");
+                
+                // prevent buffer overflow ...
+                if (b->sptr->record_encoding.length() > 0 &&
+                    b->sptr->record_encoding.length() < 
+                    (sizeof(rec_type_str)-20))
+                {
+                    strcat(rec_type_str, "; charset=");
+                    strcat(rec_type_str, b->sptr->record_encoding.c_str());
+                }
+                
+                int rec_len;
+                const char *rec_buf = ZOOM_record_get(recs[i], rec_type_str,
+                                                      &rec_len);
+                if (rec_buf && b->xsp)
+                {
+                    xmlDoc *rec_doc = xmlParseMemory(rec_buf, rec_len);
+                    if (rec_doc)
+                    { 
+                        xmlDoc *rec_res;
+                        rec_res = xsltApplyStylesheet(b->xsp, rec_doc, 0);
+
+                        if (rec_res)
+                            xsltSaveResultToString((xmlChar **) &rec_buf, &rec_len,
+                                                   rec_res, b->xsp);
+                    }
+                }
+
+                if (rec_buf)
+                {
+                    npr = (Z_NamePlusRecord *) odr_malloc(odr, sizeof(*npr));
+                    npr->databaseName = odr_database;
+                    npr->which = Z_NamePlusRecord_databaseRecord;
+                    npr->u.databaseRecord =
+                        z_ext_record_xml(odr, rec_buf, rec_len);
+                }
+                else
+                {
+                    npr = zget_surrogateDiagRec(
+                        odr, odr_database, 
+                        YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                        rec_type_str);
+                }
+            }
             else
             {
-                npr = (Z_NamePlusRecord *) odr_malloc(odr, sizeof(*npr));
                 Z_External *ext =
                     (Z_External *) ZOOM_record_get(recs[i], "ext", 0);
-                npr->databaseName = odr_database;
                 if (ext)
                 {
+                    npr = (Z_NamePlusRecord *) odr_malloc(odr, sizeof(*npr));
+                    npr->databaseName = odr_database;
                     npr->which = Z_NamePlusRecord_databaseRecord;
                     npr->u.databaseRecord = ext;
+                }
+                else
+                {
+                    npr = zget_surrogateDiagRec(
+                        odr, odr_database, 
+                        YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                        "ZOOM_record, type ext");
                 }
             }
             npl->records[i] = npr;
