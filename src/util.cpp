@@ -188,6 +188,18 @@ void mp_util::piggyback_sr(Z_SearchRequest *sreq,
               element_set_name);
 }
 
+void mp_util::piggyback(int smallSetUpperBound,
+                        int largeSetLowerBound,
+                        int mediumSetPresentNumber,
+                        int result_set_size,
+                        int &number_to_present)
+{
+    Odr_int tmp = number_to_present;
+    piggyback(smallSetUpperBound, largeSetLowerBound, mediumSetPresentNumber,
+              0, 0, result_set_size, tmp, 0);
+    number_to_present = tmp;
+}
+
 void mp_util::piggyback(Odr_int smallSetUpperBound,
                         Odr_int largeSetLowerBound,
                         Odr_int mediumSetPresentNumber,
