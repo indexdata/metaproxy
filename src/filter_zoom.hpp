@@ -34,6 +34,7 @@ namespace metaproxy_1 {
             boost::scoped_ptr<Impl> m_p;
             typedef boost::shared_ptr<Frontend> FrontendPtr;
             typedef boost::shared_ptr<Backend> BackendPtr;
+            typedef boost::shared_ptr<Searchable> SearchablePtr;
         public:
             Zoom();
             ~Zoom();

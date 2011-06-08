@@ -161,11 +161,41 @@ std::string mp_util::database_name_normalize(const std::string &s)
 
 }
 
-void mp_util::piggyback(int smallSetUpperBound,
-                                  int largeSetLowerBound,
-                                  int mediumSetPresentNumber,
-                                  int result_set_size,
-                                  int &number_to_present)
+void mp_util::piggyback_sr(Z_SearchRequest *sreq,
+                           Odr_int result_set_size,
+                           Odr_int &number_to_present,
+                           const char **element_set_name)
+{
+    Z_ElementSetNames *esn;
+    const char *smallSetElementSetNames = 0;
+    const char *mediumSetElementSetNames = 0;
+
+    esn = sreq->smallSetElementSetNames;
+    if (esn && esn->which == Z_ElementSetNames_generic)
+        smallSetElementSetNames = esn->u.generic;
+
+    esn = sreq->mediumSetElementSetNames;
+    if (esn && esn->which == Z_ElementSetNames_generic)
+        mediumSetElementSetNames = esn->u.generic;
+
+    piggyback(*sreq->smallSetUpperBound,
+              *sreq->largeSetLowerBound,
+              *sreq->mediumSetPresentNumber,
+              smallSetElementSetNames,
+              mediumSetElementSetNames,
+              result_set_size,
+              number_to_present,
+              element_set_name);
+}
+
+void mp_util::piggyback(Odr_int smallSetUpperBound,
+                        Odr_int largeSetLowerBound,
+                        Odr_int mediumSetPresentNumber,
+                        const char *smallSetElementSetNames,
+                        const char *mediumSetElementSetNames,
+                        Odr_int result_set_size,
+                        Odr_int &number_to_present,
+                        const char **element_set_name)
 {
     // deal with piggyback
 
@@ -173,11 +203,16 @@ void mp_util::piggyback(int smallSetUpperBound,
     {
         // small set . Return all records in set
         number_to_present = result_set_size;
+        if (element_set_name && smallSetElementSetNames)
+            *element_set_name = smallSetElementSetNames;
+            
     }
     else if (result_set_size > largeSetLowerBound)
     {
         // large set . Return no records
         number_to_present = 0;
+        if (element_set_name)
+            *element_set_name = 0;
     }
     else
     {
@@ -185,9 +220,10 @@ void mp_util::piggyback(int smallSetUpperBound,
         number_to_present = mediumSetPresentNumber;
         if (number_to_present > result_set_size)
             number_to_present = result_set_size;
+        if (element_set_name && mediumSetElementSetNames)
+            *element_set_name = mediumSetElementSetNames;
     }
 }
-
 
 bool mp_util::pqf(ODR odr, Z_APDU *apdu, const std::string &q)
 {

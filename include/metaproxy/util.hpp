@@ -104,11 +104,19 @@ namespace metaproxy_1 {
         void get_default_diag(Z_DefaultDiagFormat *r,
                               int &error_code, std::string &addinfo);
 
-        void piggyback(int smallSetUpperBound,
-                       int largeSetLowerBound,
-                       int mediumSetPresentNumber,
-                       int result_set_size,
-                       int &number_to_present);
+        void piggyback_sr(Z_SearchRequest *sreq,
+                          Odr_int result_set_size,
+                          Odr_int &number_to_present,
+                          const char **element_set_name);
+
+        void piggyback(Odr_int smallSetUpperBound,
+                       Odr_int largeSetLowerBound,
+                       Odr_int mediumSetPresentNumber,
+                       const char *smallSetElementSetNames,
+                       const char *mediumSetElementSetNames,
+                       Odr_int result_set_size,
+                       Odr_int &number_to_present,
+                       const char **element_set_name);
 
     };
 

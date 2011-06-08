@@ -533,9 +533,9 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     Z_SearchRequest *req = apdu_req->u.searchRequest;
 
     // save these for later
-    int smallSetUpperBound = *req->smallSetUpperBound;
-    int largeSetLowerBound = *req->largeSetLowerBound;
-    int mediumSetPresentNumber = *req->mediumSetPresentNumber;
+    Odr_int smallSetUpperBound = *req->smallSetUpperBound;
+    Odr_int largeSetLowerBound = *req->largeSetLowerBound;
+    Odr_int mediumSetPresentNumber = *req->mediumSetPresentNumber;
     
     // they are altered now - to disable piggyback
     *req->smallSetUpperBound = 0;
@@ -566,7 +566,7 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     // look at each response
     FrontendSet resultSet(std::string(req->resultSetName));
 
-    int result_set_size = 0;
+    Odr_int result_set_size = 0;
     Z_Records *z_records_diag = 0;  // no diagnostics (yet)
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
@@ -619,12 +619,13 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     // assume OK
     m_sets[resultSet.m_setname] = resultSet;
 
-    int number;
+    Odr_int number;
     mp::util::piggyback(smallSetUpperBound,
-                         largeSetLowerBound,
-                         mediumSetPresentNumber,
-                         result_set_size,
-                         number);
+                        largeSetLowerBound,
+                        mediumSetPresentNumber,
+                        0, 0,
+                        result_set_size,
+                        number, 0);
     Package pp(package.session(), package.origin());
     if (number > 0)
     {

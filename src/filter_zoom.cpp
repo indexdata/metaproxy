@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
+#include <yaz/oid_db.h>
 #include <yaz/diagbib1.h>
 #include <yaz/log.h>
 #include <yaz/zgdu.h>
@@ -35,6 +36,15 @@ namespace yf = mp::filter;
 
 namespace metaproxy_1 {
     namespace filter {
+        struct Zoom::Searchable {
+            std::string database;
+            std::string target;
+            std::string query_encoding;
+            std::string sru;
+            bool piggyback;
+            Searchable();
+            ~Searchable();
+        };
         class Zoom::Backend {
             friend class Impl;
             friend class Frontend;
@@ -48,16 +58,10 @@ namespace metaproxy_1 {
             void connect(std::string zurl, int *error, const char **addinfo);
             void search_pqf(const char *pqf, Odr_int *hits,
                             int *error, const char **addinfo);
+            void present(Odr_int start, Odr_int number, ZOOM_record *recs,
+                         int *error, const char **addinfo);
             void set_option(const char *name, const char *value);
             int get_error(const char **addinfo);
-        };
-        struct Zoom::Searchable {
-            std::string m_database;
-            std::string m_target;
-            std::string query_encoding;
-            std::string sru;
-            Searchable(std::string norm_db, std::string target);
-            ~Searchable();
         };
         class Zoom::Frontend {
             friend class Impl;
@@ -65,13 +69,21 @@ namespace metaproxy_1 {
             bool m_is_virtual;
             bool m_in_use;
             yazpp_1::GDU m_init_gdu;
-            std::list<BackendPtr> m_backend_list;
+            BackendPtr m_backend;
             void handle_package(mp::Package &package);
             void handle_search(mp::Package &package);
             void handle_present(mp::Package &package);
             BackendPtr get_backend_from_databases(std::string &database,
                                                   int *error,
                                                   const char **addinfo);
+            Z_Records *get_records(Odr_int start,
+                                   Odr_int number_to_present,
+                                   int *error,
+                                   const char **addinfo,
+                                   Odr_int *number_of_records_returned,
+                                   ODR odr, BackendPtr b,
+                                   Odr_oid *preferredRecordSyntax,
+                                   const char *element_set_name);
         public:
             Frontend(Impl *impl);
             ~Frontend();
@@ -138,25 +150,32 @@ void yf::Zoom::Backend::connect(std::string zurl,
 {
     ZOOM_connection_connect(m_connection, zurl.c_str(), 0);
     *error = ZOOM_connection_error(m_connection, 0, addinfo);
-    yaz_log(YLOG_LOG, "ZOOM_connection_connect: error: %d", *error);
 }
 
 void yf::Zoom::Backend::search_pqf(const char *pqf, Odr_int *hits,
                                    int *error, const char **addinfo)
 {
-    yaz_log(YLOG_LOG, "ZOOM_connection_search_pqf pqf=%s", pqf);
     m_resultset = ZOOM_connection_search_pqf(m_connection, pqf);
     *error = ZOOM_connection_error(m_connection, 0, addinfo);
-    yaz_log(YLOG_LOG, "ZOOM_connection_search_pqf: error: %d", *error);
     if (*error == 0)
         *hits = ZOOM_resultset_size(m_resultset);
     else
         *hits = 0;
 }
 
+void yf::Zoom::Backend::present(Odr_int start, Odr_int number,
+                                ZOOM_record *recs,
+                                int *error, const char **addinfo)
+{
+    ZOOM_resultset_records(m_resultset, recs, start, number);
+    *error = ZOOM_connection_error(m_connection, 0, addinfo);
+}
+
 void yf::Zoom::Backend::set_option(const char *name, const char *value)
 {
     ZOOM_connection_option_set(m_connection, name, value);
+    if (m_resultset)
+        ZOOM_resultset_option_set(m_resultset, name, value);
 }
 
 int yf::Zoom::Backend::get_error(const char **addinfo)
@@ -164,10 +183,9 @@ int yf::Zoom::Backend::get_error(const char **addinfo)
     return ZOOM_connection_error(m_connection, 0, addinfo);
 }
 
-yf::Zoom::Searchable::Searchable(std::string database, 
-                                 std::string target)
-    : m_database(database), m_target(target)
+yf::Zoom::Searchable::Searchable()
 {
+    piggyback = true;
 }
 
 yf::Zoom::Searchable::~Searchable()
@@ -253,11 +271,8 @@ void yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
                     continue;
                 if (!strcmp((const char *) ptr2->name, "layer"))
                 {
-                    std::string database;
-                    std::string target;
-                    std::string route;
-                    std::string sru;
-                    std::string query_encoding;
+                    Zoom::Searchable s;
+
                     const xmlNode *ptr3 = ptr2;
                     for (ptr3 = ptr3->children; ptr3; ptr3 = ptr3->next)
                     {
@@ -265,32 +280,32 @@ void yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
                             continue;
                         if (!strcmp((const char *) ptr3->name, "id"))
                         {
-                            database = mp::xml::get_text(ptr3);
+                            s.database = mp::xml::get_text(ptr3);
                         }
                         else if (!strcmp((const char *) ptr3->name, "zurl"))
                         {
-                            target = mp::xml::get_text(ptr3);
+                            s.target = mp::xml::get_text(ptr3);
                         }
                         else if (!strcmp((const char *) ptr3->name, "sru"))
                         {
-                            sru = mp::xml::get_text(ptr3);
+                            s.sru = mp::xml::get_text(ptr3);
                         }
                         else if (!strcmp((const char *) ptr3->name,
                                          "queryEncoding"))
                         {
-                            query_encoding = mp::xml::get_text(ptr3);
+                            s.query_encoding = mp::xml::get_text(ptr3);
+                        }
+                        else if (!strcmp((const char *) ptr3->name,
+                                         "piggyback"))
+                        {
+                            s.piggyback = mp::xml::get_bool(ptr3, true);
                         }
                     }
-                    if (database.length() && target.length())
+                    if (s.database.length() && s.target.length())
                     {
                         yaz_log(YLOG_LOG, "add db=%s target=%s", 
-                                database.c_str(), target.c_str());
-                        Zoom::Searchable searchable(
-                            mp::util::database_name_normalize(database),
-                            target);
-                        searchable.query_encoding = query_encoding;
-                        searchable.sru = sru;
-                        m_searchables.push_back(searchable);
+                                s.database.c_str(), s.target.c_str());
+                        m_searchables.push_back(s);
                     }
                 }
             }
@@ -344,21 +359,17 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     std::string &database, int *error, const char **addinfo)
 {
     std::list<BackendPtr>::const_iterator map_it;
-    map_it = m_backend_list.begin();
-    for (; map_it != m_backend_list.end(); map_it++)
-        if ((*map_it)->m_frontend_database == database)
-            return *map_it;
+    if (m_backend && m_backend->m_frontend_database == database)
+        return m_backend;
 
-    std::list<Zoom::Searchable>::const_iterator map_s =
+    std::list<Zoom::Searchable>::iterator map_s =
         m_p->m_searchables.begin();
 
     std::string c_db = mp::util::database_name_normalize(database);
 
     while (map_s != m_p->m_searchables.end())
     {
-        yaz_log(YLOG_LOG, "consider db=%s map db=%s",
-                database.c_str(), map_s->m_database.c_str());
-        if (c_db.compare(map_s->m_database) == 0)
+        if (c_db.compare(map_s->database) == 0)
             break;
         map_s++;
     }
@@ -369,7 +380,12 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         BackendPtr b;
         return b;
     }
+
+    m_backend.reset();
+
     BackendPtr b(new Backend);
+
+    b->m_frontend_database = database;
 
     if (map_s->query_encoding.length())
         b->set_option("rpnCharset", map_s->query_encoding.c_str());
@@ -377,19 +393,104 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     std::string url;
     if (map_s->sru.length())
     {
-        url = "http://" + map_s->m_target;
+        url = "http://" + map_s->target;
         b->set_option("sru", map_s->sru.c_str());
     }
     else
-        url = map_s->m_target;
+        url = map_s->target;
 
     b->connect(url, error, addinfo);
     if (*error == 0)
     {
-        m_backend_list.push_back(b);
+        m_backend = b;
     }
     return b;
 }
+
+Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
+                                           Odr_int number_to_present,
+                                           int *error,
+                                           const char **addinfo,
+                                           Odr_int *number_of_records_returned,
+                                           ODR odr,
+                                           BackendPtr b,
+                                           Odr_oid *preferredRecordSyntax,
+                                           const char *element_set_name)
+{
+    *number_of_records_returned = 0;
+    Z_Records *records = 0;
+
+    if (start < 0 || number_to_present <= 0)
+        return records;
+    
+    if (number_to_present > 10000)
+        number_to_present = 10000;
+    
+    ZOOM_record *recs = (ZOOM_record *)
+        odr_malloc(odr, number_to_present * sizeof(*recs));
+
+    char oid_name_str[OID_STR_MAX];
+    const char *syntax_name = 0;
+
+    if (preferredRecordSyntax)
+        syntax_name =
+            yaz_oid_to_string_buf(preferredRecordSyntax, 0, oid_name_str);
+    b->set_option("preferredRecordSyntax", syntax_name);
+        
+    b->set_option("elementSetName", element_set_name);
+
+    b->present(start, number_to_present, recs, error, addinfo);
+
+    Odr_int i = 0;
+    if (!*error)
+    {
+        for (i = 0; i < number_to_present; i++)
+            if (!recs[i])
+                break;
+    }
+    if (i > 0)
+    {  // only return records if no error and at least one record
+        char *odr_database = odr_strdup(odr,
+                                        b->m_frontend_database.c_str());
+        Z_NamePlusRecordList *npl = (Z_NamePlusRecordList *)
+            odr_malloc(odr, sizeof(*npl));
+        *number_of_records_returned = i;
+        npl->num_records = i;
+        npl->records = (Z_NamePlusRecord **)
+            odr_malloc(odr, i * sizeof(*npl->records));
+        for (i = 0; i < number_to_present; i++)
+        {
+            Z_NamePlusRecord *npr = 0;
+            const char *addinfo;
+            int sur_error = ZOOM_record_error(recs[i], 0 /* msg */,
+                                              &addinfo, 0 /* diagset */);
+                
+            if (sur_error)
+            {
+                npr = zget_surrogateDiagRec(odr, odr_database, sur_error,
+                                            addinfo);
+            }
+            else
+            {
+                npr = (Z_NamePlusRecord *) odr_malloc(odr, sizeof(*npr));
+                Z_External *ext =
+                    (Z_External *) ZOOM_record_get(recs[i], "ext", 0);
+                npr->databaseName = odr_database;
+                if (ext)
+                {
+                    npr->which = Z_NamePlusRecord_databaseRecord;
+                    npr->u.databaseRecord = ext;
+                }
+            }
+            npl->records[i] = npr;
+        }
+        records = (Z_Records*) odr_malloc(odr, sizeof(*records));
+        records->which = Z_Records_DBOSD;
+        records->u.databaseOrSurDiagnostics = npl;
+    }
+    return records;
+}
+    
 
 void yf::Zoom::Frontend::handle_search(mp::Package &package)
 {
@@ -406,8 +507,8 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         return;
     }
 
-    int error;
-    const char *addinfo;
+    int error = 0;
+    const char *addinfo = 0;
     std::string db(sr->databaseNames[0]);
     BackendPtr b = get_backend_from_databases(db, &error, &addinfo);
     if (error)
@@ -418,45 +519,89 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         package.response() = apdu_res;
         return;
     }
+
+    b->set_option("setname", "default");
+
+    Odr_int hits = 0;
     Z_Query *query = sr->query;
     if (query->which == Z_Query_type_1 || query->which == Z_Query_type_101)
     {
         WRBUF w = wrbuf_alloc();
         yaz_rpnquery_to_wrbuf(w, query->u.type_1);
-        Odr_int hits;
-        int error;
-        const char *addinfo = 0;
 
         b->search_pqf(wrbuf_cstr(w), &hits, &error, &addinfo);
         wrbuf_destroy(w);
-
-        apdu_res = 
-            odr.create_searchResponse(
-                apdu_req, error, addinfo);
-        apdu_res->u.searchResponse->resultCount = odr_intdup(odr, hits);
-        package.response() = apdu_res;
     }
     else
     {
         apdu_res = 
-            odr.create_searchResponse(
-                apdu_req,
-                YAZ_BIB1_QUERY_TYPE_UNSUPP, 0);
+            odr.create_searchResponse(apdu_req, YAZ_BIB1_QUERY_TYPE_UNSUPP, 0);
         package.response() = apdu_res;
         return;
     }
+    
+    const char *element_set_name = 0;
+    Odr_int number_to_present = 0;
+    if (!error)
+        mp::util::piggyback_sr(sr, hits, number_to_present, &element_set_name);
+    
+    Odr_int number_of_records_returned = 0;
+    Z_Records *records = get_records(
+        0, number_to_present, &error, &addinfo,
+        &number_of_records_returned, odr, b, sr->preferredRecordSyntax,
+        element_set_name);
+    apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
+    if (records)
+    {
+        apdu_res->u.searchResponse->records = records;
+        apdu_res->u.searchResponse->numberOfRecordsReturned =
+            odr_intdup(odr, number_of_records_returned);
+    }
+    apdu_res->u.searchResponse->resultCount = odr_intdup(odr, hits);
+    package.response() = apdu_res;
 }
 
 void yf::Zoom::Frontend::handle_present(mp::Package &package)
 {
     Z_GDU *gdu = package.request().get();
     Z_APDU *apdu_req = gdu->u.z3950;
+    Z_APDU *apdu_res = 0;
+    Z_PresentRequest *pr = apdu_req->u.presentRequest;
+
     mp::odr odr;
-    package.response() = odr.create_close(
-        apdu_req,
-        Z_Close_protocolError,
-        "zoom filter has not implemented present request yet");
-    package.session().close();
+    if (!m_backend)
+    {
+        package.response() = odr.create_presentResponse(
+            apdu_req, YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST, 0);
+        return;
+    }
+    const char *element_set_name = 0;
+    Z_RecordComposition *comp = pr->recordComposition;
+    if (comp && comp->which != Z_RecordComp_simple)
+    {
+        package.response() = odr.create_presentResponse(
+            apdu_req, 
+            YAZ_BIB1_PRESENT_COMP_SPEC_PARAMETER_UNSUPP, 0);
+        return;
+    }
+    if (comp && comp->u.simple->which == Z_ElementSetNames_generic)
+        element_set_name = comp->u.simple->u.generic;
+    Odr_int number_of_records_returned = 0;
+    int error = 0;
+    const char *addinfo = 0;
+    Z_Records *records = get_records(
+        *pr->resultSetStartPoint - 1, *pr->numberOfRecordsRequested,
+        &error, &addinfo, &number_of_records_returned, odr, m_backend,
+        pr->preferredRecordSyntax, element_set_name);
+
+    apdu_res = odr.create_presentResponse(apdu_req, error, addinfo);
+    if (records)
+    {
+        apdu_res->u.presentResponse->records = records;
+        apdu_res->u.presentResponse->numberOfRecordsReturned =
+            odr_intdup(odr, number_of_records_returned);
+    }
+    package.response() = apdu_res;
 }
 
 void yf::Zoom::Frontend::handle_package(mp::Package &package)

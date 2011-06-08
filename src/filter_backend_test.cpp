@@ -282,13 +282,11 @@ void yf::BackendTest::process(Package &package) const
                 int next_position = 0;
                 int error_code = 0;
                 std::string addinfo;
+                const char *element_set_name = 0;
                 
-                int number = 0;
-                mp::util::piggyback(*req->smallSetUpperBound,
-                                    *req->largeSetLowerBound,
-                                    *req->mediumSetPresentNumber,
-                                    result_set_size,
-                                    number);
+                Odr_int number = 0;
+                mp::util::piggyback_sr(req, result_set_size,
+                                       number, &element_set_name);
                 
                 if (number) 
                 {   // not a large set for sure 
