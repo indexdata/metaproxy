@@ -341,11 +341,7 @@ void yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
                         else if (!strcmp((const char *) ptr3->name,
                                          "useTurboMarc"))
                         {
-                            yaz_log(YLOG_LOG, "seeing useTurboMarc");
                             s->use_turbomarc = mp::xml::get_bool(ptr3, false);
-                            yaz_log(YLOG_LOG, "value=%s",
-                                    s->use_turbomarc ? "1" : "0");
-                                    
                         }
                         else if (!strncmp((const char *) ptr3->name,
                                           "cclmap_", 7))
@@ -367,7 +363,6 @@ void yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
         }
     }
 }
-
 
 void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
 {
@@ -530,9 +525,6 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                 yaz_oid_to_string_buf(preferredRecordSyntax, 0, oid_name_str);
         }
     }
-
-    yaz_log(YLOG_LOG, "enable_pz2_transform %s", enable_pz2_transform ?
-            "enabled" : "disabled");
 
     b->set_option("preferredRecordSyntax", syntax_name);
 
