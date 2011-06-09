@@ -21,6 +21,10 @@
 	     <requestSyntax>MARC21</requestSyntax>
 	     <recordEncoding>MARC-8</recordEncoding>
 	     <transform>tmarc.xsl</transform>
+             <cclmap_term>u=1016 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_term>
+             <cclmap_au>u=1003 2=3 s=al s=pw t=l,r 6=1</cclmap_au>
+             <cclmap_ti>u=4 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_ti>
+             <cclmap_su>u=21 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_su>
            </layer>
          </record>
          <record>

@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
+#include <yaz/ccl.h>
 #include <yaz/oid_db.h>
 #include <yaz/diagbib1.h>
 #include <yaz/log.h>
@@ -50,6 +51,7 @@ namespace metaproxy_1 {
             std::string transform_xsl_fname;
             bool use_turbomarc;
             bool piggyback;
+            CCL_bibset ccl_bibset;
             Searchable();
             ~Searchable();
         };
@@ -147,6 +149,7 @@ yf::Zoom::Backend::Backend(SearchablePtr ptr) : sptr(ptr)
 {
     m_connection = ZOOM_connection_create(0);
     m_resultset = 0;
+    xsp = 0;
 }
 
 yf::Zoom::Backend::~Backend()
@@ -199,10 +202,12 @@ yf::Zoom::Searchable::Searchable()
 {
     piggyback = true;
     use_turbomarc = false;
+    ccl_bibset = ccl_qual_mk();
 }
 
 yf::Zoom::Searchable::~Searchable()
 {
+    ccl_qual_rm(&ccl_bibset);
 }
 
 yf::Zoom::Frontend::Frontend(Impl *impl) : 
@@ -341,6 +346,13 @@ void yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
                             yaz_log(YLOG_LOG, "value=%s",
                                     s->use_turbomarc ? "1" : "0");
                                     
+                        }
+                        else if (!strncmp((const char *) ptr3->name,
+                                          "cclmap_", 7))
+                        {
+                            std::string value = mp::xml::get_text(ptr3);
+                            ccl_qual_fitem(s->ccl_bibset, value.c_str(),
+                                           (const char *) ptr3->name + 7);
                         }
                     }
                     if (s->database.length() && s->target.length())
@@ -676,10 +688,42 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     Z_Query *query = sr->query;
     if (query->which == Z_Query_type_1 || query->which == Z_Query_type_101)
     {
+        // RPN
         WRBUF w = wrbuf_alloc();
         yaz_rpnquery_to_wrbuf(w, query->u.type_1);
 
         b->search_pqf(wrbuf_cstr(w), &hits, &error, &addinfo);
+
+        wrbuf_destroy(w);
+    }
+    else if (query->which == Z_Query_type_2)
+    {
+        // CCL
+        WRBUF w = wrbuf_alloc();
+        wrbuf_write(w, (const char *) query->u.type_2->buf,
+                    query->u.type_2->len);
+        int cerror, cpos;
+        struct ccl_rpn_node *cn;
+        cn = ccl_find_str(b->sptr->ccl_bibset, wrbuf_cstr(w), &cerror, &cpos);
+        wrbuf_destroy(w);
+
+        if (!cn)
+        {
+            char *addinfo = odr_strdup(odr, ccl_err_msg(cerror));
+
+            apdu_res = 
+                odr.create_searchResponse(apdu_req, 
+                                          YAZ_BIB1_MALFORMED_QUERY,
+                                          addinfo);
+            package.response() = apdu_res;
+            return;
+        }
+        w = wrbuf_alloc();
+        ccl_pquery(w, cn);
+        
+        b->search_pqf(wrbuf_cstr(w), &hits, &error, &addinfo);
+        
+        ccl_rpn_delete(cn);
         wrbuf_destroy(w);
     }
     else
