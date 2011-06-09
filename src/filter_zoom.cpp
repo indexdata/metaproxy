@@ -40,7 +40,7 @@ namespace yf = mp::filter;
 
 namespace metaproxy_1 {
     namespace filter {
-        struct Zoom::Searchable {
+        struct Zoom::Searchable : boost::noncopyable {
             std::string database;
             std::string target;
             std::string query_encoding;
@@ -55,7 +55,7 @@ namespace metaproxy_1 {
             Searchable();
             ~Searchable();
         };
-        class Zoom::Backend {
+        class Zoom::Backend : boost::noncopyable {
             friend class Impl;
             friend class Frontend;
             std::string zurl;
@@ -75,7 +75,7 @@ namespace metaproxy_1 {
             void set_option(const char *name, const char *value);
             int get_error(const char **addinfo);
         };
-        class Zoom::Frontend {
+        class Zoom::Frontend : boost::noncopyable {
             friend class Impl;
             Impl *m_p;
             bool m_is_virtual;
