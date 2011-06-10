@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 #include <yaz/ccl.h>
+#include <yaz/cql.h>
 #include <yaz/oid_db.h>
 #include <yaz/diagbib1.h>
 #include <yaz/log.h>
@@ -678,27 +679,77 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
 
     Odr_int hits = 0;
     Z_Query *query = sr->query;
+    WRBUF ccl_wrbuf = 0;
+    WRBUF pqf_wrbuf = 0;
+
     if (query->which == Z_Query_type_1 || query->which == Z_Query_type_101)
     {
         // RPN
-        WRBUF w = wrbuf_alloc();
-        yaz_rpnquery_to_wrbuf(w, query->u.type_1);
-
-        b->search_pqf(wrbuf_cstr(w), &hits, &error, &addinfo);
-
-        wrbuf_destroy(w);
+        pqf_wrbuf = wrbuf_alloc();
+        yaz_rpnquery_to_wrbuf(pqf_wrbuf, query->u.type_1);
     }
     else if (query->which == Z_Query_type_2)
     {
         // CCL
-        WRBUF w = wrbuf_alloc();
-        wrbuf_write(w, (const char *) query->u.type_2->buf,
+        ccl_wrbuf = wrbuf_alloc();
+        wrbuf_write(ccl_wrbuf, (const char *) query->u.type_2->buf,
                     query->u.type_2->len);
+    }
+    else if (query->which == Z_Query_type_104 &&
+             query->u.type_104->which == Z_External_CQL)
+    {
+        // CQL
+        const char *cql = query->u.type_104->u.cql;
+        CQL_parser cp = cql_parser_create();
+        int r = cql_parser_string(cp, cql);
+        if (r)
+        {
+            cql_parser_destroy(cp);
+            apdu_res = 
+                odr.create_searchResponse(apdu_req, 
+                                          YAZ_BIB1_MALFORMED_QUERY,
+                                          "CQL syntax error");
+            package.response() = apdu_res;
+            return;
+        }
+        struct cql_node *cn = cql_parser_result(cp);
+        char ccl_buf[1024];
+
+        r = cql_to_ccl_buf(cn, ccl_buf, sizeof(ccl_buf));
+        yaz_log(YLOG_LOG, "cql_to_ccl_buf returned %d", r);
+        if (r == 0)
+        {
+            ccl_wrbuf = wrbuf_alloc();
+            wrbuf_puts(ccl_wrbuf, ccl_buf);
+        }
+        cql_parser_destroy(cp);
+        if (r)
+        {
+            apdu_res = 
+                odr.create_searchResponse(apdu_req, 
+                                          YAZ_BIB1_MALFORMED_QUERY,
+                                          "CQL to CCL conversion error");
+            package.response() = apdu_res;
+            return;
+        }
+    }
+    else
+    {
+        apdu_res = 
+            odr.create_searchResponse(apdu_req, YAZ_BIB1_QUERY_TYPE_UNSUPP, 0);
+        package.response() = apdu_res;
+        return;
+    }
+
+    if (ccl_wrbuf)
+    {
+        // CCL to PQF
+        assert(pqf_wrbuf == 0);
         int cerror, cpos;
         struct ccl_rpn_node *cn;
-        cn = ccl_find_str(b->sptr->ccl_bibset, wrbuf_cstr(w), &cerror, &cpos);
-        wrbuf_destroy(w);
-
+        cn = ccl_find_str(b->sptr->ccl_bibset, wrbuf_cstr(ccl_wrbuf),
+                          &cerror, &cpos);
+        wrbuf_destroy(ccl_wrbuf);
         if (!cn)
         {
             char *addinfo = odr_strdup(odr, ccl_err_msg(cerror));
@@ -710,21 +761,15 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
             package.response() = apdu_res;
             return;
         }
-        w = wrbuf_alloc();
-        ccl_pquery(w, cn);
-        
-        b->search_pqf(wrbuf_cstr(w), &hits, &error, &addinfo);
-        
+        pqf_wrbuf = wrbuf_alloc();
+        ccl_pquery(pqf_wrbuf, cn);
         ccl_rpn_delete(cn);
-        wrbuf_destroy(w);
     }
-    else
-    {
-        apdu_res = 
-            odr.create_searchResponse(apdu_req, YAZ_BIB1_QUERY_TYPE_UNSUPP, 0);
-        package.response() = apdu_res;
-        return;
-    }
+    
+    assert(pqf_wrbuf);
+    b->search_pqf(wrbuf_cstr(pqf_wrbuf), &hits, &error, &addinfo);
+    
+    wrbuf_destroy(pqf_wrbuf);
     
     const char *element_set_name = 0;
     Odr_int number_to_present = 0;
