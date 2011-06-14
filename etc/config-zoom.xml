@@ -14,59 +14,25 @@
             url="http://newmk2.indexdata.com/torus2/searchable.ebsco/records/?query=udb%3D%db"
             xsldir="."
       />
-      <records>
-         <record>
-           <layer>
-             <id>z-local</id>
-             <zurl>localhost:9999/db01</zurl>
-             <queryEncoding>iso-8859-1</queryEncoding>
-	     <elementSet>F</elementSet>
-	     <requestSyntax>MARC21</requestSyntax>
-	     <recordEncoding>MARC-8</recordEncoding>
-	     <transform>tmarc.xsl</transform>
-	     <authentication>a/b</authentication>
-             <cclmap_term>u=1016 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_term>
-             <cclmap_au>u=1003 2=3 s=al s=pw t=l,r 6=1</cclmap_au>
-             <cclmap_ti>u=4 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_ti>
-             <cclmap_su>u=21 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_su>
-           </layer>
-         </record>
-         <record>
-           <layer>
-             <id>sru-local</id>
-             <zurl>localhost:9999/db02</zurl>
-             <sru>get</sru>
-             <queryEncoding>iso-8859-1</queryEncoding>
-           </layer>
-         </record>
-         <record>
-           <layer>
-             <id>cf-local</id>
-             <zurl>localhost:9999/db03</zurl>
-	     <authentication>a/b</authentication>
-	     <cfAuth>mycfuser/mycfpassword</cfAuth>
-	     <cfSubDb>mycfsub</cfSubDb>
-             <cclmap_term>u=1016 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_term>
-             <cclmap_au>u=1003 2=3 s=al s=pw t=l,r 6=1</cclmap_au>
-             <cclmap_ti>u=4 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_ti>
-             <cclmap_su>u=21 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_su>
-           </layer>
-         </record>
-         <record>
-           <layer>
-             <id>z-unknown</id>
-             <zurl>localhost:9999/unknown</zurl>
-             <queryEncoding>iso-8859-1</queryEncoding>
-           </layer>
-         </record>
-      </records> 
     </filter>
   </filters>
   <routes>  
     <route id="start">
       <filter refid="frontend"/>
       <filter type="log">
-        <message>log</message>
+        <message>F</message>
+      </filter>
+      <filter type="record_transform">
+        <retrievalinfo   xmlns="http://indexdata.com/yaz" version="1.0">
+          <retrieval syntax="xml" name="usi">
+            <backend syntax="xml" name="pz2">
+              <xslt stylesheet="../xml/xslt/pz22usi.xsl"/>
+            </backend>
+          </retrieval>
+          <retrieval syntax="xml"/>
+          <retrieval syntax="json"/>
+          <retrieval syntax="usmarc"/>
+        </retrievalinfo>
       </filter>
       <filter refid="backend"/>
       <filter type="bounce"/>
