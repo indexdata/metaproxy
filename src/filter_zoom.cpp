@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "config.hpp"
 #include "filter_zoom.hpp"
 #include <yaz/zoom.h>
+#include <yaz/srw.h>
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
 #include "torus.hpp"
@@ -43,6 +44,9 @@ namespace metaproxy_1 {
     namespace filter {
         struct Zoom::Searchable : boost::noncopyable {
             std::string authentication;
+            std::string cfAuth;
+            std::string cfProxy;
+            std::string cfSubDb;
             std::string database;
             std::string target;
             std::string query_encoding;
@@ -303,6 +307,21 @@ void yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
                         {
                             s->authentication = mp::xml::get_text(ptr3);
                         }
+                        else if (!strcmp((const char *) ptr3->name,
+                                    "cfAuth"))
+                        {
+                            s->cfAuth = mp::xml::get_text(ptr3);
+                        } 
+                        else if (!strcmp((const char *) ptr3->name,
+                                    "cfProxy"))
+                        {
+                            s->cfProxy = mp::xml::get_text(ptr3);
+                        }  
+                        else if (!strcmp((const char *) ptr3->name,
+                                    "cfSubDb"))
+                        {
+                            s->cfSubDb = mp::xml::get_text(ptr3);
+                        }  
                         else if (!strcmp((const char *) ptr3->name, "id"))
                         {
                             s->database = mp::xml::get_text(ptr3);
@@ -412,6 +431,14 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
     }
 }
 
+static std::string uri_encode(std::string s)
+{
+    char *x = (char *) xmalloc(1 + s.length() * 3);
+    yaz_encode_uri_component(x, s.c_str());
+    std::string result(x);
+    return result;
+}
+
 yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     std::string &database, int *error, const char **addinfo)
 {
@@ -466,14 +493,44 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     BackendPtr b(new Backend(sptr));
 
+    std::string cf_parm;
     b->xsp = xsp;
     b->m_frontend_database = database;
+    std::string authentication = sptr->authentication;
 
     if (sptr->query_encoding.length())
         b->set_option("rpnCharset", sptr->query_encoding.c_str());
 
-    if (sptr->authentication.length())
-        b->set_option("user", sptr->authentication.c_str());
+    if (sptr->cfAuth.length())
+    {
+        b->set_option("user", sptr->cfAuth.c_str());
+        if (authentication.length())
+        {
+            size_t found = authentication.find('/');
+            if (found != std::string::npos)
+            {
+                cf_parm += "user=" + uri_encode(authentication.substr(0, found))
+                    + "&password=" + uri_encode(authentication.substr(found+1));
+            }
+            else
+                cf_parm += "user=" + uri_encode(authentication);
+        }
+    }
+    else if (authentication.length())
+        b->set_option("user", authentication.c_str());
+
+    if (sptr->cfProxy.length())
+    {
+        if (cf_parm.length())
+            cf_parm += "&";
+        cf_parm += "proxy=" + uri_encode(sptr->cfProxy);
+    }
+    if (sptr->cfSubDb.length())
+    {
+        if (cf_parm.length())
+            cf_parm += "&";
+        cf_parm += "subdatabase=" + uri_encode(sptr->cfSubDb);
+    }
 
     std::string url;
     if (sptr->sru.length())
@@ -482,8 +539,13 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         b->set_option("sru", sptr->sru.c_str());
     }
     else
+    {
         url = sptr->target;
-
+    }
+    if (cf_parm.length())
+    {
+        url += "," + cf_parm;
+    }
     b->connect(url, error, addinfo);
     if (*error == 0)
     {

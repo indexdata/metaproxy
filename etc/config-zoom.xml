@@ -37,6 +37,19 @@
          </record>
          <record>
            <layer>
+             <id>cf-local</id>
+             <zurl>localhost:9999/db03</zurl>
+	     <authentication>a/b</authentication>
+	     <cfAuth>mycfuser/mycfpassword</cfAuth>
+	     <cfSubDb>mycfsub</cfSubDb>
+             <cclmap_term>u=1016 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_term>
+             <cclmap_au>u=1003 2=3 s=al s=pw t=l,r 6=1</cclmap_au>
+             <cclmap_ti>u=4 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_ti>
+             <cclmap_su>u=21 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_su>
+           </layer>
+         </record>
+         <record>
+           <layer>
              <id>z-unknown</id>
              <zurl>localhost:9999/unknown</zurl>
              <queryEncoding>iso-8859-1</queryEncoding>
