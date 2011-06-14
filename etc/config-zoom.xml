@@ -10,7 +10,10 @@
       <port>@:9000</port>
     </filter>
     <filter id="backend" type="zoom">
-      <torus url="http://newmk2.indexdata.com/torus2/searchable.ebsco/records/?query=udb%3D%db"/>
+      <torus
+            url="http://newmk2.indexdata.com/torus2/searchable.ebsco/records/?query=udb%3D%db"
+            xsldir="."
+      />
       <records>
          <record>
            <layer>

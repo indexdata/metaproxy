@@ -122,6 +122,7 @@ namespace metaproxy_1 {
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
             std::string torus_url;
+            std::string xsldir;
         };
     }
 }
@@ -397,18 +398,18 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
             continue;
         else if (!strcmp((const char *) ptr->name, "torus"))
         {
-            std::string url;
             const struct _xmlAttr *attr;
             for (attr = ptr->properties; attr; attr = attr->next)
             {
                 if (!strcmp((const char *) attr->name, "url"))
-                    url = mp::xml::get_text(attr->children);
+                    torus_url = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "xsldir"))
+                    xsldir = mp::xml::get_text(attr->children);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
                                                        attr->name));
             }
-            torus_url = url;
         }
         else if (!strcmp((const char *) ptr->name, "records"))
         {
@@ -452,7 +453,13 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     xsltStylesheetPtr xsp = 0;
     if (sptr->transform_xsl_fname.length())
     {
-        xmlDoc *xsp_doc = xmlParseFile(sptr->transform_xsl_fname.c_str());
+        std::string fname;
+
+        if (m_p->xsldir.length()) 
+            fname = m_p->xsldir + "/" + sptr->transform_xsl_fname;
+        else
+            fname = sptr->transform_xsl_fname;
+        xmlDoc *xsp_doc = xmlParseFile(fname.c_str());
         if (!xsp_doc)
         {
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
