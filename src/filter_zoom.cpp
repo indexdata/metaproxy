@@ -202,7 +202,7 @@ int yf::Zoom::Backend::get_error(const char **addinfo)
 yf::Zoom::Searchable::Searchable()
 {
     piggyback = true;
-    use_turbomarc = false;
+    use_turbomarc = true;
     ccl_bibset = ccl_qual_mk();
 }
 
@@ -342,7 +342,7 @@ void yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
                         else if (!strcmp((const char *) ptr3->name,
                                          "useTurboMarc"))
                         {
-                            s->use_turbomarc = mp::xml::get_bool(ptr3, false);
+                            ; // useTurboMarc is ignored
                         }
                         else if (!strncmp((const char *) ptr3->name,
                                           "cclmap_", 7))
