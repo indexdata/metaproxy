@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/otherinfo.h>
 #include <yaz/querytowrbuf.h>
 #include <yaz/oid_db.h>
+#include <yaz/srw.h>
 
 #include <iostream>
 
@@ -682,6 +683,14 @@ Z_ReferenceId **mp_util::get_referenceId(const Z_APDU *apdu)
         return &apdu->u.close->referenceId;
     }
     return 0;
+}
+
+std::string mp_util::uri_encode(std::string s)
+{
+    char *x = (char *) xmalloc(1 + s.length() * 3);
+    yaz_encode_uri_component(x, s.c_str());
+    std::string result(x);
+    return result;
 }
 
 

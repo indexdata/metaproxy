@@ -33,6 +33,7 @@ namespace metaproxy_1 {
     private:
         xmlDocPtr doc;
     };
+    xmlDoc *get_searchable(std::string url_template, const std::string &db);
 }
 
 #endif

@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/zgdu.h>
 #include <yaz/srw.h>
 #include <yaz/comstack.h>
-
+#include <metaproxy/util.hpp>
 #include "torus.hpp"
 
 namespace mp = metaproxy_1;
@@ -182,6 +182,23 @@ void mp::Torus::read_searchables(std::string url)
 
 xmlDoc *mp::Torus::get_doc()
 {
+    return doc;
+}
+
+xmlDoc *mp::get_searchable(std::string url_template, const std::string &db)
+{
+    // http://newmk2.indexdata.com/torus2/searchable.ebsco/records/?query=udb=aberdeenUni
+    xmlDoc *doc = 0;
+    size_t found;
+
+    found = url_template.find("%db");
+    if (found != std::string::npos)
+        url_template.replace(found, found+3, mp::util::uri_encode(db));
+    int code;
+    WRBUF w = get_url(url_template.c_str(), 0, 0, &code);
+    if (code == 200)
+        doc = xmlParseMemory(wrbuf_buf(w), wrbuf_len(w));
+    wrbuf_destroy(w);
     return doc;
 }
 

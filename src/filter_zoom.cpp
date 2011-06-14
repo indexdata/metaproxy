@@ -116,14 +116,12 @@ namespace metaproxy_1 {
         private:
             FrontendPtr get_frontend(mp::Package &package);
             void release_frontend(mp::Package &package);
-            void parse_torus(const xmlNode *ptr);
-
-            std::list<Zoom::SearchablePtr>m_searchables;
+            SearchablePtr parse_torus(const xmlNode *ptr);
 
             std::map<mp::Session, FrontendPtr> m_clients;            
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
-            mp::Torus torus;
+            std::string torus_url;
         };
     }
 }
@@ -278,10 +276,11 @@ yf::Zoom::Impl::~Impl()
 { 
 }
 
-void yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
+yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
 {
+    SearchablePtr notfound;
     if (!ptr1)
-        return ;
+        return notfound;
     for (ptr1 = ptr1->children; ptr1; ptr1 = ptr1->next)
     {
         if (ptr1->type != XML_ELEMENT_NODE)
@@ -379,15 +378,15 @@ void yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
                     }
                     if (s->database.length() && s->target.length())
                     {
-                        yaz_log(YLOG_LOG, "add db=%s target=%s turbomarc=%s", 
-                                s->database.c_str(), s->target.c_str(),
-                                s->use_turbomarc ? "1" : "0");
-                        m_searchables.push_back(s);
+                        yaz_log(YLOG_LOG, "add db=%s target=%s", 
+                                s->database.c_str(), s->target.c_str());
                     }
+                    return s;
                 }
             }
         }
     }
+    return notfound;
 }
 
 void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
@@ -396,10 +395,6 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
     {
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
-        if (!strcmp((const char *) ptr->name, "records"))
-        {
-            parse_torus(ptr);
-        }
         else if (!strcmp((const char *) ptr->name, "torus"))
         {
             std::string url;
@@ -413,13 +408,11 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
                         "Bad attribute " + std::string((const char *)
                                                        attr->name));
             }
-            torus.read_searchables(url);
-            xmlDoc *doc = torus.get_doc();
-            if (doc)
-            {
-                xmlNode *ptr = xmlDocGetRootElement(doc);
-                parse_torus(ptr);
-            }
+            torus_url = url;
+        }
+        else if (!strcmp((const char *) ptr->name, "records"))
+        {
+            yaz_log(YLOG_WARN, "records ignored!");
         }
         else
         {
@@ -431,14 +424,6 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
     }
 }
 
-static std::string uri_encode(std::string s)
-{
-    char *x = (char *) xmalloc(1 + s.length() * 3);
-    yaz_encode_uri_component(x, s.c_str());
-    std::string result(x);
-    return result;
-}
-
 yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     std::string &database, int *error, const char **addinfo)
 {
@@ -446,29 +431,28 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (m_backend && m_backend->m_frontend_database == database)
         return m_backend;
 
-    std::list<Zoom::SearchablePtr>::iterator map_s =
-        m_p->m_searchables.begin();
-
-    std::string c_db = mp::util::database_name_normalize(database);
-
-    while (map_s != m_p->m_searchables.end())
-    {
-        if (c_db.compare((*map_s)->database) == 0)
-            break;
-        map_s++;
-    }
-    if (map_s == m_p->m_searchables.end())
+    xmlDoc *doc = mp::get_searchable(m_p->torus_url, database);
+    if (!doc)
     {
         *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
         *addinfo = database.c_str();
         BackendPtr b;
         return b;
     }
-
-    xsltStylesheetPtr xsp = 0;
-    if ((*map_s)->transform_xsl_fname.length())
+    SearchablePtr sptr = m_p->parse_torus(xmlDocGetRootElement(doc));
+    xmlFreeDoc(doc);
+    if (!sptr)
     {
-        xmlDoc *xsp_doc = xmlParseFile((*map_s)->transform_xsl_fname.c_str());
+        *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
+        *addinfo = database.c_str();
+        BackendPtr b;
+        return b;
+    }
+        
+    xsltStylesheetPtr xsp = 0;
+    if (sptr->transform_xsl_fname.length())
+    {
+        xmlDoc *xsp_doc = xmlParseFile(sptr->transform_xsl_fname.c_str());
         if (!xsp_doc)
         {
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
@@ -486,8 +470,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             return b;
         }
     }
-
-    SearchablePtr sptr = *map_s;
 
     m_backend.reset();
 
@@ -509,11 +491,11 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             size_t found = authentication.find('/');
             if (found != std::string::npos)
             {
-                cf_parm += "user=" + uri_encode(authentication.substr(0, found))
-                    + "&password=" + uri_encode(authentication.substr(found+1));
+                cf_parm += "user=" + mp::util::uri_encode(authentication.substr(0, found))
+                    + "&password=" + mp::util::uri_encode(authentication.substr(found+1));
             }
             else
-                cf_parm += "user=" + uri_encode(authentication);
+                cf_parm += "user=" + mp::util::uri_encode(authentication);
         }
     }
     else if (authentication.length())
@@ -523,13 +505,13 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         if (cf_parm.length())
             cf_parm += "&";
-        cf_parm += "proxy=" + uri_encode(sptr->cfProxy);
+        cf_parm += "proxy=" + mp::util::uri_encode(sptr->cfProxy);
     }
     if (sptr->cfSubDb.length())
     {
         if (cf_parm.length())
             cf_parm += "&";
-        cf_parm += "subdatabase=" + uri_encode(sptr->cfSubDb);
+        cf_parm += "subdatabase=" + mp::util::uri_encode(sptr->cfSubDb);
     }
 
     std::string url;
@@ -583,7 +565,8 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
     if (preferredRecordSyntax)
     {
         if (!oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml)
-            && !strcmp(element_set_name, "pz2"))
+            && element_set_name &&
+            !strcmp(element_set_name, "pz2"))
         {
             if (b->sptr->request_syntax.length())
             {

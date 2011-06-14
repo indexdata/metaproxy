@@ -124,6 +124,7 @@ namespace metaproxy_1 {
                        Odr_int &number_to_present,
                        const char **element_set_name);
 
+        std::string uri_encode(std::string s);
     };
 
     class odr : public boost::noncopyable {
