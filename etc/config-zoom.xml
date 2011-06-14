@@ -16,11 +16,11 @@
              <id>z-local</id>
              <zurl>localhost:9999/db01</zurl>
              <queryEncoding>iso-8859-1</queryEncoding>
-	     <useTurboMarc>1</useTurboMarc>
 	     <elementSet>F</elementSet>
 	     <requestSyntax>MARC21</requestSyntax>
 	     <recordEncoding>MARC-8</recordEncoding>
 	     <transform>tmarc.xsl</transform>
+	     <authentication>a/b</authentication>
              <cclmap_term>u=1016 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_term>
              <cclmap_au>u=1003 2=3 s=al s=pw t=l,r 6=1</cclmap_au>
              <cclmap_ti>u=4 2=3 3=3 s=al s=pw t=l,r 6=1</cclmap_ti>

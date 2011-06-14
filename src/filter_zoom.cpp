@@ -42,6 +42,7 @@ namespace yf = mp::filter;
 namespace metaproxy_1 {
     namespace filter {
         struct Zoom::Searchable : boost::noncopyable {
+            std::string authentication;
             std::string database;
             std::string target;
             std::string query_encoding;
@@ -297,7 +298,12 @@ void yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
                     {
                         if (ptr3->type != XML_ELEMENT_NODE)
                             continue;
-                        if (!strcmp((const char *) ptr3->name, "id"))
+                        if (!strcmp((const char *) ptr3->name,
+                                    "authentication"))
+                        {
+                            s->authentication = mp::xml::get_text(ptr3);
+                        }
+                        else if (!strcmp((const char *) ptr3->name, "id"))
                         {
                             s->database = mp::xml::get_text(ptr3);
                         }
@@ -465,6 +471,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     if (sptr->query_encoding.length())
         b->set_option("rpnCharset", sptr->query_encoding.c_str());
+
+    if (sptr->authentication.length())
+        b->set_option("user", sptr->authentication.c_str());
 
     std::string url;
     if (sptr->sru.length())
