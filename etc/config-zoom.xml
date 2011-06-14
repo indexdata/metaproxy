@@ -22,6 +22,7 @@
       <filter type="log">
         <message>F</message>
       </filter>
+      <filter type="sru_z3950"/>
       <filter type="record_transform">
         <retrievalinfo   xmlns="http://indexdata.com/yaz" version="1.0">
           <retrieval syntax="xml" name="usi">
