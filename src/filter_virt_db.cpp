@@ -122,7 +122,6 @@ namespace metaproxy_1 {
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
             bool pass_vhosts;
-            mp::Torus torus;
         };
     }
 }
@@ -467,71 +466,6 @@ void yf::VirtualDB::Rep::release_frontend(mp::Package &package)
     }
 }
 
-void yf::VirtualDB::Rep::refresh_torus(void)
-{
-    xmlDoc *doc = torus.get_doc();
-    if (!doc)
-        return;
-
-    xmlNode *ptr1 = xmlDocGetRootElement(doc);
-    if (!ptr1)
-        return ;
-
-    for (ptr1 = ptr1->children; ptr1; ptr1 = ptr1->next)
-    {
-        if (ptr1->type != XML_ELEMENT_NODE)
-            continue;
-        if (!strcmp((const char *) ptr1->name, "record"))
-        {
-            xmlNode *ptr2 = ptr1;
-            for (ptr2 = ptr2->children; ptr2; ptr2 = ptr2->next)
-            {
-                if (ptr2->type != XML_ELEMENT_NODE)
-                    continue;
-                if (!strcmp((const char *) ptr2->name, "layer"))
-                {
-                    std::string database;
-                    std::string target;
-                    std::string route;
-                    std::string solr;
-                    std::string query_encoding;
-                    xmlNode *ptr3 = ptr2;
-                    for (ptr3 = ptr3->children; ptr3; ptr3 = ptr3->next)
-                    {
-                        if (ptr3->type != XML_ELEMENT_NODE)
-                            continue;
-                        if (!strcmp((const char *) ptr3->name, "id"))
-                        {
-                            database = mp::xml::get_text(ptr3);
-                        }
-                        else if (!strcmp((const char *) ptr3->name, "zurl"))
-                        {
-                            target = mp::xml::get_text(ptr3);
-                        }
-                        else if (!strcmp((const char *) ptr3->name, "sru"))
-                        {
-                            solr = mp::xml::get_text(ptr3);
-                        }
-                        else if (!strcmp((const char *) ptr3->name,
-                                         "queryEncoding"))
-                        {
-                            query_encoding = mp::xml::get_text(ptr3);
-                        }
-                    }
-                    if (solr.length() == 0 && 
-                        database.length() && target.length())
-                    {
-                        VirtualDB::Map vmap(
-                            mp::util::database_name_normalize(database),
-                            target, route);
-                        vmap.query_encoding = query_encoding;
-                        m_maps.push_back(vmap);
-                    }
-                }
-            }
-        }
-    }
-}
 
 yf::VirtualDB::Set::Set(BackendPtr b, std::string setname)
     :  m_backend(b), m_setname(setname)
@@ -975,22 +909,6 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only)
                                 targets, route);
             vmap.query_encoding = query_encoding;
             m_p->m_maps.push_back(vmap);
-        }
-        else if (!strcmp((const char *) ptr->name, "torus"))
-        {
-            std::string url;
-            const struct _xmlAttr *attr;
-            for (attr = ptr->properties; attr; attr = attr->next)
-            {
-                if (!strcmp((const char *) attr->name, "url"))
-                    url = mp::xml::get_text(attr->children);
-                else
-                    throw mp::filter::FilterException(
-                        "Bad attribute " + std::string((const char *)
-                                                       attr->name));
-            }
-            m_p->torus.read_searchables(url);
-            m_p->refresh_torus();
         }
         else
         {

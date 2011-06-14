@@ -148,43 +148,6 @@ static WRBUF get_url(const char *uri, WRBUF username, WRBUF password,
 }
 
 
-mp::Torus::Torus()
-{
-    doc = 0;
-}
-
-mp::Torus::~Torus()
-{
-    if (doc)
-        xmlFreeDoc(doc);
-}
-
-void mp::Torus::read_searchables(std::string url)
-{
-    if (doc)
-    {
-        xmlFreeDoc(doc);
-        doc = 0;
-    }
-    if (url.length() == 0)
-        return;
-
-    int code;
-    WRBUF w = get_url(url.c_str(), 0, 0, &code);
-    if (code == 200)
-    {
-        doc = xmlParseMemory(wrbuf_buf(w), wrbuf_len(w));
-        if (doc)
-            yaz_log(YLOG_LOG, "xmlParseMemory OK");
-    }
-    wrbuf_destroy(w);
-}
-
-xmlDoc *mp::Torus::get_doc()
-{
-    return doc;
-}
-
 xmlDoc *mp::get_searchable(std::string url_template, const std::string &db)
 {
     // http://newmk2.indexdata.com/torus2/searchable.ebsco/records/?query=udb=aberdeenUni
