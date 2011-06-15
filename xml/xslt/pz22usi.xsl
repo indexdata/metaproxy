@@ -25,8 +25,12 @@
 	  <issuance>monographic</issuance>
 	</xsl:if>
       </originInfo>
+      <!-- What about mods:typeOfResource? -->
       <location>
-	<url usage="primary"><xsl:value-of select="pz:metadata[@type='electronic-url']"/></url>
+	<!-- It would be good to make only the first of these "primary" -->
+	<xsl:for-each select="pz:metadata[@type='electronic-url']">
+	  <url usage="primary"><xsl:value-of select="."/></url>
+	</xsl:for-each>
 	<url access="preview">$THUMBURL</url>
       </location>
       <titleInfo>
@@ -82,6 +86,8 @@
 	<part>
 	  <detail type="volume">
 	    <number><xsl:value-of select="pz:metadata[@type='volume']"/></number>
+	    <!-- or -->
+	    <number><xsl:value-of select="pz:metadata[@type='journal-subpart']"/></number>
 	  </detail>
 	  <detail type="issue">
 	    <number>$ISSUE</number>
@@ -93,12 +99,15 @@
 	</part>
       </relatedItem>
       <physicalDescription>
+	<xsl:if test="pz:metadata[@type='medium'] = 'web'">
+	  <form authority="marcform">electronic</form>
+	</xsl:if>
 	<form><xsl:value-of select="pz:metadata[@type='physical-format']"/></form>
 	<internetMediaType>$FORMAT</internetMediaType>
 	<extent><xsl:value-of select="pz:metadata[@type='physical-extent']"/></extent>
       </physicalDescription>
-      <id:citation>$CITATION</id:citation>
-      <identifier type="issn">$ISSN</identifier>
+      <id:citation><xsl:value-of select="pz:metadata[@type='citation']"/></id:citation>
+      <identifier type="issn"><xsl:value-of select="pz:metadata[@type='issn']"/></identifier>
       <identifier type="isbn"><xsl:value-of select="pz:metadata[@type='isbn']"/></identifier>
       <identifier><xsl:value-of select="pz:metadata[@type='id']"/></identifier>
       <accessCondition type="copyright">$COPYRIGHT</accessCondition>
