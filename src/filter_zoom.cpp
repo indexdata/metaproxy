@@ -377,11 +377,6 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
                                            (const char *) ptr3->name + 7);
                         }
                     }
-                    if (s->database.length() && s->target.length())
-                    {
-                        yaz_log(YLOG_LOG, "add db=%s target=%s", 
-                                s->database.c_str(), s->target.c_str());
-                    }
                     return s;
                 }
             }
@@ -777,7 +772,6 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         char ccl_buf[1024];
 
         r = cql_to_ccl_buf(cn, ccl_buf, sizeof(ccl_buf));
-        yaz_log(YLOG_LOG, "cql_to_ccl_buf returned %d", r);
         if (r == 0)
         {
             ccl_wrbuf = wrbuf_alloc();
@@ -814,11 +808,21 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         if (!cn)
         {
             char *addinfo = odr_strdup(odr, ccl_err_msg(cerror));
+            int z3950_diag = YAZ_BIB1_MALFORMED_QUERY;
 
+            switch (cerror)
+            {
+            case CCL_ERR_UNKNOWN_QUAL:
+                z3950_diag = YAZ_BIB1_UNSUPP_USE_ATTRIBUTE;
+                break;
+            case CCL_ERR_TRUNC_NOT_LEFT: 
+            case CCL_ERR_TRUNC_NOT_RIGHT:
+            case CCL_ERR_TRUNC_NOT_BOTH:
+                z3950_diag = YAZ_BIB1_UNSUPP_TRUNCATION_ATTRIBUTE;
+                break;
+            }
             apdu_res = 
-                odr.create_searchResponse(apdu_req, 
-                                          YAZ_BIB1_MALFORMED_QUERY,
-                                          addinfo);
+                odr.create_searchResponse(apdu_req, z3950_diag, addinfo);
             package.response() = apdu_res;
             return;
         }
