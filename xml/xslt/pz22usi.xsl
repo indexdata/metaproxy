@@ -15,8 +15,15 @@
 			      http://www.loc.gov/standards/mods/v3/mods-3-4.xsd">
       <originInfo>
 	<dateIssued><xsl:value-of select="normalize-space(pz:metadata[@type='date'])"/></dateIssued>
-	<publisher>$PUBLISHER</publisher>
-	<issuance>$PUBTYPE/$DOCTYPE</issuance>
+	<publisher><xsl:value-of select="pz:metadata[@type='publication-name']"/></publisher>
+	<place>
+	  <placeTerm type="text">
+	    <xsl:value-of select="pz:metadata[@type='publication-place']"/>
+	  </placeTerm>
+	</place>
+	<xsl:if test="pz:metadata[@type='medium'] = 'book'">
+	  <issuance>monographic</issuance>
+	</xsl:if>
       </originInfo>
       <location>
 	<url usage="primary"><xsl:value-of select="pz:metadata[@type='electronic-url']"/></url>
@@ -27,27 +34,38 @@
       </titleInfo>
       <xsl:for-each select="pz:metadata[@type='author']">
 	<name type="personal">
-	  <displayForm>
-	    <xsl:value-of select="."/>
-	  </displayForm>
+	  <displayForm><xsl:value-of select="."/></displayForm>
 	  <role>
 	    <roleTerm type="text">author</roleTerm>
 	  </role>
 	</name>
       </xsl:for-each>
-      <abstract type="description">$DESCRIPTION</abstract>
-      <subject>
-	<topic>$SUBJECT</topic>
-      </subject>
+      <xsl:for-each select="pz:metadata[@type='title-responsibility']">
+	<name type="personal">
+	  <displayForm><xsl:value-of select="."/></displayForm>
+	</name>
+      </xsl:for-each>
+      <xsl:for-each select="pz:metadata[@type='description']">
+	<abstract type="description"><xsl:value-of select="."/></abstract>
+      </xsl:for-each>
+      <xsl:for-each select="pz:metadata[@type='subject']">
+	<subject>
+	  <topic><xsl:value-of select="."/></topic>
+	</subject>
+      </xsl:for-each>
       <id:relevance>$RELEVANCE</id:relevance>
       <!-- <location> is repeatable for multiple holdings -->
       <location>
 	<holdingSimple>
 	  <copyInformation>
-	    <subLocation>$LOCATION</subLocation>
-	    <shelfLocator>$CALLNO</shelfLocator>
+	    <subLocation>
+	      <xsl:value-of select="pz:metadata[@type='locallocation']"/>
+	    </subLocation>
+	    <shelfLocator>
+	      <xsl:value-of select="pz:metadata[@type='callnumber']"/>
+	    </shelfLocator>
 	    <id:circ>
-	      <id:available>$AVAILABLE</id:available>
+	      <id:available><xsl:value-of select="normalize-space(pz:metadata[@type='available'])"/></id:available>
 	      <id:due>$DUE</id:due>
 	    </id:circ>
 	  </copyInformation>
@@ -56,6 +74,8 @@
       <relatedItem type="host">
 	<titleInfo>
 	  <title><xsl:value-of select="pz:metadata[@type='journal-title']"/></title>
+	  <!-- or -->
+	  <title><xsl:value-of select="pz:metadata[@type='series-title']"/></title>
 	  <!-- or -->
 	  <title>$BOOKTITLE</title>
 	</titleInfo>
@@ -73,14 +93,14 @@
 	</part>
       </relatedItem>
       <physicalDescription>
-	<form>$MEDIUM</form>
+	<form><xsl:value-of select="pz:metadata[@type='physical-format']"/></form>
 	<internetMediaType>$FORMAT</internetMediaType>
-	<extent>$EXTENT</extent>
+	<extent><xsl:value-of select="pz:metadata[@type='physical-extent']"/></extent>
       </physicalDescription>
       <id:citation>$CITATION</id:citation>
       <identifier type="issn">$ISSN</identifier>
-      <identifier type="isbn">$ISBN</identifier>
-      <identifier>$ID</identifier>
+      <identifier type="isbn"><xsl:value-of select="pz:metadata[@type='isbn']"/></identifier>
+      <identifier><xsl:value-of select="pz:metadata[@type='id']"/></identifier>
       <accessCondition type="copyright">$COPYRIGHT</accessCondition>
       <accessCondition type="copyrightabstract">$COPYRIGHTABSTRACT</accessCondition>
       <language usage="primary">
