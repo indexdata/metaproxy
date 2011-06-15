@@ -1,3 +1,7 @@
+--- 1.2.6 2011/06/15
+
+First version with zoom filter.
+
 --- 1.2.5 2011/05/06
 
 Filter z3950_client may be configured to always send a close APDU
