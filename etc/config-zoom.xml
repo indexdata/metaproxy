@@ -35,6 +35,10 @@
           <retrieval syntax="usmarc"/>
         </retrievalinfo>
       </filter>
+      <filter type="session_shared"/>
+      <filter type="log">
+        <message>B</message>
+      </filter>
       <filter refid="backend"/>
       <filter type="bounce"/>
     </route>
