@@ -22,6 +22,23 @@
       <fieldmap cql="bash.isbn" ccl="isbn"/>
       <fieldmap cql="bash.issn" ccl="issn"/>
       <fieldmap cql="dc.date" ccl="date"/>
+      <!-- 
+	   I got some of the following CCL qualifier names from
+	   http://catalog.pburglib.org/polaris/Help/PWbasicsearch6.html
+	   These are marked with the comment POLARIS.
+	   The others, I just made up.
+	   (Mike, Wed Jun 15 22:50:18 BST 2011)
+	-->
+      <fieldmap cql="rec.identifier" ccl="ocn"/><!-- POLARIS -->
+      <fieldmap cql="net.path" ccl="db"/>
+      <fieldmap cql="dc.language" ccl="la"/><!-- POLARIS -->
+      <fieldmap cql="dc.format" ccl="tom"/><!-- POLARIS -->
+      <fieldmap cql="id.fullText" ccl="fullText"/>
+      <fieldmap cql="id.peerReviewed" ccl="peerReviewed"/>
+      <fieldmap cql="dc.description" ccl="desc"/>
+      <fieldmap cql="dc.source" ccl="src"/>
+      <fieldmap cql="dc.publisher" ccl="pub"/><!-- POLARIS -->
+      <fieldmap cql="id.seriesTitle" ccl="series-ti"/>
     </filter>
   </filters>
   <routes>  
