@@ -248,8 +248,7 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::init_backend(
     // we hope to get an init response
     error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
     if (gdu && gdu->which == Z_GDU_Z3950
-        && gdu->u.z3950->which == Z_APDU_initResponse
-        && *gdu->u.z3950->u.initResponse->result)
+        && gdu->u.z3950->which == Z_APDU_initResponse)
     {
         Z_InitResponse *res = gdu->u.z3950->u.initResponse;
         if (ODR_MASK_GET(res->options, Z_Options_namedResultSets))
