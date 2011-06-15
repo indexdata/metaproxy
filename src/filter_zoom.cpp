@@ -117,11 +117,12 @@ namespace metaproxy_1 {
             FrontendPtr get_frontend(mp::Package &package);
             void release_frontend(mp::Package &package);
             SearchablePtr parse_torus(const xmlNode *ptr);
-
+            struct cql_node *convert_cql_fields(struct cql_node *cn, ODR odr);
             std::map<mp::Session, FrontendPtr> m_clients;            
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
             std::string torus_url;
+            std::map<std::string,std::string> fieldmap;
             std::string xsldir;
         };
     }
@@ -405,6 +406,25 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
                         "Bad attribute " + std::string((const char *)
                                                        attr->name));
             }
+        }
+        else if (!strcmp((const char *) ptr->name, "fieldmap"))
+        {
+            const struct _xmlAttr *attr;
+            std::string ccl_field;
+            std::string cql_field;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "ccl"))
+                    ccl_field = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "cql"))
+                    cql_field = mp::xml::get_text(attr->children);
+                else
+                    throw mp::filter::FilterException(
+                        "Bad attribute " + std::string((const char *)
+                                                       attr->name));
+            }
+            if (ccl_field.length() && cql_field.length())
+                fieldmap[cql_field] = ccl_field;
         }
         else if (!strcmp((const char *) ptr->name, "records"))
         {
@@ -702,6 +722,35 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
     return records;
 }
     
+struct cql_node *yf::Zoom::Impl::convert_cql_fields(struct cql_node *cn,
+                                                    ODR odr)
+{
+    struct cql_node *r = 0;
+    if (!cn)
+        return 0;
+    switch (cn->which)
+    {
+    case CQL_NODE_ST:
+        if (cn->u.st.index)
+        {
+            std::map<std::string,std::string>::const_iterator it;
+            it = fieldmap.find(cn->u.st.index);
+            if (it == fieldmap.end())
+                return cn;
+            cn->u.st.index = odr_strdup(odr, it->second.c_str());
+        }
+        break;
+    case CQL_NODE_BOOL:
+        r = convert_cql_fields(cn->u.boolean.left, odr);
+        if (!r)
+            r = convert_cql_fields(cn->u.boolean.right, odr);
+        break;
+    case CQL_NODE_SORT:
+        r = convert_cql_fields(cn->u.sort.search, odr);
+        break;
+    }
+    return r;
+}
 
 void yf::Zoom::Frontend::handle_search(mp::Package &package)
 {
@@ -769,6 +818,21 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
             return;
         }
         struct cql_node *cn = cql_parser_result(cp);
+        struct cql_node *cn_error = m_p->convert_cql_fields(cn, odr);
+        if (cn_error)
+        {
+            // hopefully we are getting a ptr to a index+relation+term node
+            addinfo = 0;
+            if (cn_error->which == CQL_NODE_ST)
+                addinfo = cn_error->u.st.index;
+
+            apdu_res = 
+                odr.create_searchResponse(apdu_req, 
+                                          YAZ_BIB1_UNSUPP_USE_ATTRIBUTE,
+                                          addinfo);
+            package.response() = apdu_res;
+            return;
+        }
         char ccl_buf[1024];
 
         r = cql_to_ccl_buf(cn, ccl_buf, sizeof(ccl_buf));

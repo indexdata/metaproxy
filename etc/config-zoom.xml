@@ -14,6 +14,14 @@
             url="http://newmk2.indexdata.com/torus2/searchable.ebsco/records/?query=udb%3D%db"
             xsldir="."
       />
+      <fieldmap cql="cql.anywhere" ccl="term"/>
+      <fieldmap cql="cql.serverChoice" ccl="term"/>
+      <fieldmap cql="dc.creator" ccl="au"/>
+      <fieldmap cql="dc.title" ccl="ti"/>
+      <fieldmap cql="dc.subject" ccl="su"/>
+      <fieldmap cql="bash.isbn" ccl="isbn"/>
+      <fieldmap cql="bash.issn" ccl="issn"/>
+      <fieldmap cql="dc.date" ccl="date"/>
     </filter>
   </filters>
   <routes>  
@@ -38,6 +46,7 @@
       <filter type="session_shared"/>
       <filter type="log">
         <message>B</message>
+	<category apdu="true"/>
       </filter>
       <filter refid="backend"/>
       <filter type="bounce"/>
