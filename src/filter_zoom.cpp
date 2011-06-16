@@ -473,13 +473,14 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (m_backend && m_backend->m_frontend_database == database)
         return m_backend;
 
-    bool db_args = false;
+    std::string db_args;
+    std::string cf_parm;
     std::string torus_db;
     size_t db_arg_pos = database.find(',');
     if (db_arg_pos != std::string::npos)
     {
         torus_db = database.substr(0, db_arg_pos);
-        db_args = true;
+        db_args = database.substr(db_arg_pos+1);
     }
     else
         torus_db = database;
@@ -534,7 +535,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     BackendPtr b(new Backend(sptr));
 
-    std::string cf_parm;
     b->xsp = xsp;
     b->m_frontend_database = database;
     std::string authentication = sptr->authentication;
@@ -583,10 +583,10 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         url = sptr->target;
     }
-    if (cf_parm.length() && !db_args)
-    {
+    if (db_args.length())
+        url += "," + db_args;
+    else if (cf_parm.length())
         url += "," + cf_parm;
-    }
     yaz_log(YLOG_LOG, "url=%s", url.c_str());
     b->connect(url, error, addinfo);
     if (*error == 0)
