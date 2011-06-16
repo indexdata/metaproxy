@@ -30,6 +30,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 #include <yaz/ccl.h>
+#include <yaz/rpn2cql.h>
+#include <yaz/pquery.h>
 #include <yaz/cql.h>
 #include <yaz/oid_db.h>
 #include <yaz/diagbib1.h>
@@ -76,9 +78,12 @@ namespace metaproxy_1 {
             void connect(std::string zurl, int *error, const char **addinfo);
             void search_pqf(const char *pqf, Odr_int *hits,
                             int *error, const char **addinfo);
+            void search_cql(const char *cql, Odr_int *hits,
+                            int *error, const char **addinfo);
             void present(Odr_int start, Odr_int number, ZOOM_record *recs,
                          int *error, const char **addinfo);
             void set_option(const char *name, const char *value);
+            const char *get_option(const char *name);
             int get_error(const char **addinfo);
         };
         class Zoom::Frontend : boost::noncopyable {
@@ -184,6 +189,22 @@ void yf::Zoom::Backend::search_pqf(const char *pqf, Odr_int *hits,
         *hits = 0;
 }
 
+void yf::Zoom::Backend::search_cql(const char *cql, Odr_int *hits,
+                                   int *error, const char **addinfo)
+{
+    ZOOM_query q = ZOOM_query_create();
+
+    ZOOM_query_cql(q, cql);
+
+    m_resultset = ZOOM_connection_search(m_connection, q);
+    ZOOM_query_destroy(q);
+    *error = ZOOM_connection_error(m_connection, 0, addinfo);
+    if (*error == 0)
+        *hits = ZOOM_resultset_size(m_resultset);
+    else
+        *hits = 0;
+}
+
 void yf::Zoom::Backend::present(Odr_int start, Odr_int number,
                                 ZOOM_record *recs,
                                 int *error, const char **addinfo)
@@ -197,6 +218,11 @@ void yf::Zoom::Backend::set_option(const char *name, const char *value)
     ZOOM_connection_option_set(m_connection, name, value);
     if (m_resultset)
         ZOOM_resultset_option_set(m_resultset, name, value);
+}
+
+const char *yf::Zoom::Backend::get_option(const char *name)
+{
+    return ZOOM_connection_option_get(m_connection, name);
 }
 
 int yf::Zoom::Backend::get_error(const char **addinfo)
@@ -561,6 +587,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         url += "," + cf_parm;
     }
+    yaz_log(YLOG_LOG, "url=%s", url.c_str());
     b->connect(url, error, addinfo);
     if (*error == 0)
     {
@@ -911,9 +938,42 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     }
     
     assert(pqf_wrbuf);
-    b->search_pqf(wrbuf_cstr(pqf_wrbuf), &hits, &error, &addinfo);
+    if (b->get_option("sru"))
+    {
+        cql_transform_t cqlt = cql_transform_create();
+        Z_RPNQuery *zquery;
+        WRBUF wrb = wrbuf_alloc();
+        int status;
+        
+        zquery = p_query_rpn(odr, wrbuf_cstr(pqf_wrbuf));
+        status = cql_transform_rpn2cql_wrbuf(cqlt, wrb, zquery);
+        
+        cql_transform_close(cqlt);
+
+        if (status == 0)
+        {
+            yaz_log(YLOG_LOG, "search CQL: %s", wrbuf_cstr(wrb));
+            b->search_cql(wrbuf_cstr(wrb), &hits, &error, &addinfo);
+        }
+
+        wrbuf_destroy(wrb);
+        wrbuf_destroy(pqf_wrbuf);
+        if (status)
+        {
+            apdu_res = 
+                odr.create_searchResponse(apdu_req, YAZ_BIB1_MALFORMED_QUERY,
+                                          "can not convert from RPN to CQL");
+            package.response() = apdu_res;
+            return;
+        }
+    }
+    else
+    {
+        yaz_log(YLOG_LOG, "search PQF: %s", wrbuf_cstr(pqf_wrbuf));
+        b->search_pqf(wrbuf_cstr(pqf_wrbuf), &hits, &error, &addinfo);
+        wrbuf_destroy(pqf_wrbuf);
+    }
     
-    wrbuf_destroy(pqf_wrbuf);
     
     const char *element_set_name = 0;
     Odr_int number_to_present = 0;
