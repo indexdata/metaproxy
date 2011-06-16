@@ -84,7 +84,7 @@ namespace metaproxy_1 {
                          int *error, const char **addinfo);
             void set_option(const char *name, const char *value);
             const char *get_option(const char *name);
-            int get_error(const char **addinfo);
+            void get_zoom_error(int *error, const char **addinfo);
         };
         class Zoom::Frontend : boost::noncopyable {
             friend class Impl;
@@ -171,18 +171,39 @@ yf::Zoom::Backend::~Backend()
     ZOOM_resultset_destroy(m_resultset);
 }
 
+
+void yf::Zoom::Backend::get_zoom_error(int *error, const char **addinfo)
+{
+    const char *msg = 0;
+    *error = ZOOM_connection_error(m_connection, &msg, addinfo);
+    if (*error)
+    {
+        if (*error >= ZOOM_ERROR_CONNECT)
+        {
+            // turn ZOOM diagnostic into a Bib-1 2: with addinfo=zoom err msg
+            yaz_log(YLOG_LOG, "msg=%s", msg);
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            if (addinfo)
+            {
+                yaz_log(YLOG_LOG, "addinfo=%s", *addinfo);
+                *addinfo = msg;
+            }
+        }
+    }
+}
+
 void yf::Zoom::Backend::connect(std::string zurl,
                                 int *error, const char **addinfo)
 {
     ZOOM_connection_connect(m_connection, zurl.c_str(), 0);
-    *error = ZOOM_connection_error(m_connection, 0, addinfo);
+    get_zoom_error(error, addinfo);
 }
 
 void yf::Zoom::Backend::search_pqf(const char *pqf, Odr_int *hits,
                                    int *error, const char **addinfo)
 {
     m_resultset = ZOOM_connection_search_pqf(m_connection, pqf);
-    *error = ZOOM_connection_error(m_connection, 0, addinfo);
+    get_zoom_error(error, addinfo);
     if (*error == 0)
         *hits = ZOOM_resultset_size(m_resultset);
     else
@@ -198,7 +219,7 @@ void yf::Zoom::Backend::search_cql(const char *cql, Odr_int *hits,
 
     m_resultset = ZOOM_connection_search(m_connection, q);
     ZOOM_query_destroy(q);
-    *error = ZOOM_connection_error(m_connection, 0, addinfo);
+    get_zoom_error(error, addinfo);
     if (*error == 0)
         *hits = ZOOM_resultset_size(m_resultset);
     else
@@ -210,7 +231,7 @@ void yf::Zoom::Backend::present(Odr_int start, Odr_int number,
                                 int *error, const char **addinfo)
 {
     ZOOM_resultset_records(m_resultset, recs, start, number);
-    *error = ZOOM_connection_error(m_connection, 0, addinfo);
+    get_zoom_error(error, addinfo);
 }
 
 void yf::Zoom::Backend::set_option(const char *name, const char *value)
@@ -223,11 +244,6 @@ void yf::Zoom::Backend::set_option(const char *name, const char *value)
 const char *yf::Zoom::Backend::get_option(const char *name)
 {
     return ZOOM_connection_option_get(m_connection, name);
-}
-
-int yf::Zoom::Backend::get_error(const char **addinfo)
-{
-    return ZOOM_connection_error(m_connection, 0, addinfo);
 }
 
 yf::Zoom::Searchable::Searchable()
@@ -538,6 +554,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     b->xsp = xsp;
     b->m_frontend_database = database;
     std::string authentication = sptr->authentication;
+        
+    b->set_option("timeout", "40");
 
     if (sptr->query_encoding.length())
         b->set_option("rpnCharset", sptr->query_encoding.c_str());
