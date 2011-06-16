@@ -773,7 +773,14 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     int error = 0;
     const char *addinfo = 0;
     std::string db(sr->databaseNames[0]);
-    BackendPtr b = get_backend_from_databases(db, &error, &addinfo);
+    std::string torus_db;
+    size_t db_arg_pos = db.find(',');
+    if (db_arg_pos != std::string::npos)
+        torus_db = db.substr(0, db_arg_pos);
+    else
+        torus_db = db;
+
+    BackendPtr b = get_backend_from_databases(torus_db, &error, &addinfo);
     if (error)
     {
         apdu_res = 
