@@ -14,8 +14,8 @@
             url="http://newmk2.indexdata.com/torus2/searchable.ebsco/records/?query=udb%3D%db"
             xsldir="."
       />
-      <fieldmap cql="cql.anywhere" ccl="term"/>
-      <fieldmap cql="cql.serverChoice" ccl="term"/>
+      <fieldmap cql="cql.anywhere"/>
+      <fieldmap cql="cql.serverChoice"/>
       <fieldmap cql="dc.creator" ccl="au"/>
       <fieldmap cql="dc.title" ccl="ti"/>
       <fieldmap cql="dc.subject" ccl="su"/>
