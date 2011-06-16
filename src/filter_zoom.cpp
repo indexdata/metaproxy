@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
-#include <yaz/ccl.h>
+#include <yaz/ccl_xml.h>
 #include <yaz/cql.h>
 #include <yaz/oid_db.h>
 #include <yaz/diagbib1.h>
@@ -124,6 +124,7 @@ namespace metaproxy_1 {
             std::string torus_url;
             std::map<std::string,std::string> fieldmap;
             std::string xsldir;
+            CCL_bibset bibset;
         };
     }
 }
@@ -272,10 +273,12 @@ void yf::Zoom::Impl::release_frontend(mp::Package &package)
 
 yf::Zoom::Impl::Impl()
 {
+    bibset = ccl_qual_mk();
 }
 
 yf::Zoom::Impl::~Impl()
 { 
+    ccl_qual_rm(&bibset);
 }
 
 yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
@@ -406,6 +409,11 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
                         "Bad attribute " + std::string((const char *)
                                                        attr->name));
             }
+        }
+        else if (!strcmp((const char *) ptr->name, "cclmap"))
+        {
+            const char *addinfo = 0;
+            ccl_xml_config(bibset, ptr, &addinfo);
         }
         else if (!strcmp((const char *) ptr->name, "fieldmap"))
         {
