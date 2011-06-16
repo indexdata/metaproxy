@@ -181,13 +181,9 @@ void yf::Zoom::Backend::get_zoom_error(int *error, const char **addinfo)
         if (*error >= ZOOM_ERROR_CONNECT)
         {
             // turn ZOOM diagnostic into a Bib-1 2: with addinfo=zoom err msg
-            yaz_log(YLOG_LOG, "msg=%s", msg);
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
             if (addinfo)
-            {
-                yaz_log(YLOG_LOG, "addinfo=%s", *addinfo);
                 *addinfo = msg;
-            }
         }
     }
 }
