@@ -447,7 +447,18 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (m_backend && m_backend->m_frontend_database == database)
         return m_backend;
 
-    xmlDoc *doc = mp::get_searchable(m_p->torus_url, database);
+    bool db_args = false;
+    std::string torus_db;
+    size_t db_arg_pos = database.find(',');
+    if (db_arg_pos != std::string::npos)
+    {
+        torus_db = database.substr(0, db_arg_pos);
+        db_args = true;
+    }
+    else
+        torus_db = database;
+ 
+    xmlDoc *doc = mp::get_searchable(m_p->torus_url, torus_db);
     if (!doc)
     {
         *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
@@ -546,7 +557,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         url = sptr->target;
     }
-    if (cf_parm.length())
+    if (cf_parm.length() && !db_args)
     {
         url += "," + cf_parm;
     }
@@ -773,14 +784,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     int error = 0;
     const char *addinfo = 0;
     std::string db(sr->databaseNames[0]);
-    std::string torus_db;
-    size_t db_arg_pos = db.find(',');
-    if (db_arg_pos != std::string::npos)
-        torus_db = db.substr(0, db_arg_pos);
-    else
-        torus_db = db;
-
-    BackendPtr b = get_backend_from_databases(torus_db, &error, &addinfo);
+    BackendPtr b = get_backend_from_databases(db, &error, &addinfo);
     if (error)
     {
         apdu_res = 
