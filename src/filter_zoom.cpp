@@ -423,7 +423,7 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
                         "Bad attribute " + std::string((const char *)
                                                        attr->name));
             }
-            if (ccl_field.length() && cql_field.length())
+            if (cql_field.length())
                 fieldmap[cql_field] = ccl_field;
         }
         else if (!strcmp((const char *) ptr->name, "records"))
@@ -737,7 +737,10 @@ struct cql_node *yf::Zoom::Impl::convert_cql_fields(struct cql_node *cn,
             it = fieldmap.find(cn->u.st.index);
             if (it == fieldmap.end())
                 return cn;
-            cn->u.st.index = odr_strdup(odr, it->second.c_str());
+            if (it->second.length())
+                cn->u.st.index = odr_strdup(odr, it->second.c_str());
+            else
+                cn->u.st.index = 0;
         }
         break;
     case CQL_NODE_BOOL:
@@ -866,6 +869,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         assert(pqf_wrbuf == 0);
         int cerror, cpos;
         struct ccl_rpn_node *cn;
+        yaz_log(YLOG_LOG, "CCL: %s", wrbuf_cstr(ccl_wrbuf));
         cn = ccl_find_str(b->sptr->ccl_bibset, wrbuf_cstr(ccl_wrbuf),
                           &cerror, &cpos);
         wrbuf_destroy(ccl_wrbuf);
