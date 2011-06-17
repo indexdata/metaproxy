@@ -39,6 +39,12 @@
       <fieldmap cql="dc.source" ccl="src"/>
       <fieldmap cql="dc.publisher" ccl="pub"/><!-- POLARIS -->
       <fieldmap cql="id.seriesTitle" ccl="series-ti"/>
+
+      <cclmap>
+        <qual name="ocn">
+          <attr type="1" value="12"/>
+        </qual>
+      </cclmap>
     </filter>
   </filters>
   <routes>  

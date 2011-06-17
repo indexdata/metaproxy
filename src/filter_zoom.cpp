@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "config.hpp"
 #include "filter_zoom.hpp"
 #include <yaz/zoom.h>
+#include <yaz/yaz-version.h>
 #include <yaz/srw.h>
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
@@ -61,7 +62,7 @@ namespace metaproxy_1 {
             bool use_turbomarc;
             bool piggyback;
             CCL_bibset ccl_bibset;
-            Searchable();
+            Searchable(CCL_bibset base);
             ~Searchable();
         };
         class Zoom::Backend : boost::noncopyable {
@@ -244,11 +245,11 @@ const char *yf::Zoom::Backend::get_option(const char *name)
     return ZOOM_connection_option_get(m_connection, name);
 }
 
-yf::Zoom::Searchable::Searchable()
+yf::Zoom::Searchable::Searchable(CCL_bibset base)
 {
     piggyback = true;
     use_turbomarc = true;
-    ccl_bibset = ccl_qual_mk();
+    ccl_bibset = ccl_qual_dup(base);
 }
 
 yf::Zoom::Searchable::~Searchable()
@@ -338,7 +339,7 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
                     continue;
                 if (!strcmp((const char *) ptr2->name, "layer"))
                 {
-                    Zoom::SearchablePtr s(new Searchable);
+                    Zoom::SearchablePtr s(new Searchable(bibset));
 
                     const xmlNode *ptr3 = ptr2;
                     for (ptr3 = ptr3->children; ptr3; ptr3 = ptr3->next)
@@ -472,10 +473,6 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
             }
             if (cql_field.length())
                 fieldmap[cql_field] = ccl_field;
-        }
-        else if (!strcmp((const char *) ptr->name, "records"))
-        {
-            yaz_log(YLOG_WARN, "records ignored!");
         }
         else
         {
