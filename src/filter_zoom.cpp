@@ -33,6 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/ccl_xml.h>
 #include <yaz/ccl.h>
 #include <yaz/rpn2cql.h>
+#include <yaz/rpn2solr.h>
 #include <yaz/pquery.h>
 #include <yaz/cql.h>
 #include <yaz/oid_db.h>
@@ -960,29 +961,40 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     assert(pqf_wrbuf);
     if (b->get_option("sru"))
     {
-        cql_transform_t cqlt = cql_transform_create();
+        int status = 0;
         Z_RPNQuery *zquery;
-        WRBUF wrb = wrbuf_alloc();
-        int status;
-        
         zquery = p_query_rpn(odr, wrbuf_cstr(pqf_wrbuf));
-        status = cql_transform_rpn2cql_wrbuf(cqlt, wrb, zquery);
-        
-        cql_transform_close(cqlt);
-
+        WRBUF wrb = wrbuf_alloc();
+            
+        if (!strcmp(b->get_option("sru"), "solr"))
+        {
+            solr_transform_t cqlt = solr_transform_create();
+            
+            status = solr_transform_rpn2solr_wrbuf(cqlt, wrb, zquery);
+            
+            solr_transform_close(cqlt);
+        }
+        else
+        {
+            cql_transform_t cqlt = cql_transform_create();
+            
+            status = cql_transform_rpn2cql_wrbuf(cqlt, wrb, zquery);
+            
+            cql_transform_close(cqlt);
+        }
         if (status == 0)
         {
             yaz_log(YLOG_LOG, "search CQL: %s", wrbuf_cstr(wrb));
             b->search_cql(wrbuf_cstr(wrb), &hits, &error, &addinfo);
         }
-
+        
         wrbuf_destroy(wrb);
         wrbuf_destroy(pqf_wrbuf);
         if (status)
         {
             apdu_res = 
                 odr.create_searchResponse(apdu_req, YAZ_BIB1_MALFORMED_QUERY,
-                                          "can not convert from RPN to CQL");
+                                          "can not convert from RPN to CQL/SOLR");
             package.response() = apdu_res;
             return;
         }
