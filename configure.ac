@@ -51,6 +51,20 @@ if test -z "${BOOST_TEST_LIB}"; then
     AC_MSG_ERROR([Boost unit test framework libraries required])
 fi
 
+xml_avail=false
+xslt_avail=false
+YAZ_LIBXML2([xml_avail=true])
+if $xml_avail; then
+    YAZ_LIBXSLT([xslt_avail=true])
+else
+    AC_MSG_ERROR([Libxml2 development files not found])
+fi
+if $xslt_avail; then
+    :
+else
+    AC_MSG_ERROR([Libxslt development files not found])
+fi
+
 AC_CHECK_HEADERS([sys/select.h sys/socket.h])
 
 if test -d ${srcdir}/.git; then
