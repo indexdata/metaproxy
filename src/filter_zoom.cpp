@@ -650,10 +650,8 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
             !strcmp(element_set_name, "pz2"))
         {
             if (b->sptr->request_syntax.length())
-            {
                 syntax_name = b->sptr->request_syntax.c_str();
-                enable_pz2_transform = true;
-            }
+            enable_pz2_transform = true;
         }
         else
         {
