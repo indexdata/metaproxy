@@ -26,7 +26,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <boost/shared_ptr.hpp>
 
 #include <metaproxy/util.hpp>
-#include "torus.hpp"
 
 #include <yaz/zgdu.h>
 #include <yaz/otherinfo.h>
