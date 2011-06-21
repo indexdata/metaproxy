@@ -66,6 +66,13 @@
   </para>
  </refsect1>
  
+ <refsect1><title>SCHEMA</title>
+   <literallayout><xi:include
+		     xi:href="../xml/schema/filter_virt_db.rnc" xi:parse="text"
+		     xmlns:xi="http://www.w3.org/2001/XInclude" />
+   </literallayout>
+ </refsect1>
+ 
  <refsect1><title>EXAMPLES</title>
   <para>
    Consider this virt_db configuration:

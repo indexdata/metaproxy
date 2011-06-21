@@ -12,6 +12,7 @@ XMLMAN = metaproxy.xml \
 	auth_simple.xml \
 	backend_test.xml \
 	bounce.xml \
+	cgi.xml \
         cql_rpn.xml \
 	frontend_net.xml \
 	http_file.xml \
@@ -32,6 +33,7 @@ MANFILES = metaproxy.1 \
 	auth_simple.3mp \
 	backend_test.3mp  \
 	bounce.3mp \
+	cgi.3mp \
         cql_rpn.3mp \
         frontend_net.3mp \
 	http_file.3mp \
@@ -93,7 +95,7 @@ metaproxyj.pdf: $(XMLFILES) multi.pdf
 manref.xml: $(XMLMAN) $(srcdir)/common/stripref.xsl $(srcdir)/copyright.xml
 	rm -f manref.xml
 	for i in $(XMLMAN); do \
-		xsltproc $(srcdir)/common/stripref.xsl $(srcdir)/$$i | sed 1d >> manref.xml; \
+		xsltproc --xinclude $(srcdir)/common/stripref.xsl $(srcdir)/$$i | sed 1d >> manref.xml; \
 	done
 
 

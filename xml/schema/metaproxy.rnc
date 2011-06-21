@@ -22,7 +22,6 @@ namespace mp = "http://indexdata.com/metaproxy"
 
 start |= metaproxy
 
-include "retrievalinfo.rnc"
 include "filter_auth_simple.rnc"
 include "filter_backend_test.rnc"
 include "filter_bounce.rnc"

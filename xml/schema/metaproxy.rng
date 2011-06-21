@@ -24,7 +24,6 @@
   <start combine="choice">
     <ref name="metaproxy"/>
   </start>
-  <include href="retrievalinfo.rng"/>
   <include href="filter_auth_simple.rng"/>
   <include href="filter_backend_test.rng"/>
   <include href="filter_bounce.rng"/>

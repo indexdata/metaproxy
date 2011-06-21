@@ -4,34 +4,33 @@
  <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
 ]>
-<refentry id="ref-backend_test">
+<refentry id="ref-cgi">
  <refentryinfo>
   <productname>Metaproxy</productname>
   <info><orgname>Index Data</orgname></info>
  </refentryinfo>
 
  <refmeta>
-  <refentrytitle>backend_test</refentrytitle>
+  <refentrytitle>cgi</refentrytitle>
   <manvolnum>3mp</manvolnum>
-  <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
+   <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
  </refmeta>
  
  <refnamediv>
-  <refname>backend_test</refname>
-  <refpurpose>Metaproxy Backend Test Z39.50 Server Module</refpurpose>
+  <refname>cgi</refname>
+  <refpurpose>Metaproxy Package CGI Module</refpurpose>
  </refnamediv>
  
  <refsect1><title>DESCRIPTION</title>
   <para>
-   A pseudo Z39.50 server for test purposes.
-   Similar to yaz-ztest.
+   CGI Common Gateway Interface module. 
   </para>
+
  </refsect1>
 
  <refsect1><title>SCHEMA</title>
    <literallayout><xi:include
-		     xi:href="../xml/schema/filter_backend_test.rnc"
-		     xi:parse="text"
+		     xi:href="../xml/schema/filter_cgi.rnc" xi:parse="text"  
 		     xmlns:xi="http://www.w3.org/2001/XInclude" />
    </literallayout>
  </refsect1>
@@ -40,7 +39,9 @@
   <para>
    A typical configuration looks like this:
    <screen><![CDATA[
-    <filter type="backend_test"/>
+      <filter type="cgi">
+         <map path="/mycgi" exec="./cgi.sh"/>
+      </filter>
 ]]>
    </screen>
   </para>

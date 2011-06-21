@@ -30,9 +30,15 @@
    is rejected unless username and passsword are supplied, and match
    a pair in the register.
   </para>
-  <para>
-   ### discuss authorization phase
-  </para>
+  <!-- TODO: discuss authorization phase -->
+ </refsect1>
+
+ <refsect1><title>SCHEMA</title>
+   <literallayout><xi:include
+		     xi:href="../xml/schema/filter_auth_simple.rnc"
+		     xi:parse="text"
+		     xmlns:xi="http://www.w3.org/2001/XInclude" />
+   </literallayout>
  </refsect1>
  
  <refsect1><title>EXAMPLES</title>
@@ -44,10 +50,10 @@
      <targetRegister>../etc/example.target-auth</targetRegister>
      <discardUnauthorisedTargets/>
     </filter>
-]]>
+    ]]>
    </screen>
-   ### Show and describe example.target-auth
   </para>
+  <!-- Show and describe example.target-auth -->
  </refsect1> 
  
  <refsect1><title>SEE ALSO</title>

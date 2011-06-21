@@ -86,6 +86,14 @@
   </para>
  </refsect1>
 
+ <refsect1><title>SCHEMA</title>
+   <literallayout><xi:include
+		     xi:href="../xml/schema/filter_sru_z3950.rnc"
+		     xi:parse="text"  
+		     xmlns:xi="http://www.w3.org/2001/XInclude" />
+   </literallayout>
+ </refsect1>
+ 
  <refsect1><title>EXAMPLES</title>
   <para>
    A typical configuration looks like this:
