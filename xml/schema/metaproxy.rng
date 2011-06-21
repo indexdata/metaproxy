@@ -41,6 +41,7 @@
   <include href="filter_sru_z3950.rng"/>
   <include href="filter_virt_db.rng"/>
   <include href="filter_z3950_client.rng"/>
+  <include href="filter_zoom.rng"/>
   <define name="any">
     <zeroOrMore>
       <choice>
@@ -117,6 +118,7 @@
         <ref name="filter_sru_z3950"/>
         <ref name="filter_virt_db"/>
         <ref name="filter_z3950_client"/>
+        <ref name="filter_zoom"/>
       </choice>
     </element>
   </define>

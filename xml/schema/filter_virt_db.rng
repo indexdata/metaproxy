@@ -20,13 +20,6 @@
         <data type="boolean"/>
       </element>
     </optional>
-    <optional>
-      <element name="mp:torus">
-        <attribute name="url">
-          <data type="string"/>
-        </attribute>
-      </element>
-    </optional>
     <zeroOrMore>
       <element name="mp:virtual">
         <optional>

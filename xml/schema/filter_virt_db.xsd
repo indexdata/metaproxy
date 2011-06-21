@@ -6,16 +6,10 @@
   <xs:group name="filter_virt_db">
     <xs:sequence>
       <xs:element minOccurs="0" ref="mp:pass-vhosts"/>
-      <xs:element minOccurs="0" ref="mp:torus"/>
       <xs:element minOccurs="0" maxOccurs="unbounded" ref="mp:virtual"/>
     </xs:sequence>
   </xs:group>
   <xs:element name="pass-vhosts" type="xs:boolean"/>
-  <xs:element name="torus">
-    <xs:complexType>
-      <xs:attribute name="url" use="required" type="xs:string"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="virtual">
     <xs:complexType>
       <xs:sequence>

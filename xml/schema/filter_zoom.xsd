@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Metaproxy XML config file schema -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://indexdata.com/metaproxy" xmlns:mp="http://indexdata.com/metaproxy" xmlns:y="http://indexdata.com/yaz">
+  <xs:import schemaLocation="local.xsd"/>
+  <xs:import namespace="http://indexdata.com/yaz" schemaLocation="retrievalinfo.xsd"/>
+  <xs:group name="filter_zoom">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="mp:torus"/>
+      <xs:element minOccurs="0" maxOccurs="unbounded" ref="mp:fieldmap"/>
+      <xs:element minOccurs="0" ref="mp:cclmap"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:element name="torus">
+    <xs:complexType>
+      <xs:attribute name="url" use="required" type="xs:string"/>
+      <xs:attribute name="xsldir" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="fieldmap">
+    <xs:complexType>
+      <xs:attribute name="cql" use="required" type="xs:string"/>
+      <xs:attribute name="ccl" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="cclmap">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="mp:qual"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="qual">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="mp:attr"/>
+      </xs:sequence>
+      <xs:attribute name="name" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="attr">
+    <xs:complexType>
+      <xs:attribute name="type" use="required" type="xs:string"/>
+      <xs:attribute name="value" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="filter_zoom">
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="zoom"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="id" type="xs:NCName"/>
+    <xs:attribute name="name" type="xs:NCName"/>
+  </xs:attributeGroup>
+</xs:schema>

@@ -22,6 +22,7 @@ filter_session_shared.xsd \
 filter_sru_z3950.xsd \
 filter_virt_db.xsd \
 filter_z3950_client.xsd \
+filter_zoom.xsd \
 local.xsd \
 metaproxy.xsd \
 retrievalinfo.xsd
@@ -44,6 +45,7 @@ filter_session_shared.rng \
 filter_sru_z3950.rng \
 filter_virt_db.rng \
 filter_z3950_client.rng \
+filter_zoom.rng \
 metaproxy.rng \
 retrievalinfo.rng
 
@@ -65,6 +67,7 @@ filter_session_shared.rnc \
 filter_sru_z3950.rnc \
 filter_virt_db.rnc \
 filter_z3950_client.rnc \
+filter_zoom.rnc \
 metaproxy.rnc \
 retrievalinfo.rnc
 

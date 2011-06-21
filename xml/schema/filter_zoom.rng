@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Metaproxy XML config file schema -->
+<grammar xmlns:mp="http://indexdata.com/metaproxy" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <define name="filter_zoom">
+    <attribute name="type">
+      <value>zoom</value>
+    </attribute>
+    <optional>
+      <attribute name="id">
+        <data type="NCName"/>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="name">
+        <data type="NCName"/>
+      </attribute>
+    </optional>
+    <optional>
+      <element name="mp:torus">
+        <attribute name="url">
+          <data type="string"/>
+        </attribute>
+        <optional>
+          <attribute name="xsldir">
+            <data type="string"/>
+          </attribute>
+        </optional>
+      </element>
+    </optional>
+    <zeroOrMore>
+      <element name="mp:fieldmap">
+        <attribute name="cql">
+          <data type="string"/>
+        </attribute>
+        <optional>
+          <attribute name="ccl">
+            <data type="string"/>
+          </attribute>
+        </optional>
+      </element>
+    </zeroOrMore>
+    <optional>
+      <element name="mp:cclmap">
+        <zeroOrMore>
+          <element name="mp:qual">
+            <attribute name="name">
+              <data type="string"/>
+            </attribute>
+            <oneOrMore>
+              <element name="mp:attr">
+                <attribute name="type">
+                  <data type="string"/>
+                </attribute>
+                <attribute name="value">
+                  <data type="string"/>
+                </attribute>
+              </element>
+            </oneOrMore>
+          </element>
+        </zeroOrMore>
+      </element>
+    </optional>
+  </define>
+</grammar>

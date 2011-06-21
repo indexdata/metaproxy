@@ -1,0 +1,27 @@
+# Metaproxy XML config file schema
+
+namespace mp = "http://indexdata.com/metaproxy"
+
+filter_zoom =
+  attribute type { "zoom" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element mp:torus {
+    attribute url { xsd:string },
+    attribute xsldir { xsd:string }?
+  }?,
+  element mp:fieldmap {
+    attribute cql { xsd:string },
+    attribute ccl { xsd:string }?
+  }*,
+  element mp:cclmap {
+    element mp:qual {
+      attribute name { xsd:string },
+      element mp:attr {
+        attribute type { xsd:string },
+        attribute value { xsd:string }
+      }+
+    }*
+  }?
+
+

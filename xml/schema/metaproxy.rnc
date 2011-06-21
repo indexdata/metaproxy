@@ -39,6 +39,7 @@ include "filter_session_shared.rnc"
 include "filter_sru_z3950.rnc"
 include "filter_virt_db.rnc"
 include "filter_z3950_client.rnc"
+include "filter_zoom.rnc"
 
 any = (text | element * { attribute * { text }*, any })*
 
@@ -79,6 +80,7 @@ filter =
     | filter_sru_z3950
     | filter_virt_db
     | filter_z3950_client
+    | filter_zoom
   }
 
 filter_refid = attribute refid { xsd:NCName }

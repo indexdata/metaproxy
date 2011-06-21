@@ -34,6 +34,7 @@
   <xs:include schemaLocation="filter_sru_z3950.xsd"/>
   <xs:include schemaLocation="filter_virt_db.xsd"/>
   <xs:include schemaLocation="filter_z3950_client.xsd"/>
+  <xs:include schemaLocation="filter_zoom.xsd"/>
   <xs:import schemaLocation="local.xsd"/>
   <xs:import namespace="http://indexdata.com/yaz" schemaLocation="retrievalinfo.xsd"/>
   <xs:complexType name="any" mixed="true">
@@ -103,6 +104,7 @@
         <xs:group ref="mp:filter_sru_z3950"/>
         <xs:group ref="mp:filter_virt_db"/>
         <xs:group ref="mp:filter_z3950_client"/>
+        <xs:group ref="mp:filter_zoom"/>
       </xs:choice>
       <xs:attribute name="type">
         <xs:simpleType>
@@ -124,6 +126,7 @@
             <xs:enumeration value="sru_z3950"/>
             <xs:enumeration value="virt_db"/>
             <xs:enumeration value="z3950_client"/>
+            <xs:enumeration value="zoom"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>

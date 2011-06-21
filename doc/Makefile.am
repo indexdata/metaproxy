@@ -27,6 +27,7 @@ XMLMAN = metaproxy.xml \
 	template.xml \
 	virt_db.xml \
 	z3950_client.xml \
+	zoom.xml \
         zeerex_explain.xml
 
 MANFILES = metaproxy.1 \
@@ -47,8 +48,8 @@ MANFILES = metaproxy.1 \
 	template.3mp \
 	virt_db.3mp \
 	z3950_client.3mp \
-	zeerex_explain.3mp
-
+	zeerex_explain.3mp \
+	zoom.3mp 
 
 HTMLFILES = index.html
 
