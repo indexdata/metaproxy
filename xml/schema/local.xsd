@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" xmlns:mp="http://indexdata.com/metaproxy" xmlns:y="http://indexdata.com/yaz">
+  <xs:include schemaLocation="filter_backend_test.xsd"/>
+  <xs:include schemaLocation="filter_bounce.xsd"/>
+  <xs:include schemaLocation="filter_load_balance.xsd"/>
+  <xs:include schemaLocation="filter_record_transform.xsd"/>
+  <xs:import namespace="http://indexdata.com/metaproxy" schemaLocation="metaproxy.xsd"/>
+  <xs:import namespace="http://indexdata.com/yaz" schemaLocation="retrievalinfo.xsd"/>
+</xs:schema>

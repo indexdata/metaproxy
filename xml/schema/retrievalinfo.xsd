@@ -2,7 +2,7 @@
 <!--
   Metaproxy XML config file schemas
   
-    Copyright (c) 2005-2008 Index Data.
+    Copyright (C) 2005-2011 Index Data.
   
     See the LICENSE file for details
   
@@ -21,6 +21,7 @@
   see also http://books.xmlschemata.org/relaxng/
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://indexdata.com/yaz" xmlns:mp="http://indexdata.com/metaproxy" xmlns:y="http://indexdata.com/yaz">
+  <xs:import schemaLocation="local.xsd"/>
   <xs:import namespace="http://indexdata.com/metaproxy" schemaLocation="metaproxy.xsd"/>
   <!--
     need to be in different namespace then metaproxy, otherwise 
@@ -39,7 +40,7 @@
       <xs:attribute name="stylesheet" use="required" type="xs:string"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="retrievalinfo" substitutionGroup="mp:filter_record_transform"/>
+  <xs:element name="retrievalinfo" substitutionGroup="filter_record_transform"/>
   <xs:element name="retrieval">
     <xs:complexType>
       <xs:sequence>

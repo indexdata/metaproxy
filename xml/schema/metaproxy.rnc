@@ -1,6 +1,6 @@
 # Metaproxy XML config file schemas
 # 
-#   Copyright (c) 2005-2008 Index Data.
+#   Copyright (C) 2005-2011 Index Data.
 # 
 #   See the LICENSE file for details
 # 
@@ -18,12 +18,28 @@
 # For information on RelaxNG see http://relaxng.org 
 # see also http://books.xmlschemata.org/relaxng/
 
-
 namespace mp = "http://indexdata.com/metaproxy"
 
 start |= metaproxy
 
 include "retrievalinfo.rnc"
+include "filter_auth_simple.rnc"
+include "filter_backend_test.rnc"
+include "filter_bounce.rnc"
+include "filter_cgi.rnc"
+include "filter_cql_rpn.rnc"
+include "filter_frontend_net.rnc"
+include "filter_http_file.rnc"
+include "filter_limit.rnc"
+include "filter_load_balance.rnc"
+include "filter_log.rnc"
+include "filter_multi.rnc"
+include "filter_query_rewrite.rnc"
+include "filter_record_transform.rnc"
+include "filter_session_shared.rnc"
+include "filter_sru_z3950.rnc"
+include "filter_virt_db.rnc"
+include "filter_z3950_client.rnc"
 
 any = (text | element * { attribute * { text }*, any })*
 
@@ -64,173 +80,7 @@ filter =
     | filter_sru_z3950
     | filter_virt_db
     | filter_z3950_client
-#    | filter_zeerex_explain
   }
 
 filter_refid = attribute refid { xsd:NCName }
 
-filter_auth_simple =
-  attribute type { "auth_simple" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?,
-  element mp:userRegister { xsd:string }?,
-  element mp:targetRegister { xsd:string }?,
-  element mp:discardUnauthorisedTargets { empty }?
-
-filter_backend_test =
-  attribute type { "backend_test" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?
-
-filter_bounce =
-  attribute type { "bounce" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?
-
-filter_cql_rpn =
-  attribute type { "cql_rpn" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?,
-  element mp:conversion {
-    attribute  file { xsd:string }
-  }
-
-filter_frontend_net =
-  attribute type { "frontend_net" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?,
-  element mp:threads { xsd:integer }?,
-  element mp:port { xsd:string }+,
-  element mp:timeout { xsd:integer }?,
-  element mp:connect-max { xsd:integer }?
-
-filter_http_file =
-  attribute type { "http_file" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?,
-  element mp:mimetypes { xsd:string },
-  element mp:area {
-    element mp:documentroot { xsd:string },
-    element mp:prefix { xsd:string }
-  }
-
-filter_load_balance =
-  attribute type { "load_balance" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?
-
-filter_log =
-  attribute type { "log" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?,
-  element mp:message { xsd:string }?,
-  element mp:time-format { xsd:string }?,
-  element mp:filename { xsd:string }?,
-  element mp:category {
-    attribute user-access { xsd:boolean }?,
-    attribute access { xsd:boolean }?,
-    attribute init-options { xsd:boolean }?,
-    attribute request-session { xsd:boolean }?,
-    attribute response-session { xsd:boolean }?,
-    attribute session { xsd:boolean }?,
-    attribute apdu { xsd:boolean }?,
-    attribute request-apdu { xsd:boolean }?,
-    attribute response-apdu { xsd:boolean }?
-  }?
-
-filter_multi =
-  attribute type { "multi" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?,
-  element mp:target {
-    attribute route { xsd:string },
-    xsd:string
-  }*,
-  element mp:hideunavailable { empty }?,
-  element mp:mergetype { xsd:string }?
-
-filter_query_rewrite =
-  attribute type { "query_rewrite" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?,
-  element mp:xslt { 
-        attribute stylesheet { xsd:string }
-  }
-
-filter_record_transform =
-  attribute type { "record_transform" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?,
-  retrievalinfo 
-
-filter_session_shared =
-  attribute type { "session_shared" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?,
-  element mp:resultset {
-    attribute max { xsd:integer },
-    attribute ttl { xsd:integer },
-    attribute optimizesearch { xsd:boolean }
-  }?,
-  element mp:session {
-    attribute ttl { xsd:integer }
-  }?
-
-filter_sru_z3950 =
-  attribute type { "sru_z3950" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?,
-  element mp:database {  
-     attribute name { xsd:NCName },
-     any        
-  }*
-
-filter_virt_db =
-  attribute type { "virt_db" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?,
-  element mp:pass-vhosts { xsd:boolean }?,
-  element mp:torus {
-    attribute url { xsd:string }
-  }?,
-  element mp:virtual {
-    attribute route { xsd:NCName }?,
-    element mp:database { xsd:string },
-    element mp:target { xsd:string }+
-  }*
-
-filter_z3950_client =
-  attribute type { "z3950_client" },
-  attribute id { xsd:NCName }?,
-  attribute name { xsd:NCName }?,
-  element mp:timeout { xsd:integer }?,
-  element mp:default_target { xsd:string }?,
-  element mp:force_target { xsd:string }?,
-  element mp:force_close { xsd:boolean }?
-
-filter_limit =
-  attribute type { "limit" },
-  element mp:limit {
-    attribute bandwidth { xsd:integer }?,
-    attribute pdu { xsd:integer }?,
-    attribute search { xsd:integer }?,
-    attribute retrieve { xsd:integer }?
-  }?
-
-filter_cgi =
-  attribute type { "cgi" },
-  element mp:map {
-    attribute path { xsd:string },
-    attribute exec { xsd:string }
-  }*
-
-#filter_zeerex_explain =
-#  attribute type { "zeerex_explain" },
-#  attribute id { xsd:NCName }?,
-#  attribute name { xsd:NCName }?,
-#  element mp:database {  
-#     attribute name { xsd:NCName },
-#     any        
-#  }+
-
- 

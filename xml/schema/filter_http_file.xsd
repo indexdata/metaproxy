@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Metaproxy XML config file schemas
+  
+    Copyright (C) 2005-2011 Index Data.
+  
+    See the LICENSE file for details
+  
+  
+  The RelaxNG Compact Syntax file 'metaproxy.rnc' is the master copy.
+  
+  The RelaxNG XML Syntax and XML Schema are generated using 'trang':
+  trang metaproxy.rnc metaproxy.rng 
+  trang metaproxy.rnc metaproxy.xsd 
+  
+  Config file validation is done using 'xmllint':
+  xmllint -/-relaxng metaproxy.rng ../../../etc/config1.xml 
+  xmllint -/-schema metaproxy.xsd config-bytarget.xml
+  
+  For information on RelaxNG see http://relaxng.org 
+  see also http://books.xmlschemata.org/relaxng/
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://indexdata.com/metaproxy" xmlns:mp="http://indexdata.com/metaproxy" xmlns:y="http://indexdata.com/yaz">
+  <xs:import schemaLocation="local.xsd"/>
+  <xs:import namespace="http://indexdata.com/yaz" schemaLocation="retrievalinfo.xsd"/>
+  <xs:group name="filter_http_file">
+    <xs:sequence>
+      <xs:element ref="mp:mimetypes"/>
+      <xs:element ref="mp:area"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:element name="mimetypes" type="xs:string"/>
+  <xs:element name="area">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="mp:documentroot"/>
+        <xs:element ref="mp:prefix"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="documentroot" type="xs:string"/>
+  <xs:element name="prefix" type="xs:string"/>
+  <xs:attributeGroup name="filter_http_file">
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="http_file"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="id" type="xs:NCName"/>
+    <xs:attribute name="name" type="xs:NCName"/>
+  </xs:attributeGroup>
+</xs:schema>
