@@ -25,6 +25,85 @@
             <data type="string"/>
           </attribute>
         </optional>
+        <optional>
+          <element name="mp:records">
+            <zeroOrMore>
+              <element name="mp:record">
+                <optional>
+                  <element name="mp:authentication">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="mp:piggyback">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="mp:queryEncoding">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <element name="mp:udb">
+                  <data type="string"/>
+                </element>
+                <optional>
+                  <element name="mp:cclmap_au">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="mp:cclmap_date">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="mp:cclmap_isbn">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="mp:cclmap_su">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="mp:cclmap_term">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="mp:cclmap_ti">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="mp:recordEncoding">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="mp:requestSyntax">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="mp:sru">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="mp:transform">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <element name="mp:zurl">
+                  <data type="string"/>
+                </element>
+              </element>
+            </zeroOrMore>
+          </element>
+        </optional>
       </element>
     </optional>
     <zeroOrMore>

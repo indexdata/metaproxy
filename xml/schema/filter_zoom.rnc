@@ -8,7 +8,27 @@ filter_zoom =
   attribute name { xsd:NCName }?,
   element mp:torus {
     attribute url { xsd:string },
-    attribute xsldir { xsd:string }?
+    attribute xsldir { xsd:string }?,
+    element mp:records {
+      element mp:record {
+        element mp:authentication { xsd:string }?,
+        element mp:piggyback { xsd:string }?,
+        element mp:queryEncoding { xsd:string }?,
+        element mp:udb { xsd:string },
+        element mp:cclmap_au { xsd:string }?,
+	element mp:cclmap_date { xsd:string }?,
+	element mp:cclmap_isbn { xsd:string }?,
+        element mp:cclmap_su { xsd:string }?,
+        element mp:cclmap_term { xsd:string }?,
+        element mp:cclmap_ti { xsd:string }?,
+        element mp:elementSet { xsd:string }?,
+        element mp:recordEncoding { xsd:string }?,
+        element mp:requestSyntax { xsd:string }?,
+        element mp:sru { xsd:string }?,
+        element mp:transform { xsd:string }?,
+        element mp:zurl { xsd:string }
+      }*
+    }?
   }?,
   element mp:fieldmap {
     attribute cql { xsd:string },

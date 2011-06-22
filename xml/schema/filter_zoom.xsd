@@ -12,10 +12,56 @@
   </xs:group>
   <xs:element name="torus">
     <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="mp:records"/>
+      </xs:sequence>
       <xs:attribute name="url" use="required" type="xs:string"/>
       <xs:attribute name="xsldir" type="xs:string"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="records">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="mp:record"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="record">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="mp:authentication"/>
+        <xs:element minOccurs="0" ref="mp:piggyback"/>
+        <xs:element minOccurs="0" ref="mp:queryEncoding"/>
+        <xs:element ref="mp:udb"/>
+        <xs:element minOccurs="0" ref="mp:cclmap_au"/>
+        <xs:element minOccurs="0" ref="mp:cclmap_date"/>
+        <xs:element minOccurs="0" ref="mp:cclmap_isbn"/>
+        <xs:element minOccurs="0" ref="mp:cclmap_su"/>
+        <xs:element minOccurs="0" ref="mp:cclmap_term"/>
+        <xs:element minOccurs="0" ref="mp:cclmap_ti"/>
+        <xs:element minOccurs="0" ref="mp:recordEncoding"/>
+        <xs:element minOccurs="0" ref="mp:requestSyntax"/>
+        <xs:element minOccurs="0" ref="mp:sru"/>
+        <xs:element minOccurs="0" ref="mp:transform"/>
+        <xs:element ref="mp:zurl"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="authentication" type="xs:string"/>
+  <xs:element name="piggyback" type="xs:string"/>
+  <xs:element name="queryEncoding" type="xs:string"/>
+  <xs:element name="udb" type="xs:string"/>
+  <xs:element name="cclmap_au" type="xs:string"/>
+  <xs:element name="cclmap_date" type="xs:string"/>
+  <xs:element name="cclmap_isbn" type="xs:string"/>
+  <xs:element name="cclmap_su" type="xs:string"/>
+  <xs:element name="cclmap_term" type="xs:string"/>
+  <xs:element name="cclmap_ti" type="xs:string"/>
+  <xs:element name="recordEncoding" type="xs:string"/>
+  <xs:element name="requestSyntax" type="xs:string"/>
+  <xs:element name="sru" type="xs:string"/>
+  <xs:element name="transform" type="xs:string"/>
+  <xs:element name="zurl" type="xs:string"/>
   <xs:element name="fieldmap">
     <xs:complexType>
       <xs:attribute name="cql" use="required" type="xs:string"/>

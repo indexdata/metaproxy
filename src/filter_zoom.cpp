@@ -52,7 +52,7 @@ namespace metaproxy_1 {
             std::string cfAuth;
             std::string cfProxy;
             std::string cfSubDb;
-            std::string database;
+            std::string udb;
             std::string target;
             std::string query_encoding;
             std::string sru;
@@ -122,9 +122,10 @@ namespace metaproxy_1 {
             void process(metaproxy_1::Package & package);
             void configure(const xmlNode * ptr, bool test_only);
         private:
+            void configure_local_records(const xmlNode * ptr, bool test_only);
             FrontendPtr get_frontend(mp::Package &package);
             void release_frontend(mp::Package &package);
-            SearchablePtr parse_torus(const xmlNode *ptr);
+            SearchablePtr parse_torus_record(const xmlNode *ptr);
             struct cql_node *convert_cql_fields(struct cql_node *cn, ODR odr);
             std::map<mp::Session, FrontendPtr> m_clients;            
             boost::mutex m_mutex;
@@ -133,6 +134,7 @@ namespace metaproxy_1 {
             std::map<std::string,std::string> fieldmap;
             std::string xsldir;
             CCL_bibset bibset;
+            std::map<std::string,SearchablePtr> s_map;
         };
     }
 }
@@ -322,112 +324,140 @@ yf::Zoom::Impl::~Impl()
     ccl_qual_rm(&bibset);
 }
 
-yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus(const xmlNode *ptr1)
+yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
 {
-    SearchablePtr notfound;
-    if (!ptr1)
-        return notfound;
-    for (ptr1 = ptr1->children; ptr1; ptr1 = ptr1->next)
+    Zoom::SearchablePtr s(new Searchable(bibset));
+    
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
-        if (ptr1->type != XML_ELEMENT_NODE)
+        if (ptr->type != XML_ELEMENT_NODE)
             continue;
-        if (!strcmp((const char *) ptr1->name, "record"))
+        if (!strcmp((const char *) ptr->name, "layer"))
+            ptr = ptr->children;
+        else if (!strcmp((const char *) ptr->name,
+                         "authentication"))
         {
-            const xmlNode *ptr2 = ptr1;
-            for (ptr2 = ptr2->children; ptr2; ptr2 = ptr2->next)
-            {
-                if (ptr2->type != XML_ELEMENT_NODE)
-                    continue;
-                if (!strcmp((const char *) ptr2->name, "layer"))
-                {
-                    Zoom::SearchablePtr s(new Searchable(bibset));
+            s->authentication = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name,
+                         "cfAuth"))
+        {
+            s->cfAuth = mp::xml::get_text(ptr);
+        } 
+        else if (!strcmp((const char *) ptr->name,
+                         "cfProxy"))
+        {
+            s->cfProxy = mp::xml::get_text(ptr);
+        }  
+        else if (!strcmp((const char *) ptr->name,
+                         "cfSubDb"))
+        {
+            s->cfSubDb = mp::xml::get_text(ptr);
+        }  
+        else if (!strcmp((const char *) ptr->name, "udb"))
+        {
+            s->udb = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name, "zurl"))
+        {
+            s->target = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name, "sru"))
+        {
+            s->sru = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name,
+                         "queryEncoding"))
+        {
+            s->query_encoding = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name,
+                         "piggyback"))
+        {
+            s->piggyback = mp::xml::get_bool(ptr, true);
+        }
+        else if (!strcmp((const char *) ptr->name,
+                         "requestSyntax"))
+        {
+            s->request_syntax = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name,
+                         "elementSet"))
+        {
+            s->element_set = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name,
+                         "recordEncoding"))
+        {
+            s->record_encoding = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name,
+                         "transform"))
+        {
+            s->transform_xsl_fname = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name,
+                         "useTurboMarc"))
+        {
+            ; // useTurboMarc is ignored
+        }
+        else if (!strncmp((const char *) ptr->name,
+                          "cclmap_", 7))
+        {
+            std::string value = mp::xml::get_text(ptr);
+            ccl_qual_fitem(s->ccl_bibset, value.c_str(),
+                           (const char *) ptr->name + 7);
+        }
+    }
+    return s;
+}
 
-                    const xmlNode *ptr3 = ptr2;
-                    for (ptr3 = ptr3->children; ptr3; ptr3 = ptr3->next)
+void yf::Zoom::Impl::configure_local_records(const xmlNode *ptr, bool test_only)
+{
+    while (ptr && ptr->type != XML_ELEMENT_NODE)
+        ptr = ptr->next;
+    
+    if (ptr)
+    {
+        if (!strcmp((const char *) ptr->name, "records"))
+        {
+            for (ptr = ptr->children; ptr; ptr = ptr->next)
+            {
+                if (ptr->type != XML_ELEMENT_NODE)
+                    continue;
+                if (!strcmp((const char *) ptr->name, "record"))
+                {
+                    SearchablePtr s = parse_torus_record(ptr);
+                    if (s)
                     {
-                        if (ptr3->type != XML_ELEMENT_NODE)
-                            continue;
-                        if (!strcmp((const char *) ptr3->name,
-                                    "authentication"))
+                        std::string udb = s->udb;
+                        if (udb.length())
+                            s_map[s->udb] = s;
+                        else
                         {
-                            s->authentication = mp::xml::get_text(ptr3);
-                        }
-                        else if (!strcmp((const char *) ptr3->name,
-                                    "cfAuth"))
-                        {
-                            s->cfAuth = mp::xml::get_text(ptr3);
-                        } 
-                        else if (!strcmp((const char *) ptr3->name,
-                                    "cfProxy"))
-                        {
-                            s->cfProxy = mp::xml::get_text(ptr3);
-                        }  
-                        else if (!strcmp((const char *) ptr3->name,
-                                    "cfSubDb"))
-                        {
-                            s->cfSubDb = mp::xml::get_text(ptr3);
-                        }  
-                        else if (!strcmp((const char *) ptr3->name, "id"))
-                        {
-                            s->database = mp::xml::get_text(ptr3);
-                        }
-                        else if (!strcmp((const char *) ptr3->name, "zurl"))
-                        {
-                            s->target = mp::xml::get_text(ptr3);
-                        }
-                        else if (!strcmp((const char *) ptr3->name, "sru"))
-                        {
-                            s->sru = mp::xml::get_text(ptr3);
-                        }
-                        else if (!strcmp((const char *) ptr3->name,
-                                         "queryEncoding"))
-                        {
-                            s->query_encoding = mp::xml::get_text(ptr3);
-                        }
-                        else if (!strcmp((const char *) ptr3->name,
-                                         "piggyback"))
-                        {
-                            s->piggyback = mp::xml::get_bool(ptr3, true);
-                        }
-                        else if (!strcmp((const char *) ptr3->name,
-                                         "requestSyntax"))
-                        {
-                            s->request_syntax = mp::xml::get_text(ptr3);
-                        }
-                        else if (!strcmp((const char *) ptr3->name,
-                                         "elementSet"))
-                        {
-                            s->element_set = mp::xml::get_text(ptr3);
-                        }
-                        else if (!strcmp((const char *) ptr3->name,
-                                         "recordEncoding"))
-                        {
-                            s->record_encoding = mp::xml::get_text(ptr3);
-                        }
-                        else if (!strcmp((const char *) ptr3->name,
-                                         "transform"))
-                        {
-                            s->transform_xsl_fname = mp::xml::get_text(ptr3);
-                        }
-                        else if (!strcmp((const char *) ptr3->name,
-                                         "useTurboMarc"))
-                        {
-                            ; // useTurboMarc is ignored
-                        }
-                        else if (!strncmp((const char *) ptr3->name,
-                                          "cclmap_", 7))
-                        {
-                            std::string value = mp::xml::get_text(ptr3);
-                            ccl_qual_fitem(s->ccl_bibset, value.c_str(),
-                                           (const char *) ptr3->name + 7);
+                            throw mp::filter::FilterException
+                                ("No udb for local torus record");
                         }
                     }
-                    return s;
+                }
+                else
+                {
+                    throw mp::filter::FilterException
+                        ("Bad element " 
+                         + std::string((const char *) ptr->name)
+                         + " in zoom filter inside element "
+                         "<torus><records>");
                 }
             }
         }
+        else
+        {
+            throw mp::filter::FilterException
+                ("Bad element " 
+                 + std::string((const char *) ptr->name)
+                 + " in zoom filter inside element <torus>");
+        }
     }
-    return notfound;
 }
 
 void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
@@ -450,6 +480,7 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
                         "Bad attribute " + std::string((const char *)
                                                        attr->name));
             }
+            configure_local_records(ptr->children, test_only);
         }
         else if (!strcmp((const char *) ptr->name, "cclmap"))
         {
@@ -504,16 +535,39 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     else
         torus_db = database;
  
-    xmlDoc *doc = mp::get_searchable(m_p->torus_url, torus_db);
-    if (!doc)
+    SearchablePtr sptr;
+
+    std::map<std::string,SearchablePtr>::iterator it;
+    it = m_p->s_map.find(torus_db);
+    if (it != m_p->s_map.end())
+        sptr = it->second;
+    else
     {
-        *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
-        *addinfo = database.c_str();
-        BackendPtr b;
-        return b;
+        xmlDoc *doc = mp::get_searchable(m_p->torus_url, torus_db);
+        if (!doc)
+        {
+            *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
+            *addinfo = database.c_str();
+            BackendPtr b;
+            return b;
+        }
+        const xmlNode *ptr = xmlDocGetRootElement(doc);
+        if (ptr)
+        {   // presumably ptr is a records element node
+            // parse first record in document
+            for (ptr = ptr->children; ptr; ptr = ptr->next)
+            {
+                if (ptr->type == XML_ELEMENT_NODE
+                    && !strcmp((const char *) ptr->name, "record"))
+                {
+                    sptr = m_p->parse_torus_record(ptr);
+                    break;
+                }
+            }
+        }
+        xmlFreeDoc(doc);
     }
-    SearchablePtr sptr = m_p->parse_torus(xmlDocGetRootElement(doc));
-    xmlFreeDoc(doc);
+
     if (!sptr)
     {
         *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
@@ -708,7 +762,6 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
 
                 strcpy(rec_type_str, b->sptr->use_turbomarc ?
                        "txml" : "xml");
-                
                 // prevent buffer overflow ...
                 if (b->sptr->record_encoding.length() > 0 &&
                     b->sptr->record_encoding.length() < 
