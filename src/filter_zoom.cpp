@@ -718,7 +718,7 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
 
     if (enable_pz2_transform)
     {
-        element_set_name = "F";
+        element_set_name = 0;
         if (b->sptr->element_set.length())
             element_set_name = b->sptr->element_set.c_str();
     }
