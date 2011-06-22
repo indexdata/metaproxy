@@ -78,6 +78,11 @@
                   </element>
                 </optional>
                 <optional>
+                  <element name="mp:elementSet">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
                   <element name="mp:recordEncoding">
                     <data type="string"/>
                   </element>

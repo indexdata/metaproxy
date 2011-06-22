@@ -39,6 +39,7 @@
         <xs:element minOccurs="0" ref="mp:cclmap_su"/>
         <xs:element minOccurs="0" ref="mp:cclmap_term"/>
         <xs:element minOccurs="0" ref="mp:cclmap_ti"/>
+        <xs:element minOccurs="0" ref="mp:elementSet"/>
         <xs:element minOccurs="0" ref="mp:recordEncoding"/>
         <xs:element minOccurs="0" ref="mp:requestSyntax"/>
         <xs:element minOccurs="0" ref="mp:sru"/>
@@ -57,6 +58,7 @@
   <xs:element name="cclmap_su" type="xs:string"/>
   <xs:element name="cclmap_term" type="xs:string"/>
   <xs:element name="cclmap_ti" type="xs:string"/>
+  <xs:element name="elementSet" type="xs:string"/>
   <xs:element name="recordEncoding" type="xs:string"/>
   <xs:element name="requestSyntax" type="xs:string"/>
   <xs:element name="sru" type="xs:string"/>
