@@ -32,7 +32,7 @@
   <para>
    This filter only deals with Z39.50 on input. The following services
    are supported: init, search, present and close. The backend target
-   is selected based on the database as part of this search and
+   is selected based on the database as part search and
    <emphasis>not</emphasis> as part of init.
   </para>
 
