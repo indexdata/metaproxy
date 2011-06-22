@@ -1,3 +1,9 @@
+--- 1.2.7 2011/06/22
+
+Documentation for zoom filter. Local target profiles may be specified.
+
+Fixes for zoom filter.
+
 --- 1.2.6 2011/06/15
 
 First version with zoom filter.
