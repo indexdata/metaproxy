@@ -1,3 +1,7 @@
+--- 1.2.8 2011/06/22
+
+Route may be given for each port in frontend_net.
+
 --- 1.2.7 2011/06/22
 
 Documentation for zoom filter. Local target profiles may be specified.
