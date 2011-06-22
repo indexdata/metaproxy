@@ -38,10 +38,16 @@ namespace metaproxy_1 {
     class My_Timer_Thread;
     class ZAssocServer;
     namespace filter {
+        class FrontendNet::Port {
+            friend class Rep;
+            friend class FrontendNet;
+            std::string port;
+            std::string route;
+        };
         class FrontendNet::Rep {
             friend class FrontendNet;
             int m_no_threads;
-            std::vector<std::string> m_ports;
+            std::vector<Port> m_ports;
             int m_listen_duration;
             int m_session_timeout;
             int m_connect_max;
@@ -64,8 +70,10 @@ namespace metaproxy_1 {
         ~ZAssocChild();
         ZAssocChild(yazpp_1::IPDU_Observable *the_PDU_Observable,
                           mp::ThreadPoolSocketObserver *m_thread_pool_observer,
-                          const mp::Package *package);
+                    const mp::Package *package,
+                    std::string route);
         int m_no_requests;
+        std::string m_route;
     private:
         yazpp_1::IPDU_Observer* sessionNotify(
             yazpp_1::IPDU_Observable *the_PDU_Observable,
@@ -99,7 +107,7 @@ namespace metaproxy_1 {
     public:
         ~ZAssocServer();
         ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable, int timeout,
-                     int connect_max);
+                     int connect_max, std::string route);
         void set_package(const mp::Package *package);
         void set_thread_pool(ThreadPoolSocketObserver *m_thread_pool_observer);
     private:
@@ -117,6 +125,7 @@ namespace metaproxy_1 {
         int m_session_timeout;
         int m_connect_max;
         yazpp_1::LimitConnect limit_connect;
+        std::string m_route;
     };
 }
 
@@ -175,20 +184,22 @@ void mp::ThreadPoolPackage::result()
 
 mp::IThreadPoolMsg *mp::ThreadPoolPackage::handle() 
 {
-    m_package->move();
+    m_package->move(m_assoc_child->m_route);
     return this;
 }
 
 
 mp::ZAssocChild::ZAssocChild(yazpp_1::IPDU_Observable *PDU_Observable,
 				     mp::ThreadPoolSocketObserver *my_thread_pool,
-				     const mp::Package *package)
+                             const mp::Package *package,
+                             std::string route)
     :  Z_Assoc(PDU_Observable)
 {
     m_thread_pool_observer = my_thread_pool;
     m_no_requests = 0;
     m_delete_flag = false;
     m_package = package;
+    m_route = route;
     const char *peername = PDU_Observable->getpeername();
     if (!peername)
         peername = "unknown";
@@ -249,9 +260,10 @@ void mp::ZAssocChild::connectNotify()
 }
 
 mp::ZAssocServer::ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable,
-                               int timeout, int connect_max)
+                               int timeout, int connect_max,
+                               std::string route)
     :  Z_Assoc(PDU_Observable), m_session_timeout(timeout),
-       m_connect_max(connect_max)
+       m_connect_max(connect_max), m_route(route)
 {
     m_package = 0;
 }
@@ -282,7 +294,7 @@ yazpp_1::IPDU_Observer *mp::ZAssocServer::sessionNotify(yazpp_1::IPDU_Observable
     }
     mp::ZAssocChild *my =
 	new mp::ZAssocChild(the_PDU_Observable, m_thread_pool_observer,
-                             m_package);
+                            m_package, m_route);
     my->timeout(m_session_timeout);
     return my;
 }
@@ -379,14 +391,21 @@ void mp::filter::FrontendNet::configure(const xmlNode * ptr, bool test_only)
     {
         throw mp::filter::FilterException("No ports for Frontend");
     }
-    std::vector<std::string> ports;
+    std::vector<Port> ports;
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
         if (!strcmp((const char *) ptr->name, "port"))
         {
-            std::string port = mp::xml::get_text(ptr);
+            Port port;
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "route"))
+                    port.route = mp::xml::get_text(attr);
+            }
+            port.port = mp::xml::get_text(ptr);
             ports.push_back(port);
             
         }
@@ -426,6 +445,23 @@ void mp::filter::FrontendNet::configure(const xmlNode * ptr, bool test_only)
 
 void mp::filter::FrontendNet::set_ports(std::vector<std::string> &ports)
 {
+    std::vector<Port> nports;
+    size_t i;
+
+    for (i = 0; i < ports.size(); i++)
+    {
+        Port nport;
+
+        nport.port = ports[i];
+
+        nports.push_back(nport);
+    }
+    set_ports(nports);
+}
+
+
+void mp::filter::FrontendNet::set_ports(std::vector<Port> &ports)
+{
     m_p->m_ports = ports;
     
     m_p->az = new mp::ZAssocServer *[m_p->m_ports.size()];
@@ -440,11 +476,12 @@ void mp::filter::FrontendNet::set_ports(std::vector<std::string> &ports)
         // create ZAssoc with PDU Assoc
         m_p->az[i] = new mp::ZAssocServer(as, 
                                           m_p->m_session_timeout,
-                                          m_p->m_connect_max);
-        if (m_p->az[i]->server(m_p->m_ports[i].c_str()))
+                                          m_p->m_connect_max,
+                                          m_p->m_ports[i].route);
+        if (m_p->az[i]->server(m_p->m_ports[i].port.c_str()))
         {
             throw mp::filter::FilterException("Unable to bind to address " 
-                                              + std::string(m_p->m_ports[i]));
+                                              + std::string(m_p->m_ports[i].port));
         }
     }
 }

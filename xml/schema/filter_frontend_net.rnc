@@ -7,7 +7,10 @@ filter_frontend_net =
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
   element mp:threads { xsd:integer }?,
-  element mp:port { xsd:string }+,
+  element mp:port {
+    attribute route { xsd:NCName }?,
+    xsd:string
+  }+,
   element mp:timeout { xsd:integer }?,
   element mp:connect-max { xsd:integer }?
 

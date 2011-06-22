@@ -30,6 +30,7 @@ namespace metaproxy_1 {
     namespace filter {
         class FrontendNet : public Base {
             class Rep;
+            class Port;
             boost::scoped_ptr<Rep> m_p;
         public:
             FrontendNet();
@@ -38,6 +39,7 @@ namespace metaproxy_1 {
             void configure(const xmlNode * ptr, bool test_only);
         public:
             /// set ports
+            void set_ports(std::vector<Port> &ports);
             void set_ports(std::vector<std::string> &ports);
             // set liten duraction (number of seconcds to listen)
             void set_listen_duration(int d);

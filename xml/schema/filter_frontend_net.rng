@@ -22,6 +22,11 @@
     </optional>
     <oneOrMore>
       <element name="mp:port">
+        <optional>
+          <attribute name="route">
+            <data type="NCName"/>
+          </attribute>
+        </optional>
         <data type="string"/>
       </element>
     </oneOrMore>
