@@ -9,6 +9,8 @@ filter_zoom =
   element mp:torus {
     attribute url { xsd:string },
     attribute xsldir { xsd:string }?,
+    attribute element_transform { xsd:string }?,
+    attribute element_raw { xsd:string }?,
     element mp:records {
       element mp:record {
         element mp:authentication { xsd:string }?,

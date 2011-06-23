@@ -10,6 +10,8 @@
       <torus
 	  url="http://newmk2.indexdata.com/torus2/searchable.ebsco/records/?query=udb%3D%db"
             xsldir="."
+            element_transform="pz"
+            element_raw="raw"
 	    >	
 	<records>
 	  <record>
@@ -78,7 +80,7 @@
         <retrievalinfo   xmlns="http://indexdata.com/yaz" version="1.0">
           <retrieval syntax="xml" name="usi">
             <backend syntax="xml" name="pz2">
-              <xslt stylesheet="../xml/xslt/pz22usi.xsl"/>
+              <xslt stylesheet="pz22usi.xsl"/>
             </backend>
           </retrieval>
           <retrieval syntax="xml"/>

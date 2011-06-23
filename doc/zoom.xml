@@ -62,7 +62,9 @@
      and takes the following content:
    </para>
    <variablelist>
-     <varlistentry><term>attribute <literal>url</literal></term><listitem><para>
+     <varlistentry>
+       <term>attribute <literal>url</literal></term>
+       <listitem><para>
 	   URL of Web service to be used to fetch target profile
 	   for a given database (udb). The special sequence
 	   <literal>%db</literal> of the URL is replaced by the
@@ -70,14 +72,39 @@
 	 </para>
        </listitem>
      </varlistentry>
-     <varlistentry><term>attribute <literal>xsldir</literal></term><listitem><para>
+     <varlistentry>
+       <term>attribute <literal>xsldir</literal></term>
+       <listitem><para>
 	   Directory that is searched for XSL stylesheets. Stylesheets
 	   are specified in the target profile by the
 	   <literal>transform</literal> element.
 	 </para>
        </listitem>
      </varlistentry>
-     <varlistentry><term>element <literal>records</literal></term><listitem><para>
+     <varlistentry>
+       <term>attribute <literal>element_transform</literal></term>
+       <listitem><para>
+	   Specifies the element that triggers retrieval and transform using
+	   the parameters elementSet, recordEncoding, requestSyntax, transform
+	   from the target profile. Default value
+	   is "pz2", due to the fact that for historical reasons the
+	   common format is that used in Pazpar2.
+	 </para>
+       </listitem>
+     </varlistentry>
+     <varlistentry>
+       <term>attribute <literal>element_raw</literal></term>
+       <listitem><para>
+	   Specifies an element that triggers retrieval using the
+	   parameters elementSet, recordEncoding, requestSyntax from the
+	   target profile. Same actions as for element_transform, but without
+	   the XSL transform. Useful for debugging. The default value is "raw".
+	 </para>
+       </listitem>
+     </varlistentry>
+     <varlistentry>
+       <term>element <literal>records</literal></term>
+       <listitem><para>
 	   Local target profiles. This element may includes zero or
 	   more <literal>record</literal> elements (one per target
 	   profile). See section TARGET PROFILE.
@@ -91,13 +118,19 @@
      following content:
    </para>
    <variablelist>
-     <varlistentry><term>attribute <literal>cql</literal></term><listitem><para>
-	   CQL field.
+     <varlistentry>
+       <term>attribute <literal>cql</literal></term>
+       <listitem>
+	 <para>
+	   CQL field that we are mapping "from".
 	 </para>
        </listitem>
      </varlistentry>
-     <varlistentry><term>attribute <literal>ccl</literal></term><listitem><para>
-	   CCL field.
+     <varlistentry>
+       <term>attribute <literal>ccl</literal></term>
+       <listitem>
+	 <para>
+	   CCL field that we are mapping "to".
 	 </para>
        </listitem>
      </varlistentry>
@@ -209,11 +242,15 @@
        <term>elementSet</term><listitem>
 	 <para>
 	   Specifies the elementSet to be sent to the target if record
-	   transform is enabled (not to be used with the record_transform
+	   transform is enabled (not to be confused' with the record_transform
 	   module). The record transform is enabled only if the client uses
-	   record syntax = XML and element set = 
-	   <literal>pz2</literal>. If record transform is not enabled, this
-	   setting is  not used and the element set specified by the client
+	   record syntax = XML and a element set determined by
+	   the <literal>element_transform</literal> /
+	   <literal>element_raw</literal> from the configuration.
+	   By default that is the element sets <literal>pz2</literal>
+	   and <literal>raw</literal>.
+	   If record transform is not enabled, this setting is 
+	   not used and the element set specified by the client
 	   is passed verbatim.
 	 </para>
        </listitem>
@@ -257,6 +294,8 @@
 	 <para>
 	   Specifies a XSL stylesheet filename to be used if record
 	   transform is anabled; see desciprion of elementSet.
+	   The XSL transform is only used if the element set is set to the
+	   value of <literal>element_transform</literal> in the configuration.
 	 </para>
        </listitem>
      </varlistentry>

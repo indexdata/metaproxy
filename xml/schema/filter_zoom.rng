@@ -26,6 +26,16 @@
           </attribute>
         </optional>
         <optional>
+          <attribute name="element_transform">
+            <data type="string"/>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="element_raw">
+            <data type="string"/>
+          </attribute>
+        </optional>
+        <optional>
           <element name="mp:records">
             <zeroOrMore>
               <element name="mp:record">

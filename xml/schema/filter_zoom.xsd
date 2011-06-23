@@ -17,6 +17,8 @@
       </xs:sequence>
       <xs:attribute name="url" use="required" type="xs:string"/>
       <xs:attribute name="xsldir" type="xs:string"/>
+      <xs:attribute name="element_transform" type="xs:string"/>
+      <xs:attribute name="element_raw" type="xs:string"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="records">

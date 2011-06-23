@@ -134,6 +134,8 @@ namespace metaproxy_1 {
             std::map<std::string,std::string> fieldmap;
             std::string xsldir;
             CCL_bibset bibset;
+            std::string element_transform;
+            std::string element_raw;
             std::map<std::string,SearchablePtr> s_map;
         };
     }
@@ -314,7 +316,7 @@ void yf::Zoom::Impl::release_frontend(mp::Package &package)
     }
 }
 
-yf::Zoom::Impl::Impl()
+yf::Zoom::Impl::Impl() : element_transform("pz2") , element_raw("raw")
 {
     bibset = ccl_qual_mk();
 }
@@ -475,6 +477,10 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
                     torus_url = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "xsldir"))
                     xsldir = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "element_transform"))
+                    element_transform = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "element_raw"))
+                    element_raw = mp::xml::get_text(attr->children);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
@@ -683,7 +689,8 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
 {
     *number_of_records_returned = 0;
     Z_Records *records = 0;
-    bool enable_pz2_transform = false;
+    bool enable_pz2_retrieval = false; // whether target profile is used
+    bool enable_pz2_transform = false; // whether XSLT is used as well
 
     if (start < 0 || number_to_present <= 0)
         return records;
@@ -696,27 +703,34 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
 
     char oid_name_str[OID_STR_MAX];
     const char *syntax_name = 0;
-
-    if (preferredRecordSyntax)
+    
+    if (preferredRecordSyntax &&
+        !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml)
+        && element_set_name)
     {
-        if (!oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml)
-            && element_set_name &&
-            !strcmp(element_set_name, "pz2"))
+        if (!strcmp(element_set_name, m_p->element_transform.c_str()))
         {
-            if (b->sptr->request_syntax.length())
-                syntax_name = b->sptr->request_syntax.c_str();
+            enable_pz2_retrieval = true;
             enable_pz2_transform = true;
         }
-        else
+        else if (!strcmp(element_set_name, m_p->element_raw.c_str()))
         {
-            syntax_name =
-                yaz_oid_to_string_buf(preferredRecordSyntax, 0, oid_name_str);
+            enable_pz2_retrieval = true;
         }
     }
+    
+    if (enable_pz2_retrieval)
+    {
+        if (b->sptr->request_syntax.length())
+            syntax_name = b->sptr->request_syntax.c_str();
+    }
+    else if (preferredRecordSyntax)
+        syntax_name =
+            yaz_oid_to_string_buf(preferredRecordSyntax, 0, oid_name_str);
 
     b->set_option("preferredRecordSyntax", syntax_name);
 
-    if (enable_pz2_transform)
+    if (enable_pz2_retrieval)
     {
         element_set_name = 0;
         if (b->sptr->element_set.length())
@@ -756,7 +770,7 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                 npr = zget_surrogateDiagRec(odr, odr_database, sur_error,
                                             addinfo);
             }
-            else if (enable_pz2_transform)
+            else if (enable_pz2_retrieval)
             {
                 char rec_type_str[100];
 
@@ -774,7 +788,7 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                 int rec_len;
                 const char *rec_buf = ZOOM_record_get(recs[i], rec_type_str,
                                                       &rec_len);
-                if (rec_buf && b->xsp)
+                if (rec_buf && b->xsp && enable_pz2_transform)
                 {
                     xmlDoc *rec_doc = xmlParseMemory(rec_buf, rec_len);
                     if (rec_doc)
