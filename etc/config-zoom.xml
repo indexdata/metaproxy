@@ -10,7 +10,7 @@
       <torus
 	  url="http://newmk2.indexdata.com/torus2/searchable.ebsco/records/?query=udb%3D%db"
             xsldir="."
-            element_transform="pz"
+            element_transform="pz2"
             element_raw="raw"
 	    >	
 	<records>
