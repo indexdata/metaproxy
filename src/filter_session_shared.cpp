@@ -85,6 +85,7 @@ namespace metaproxy_1 {
                 const yazpp_1::Yaz_Z_Query &query);
             bool search(
                 Package &frontend_package,
+                Package &search_package,
                 const Z_APDU *apdu_req,
                 const BackendInstancePtr bp,
                 Z_Records **z_records);
@@ -507,14 +508,11 @@ static int get_diagnostic(Z_DefaultDiagFormat *r)
 
 bool yf::SessionShared::BackendSet::search(
     mp::Package &frontend_package,
+    mp::Package &search_package,
     const Z_APDU *frontend_apdu,
     const BackendInstancePtr bp,
     Z_Records **z_records)
 {
-    Package search_package(bp->m_session, frontend_package.origin());
-
-    search_package.copy_filter(frontend_package);
-
     mp::odr odr;
     Z_APDU *apdu_req = zget_APDU(odr, Z_APDU_searchRequest);
     Z_SearchRequest *req = apdu_req->u.searchRequest;
@@ -689,7 +687,12 @@ restart:
     BackendSetPtr new_set(new BackendSet(result_set_id,
                                          databases, query));
     Z_Records *z_records = 0;
-    if (!new_set->search(package, apdu_req, found_backend, &z_records))
+
+    Package search_package(found_backend->m_session, package.origin());
+    search_package.copy_filter(package);
+
+    if (!new_set->search(package, search_package,
+                         apdu_req, found_backend, &z_records))
     {
         bc->remove_backend(found_backend);
         return; // search error 
