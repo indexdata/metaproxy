@@ -34,6 +34,19 @@
 	    <transform>tmarc.xsl</transform>
 	    <zurl>localhost:9999/db01</zurl>
 	  </record>
+	  <record>
+	    <piggyback>1</piggyback>
+	    <queryEncoding>UTF-8</queryEncoding>
+	    <udb>cf-local</udb>
+	    <cclmap_term>1=1016 s=al</cclmap_term>
+	    <cclmap_ti>1=4 s=pw t=l,r</cclmap_ti>
+	    <requestSyntax>xml</requestSyntax>
+	    <transform>cf.xsl</transform>
+	    <zurl>localhost:9999/db01</zurl>
+	    <cfAuth>cfuser/cfpassword</cfAuth>
+	    <cfProxy>localhost:3128</cfProxy>
+	    <cfSubDb>mysub</cfSubDb>
+	  </record>
 	</records>
       </torus>
       <fieldmap cql="cql.anywhere"/>
