@@ -101,7 +101,8 @@ namespace metaproxy_1 {
             void handle_present(mp::Package &package);
             BackendPtr get_backend_from_databases(std::string &database,
                                                   int *error,
-                                                  const char **addinfo);
+                                                  char **addinfo,
+                                                  ODR odr);
             Z_Records *get_records(Odr_int start,
                                    Odr_int number_to_present,
                                    int *error,
@@ -523,20 +524,19 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
 }
 
 yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
-    std::string &database, int *error, const char **addinfo)
+    std::string &database, int *error, char **addinfo, ODR odr)
 {
     std::list<BackendPtr>::const_iterator map_it;
     if (m_backend && m_backend->m_frontend_database == database)
         return m_backend;
 
     std::string db_args;
-    std::string cf_parm;
     std::string torus_db;
     size_t db_arg_pos = database.find(',');
     if (db_arg_pos != std::string::npos)
     {
         torus_db = database.substr(0, db_arg_pos);
-        db_args = database.substr(db_arg_pos+1);
+        db_args = database.substr(db_arg_pos + 1);
     }
     else
         torus_db = database;
@@ -553,7 +553,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (!doc)
         {
             *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
-            *addinfo = database.c_str();
+            *addinfo = odr_strdup(odr, database.c_str());
             BackendPtr b;
             return b;
         }
@@ -577,7 +577,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (!sptr)
     {
         *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
-        *addinfo = database.c_str();
+        *addinfo = odr_strdup(odr, database.c_str());
         BackendPtr b;
         return b;
     }
@@ -595,7 +595,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (!xsp_doc)
         {
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-            *addinfo = "xmlParseFile failed";
+            *addinfo = (char *) odr_malloc(odr, 40 + strlen(fname.c_str()));
+            sprintf(*addinfo, "xmlParseFile failed. File %s", fname.c_str());
             BackendPtr b;
             return b;
         }
@@ -603,7 +604,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (!xsp)
         {
             *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
-            *addinfo = "xsltParseStylesheetDoc failed";
+            *addinfo = odr_strdup(odr, "xsltParseStylesheetDoc failed");
             BackendPtr b;
             xmlFreeDoc(xsp_doc);
             return b;
@@ -625,33 +626,83 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     if (sptr->cfAuth.length())
     {
+        // A CF target
         b->set_option("user", sptr->cfAuth.c_str());
-        if (authentication.length())
+        if (authentication.length() && db_args.length() == 0)
         {
+            // no database (auth) args specified already.. and the
+            // Torus authentication has it.. Generate the args that CF
+            // understands..
             size_t found = authentication.find('/');
             if (found != std::string::npos)
             {
-                cf_parm += "user=" + mp::util::uri_encode(authentication.substr(0, found))
+                db_args += "user=" + mp::util::uri_encode(authentication.substr(0, found))
                     + "&password=" + mp::util::uri_encode(authentication.substr(found+1));
             }
             else
-                cf_parm += "user=" + mp::util::uri_encode(authentication);
+                db_args += "user=" + mp::util::uri_encode(authentication);
         }
     }
-    else if (authentication.length())
-        b->set_option("user", authentication.c_str());
-
+    else
+    {
+        // A non-CF target
+        if (db_args.length())
+        {
+            // user has specified backend authentication
+            const char *param_user = 0;
+            const char *param_password = 0;
+            char **names;
+            char **values;
+            int i;
+            int no_parms = yaz_uri_to_array(db_args.c_str(),
+                                            odr, &names, &values);
+            for (i = 0; i < no_parms; i++)
+            {
+                const char *name = names[i];
+                const char *value = values[i];
+                if (!strcmp(name, "user"))
+                    param_user = value;
+                else if (!strcmp(name, "password"))
+                    param_password = value;
+                else
+                {
+                    BackendPtr notfound;
+                    char *msg = (char*) odr_malloc(odr, strlen(name) + 30);
+                    *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+                    sprintf(msg, "Bad database argument: %s", name);
+                    *addinfo = msg;
+                    return notfound;
+                }
+            }
+            if (param_user && param_password)
+            {
+                char *auth = (char*) odr_malloc(
+                    odr, strlen(param_user) + strlen(param_password) + 2);
+                strcpy(auth, param_user);
+                strcat(auth, "/");
+                strcat(auth, param_password);
+                b->set_option("user", auth);
+            }
+            db_args.clear(); // no arguments to be passed (non-CF)
+        }
+        else
+        {
+            // use authentication from Torus, if given
+            if (authentication.length())
+                b->set_option("user", authentication.c_str());
+        }
+    }
     if (sptr->cfProxy.length())
     {
-        if (cf_parm.length())
-            cf_parm += "&";
-        cf_parm += "proxy=" + mp::util::uri_encode(sptr->cfProxy);
+        if (db_args.length())
+            db_args += "&";
+        db_args += "proxy=" + mp::util::uri_encode(sptr->cfProxy);
     }
     if (sptr->cfSubDb.length())
     {
-        if (cf_parm.length())
-            cf_parm += "&";
-        cf_parm += "subdatabase=" + mp::util::uri_encode(sptr->cfSubDb);
+        if (db_args.length())
+            db_args += "&";
+        db_args += "subdatabase=" + mp::util::uri_encode(sptr->cfSubDb);
     }
 
     std::string url;
@@ -666,10 +717,11 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     }
     if (db_args.length())
         url += "," + db_args;
-    else if (cf_parm.length())
-        url += "," + cf_parm;
     yaz_log(YLOG_LOG, "url=%s", url.c_str());
-    b->connect(url, error, addinfo);
+    const char *addinfo_c = 0;
+    b->connect(url, error, &addinfo_c);
+    if (addinfo_c)
+        *addinfo = odr_strdup(odr, addinfo_c);
     if (*error == 0)
     {
         m_backend = b;
@@ -895,18 +947,19 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     }
 
     int error = 0;
-    const char *addinfo = 0;
+    char *addinfo_s = 0;
     std::string db(sr->databaseNames[0]);
-    BackendPtr b = get_backend_from_databases(db, &error, &addinfo);
+    BackendPtr b = get_backend_from_databases(db, &error, &addinfo_s, odr);
     if (error)
     {
         apdu_res = 
             odr.create_searchResponse(
-                apdu_req, error, addinfo);
+                apdu_req, error, addinfo_s);
         package.response() = apdu_res;
         return;
     }
 
+    const char *addinfo_c = 0;
     b->set_option("setname", "default");
 
     Odr_int hits = 0;
@@ -949,14 +1002,14 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         if (cn_error)
         {
             // hopefully we are getting a ptr to a index+relation+term node
-            addinfo = 0;
+            addinfo_c = 0;
             if (cn_error->which == CQL_NODE_ST)
-                addinfo = cn_error->u.st.index;
+                addinfo_c = cn_error->u.st.index;
 
             apdu_res = 
                 odr.create_searchResponse(apdu_req, 
                                           YAZ_BIB1_UNSUPP_USE_ATTRIBUTE,
-                                          addinfo);
+                                          addinfo_c);
             package.response() = apdu_res;
             return;
         }
@@ -1050,7 +1103,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         if (status == 0)
         {
             yaz_log(YLOG_LOG, "search CQL: %s", wrbuf_cstr(wrb));
-            b->search_cql(wrbuf_cstr(wrb), &hits, &error, &addinfo);
+            b->search_cql(wrbuf_cstr(wrb), &hits, &error, &addinfo_c);
         }
         
         wrbuf_destroy(wrb);
@@ -1067,7 +1120,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     else
     {
         yaz_log(YLOG_LOG, "search PQF: %s", wrbuf_cstr(pqf_wrbuf));
-        b->search_pqf(wrbuf_cstr(pqf_wrbuf), &hits, &error, &addinfo);
+        b->search_pqf(wrbuf_cstr(pqf_wrbuf), &hits, &error, &addinfo_c);
         wrbuf_destroy(pqf_wrbuf);
     }
     
@@ -1079,10 +1132,10 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     
     Odr_int number_of_records_returned = 0;
     Z_Records *records = get_records(
-        0, number_to_present, &error, &addinfo,
+        0, number_to_present, &error, &addinfo_c,
         &number_of_records_returned, odr, b, sr->preferredRecordSyntax,
         element_set_name);
-    apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
+    apdu_res = odr.create_searchResponse(apdu_req, error, addinfo_c);
     if (records)
     {
         apdu_res->u.searchResponse->records = records;
