@@ -115,6 +115,21 @@
                 <element name="mp:zurl">
                   <data type="string"/>
                 </element>
+                <optional>
+                  <element name="mp:cfAuth">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="mp:cfProxy">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="mp:cfSubDb">
+                    <data type="string"/>
+                  </element>
+                </optional>
               </element>
             </zeroOrMore>
           </element>
