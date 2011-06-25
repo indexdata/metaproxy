@@ -41,7 +41,7 @@ namespace metaproxy_1 {
         FactoryFilter();
         ~FactoryFilter();
 
-        bool add_creator(std::string fi, CreateFilterCallback cfc);
+        bool add_creator(const std::string &fi, CreateFilterCallback cfc);
         
         bool drop_creator(std::string fi);
         

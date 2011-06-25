@@ -66,8 +66,8 @@ mp::FactoryFilter::~FactoryFilter()
 
 }
 
-bool mp::FactoryFilter::add_creator(std::string fi,
-                                     CreateFilterCallback cfc)
+bool mp::FactoryFilter::add_creator(const std::string &fi,
+                                    CreateFilterCallback cfc)
 {
     return m_p->m_fcm.insert(Rep::CallbackMap::value_type(fi, cfc)).second;
 }
