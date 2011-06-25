@@ -83,144 +83,146 @@ static int sc_main(
     yaz_sc_t s,
     int argc, char **argv)
 {
-    try 
+    const char *fname = 0;
+    int ret;
+    char *arg;
+    unsigned mode = 0;
+    const char *pidfile = 0;
+    const char *uid = 0;
+    
+    while ((ret = options("c{config}:Dh{help}l:p:u:V{version}w:X", 
+                          argv, argc, &arg)) != -2)
     {
-        const char *fname = 0;
-        int ret;
-        char *arg;
-        unsigned mode = 0;
-        const char *pidfile = 0;
-        const char *uid = 0;
-
-        while ((ret = options("c{config}:Dh{help}l:p:u:V{version}w:X", 
-                              argv, argc, &arg)) != -2)
+        switch (ret)
         {
-            switch (ret)
-            {
-            case 'c':
-                fname = arg;
-                break;
-            case 'D':
-                mode = YAZ_DAEMON_FORK|YAZ_DAEMON_KEEPALIVE;
-                break;
-            case 'h':
-                std::cerr << "metaproxy\n"
-                    " -h|--help     help\n"
-                    " -V|--version  version\n"
-                    " -c|--config f config filename\n"
-                    " -D            daemon and keepalive operation\n"
-                    " -l f          log file f\n"
-                    " -p f          pid file f\n"
-                    " -u id         change uid to id\n"
-                    " -w dir        changes working directory to dir\n"
-                    " -X            debug mode (no fork/daemon mode)\n"
+        case 'c':
+            fname = arg;
+            break;
+        case 'D':
+            mode = YAZ_DAEMON_FORK|YAZ_DAEMON_KEEPALIVE;
+            break;
+        case 'h':
+            std::cerr << "metaproxy\n"
+                " -h|--help     help\n"
+                " -V|--version  version\n"
+                " -c|--config f config filename\n"
+                " -D            daemon and keepalive operation\n"
+                " -l f          log file f\n"
+                " -p f          pid file f\n"
+                " -u id         change uid to id\n"
+                " -w dir        changes working directory to dir\n"
+                " -X            debug mode (no fork/daemon mode)\n"
 #ifdef WIN32
-                    " -install      install windows service\n"
-                    " -remove       remove windows service\n"
+                " -install      install windows service\n"
+                " -remove       remove windows service\n"
 #endif
-
-                          << std::endl;
-                break;
-            case 'l':
-                yaz_log_init_file(arg);
-                break;
-            case 'p':
-                pidfile = arg;
-                break;
-            case 'u':
-                uid = arg;
-                break;
-            case 'V':
-                std::cout << VERSION;
+                
+                      << std::endl;
+            break;
+        case 'l':
+            yaz_log_init_file(arg);
+            break;
+        case 'p':
+            pidfile = arg;
+            break;
+        case 'u':
+            uid = arg;
+            break;
+        case 'V':
+            std::cout << VERSION;
 #ifdef VERSION_SHA1
-                std::cout << " " VERSION_SHA1;
+            std::cout << " " VERSION_SHA1;
 #endif
-                std::cout << "\n";
-                return 0;
-                break;
-            case 'w':
-                if (
+            std::cout << "\n";
+            return 0;
+            break;
+        case 'w':
+            if (
 #ifdef WIN32
-                    _chdir(arg)
+                _chdir(arg)
 #else
-                    chdir(arg)
+                chdir(arg)
 #endif
-                   ) 
-                {
-                    std::cerr << "chdir " << arg << " failed" << std::endl;
-                    return 1;
-                }
-            case 'X':
-                mode = YAZ_DAEMON_DEBUG;
-                break;
-            case -1:
-                std::cerr << "bad option: " << arg << std::endl;
+                ) 
+            {
+                std::cerr << "chdir " << arg << " failed" << std::endl;
                 return 1;
             }
-        }
-        if (!fname)
-        {
-            std::cerr << "No configuration given; use -h for help\n";
+        case 'X':
+            mode = YAZ_DAEMON_DEBUG;
+            break;
+        case -1:
+            std::cerr << "bad option: " << arg << std::endl;
             return 1;
         }
-
-        yaz_log(YLOG_LOG, "Metaproxy start " VERSION
+    }
+    if (!fname)
+    {
+        std::cerr << "No configuration given; use -h for help\n";
+        return 1;
+    }
+    
+    yaz_log(YLOG_LOG, "Metaproxy start " VERSION
 #ifdef VERSION_SHA1
-                " " VERSION_SHA1
+            " " VERSION_SHA1
 #endif
-            );
-        
-        xmlDocPtr doc = xmlReadFile(fname,
-                                    NULL, 
-                                    XML_PARSE_XINCLUDE + XML_PARSE_NOBLANKS
-                                    + XML_PARSE_NSCLEAN + XML_PARSE_NONET );
-        
-        if (!doc)
-        {
-            yaz_log (YLOG_FATAL,"XML parsing failed");
-            return 1;
-        }
-        // and perform Xinclude then
-        int r = xmlXIncludeProcess(doc);
-        if (r == -1)
-        {
-            yaz_log(YLOG_FATAL, "XInclude processing failed");
-            return 1;
-        }
-        WRBUF base_path = wrbuf_alloc();
-        const char *last_p = strrchr(fname,
+        );
+    
+    xmlDocPtr doc = xmlReadFile(fname,
+                                NULL, 
+                                XML_PARSE_XINCLUDE + XML_PARSE_NOBLANKS
+                                + XML_PARSE_NSCLEAN + XML_PARSE_NONET );
+    
+    if (!doc)
+    {
+        yaz_log (YLOG_FATAL,"XML parsing failed");
+        return 1;
+    }
+    // and perform Xinclude then
+    int r = xmlXIncludeProcess(doc);
+    if (r == -1)
+    {
+        yaz_log(YLOG_FATAL, "XInclude processing failed");
+        return 1;
+    }
+    WRBUF base_path = wrbuf_alloc();
+    const char *last_p = strrchr(fname,
 #ifdef WIN32
-                                     '\\'
+                                 '\\'
 #else
-                                     '/'
+                                 '/'
 #endif
-            );
-        if (last_p)
-            wrbuf_write(base_path, fname, last_p - fname);
-        
+        );
+    if (last_p)
+        wrbuf_write(base_path, fname, last_p - fname);
+
+    ret = 0;
+    try {
         mp::FactoryStatic factory;
         mp::RouterFleXML *router =
             new mp::RouterFleXML(doc, factory, false, wrbuf_cstr(base_path));
         wrbuf_destroy(base_path);
-
+        
         yaz_sc_running(s);
-
+        
         yaz_daemon("metaproxy", mode, mode == YAZ_DAEMON_DEBUG ?
                    handler_debug : handler_normal, router, pidfile, uid);
     }
     catch (std::logic_error &e) {
         yaz_log (YLOG_FATAL,"std::logic error: %s" , e.what() );
-        return 1;
+        ret = 1;
     }
     catch (std::runtime_error &e) {
         yaz_log(YLOG_FATAL, "std::runtime error: %s" , e.what() );
-        return 1;
+        ret = 1;
     }
     catch ( ... ) {
         yaz_log(YLOG_FATAL, "Unknown Exception");
-        return 1;
+        ret = 1;
     }
-    return 0;
+    wrbuf_destroy(base_path);
+    xmlFreeDoc(doc);
+    return ret;
 }
 
 static void sc_stop(yaz_sc_t s)
