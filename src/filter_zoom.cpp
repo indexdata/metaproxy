@@ -743,6 +743,7 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
     Z_Records *records = 0;
     bool enable_pz2_retrieval = false; // whether target profile is used
     bool enable_pz2_transform = false; // whether XSLT is used as well
+    bool assume_marc8_charset = false;
 
     if (start < 0 || number_to_present <= 0)
         return records;
@@ -774,7 +775,11 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
     if (enable_pz2_retrieval)
     {
         if (b->sptr->request_syntax.length())
+        {
             syntax_name = b->sptr->request_syntax.c_str();
+            if (strcmp(syntax_name, "xml"))
+                assume_marc8_charset = true;
+        }
     }
     else if (preferredRecordSyntax)
         syntax_name =
@@ -825,16 +830,18 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
             else if (enable_pz2_retrieval)
             {
                 char rec_type_str[100];
+                const char *record_encoding = 0;
 
-                strcpy(rec_type_str, b->sptr->use_turbomarc ?
-                       "txml" : "xml");
-                // prevent buffer overflow ...
-                if (b->sptr->record_encoding.length() > 0 &&
-                    b->sptr->record_encoding.length() < 
-                    (sizeof(rec_type_str)-20))
+                if (b->sptr->record_encoding.length())
+                    record_encoding = b->sptr->record_encoding.c_str();
+                else if (assume_marc8_charset)
+                    record_encoding = "marc8";
+
+                strcpy(rec_type_str, b->sptr->use_turbomarc ? "txml" : "xml");
+                if (record_encoding)
                 {
                     strcat(rec_type_str, "; charset=");
-                    strcat(rec_type_str, b->sptr->record_encoding.c_str());
+                    strcat(rec_type_str, record_encoding);
                 }
                 
                 int rec_len;
