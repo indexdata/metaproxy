@@ -3,7 +3,7 @@
 
 # Autoconf and automake setup
 AC_PREREQ([2.60])
-AC_INIT([metaproxy],[1.2.8],[metaproxy-help@indexdata.dk])
+AC_INIT([metaproxy],[1.2.9],[metaproxy-help@indexdata.dk])
 
 AC_CONFIG_HEADERS([src/config.hpp])
 

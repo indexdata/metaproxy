@@ -1,3 +1,26 @@
+--- 1.2.9 2011/06/27
+
+zoom: enable marc-8 encoding by default for usmarc and opac (in pz2
+transforn mode).
+
+zoom: configurable element sets for record transforms.
+    
+zoom: the target profile based transform is specified by element_transform
+in element torus of of the ZOOM filter configuration ; default value
+is "pz2". Target profile based retrieval is specified by element_raw
+in configuration. It will perform same steps, but omit the XSL transform.
+Default value is "raw".
+
+zoom: element set is omitted if not set in profile. But only if pz2
+transform is in effect. Previously the default element set was to "F".
+
+zoom: For non-CF targets database arguments are parsed. User may supply
+db,user=myuser&password=mypass for non-CF targets. These values override
+what's given the authentication from the target profile.
+
+session_shared: fix reference to freed memory. Would occur if a search
+response had non-surrogate diagnostics.
+
 --- 1.2.8 2011/06/22
 
 Route may be given for each port in frontend_net.
