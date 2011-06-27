@@ -137,7 +137,7 @@
    </variablelist>
    <para>
      The final part of the configuration consists of zero or more
-     <literal>cclmap</literal> elements that specifies a <emphais>base</emphais>
+     <literal>cclmap</literal> elements that specifies <emphasis>base</emphasis>
      CCL profile to be used for all targets. This configuration, thus, will
      be combined with cclmap-definitions from the target profile.
    </para>
