@@ -777,7 +777,10 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
         if (b->sptr->request_syntax.length())
         {
             syntax_name = b->sptr->request_syntax.c_str();
-            if (strcmp(syntax_name, "xml"))
+            const Odr_oid *syntax_oid = 
+                yaz_string_to_oid(yaz_oid_std(), CLASS_RECSYN, syntax_name);
+            if (!oid_oidcmp(syntax_oid, yaz_oid_recsyn_usmarc)
+                || !oid_oidcmp(syntax_oid, yaz_oid_recsyn_opac))
                 assume_marc8_charset = true;
         }
     }
