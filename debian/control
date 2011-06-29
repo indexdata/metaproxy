@@ -3,7 +3,14 @@ Section: devel
 Standards-Version: 3.6.2
 Maintainer: Adam Dickmeiss <adam@indexdata.dk>
 Priority: extra
-Build-Depends: debhelper (>= 4), libyaz4-dev (>= 4.2.3), libyazpp4-dev (>= 1.2.6), libxslt1-dev, libboost-dev, libboost-thread-dev, libboost-test-dev, libboost-regex-dev
+Build-Depends: debhelper (>= 4),
+	libyaz4-dev (>= 4.2.3),
+	libyazpp4-dev (>= 1.2.6),
+	libxslt1-dev,
+	libboost-dev,
+	libboost-thread-dev,
+	libboost-test-dev,
+	libboost-regex-dev
 
 Package: metaproxy
 Section: net
@@ -34,7 +41,12 @@ Description: Metaproxy Z39.50/SRU router (main executable)
 Package: libmetaproxy3-dev
 Section: libdevel
 Architecture: any
-Depends: libmetaproxy3 (= ${Source-Version}), libyazpp4-dev (>= 1.2.0), libxslt1-dev, libboost-dev, libboost-thread-dev, libgnutls-dev
+Depends: libmetaproxy3 (= ${Source-Version}),
+	libyazpp4-dev (>= 1.2.0),
+	libxslt1-dev,
+	libboost-dev,
+	libboost-thread-dev,
+	libgnutls-dev
 Conflicts: libmetaproxy2-dev
 Description: Metaproxy Z39.50/SRU router (main executable)
  This is a universal router, proxy and encapsulated metasearcher
