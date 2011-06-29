@@ -43,12 +43,15 @@ fi
 YAZ_DOC
 CPPFLAGS="$YAZPPINC $CPPFLAGS"
 
-ID_BOOST([thread test],[1.33])
+ID_BOOST([thread test regex],[1.33])
 if test -z "${BOOST_THREAD_LIB}"; then
     AC_MSG_ERROR([Boost thread development libraries required])
 fi
 if test -z "${BOOST_TEST_LIB}"; then
     AC_MSG_ERROR([Boost unit test framework libraries required])
+fi
+if test -z "${BOOST_REGEX_LIB}"; then
+    AC_MSG_ERROR([Boost regex development libraries required])
 fi
 
 xml_avail=false
