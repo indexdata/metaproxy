@@ -1,12 +1,15 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN" 
     "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
+ <!ENTITY % local SYSTEM "local.ent">
+     %local;
  <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
 ]>
 <refentry id="ref-metaproxy">
  <refentryinfo>
   <productname>Metaproxy</productname>
+  <productnumber>&version;</productnumber>
   <info><orgname>Index Data</orgname></info>
  </refentryinfo>
 
