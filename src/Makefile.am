@@ -53,6 +53,7 @@ libmetaproxy_la_SOURCES = \
 	sru_util.cpp sru_util.hpp \
 	thread_pool_observer.cpp thread_pool_observer.hpp \
 	torus.cpp torus.hpp \
+	url_recipe.cpp \
 	util.cpp \
 	xmlutil.cpp 
 

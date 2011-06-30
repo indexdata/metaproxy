@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/srw.h>
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
+#include <metaproxy/xmlutil.hpp>
 #include "torus.hpp"
 
 #include <libxslt/xsltutils.h>
@@ -60,6 +61,7 @@ namespace metaproxy_1 {
             std::string element_set;
             std::string record_encoding;
             std::string transform_xsl_fname;
+            std::string urlRecipe;
             bool use_turbomarc;
             bool piggyback;
             CCL_bibset ccl_bibset;
@@ -398,6 +400,11 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
                          "transform"))
         {
             s->transform_xsl_fname = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name,
+                         "urlRecipe"))
+        {
+            s->urlRecipe = mp::xml::get_text(ptr);
         }
         else if (!strcmp((const char *) ptr->name,
                          "useTurboMarc"))
@@ -864,6 +871,12 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                     }
                 }
 
+                if (rec_buf)
+                {
+                    xmlDoc *doc = xmlParseMemory(rec_buf, rec_len);
+                    mp::xml::url_recipe_handle(doc, b->sptr->urlRecipe);
+                    xmlFreeDoc(doc);
+                }
                 if (rec_buf)
                 {
                     npr = (Z_NamePlusRecord *) odr_malloc(odr, sizeof(*npr));
