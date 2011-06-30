@@ -22,6 +22,7 @@
 	    <cclmap_ti>1=4 s=pw t=l,r</cclmap_ti>
 	    <requestSyntax>usmarc</requestSyntax>
 	    <transform>tmarc.xsl</transform>
+	    <urlRecipe>http://sever.com?title=${md-title[\s+/+/g]}</urlRecipe>
 	    <zurl>localhost:9999/db01</zurl>
 	  </record>
 	  <record>

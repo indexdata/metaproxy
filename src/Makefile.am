@@ -58,11 +58,11 @@ libmetaproxy_la_SOURCES = \
 	xmlutil.cpp 
 
 
-libmetaproxy_la_LIBADD = $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB)
+libmetaproxy_la_LIBADD = $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB) $(BOOST_REGEX_LIB)
 
 # Rules for lib
 
-LDADD = libmetaproxy.la $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB)
+LDADD = libmetaproxy.la $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB) $(BOOST_REGEX_LIB)
 
 bin_PROGRAMS = metaproxy
 noinst_PROGRAMS = ex_filter_frontend_net ex_router_flexml tstdl
@@ -101,7 +101,8 @@ check_PROGRAMS = \
 	test_filter_sru_to_z3950 \
 	test_filter_virt_db \
 	test_ses_map \
-	test_router_flexml
+	test_router_flexml \
+	test_xmlutil
 
 TESTS=$(check_PROGRAMS)
 
@@ -127,6 +128,7 @@ test_filter_sru_to_z3950_SOURCES = test_filter_sru_to_z3950.cpp
 test_filter_virt_db_SOURCES = test_filter_virt_db.cpp
 test_ses_map_SOURCES = test_ses_map.cpp
 test_router_flexml_SOURCES = test_router_flexml.cpp
+test_xmlutil_SOURCES = test_xmlutil.cpp
 
 TESTLDADD = $(LDADD) $(BOOST_TEST_LIB)
 
@@ -152,6 +154,7 @@ test_filter_virt_db_LDADD = $(TESTLDADD)
 test_router_flexml_LDADD = $(TESTLDADD)
 test_ses_map_LDADD = $(TESTLDADD)
 test_thread_pool_observer_LDADD = $(TESTLDADD)
+test_xmlutil_LDADD = $(TESTLDADD)
 
 # doxygen target
 dox:

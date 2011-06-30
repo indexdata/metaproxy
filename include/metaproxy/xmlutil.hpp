@@ -51,7 +51,7 @@ namespace metaproxy_1 {
 
         void check_empty(const xmlNode *node);
 
-        void url_recipe_handle(xmlDoc *doc, std::string recipe);
+        std::string url_recipe_handle(xmlDoc *doc, std::string recipe);
     }
     class XMLError : public std::runtime_error {
     public:

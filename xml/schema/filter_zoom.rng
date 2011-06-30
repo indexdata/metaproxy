@@ -112,6 +112,11 @@
                     <data type="string"/>
                   </element>
                 </optional>
+                <optional>
+                  <element name="mp:urlRecipe">
+                    <data type="string"/>
+                  </element>
+                </optional>
                 <element name="mp:zurl">
                   <data type="string"/>
                 </element>

@@ -28,6 +28,7 @@ filter_zoom =
         element mp:requestSyntax { xsd:string }?,
         element mp:sru { xsd:string }?,
         element mp:transform { xsd:string }?,
+        element mp:urlRecipe { xsd:string }?,
         element mp:zurl { xsd:string },
         element mp:cfAuth { xsd:string }?,
         element mp:cfProxy { xsd:string }?,

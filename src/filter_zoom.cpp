@@ -855,6 +855,7 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                 }
                 
                 int rec_len;
+                xmlChar *xmlrec_buf = 0;
                 const char *rec_buf = ZOOM_record_get(recs[i], rec_type_str,
                                                       &rec_len);
                 if (rec_buf && b->xsp && enable_pz2_transform)
@@ -866,15 +867,35 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                         rec_res = xsltApplyStylesheet(b->xsp, rec_doc, 0);
 
                         if (rec_res)
-                            xsltSaveResultToString((xmlChar **) &rec_buf, &rec_len,
+                            xsltSaveResultToString(&xmlrec_buf, &rec_len,
                                                    rec_res, b->xsp);
+                        rec_buf = (const char *) xmlrec_buf;
+                        xmlFreeDoc(rec_doc);
+                        xmlFreeDoc(rec_res);
                     }
                 }
 
                 if (rec_buf)
                 {
                     xmlDoc *doc = xmlParseMemory(rec_buf, rec_len);
-                    mp::xml::url_recipe_handle(doc, b->sptr->urlRecipe);
+                    std::string res = 
+                        mp::xml::url_recipe_handle(doc, b->sptr->urlRecipe);
+                    if (res.length())
+                    {
+                        xmlNode *ptr = xmlDocGetRootElement(doc);
+                        while (ptr && ptr->type != XML_ELEMENT_NODE)
+                            ptr = ptr->next;
+                        xmlNode *c = 
+                            xmlNewChild(ptr, 0, BAD_CAST "generated-url", 0);
+                        xmlNode * t = xmlNewText(BAD_CAST res.c_str());
+                        xmlAddChild(c, t);
+
+                        if (xmlrec_buf)
+                            xmlFree(xmlrec_buf);
+
+                        xmlDocDumpMemory(doc, &xmlrec_buf, &rec_len);
+                        rec_buf = (const char *) xmlrec_buf;
+                    }
                     xmlFreeDoc(doc);
                 }
                 if (rec_buf)
@@ -892,6 +913,8 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                         YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
                         rec_type_str);
                 }
+                if (xmlrec_buf)
+                    xmlFree(xmlrec_buf);
             }
             else
             {
