@@ -56,8 +56,8 @@
       <fieldmap cql="dc.subject" ccl="su"/>
       <fieldmap cql="bath.isbn" ccl="isbn"/>
       <fieldmap cql="bath.issn" ccl="issn"/>
-      <fieldmap cql="bash.isbn" ccl="isbn"/><-- ### deprecated erroneous synonym -->
-      <fieldmap cql="bash.issn" ccl="issn"/><-- ### deprecated erroneous synonym -->
+      <fieldmap cql="bash.isbn" ccl="isbn"/><!-- ### deprecated erroneous synonym -->
+      <fieldmap cql="bash.issn" ccl="issn"/><!-- ### deprecated erroneous synonym -->
       <fieldmap cql="dc.date" ccl="date"/>
       <!-- 
 	   I got some of the following CCL qualifier names from
