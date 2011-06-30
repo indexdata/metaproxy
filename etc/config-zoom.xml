@@ -54,8 +54,8 @@
       <fieldmap cql="dc.creator" ccl="au"/>
       <fieldmap cql="dc.title" ccl="ti"/>
       <fieldmap cql="dc.subject" ccl="su"/>
-      <fieldmap cql="bash.isbn" ccl="isbn"/>
-      <fieldmap cql="bash.issn" ccl="issn"/>
+      <fieldmap cql="bath.isbn" ccl="isbn"/>
+      <fieldmap cql="bath.issn" ccl="issn"/>
       <fieldmap cql="dc.date" ccl="date"/>
       <!-- 
 	   I got some of the following CCL qualifier names from
