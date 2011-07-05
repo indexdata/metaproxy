@@ -108,6 +108,7 @@ When building from Git, you need these Debian packages:
   xsltproc docbook docbook-xml docbook-xsl inkscape
   libxslt1-dev libgnutls-dev libreadline5-dev libicu-dev
   libboost-dev libboost-thread-dev libboost-test-dev
+  libboost-regex-dev
 
 And if you want to make a Debian package: dpkg-dev fakeroot debhelper
 (Then run "dpkg-buildpackage -rfakeroot" in this directory.)
