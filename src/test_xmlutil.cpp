@@ -99,8 +99,13 @@ BOOST_AUTO_TEST_CASE( url_recipe )
             xmlFreeDoc(doc);
         }
     }
+    catch ( std::runtime_error &e) {
+        std::cout << "std::runtime error: " << e.what() << std::endl;
+        BOOST_CHECK(false);
+    }
     catch ( ... ) {
-        BOOST_CHECK (false);
+        std::cout << "unknown exception" << std::endl;
+        BOOST_CHECK(false);
     }
 }
 
