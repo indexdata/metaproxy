@@ -117,15 +117,19 @@ std::string mp_xml::url_recipe_handle(xmlDoc *doc, std::string recipe)
                             break;
                         }
                 }
-            boost::regex::flag_type b_mode = boost::regex::perl;
-            if (mode.find_first_of('i') != std::string::npos)
-                b_mode |= boost::regex::icase;
-            boost::regex e(pattern, b_mode);
-
-            boost::match_flag_type match_mode = boost::format_first_only;
-            if (mode.find_first_of('g') != std::string::npos)
-                match_mode = boost::format_all;
-            result += regex_replace(text, e, replacement, match_mode);
+            if (pattern.length() == 0)
+                result += text;
+            else
+            {
+                boost::regex::flag_type b_mode = boost::regex::perl;
+                if (mode.find_first_of('i') != std::string::npos)
+                    b_mode |= boost::regex::icase;
+                boost::regex e(pattern, b_mode);
+                boost::match_flag_type match_mode = boost::format_first_only;
+                if (mode.find_first_of('g') != std::string::npos)
+                    match_mode = boost::format_all;
+                result += regex_replace(text, e, replacement, match_mode);
+            }
         }
     }
     return result;
