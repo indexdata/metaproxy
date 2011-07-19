@@ -57,27 +57,7 @@
       <fieldmap cql="dc.subject" ccl="su"/>
       <fieldmap cql="bath.isbn" ccl="isbn"/>
       <fieldmap cql="bath.issn" ccl="issn"/>
-      <fieldmap cql="bash.isbn" ccl="isbn"/><!-- ### deprecated erroneous synonym -->
-      <fieldmap cql="bash.issn" ccl="issn"/><!-- ### deprecated erroneous synonym -->
       <fieldmap cql="dc.date" ccl="date"/>
-      <!-- 
-	   I got some of the following CCL qualifier names from
-	   http://catalog.pburglib.org/polaris/Help/PWbasicsearch6.html
-	   These are marked with the comment POLARIS.
-	   The others, I just made up.
-	   (Mike, Wed Jun 15 22:50:18 BST 2011)
-	-->
-      <fieldmap cql="rec.identifier" ccl="ocn"/><!-- POLARIS -->
-      <fieldmap cql="net.path" ccl="db"/>
-      <fieldmap cql="dc.language" ccl="la"/><!-- POLARIS -->
-      <fieldmap cql="dc.format" ccl="tom"/><!-- POLARIS -->
-      <fieldmap cql="id.fullText" ccl="fullText"/>
-      <fieldmap cql="id.peerReviewed" ccl="peerReviewed"/>
-      <fieldmap cql="dc.description" ccl="desc"/>
-      <fieldmap cql="dc.source" ccl="src"/>
-      <fieldmap cql="dc.publisher" ccl="pub"/><!-- POLARIS -->
-      <fieldmap cql="id.seriesTitle" ccl="series-ti"/>
-
       <cclmap>
         <qual name="ocn">
           <attr type="1" value="12"/>
@@ -92,18 +72,6 @@
         <message>F</message>
       </filter>
       <filter type="sru_z3950"/>
-      <filter type="record_transform">
-        <retrievalinfo   xmlns="http://indexdata.com/yaz" version="1.0">
-          <retrieval syntax="xml" name="usi">
-            <backend syntax="xml" name="pz2">
-              <xslt stylesheet="pz22usi.xsl"/>
-            </backend>
-          </retrieval>
-          <retrieval syntax="xml"/>
-          <retrieval syntax="json"/>
-          <retrieval syntax="usmarc"/>
-        </retrievalinfo>
-      </filter>
       <filter type="session_shared"/>
       <filter type="log">
         <message>B</message>
