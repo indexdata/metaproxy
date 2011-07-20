@@ -537,6 +537,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (m_backend && m_backend->m_frontend_database == database)
         return m_backend;
 
+    const char *sru_proxy = 0;
     std::string db_args;
     std::string torus_db;
     size_t db_arg_pos = database.find(',');
@@ -635,19 +636,34 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         // A CF target
         b->set_option("user", sptr->cfAuth.c_str());
-        if (authentication.length() && db_args.length() == 0)
+        if (db_args.length() == 0)
         {
-            // no database (auth) args specified already.. and the
-            // Torus authentication has it.. Generate the args that CF
-            // understands..
-            size_t found = authentication.find('/');
-            if (found != std::string::npos)
+            if (authentication.length())
             {
-                db_args += "user=" + mp::util::uri_encode(authentication.substr(0, found))
-                    + "&password=" + mp::util::uri_encode(authentication.substr(found+1));
+                // no database (auth) args specified already.. and the
+                // Torus authentication has it.. Generate the args that CF
+                // understands..
+                size_t found = authentication.find('/');
+                if (found != std::string::npos)
+                {
+                    db_args += "user=" + mp::util::uri_encode(authentication.substr(0, found))
+                        + "&password=" + mp::util::uri_encode(authentication.substr(found+1));
+                }
+                else
+                    db_args += "user=" + mp::util::uri_encode(authentication);
             }
-            else
-                db_args += "user=" + mp::util::uri_encode(authentication);
+            if (sptr->cfProxy.length())
+            {
+                if (db_args.length())
+                    db_args += "&";
+                db_args += "proxy=" + mp::util::uri_encode(sptr->cfProxy);
+            }
+        }
+        if (sptr->cfSubDb.length())
+        {
+            if (db_args.length())
+                db_args += "&";
+            db_args += "subdatabase=" + mp::util::uri_encode(sptr->cfSubDb);
         }
     }
     else
@@ -671,6 +687,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                     param_user = value;
                 else if (!strcmp(name, "password"))
                     param_password = value;
+                else if (!strcmp(name, "proxy"))
+                    sru_proxy = value;
                 else
                 {
                     BackendPtr notfound;
@@ -699,18 +717,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                 b->set_option("user", authentication.c_str());
         }
     }
-    if (sptr->cfProxy.length())
-    {
-        if (db_args.length())
-            db_args += "&";
-        db_args += "proxy=" + mp::util::uri_encode(sptr->cfProxy);
-    }
-    if (sptr->cfSubDb.length())
-    {
-        if (db_args.length())
-            db_args += "&";
-        db_args += "subdatabase=" + mp::util::uri_encode(sptr->cfSubDb);
-    }
+
+    if (sru_proxy)
+        b->set_option("proxy", sru_proxy);
 
     std::string url;
     if (sptr->sru.length())

@@ -67,9 +67,9 @@ namespace metaproxy_1 {
                                   const char *file_include_path);
 
         void parse_xml_filters(xmlDocPtr doc, const xmlNode *node,
-            bool test_only);
+                               bool test_only, const char *file_include_path);
         void parse_xml_routes(xmlDocPtr doc, const xmlNode *node,
-            bool test_only);
+                              bool test_only, const char *file_include_path);
 
         bool m_xinclude;
     private:
@@ -91,7 +91,8 @@ namespace metaproxy_1 {
 
 void mp::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
                                               const xmlNode *node,
-                                              bool test_only)
+                                              bool test_only,
+                                              const char *file_include_path)
 {
     unsigned int filter_nr = 0;
     while(node && mp::xml::check_element_mp(node, "filter"))
@@ -140,7 +141,8 @@ void mp::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
 
 void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
                                              const xmlNode *node,
-                                             bool test_only)
+                                             bool test_only,
+                                             const char *file_include_path)
 {
     mp::xml::check_element_mp(node, "route");
 
@@ -288,7 +290,7 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
     {
         parse_xml_filters(doc, mp::xml::jump_to_children(node,
                                                          XML_ELEMENT_NODE),
-            test_only);
+                          test_only, file_include_path);
                       
         node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
     }
@@ -296,7 +298,7 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
     mp::xml::check_element_mp(node, "routes");
     
     parse_xml_routes(doc, mp::xml::jump_to_children(node, XML_ELEMENT_NODE),
-        test_only);
+                     test_only, file_include_path);
 
     node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
     if (node)
