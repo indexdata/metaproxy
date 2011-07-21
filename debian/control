@@ -25,7 +25,7 @@ Description: Z39.50/SRU router (main executable)
  .
  This package includes the main Metaproxy executable.
 
-Package: libmetaproxy3
+Package: libmetaproxy4
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}
@@ -38,16 +38,16 @@ Description: Metaproxy Z39.50/SRU router (main executable)
  .
  This package includes the Metaproxy libraries.
 
-Package: libmetaproxy3-dev
+Package: libmetaproxy4-dev
 Section: libdevel
 Architecture: any
-Depends: libmetaproxy3 (= ${Source-Version}),
+Depends: libmetaproxy4 (= ${Source-Version}),
 	libyazpp4-dev (>= 1.2.0),
 	libxslt1-dev,
 	libboost-dev,
 	libboost-thread-dev,
 	libgnutls-dev
-Conflicts: libmetaproxy2-dev
+Conflicts: libmetaproxy2-dev, libmetaproxy3-dev
 Description: Metaproxy Z39.50/SRU router (main executable)
  This is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets

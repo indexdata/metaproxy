@@ -1,3 +1,6 @@
+Change major version of metaproxy library from 3 to 4. This in turn
+makes new package names for Debian and RPM.
+
 --- 1.2.9 2011/06/27
 
 zoom: enable marc-8 encoding by default for usmarc and opac (in pz2

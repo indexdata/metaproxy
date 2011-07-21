@@ -25,20 +25,21 @@ Group: Documentation
 %description doc
 Metaproxy documentation.
 
-%package -n libmetaproxy3
+%package -n libmetaproxy4
 Summary: Metaproxy library
 Group: Libraries
 Requires: libyazpp4
 
-%description -n libmetaproxy3
+%description -n libmetaproxy4
 The Metaproxy libraries.
 
-%package -n libmetaproxy3-devel
+%package -n libmetaproxy4-devel
 Summary: Metaproxy development package
 Group: Development/Libraries
-Requires: libmetaproxy3 = %{version}, libyazpp4-devel, boost-devel
+Requires: libmetaproxy4 = %{version}, libyazpp4-devel, boost-devel
+Conflicts: libmetaproxy3-devel
 
-%description -n libmetaproxy3-devel
+%description -n libmetaproxy4-devel
 Development libraries and include files for the Metaproxy package.
 
 %prep
@@ -72,17 +73,17 @@ install -m 644 rpm/metaproxy.logrotate  ${RPM_BUILD_ROOT}/etc/logrotate.d/metapr
 %clean
 rm -fr ${RPM_BUILD_ROOT}
 
-%files -n libmetaproxy3
+%files -n libmetaproxy4
 %doc README LICENSE NEWS
 %defattr(-,root,root)
 %{_libdir}/*.so.*
 %dir %{_libdir}/metaproxy/modules
 
-%post -n libmetaproxy3 -p /sbin/ldconfig
+%post -n libmetaproxy4 -p /sbin/ldconfig
 
-%postun -n libmetaproxy3 -p /sbin/ldconfig
+%postun -n libmetaproxy4 -p /sbin/ldconfig
 
-%files -n libmetaproxy3-devel
+%files -n libmetaproxy4-devel
 %defattr(-,root,root)
 %{_includedir}/metaproxy
 %{_libdir}/*.so
