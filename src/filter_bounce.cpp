@@ -100,6 +100,12 @@ void yf::Bounce::process(mp::Package &package) const
     return;
 }
 
+void mp::filter::Bounce::configure(const xmlNode * ptr, bool test_only,
+                                   const char *path)
+{
+    mp::xml::check_empty(ptr);
+}
+
 static mp::filter::Base* filter_creator()
 {
     return new mp::filter::Bounce;

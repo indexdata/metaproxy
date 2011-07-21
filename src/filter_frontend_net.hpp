@@ -36,7 +36,8 @@ namespace metaproxy_1 {
             FrontendNet();
             ~FrontendNet();
             void process(metaproxy_1::Package & package) const;
-            void configure(const xmlNode * ptr, bool test_only);
+            void configure(const xmlNode * ptr, bool test_only,
+                           const char *path);
         public:
             /// set ports
             void set_ports(std::vector<Port> &ports);

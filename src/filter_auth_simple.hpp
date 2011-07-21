@@ -31,7 +31,8 @@ namespace metaproxy_1 {
         public:
             AuthSimple();
             ~AuthSimple();
-            void configure(const xmlNode * ptr, bool test_only);
+            void configure(const xmlNode * ptr, bool test_only,
+                           const char *path);
             void process(metaproxy_1::Package & package) const;
         private:
             void config_userRegister(std::string filename);

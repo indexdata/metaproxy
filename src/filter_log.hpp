@@ -32,8 +32,8 @@ namespace metaproxy_1 {
             Log(const std::string &x);
             ~Log();
             void process(metaproxy_1::Package & package) const;
-            void configure(const xmlNode * ptr, bool test_only);
-            //class LFile;
+            void configure(const xmlNode * ptr, bool test_only,
+                const char *path);
         private:
             class Impl;
             boost::scoped_ptr<Impl> m_p;

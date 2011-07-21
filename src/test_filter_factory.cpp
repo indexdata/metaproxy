@@ -36,6 +36,7 @@ namespace mp = metaproxy_1;
 class XFilter: public mp::filter::Base {
 public:
     void process(mp::Package & package) const;
+    void configure(const xmlNode* ptr, bool test_only, const char *path) {};
 };
 
 void XFilter::process(mp::Package & package) const
@@ -51,6 +52,7 @@ static mp::filter::Base* xfilter_creator(){
 class YFilter: public mp::filter::Base {
 public:
     void process(mp::Package & package) const;
+    void configure(const xmlNode* ptr, bool test_only, const char *path) {};
 };
 
 void YFilter::process(mp::Package & package) const

@@ -1235,7 +1235,8 @@ void yf::Multi::process(mp::Package &package) const
     m_p->release_frontend(package);
 }
 
-void mp::filter::Multi::configure(const xmlNode * ptr, bool test_only)
+void mp::filter::Multi::configure(const xmlNode * ptr, bool test_only,
+                                  const char *path)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {

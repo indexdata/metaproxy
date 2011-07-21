@@ -39,7 +39,8 @@ namespace metaproxy_1 {
             Zoom();
             ~Zoom();
             void process(metaproxy_1::Package & package) const;
-            void configure(const xmlNode * ptr, bool test_only);
+            void configure(const xmlNode * ptr, bool test_only,
+                           const char *path);
         };
     }
 }

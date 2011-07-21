@@ -385,7 +385,8 @@ void mp::filter::FrontendNet::process(Package &package) const
     delete tt;
 }
 
-void mp::filter::FrontendNet::configure(const xmlNode * ptr, bool test_only)
+void mp::filter::FrontendNet::configure(const xmlNode * ptr, bool test_only,
+                                        const char *path)
 {
     if (!ptr || !ptr->children)
     {

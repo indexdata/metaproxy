@@ -40,7 +40,8 @@ namespace metaproxy_1 {
             ~VirtualDB();
             VirtualDB();
             void process(metaproxy_1::Package & package) const;
-            void configure(const xmlNode * ptr, bool test_only);
+            void configure(const xmlNode * ptr, bool test_only,
+                           const char *path);
             void add_map_db2targets(std::string db,
                                     std::list<std::string> targets,
                                     std::string route);

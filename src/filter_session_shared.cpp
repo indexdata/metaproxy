@@ -1162,7 +1162,8 @@ void yf::SessionShared::process(mp::Package &package) const
     m_p->release_frontend(package);
 }
 
-void yf::SessionShared::configure(const xmlNode *ptr, bool test_only)
+void yf::SessionShared::configure(const xmlNode *ptr, bool test_only,
+                                  const char *path)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {

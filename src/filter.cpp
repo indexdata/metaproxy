@@ -23,16 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace mp = metaproxy_1;
 
-void mp::filter::Base::configure(const xmlNode * ptr, bool test_only)
-{
-    mp::xml::check_empty(ptr);
-}
-
 void mp::filter::Base::start() const
 {
-
 }
-
 
 /*
  * Local variables:

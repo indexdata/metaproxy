@@ -457,7 +457,8 @@ void yf::Z3950Client::process(Package &package) const
     }
 }
 
-void yf::Z3950Client::configure(const xmlNode *ptr, bool test_only)
+void yf::Z3950Client::configure(const xmlNode *ptr, bool test_only,
+                                const char *path)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {

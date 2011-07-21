@@ -28,12 +28,20 @@ namespace metaproxy_1 {
         class Filter_dl: public mp::filter::Base {
         public:
             void process(mp::Package & package) const;
+            void configure(const xmlNode * ptr, bool test_only,
+                           const char *path);
         };
     }
 }
 
 void mp::filter::Filter_dl::process(mp::Package & package) const
 {
+}
+
+void mp::filter::Filter_dl::configure(const xmlNode * ptr, bool test_only,
+                                      const char *path)
+{
+    mp::xml::check_empty(ptr);
 }
 
 static mp::filter::Base* filter_creator()

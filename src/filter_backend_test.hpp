@@ -31,6 +31,8 @@ namespace metaproxy_1 {
             ~BackendTest();
             BackendTest();
             void process(metaproxy_1::Package & package) const;
+            void configure(const xmlNode * ptr, bool test_only,
+                           const char *path);
         private:
             boost::scoped_ptr<Rep> m_p;
         };
