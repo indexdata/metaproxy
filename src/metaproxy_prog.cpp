@@ -83,6 +83,7 @@ static int sc_main(
     yaz_sc_t s,
     int argc, char **argv)
 {
+    bool test_config = false;
     const char *fname = 0;
     int ret;
     char *arg;
@@ -90,7 +91,7 @@ static int sc_main(
     const char *pidfile = 0;
     const char *uid = 0;
     
-    while ((ret = options("c{config}:Dh{help}l:p:u:V{version}w:X", 
+    while ((ret = options("c{config}:Dh{help}l:p:tu:V{version}w:X", 
                           argv, argc, &arg)) != -2)
     {
         switch (ret)
@@ -109,6 +110,7 @@ static int sc_main(
                 " -D            daemon and keepalive operation\n"
                 " -l f          log file f\n"
                 " -p f          pid file f\n"
+                " -t            test configuration\n"
                 " -u id         change uid to id\n"
                 " -w dir        changes working directory to dir\n"
                 " -X            debug mode (no fork/daemon mode)\n"
@@ -124,6 +126,9 @@ static int sc_main(
             break;
         case 'p':
             pidfile = arg;
+            break;
+        case 't':
+            test_config = true;
             break;
         case 'u':
             uid = arg;
@@ -200,13 +205,15 @@ static int sc_main(
     try {
         mp::FactoryStatic factory;
         mp::RouterFleXML *router =
-            new mp::RouterFleXML(doc, factory, false, wrbuf_cstr(base_path));
-        wrbuf_destroy(base_path);
-        
-        yaz_sc_running(s);
-        
-        yaz_daemon("metaproxy", mode, mode == YAZ_DAEMON_DEBUG ?
-                   handler_debug : handler_normal, router, pidfile, uid);
+            new mp::RouterFleXML(doc, factory, test_config, wrbuf_cstr(base_path));
+        if (!test_config)
+        {
+            
+            yaz_sc_running(s);
+            
+            yaz_daemon("metaproxy", mode, mode == YAZ_DAEMON_DEBUG ?
+                       handler_debug : handler_normal, router, pidfile, uid);
+        }
     }
     catch (std::logic_error &e) {
         yaz_log (YLOG_FATAL,"std::logic error: %s" , e.what() );

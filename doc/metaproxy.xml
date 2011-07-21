@@ -33,6 +33,7 @@
    <arg choice="opt"><option>-D</option></arg>
    <arg choice="opt"><option>-l <replaceable>logfile</replaceable></option></arg>
    <arg choice="opt"><option>-p <replaceable>pidfile</replaceable></option></arg>
+   <arg choice="opt"><option>-t</option></arg>
    <arg choice="opt"><option>-u <replaceable>ID</replaceable></option></arg>
    <arg choice="opt"><option>-w <replaceable>dir</replaceable></option></arg>
    <arg choice="opt"><option>-X</option></arg>
@@ -89,6 +90,13 @@
     <term>-p <replaceable>pidfile</replaceable></term>
     <listitem><para>
       Specifies file which holds PID after startup.
+     </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-t</term>
+    <listitem><para>
+      Tests configuration. Returns exit code 0 on success; non-zero on failure.
      </para></listitem>
    </varlistentry>
 
