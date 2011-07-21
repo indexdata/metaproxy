@@ -123,7 +123,8 @@ namespace metaproxy_1 {
             Impl();
             ~Impl();
             void process(metaproxy_1::Package & package);
-            void configure(const xmlNode * ptr, bool test_only);
+            void configure(const xmlNode * ptr, bool test_only,
+                           const char *path);
         private:
             void configure_local_records(const xmlNode * ptr, bool test_only);
             FrontendPtr get_frontend(mp::Package &package);
@@ -136,6 +137,7 @@ namespace metaproxy_1 {
             std::string torus_url;
             std::map<std::string,std::string> fieldmap;
             std::string xsldir;
+            std::string file_path;
             CCL_bibset bibset;
             std::string element_transform;
             std::string element_raw;
@@ -157,7 +159,7 @@ yf::Zoom::~Zoom()
 void yf::Zoom::configure(const xmlNode *xmlnode, bool test_only,
                          const char *path)
 {
-    m_p->configure(xmlnode, test_only);
+    m_p->configure(xmlnode, test_only, path);
 }
 
 void yf::Zoom::process(mp::Package &package) const
@@ -471,8 +473,15 @@ void yf::Zoom::Impl::configure_local_records(const xmlNode *ptr, bool test_only)
     }
 }
 
-void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
+void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
+                               const char *path)
 {
+    if (path && *path)
+    {
+        file_path = path;
+        if (path[strlen(path)-1] != '/')
+            file_path += "/";
+    }
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
         if (ptr->type != XML_ELEMENT_NODE)
@@ -599,7 +608,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (m_p->xsldir.length()) 
             fname = m_p->xsldir + "/" + sptr->transform_xsl_fname;
         else
-            fname = sptr->transform_xsl_fname;
+            fname = m_p->file_path + sptr->transform_xsl_fname;
         xmlDoc *xsp_doc = xmlParseFile(fname.c_str());
         if (!xsp_doc)
         {
