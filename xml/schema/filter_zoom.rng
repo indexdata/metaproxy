@@ -135,6 +135,11 @@
                     <data type="string"/>
                   </element>
                 </optional>
+                <optional>
+                  <element name="mp:contentConnector">
+                    <data type="string"/>
+                  </element>
+                </optional>
               </element>
             </zeroOrMore>
           </element>
@@ -172,6 +177,13 @@
             </oneOrMore>
           </element>
         </zeroOrMore>
+      </element>
+    </optional>
+    <optional>
+      <element name="mp:contentProxy">
+        <attribute name="server">
+          <data type="string"/>
+        </attribute>
       </element>
     </optional>
   </define>

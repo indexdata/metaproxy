@@ -63,6 +63,7 @@ namespace metaproxy_1 {
             std::string record_encoding;
             std::string transform_xsl_fname;
             std::string urlRecipe;
+            std::string contentConnector;
             bool use_turbomarc;
             bool piggyback;
             CCL_bibset ccl_bibset;
@@ -140,6 +141,7 @@ namespace metaproxy_1 {
             std::map<std::string,std::string> fieldmap;
             std::string xsldir;
             std::string file_path;
+            std::string content_proxy_server;
             CCL_bibset bibset;
             std::string element_transform;
             std::string element_raw;
@@ -387,6 +389,11 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
         {
             s->cfSubDb = mp::xml::get_text(ptr);
         }  
+        else if (!strcmp((const char *) ptr->name,
+                         "contentConnector"))
+        {
+            s->contentConnector = mp::xml::get_text(ptr);
+        }  
         else if (!strcmp((const char *) ptr->name, "udb"))
         {
             s->udb = mp::xml::get_text(ptr);
@@ -552,6 +559,19 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
             }
             if (cql_field.length())
                 fieldmap[cql_field] = ccl_field;
+        }
+        else if (!strcmp((const char *) ptr->name, "contentProxy"))
+        {
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "server"))
+                    content_proxy_server = mp::xml::get_text(attr->children);
+                else
+                    throw mp::filter::FilterException(
+                        "Bad attribute " + std::string((const char *)
+                                                       attr->name));
+            }
         }
         else
         {
@@ -936,6 +956,20 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                     xmlDoc *doc = xmlParseMemory(rec_buf, rec_len);
                     std::string res = 
                         mp::xml::url_recipe_handle(doc, b->sptr->urlRecipe);
+                    if (res.length() && b->sptr->contentConnector.length())
+                    {
+                        yaz_log(YLOG_LOG, "contentConnector: %s",
+                                b->sptr->contentConnector.c_str());
+                        size_t off = res.find_first_of("://");
+                        if (off != std::string::npos)
+                        {
+                            char tmp[1024];
+                            long id = 12345;
+                            sprintf(tmp, "%ld.%s/",
+                                    id, m_p->content_proxy_server.c_str());
+                            res.insert(off + 3, tmp);
+                        }
+                    }
                     if (res.length())
                     {
                         xmlNode *ptr = xmlDocGetRootElement(doc);

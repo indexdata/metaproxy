@@ -24,6 +24,7 @@
 	    <transform>tmarc.xsl</transform>
 	    <urlRecipe>http://sever.com?title=${md-title[\s+/+/g]}</urlRecipe>
 	    <zurl>localhost:9999/db01</zurl>
+	    <contentConnector>connectorfile</contentConnector>
 	  </record>
 	  <record>
 	    <piggyback>1</piggyback>
@@ -73,6 +74,7 @@
           <attr type="1" value="12"/>
         </qual>
       </cclmap>
+      <contentProxy server="proxy.indexdata.com"/>
     </filter>
   </filters>
   <routes>  
