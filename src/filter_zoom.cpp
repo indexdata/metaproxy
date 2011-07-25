@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_zoom.hpp"
 #include <yaz/zoom.h>
 #include <yaz/yaz-version.h>
+#include <yaz/tpath.h>
 #include <yaz/srw.h>
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
@@ -503,8 +504,6 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
     if (path && *path)
     {
         file_path = path;
-        if (path[strlen(path)-1] != '/')
-            file_path += "/";
     }
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
@@ -627,18 +626,35 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     xsltStylesheetPtr xsp = 0;
     if (sptr->transform_xsl_fname.length())
     {
+        const char *path = 0;
+
+        if (m_p->xsldir.length())
+            path = m_p->xsldir.c_str();
+        else
+            path = m_p->file_path.c_str();
         std::string fname;
 
-        if (m_p->xsldir.length()) 
-            fname = m_p->xsldir + "/" + sptr->transform_xsl_fname;
+        char fullpath[1024];
+        char *cp = yaz_filepath_resolve(sptr->transform_xsl_fname.c_str(),
+                                        path, 0, fullpath);
+        if (cp)
+            fname.assign(cp);
         else
-            fname = m_p->file_path + sptr->transform_xsl_fname;
+        {
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            *addinfo = (char *)
+                odr_malloc(odr, 40 + sptr->transform_xsl_fname.length());
+            sprintf(*addinfo, "File could not be read: %s", 
+                    sptr->transform_xsl_fname.c_str());
+            BackendPtr b;
+            return b;
+        }
         xmlDoc *xsp_doc = xmlParseFile(fname.c_str());
         if (!xsp_doc)
         {
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-            *addinfo = (char *) odr_malloc(odr, 40 + strlen(fname.c_str()));
-            sprintf(*addinfo, "xmlParseFile failed. File %s", fname.c_str());
+            *addinfo = (char *) odr_malloc(odr, 40 + fname.length());
+            sprintf(*addinfo, "xmlParseFile failed. File: %s", fname.c_str());
             BackendPtr b;
             return b;
         }
