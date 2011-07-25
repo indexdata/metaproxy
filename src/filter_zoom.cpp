@@ -80,16 +80,17 @@ namespace metaproxy_1 {
         public:
             Backend(SearchablePtr sptr);
             ~Backend();
-            void connect(std::string zurl, int *error, const char **addinfo);
+            void connect(std::string zurl, int *error, char **addinfo,
+                         ODR odr);
             void search_pqf(const char *pqf, Odr_int *hits,
-                            int *error, const char **addinfo);
+                            int *error, char **addinfo, ODR odr);
             void search_cql(const char *cql, Odr_int *hits,
-                            int *error, const char **addinfo);
+                            int *error, char **addinfo, ODR odr);
             void present(Odr_int start, Odr_int number, ZOOM_record *recs,
-                         int *error, const char **addinfo);
+                         int *error, char **addinfo, ODR odr);
             void set_option(const char *name, const char *value);
             const char *get_option(const char *name);
-            void get_zoom_error(int *error, const char **addinfo);
+            void get_zoom_error(int *error, char **addinfo, ODR odr);
         };
         class Zoom::Frontend : boost::noncopyable {
             friend class Impl;
@@ -108,7 +109,7 @@ namespace metaproxy_1 {
             Z_Records *get_records(Odr_int start,
                                    Odr_int number_to_present,
                                    int *error,
-                                   const char **addinfo,
+                                   char **addinfo,
                                    Odr_int *number_of_records_returned,
                                    ODR odr, BackendPtr b,
                                    Odr_oid *preferredRecordSyntax,
@@ -186,34 +187,57 @@ yf::Zoom::Backend::~Backend()
 }
 
 
-void yf::Zoom::Backend::get_zoom_error(int *error, const char **addinfo)
+void yf::Zoom::Backend::get_zoom_error(int *error, char **addinfo,
+                                       ODR odr)
 {
     const char *msg = 0;
-    *error = ZOOM_connection_error(m_connection, &msg, addinfo);
+    const char *zoom_addinfo = 0;
+    *error = ZOOM_connection_error(m_connection, &msg, &zoom_addinfo);
     if (*error)
     {
         if (*error >= ZOOM_ERROR_CONNECT)
         {
             // turn ZOOM diagnostic into a Bib-1 2: with addinfo=zoom err msg
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-            if (addinfo)
-                *addinfo = msg;
+            *addinfo = (char *) odr_malloc(
+                odr, 20 + strlen(msg) + 
+                (zoom_addinfo ? strlen(zoom_addinfo) : 0));
+            strcpy(*addinfo, msg);
+            if (zoom_addinfo)
+            {
+                strcat(*addinfo, ": ");
+                strcat(*addinfo, zoom_addinfo);
+                strcat(*addinfo, " ");
+            }
+        }
+        else
+        {
+            *addinfo = (char *) odr_malloc(
+                odr, 20 + (zoom_addinfo ? strlen(zoom_addinfo) : 0));
+            **addinfo = '\0';
+            if (zoom_addinfo && *zoom_addinfo)
+            {
+                strcpy(*addinfo, zoom_addinfo);
+                strcat(*addinfo, " ");
+            }
+            strcat(*addinfo, "(backend)");
         }
     }
 }
 
 void yf::Zoom::Backend::connect(std::string zurl,
-                                int *error, const char **addinfo)
+                                int *error, char **addinfo,
+                                ODR odr)
 {
     ZOOM_connection_connect(m_connection, zurl.c_str(), 0);
-    get_zoom_error(error, addinfo);
+    get_zoom_error(error, addinfo, odr);
 }
 
 void yf::Zoom::Backend::search_pqf(const char *pqf, Odr_int *hits,
-                                   int *error, const char **addinfo)
+                                   int *error, char **addinfo, ODR odr)
 {
     m_resultset = ZOOM_connection_search_pqf(m_connection, pqf);
-    get_zoom_error(error, addinfo);
+    get_zoom_error(error, addinfo, odr);
     if (*error == 0)
         *hits = ZOOM_resultset_size(m_resultset);
     else
@@ -221,7 +245,7 @@ void yf::Zoom::Backend::search_pqf(const char *pqf, Odr_int *hits,
 }
 
 void yf::Zoom::Backend::search_cql(const char *cql, Odr_int *hits,
-                                   int *error, const char **addinfo)
+                                   int *error, char **addinfo, ODR odr)
 {
     ZOOM_query q = ZOOM_query_create();
 
@@ -229,7 +253,7 @@ void yf::Zoom::Backend::search_cql(const char *cql, Odr_int *hits,
 
     m_resultset = ZOOM_connection_search(m_connection, q);
     ZOOM_query_destroy(q);
-    get_zoom_error(error, addinfo);
+    get_zoom_error(error, addinfo, odr);
     if (*error == 0)
         *hits = ZOOM_resultset_size(m_resultset);
     else
@@ -238,10 +262,10 @@ void yf::Zoom::Backend::search_cql(const char *cql, Odr_int *hits,
 
 void yf::Zoom::Backend::present(Odr_int start, Odr_int number,
                                 ZOOM_record *recs,
-                                int *error, const char **addinfo)
+                                int *error, char **addinfo, ODR odr)
 {
     ZOOM_resultset_records(m_resultset, recs, start, number);
-    get_zoom_error(error, addinfo);
+    get_zoom_error(error, addinfo, odr);
 }
 
 void yf::Zoom::Backend::set_option(const char *name, const char *value)
@@ -744,10 +768,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (db_args.length())
         url += "," + db_args;
     yaz_log(YLOG_LOG, "url=%s", url.c_str());
-    const char *addinfo_c = 0;
-    b->connect(url, error, &addinfo_c);
-    if (addinfo_c)
-        *addinfo = odr_strdup(odr, addinfo_c);
+    b->connect(url, error, addinfo, odr);
     if (*error == 0)
     {
         m_backend = b;
@@ -758,7 +779,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                                            Odr_int number_to_present,
                                            int *error,
-                                           const char **addinfo,
+                                           char **addinfo,
                                            Odr_int *number_of_records_returned,
                                            ODR odr,
                                            BackendPtr b,
@@ -825,7 +846,7 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
 
     b->set_option("elementSetName", element_set_name);
 
-    b->present(start, number_to_present, recs, error, addinfo);
+    b->present(start, number_to_present, recs, error, addinfo, odr);
 
     Odr_int i = 0;
     if (!*error)
@@ -1012,19 +1033,17 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     }
 
     int error = 0;
-    char *addinfo_s = 0;
+    char *addinfo = 0;
     std::string db(sr->databaseNames[0]);
-    BackendPtr b = get_backend_from_databases(db, &error, &addinfo_s, odr);
+    BackendPtr b = get_backend_from_databases(db, &error, &addinfo, odr);
     if (error)
     {
         apdu_res = 
-            odr.create_searchResponse(
-                apdu_req, error, addinfo_s);
+            odr.create_searchResponse(apdu_req, error, addinfo);
         package.response() = apdu_res;
         return;
     }
 
-    const char *addinfo_c = 0;
     b->set_option("setname", "default");
 
     Odr_int hits = 0;
@@ -1067,14 +1086,14 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         if (cn_error)
         {
             // hopefully we are getting a ptr to a index+relation+term node
-            addinfo_c = 0;
+            addinfo = 0;
             if (cn_error->which == CQL_NODE_ST)
-                addinfo_c = cn_error->u.st.index;
+                addinfo = cn_error->u.st.index;
 
             apdu_res = 
                 odr.create_searchResponse(apdu_req, 
                                           YAZ_BIB1_UNSUPP_USE_ATTRIBUTE,
-                                          addinfo_c);
+                                          addinfo);
             package.response() = apdu_res;
             return;
         }
@@ -1168,7 +1187,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         if (status == 0)
         {
             yaz_log(YLOG_LOG, "search CQL: %s", wrbuf_cstr(wrb));
-            b->search_cql(wrbuf_cstr(wrb), &hits, &error, &addinfo_c);
+            b->search_cql(wrbuf_cstr(wrb), &hits, &error, &addinfo, odr);
         }
         
         wrbuf_destroy(wrb);
@@ -1185,7 +1204,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     else
     {
         yaz_log(YLOG_LOG, "search PQF: %s", wrbuf_cstr(pqf_wrbuf));
-        b->search_pqf(wrbuf_cstr(pqf_wrbuf), &hits, &error, &addinfo_c);
+        b->search_pqf(wrbuf_cstr(pqf_wrbuf), &hits, &error, &addinfo, odr);
         wrbuf_destroy(pqf_wrbuf);
     }
     
@@ -1197,10 +1216,10 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     
     Odr_int number_of_records_returned = 0;
     Z_Records *records = get_records(
-        0, number_to_present, &error, &addinfo_c,
+        0, number_to_present, &error, &addinfo,
         &number_of_records_returned, odr, b, sr->preferredRecordSyntax,
         element_set_name);
-    apdu_res = odr.create_searchResponse(apdu_req, error, addinfo_c);
+    apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
     if (records)
     {
         apdu_res->u.searchResponse->records = records;
@@ -1238,7 +1257,7 @@ void yf::Zoom::Frontend::handle_present(mp::Package &package)
         element_set_name = comp->u.simple->u.generic;
     Odr_int number_of_records_returned = 0;
     int error = 0;
-    const char *addinfo = 0;
+    char *addinfo = 0;
     Z_Records *records = get_records(
         *pr->resultSetStartPoint - 1, *pr->numberOfRecordsRequested,
         &error, &addinfo, &number_of_records_returned, odr, m_backend,
