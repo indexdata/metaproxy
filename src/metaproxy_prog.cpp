@@ -200,7 +200,8 @@ static int sc_main(
         );
     if (last_p)
         wrbuf_write(base_path, fname, last_p - fname);
-
+    else
+        wrbuf_puts(base_path, ".");
     ret = 0;
     try {
         mp::FactoryStatic factory;
