@@ -814,6 +814,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         b->content_session_id.assign(fname + (strlen(fname) - 6));
         WRBUF w = wrbuf_alloc();
         wrbuf_puts(w, "#content_proxy\n");
+        wrbuf_printf(w, "connector: %s\n", b->sptr->contentConnector.c_str());
         if (authentication.length())
             wrbuf_printf(w, "authentication: %s\n", authentication.c_str());
         if (proxy.length())
