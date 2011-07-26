@@ -734,6 +734,32 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                 db_args += "proxy=" + mp::util::uri_encode(sptr->cfProxy);
             }
         }
+        else
+        {
+            // user may specify backend authentication for CF target
+            const char *param_user = 0;
+            const char *param_password = 0;
+            char **names;
+            char **values;
+            int i;
+            int no_parms = yaz_uri_to_array(db_args.c_str(),
+                                            odr, &names, &values);
+            for (i = 0; i < no_parms; i++)
+            {
+                const char *name = names[i];
+                const char *value = values[i];
+                if (!strcmp(name, "user"))
+                    param_user = value;
+                else if (!strcmp(name, "password"))
+                    param_password = value;
+            }
+            if (param_user && param_password)
+            {
+                authentication = std::string(param_user)
+                    + "/" + std::string(param_password);
+            }
+        }
+
         if (sptr->cfSubDb.length())
         {
             if (db_args.length())
@@ -776,21 +802,13 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             }
             if (param_user && param_password)
             {
-                char *auth = (char*) odr_malloc(
-                    odr, strlen(param_user) + strlen(param_password) + 2);
-                strcpy(auth, param_user);
-                strcat(auth, "/");
-                strcat(auth, param_password);
-                b->set_option("user", auth);
+                authentication = std::string(param_user)
+                    + "/" + std::string(param_password);
             }
             db_args.clear(); // no arguments to be passed (non-CF)
         }
-        else
-        {
-            // use authentication from Torus, if given
-            if (authentication.length())
-                b->set_option("user", authentication.c_str());
-        }
+        if (authentication.length())
+            b->set_option("user", authentication.c_str());
     }
 
     if (sru_proxy)
@@ -811,15 +829,23 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
             *addinfo = (char *)  odr_malloc(odr, 40 + strlen(fname));
             sprintf(*addinfo, "Could not create %s", fname);
-
             xfree(fname);
             BackendPtr backend_null;
             return backend_null;
         }
         b->content_session_id.assign(fname + (strlen(fname) - 6));
-        char buf[1024];
-        sprintf(buf, "#content_proxy\n");
-        write(fd, buf, strlen(buf));
+        WRBUF w = wrbuf_alloc();
+        wrbuf_puts(w, "#content_proxy\n");
+        if (authentication.length())
+            wrbuf_printf(w, "authentication: %s\n", authentication.c_str());
+        if (sru_proxy)
+            wrbuf_printf(w, "proxy: %s\n", sru_proxy);
+        if (sptr->cfAuth.length())
+            wrbuf_printf(w, "cfauth: %s\n", sptr->cfAuth.c_str());
+        if (sptr->cfProxy.length())
+            wrbuf_printf(w, "cfproxy: %s\n", sptr->cfProxy.c_str());
+
+        write(fd, wrbuf_buf(w), wrbuf_len(w));
         close(fd);
         yaz_log(YLOG_LOG, "file %s created\n", fname);
         xfree(fname);
@@ -997,7 +1023,6 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                         if (off != std::string::npos)
                         {
                             char tmp[1024];
-                            long id = 12345;
                             sprintf(tmp, "%s.%s/",
                                     b->content_session_id.c_str(),
                                     m_p->content_proxy_server.c_str());

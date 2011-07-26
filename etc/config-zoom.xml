@@ -15,6 +15,7 @@
 	    >	
 	<records>
 	  <record>
+            <authentication>foouser/barpassword</authentication>
 	    <piggyback>1</piggyback>
 	    <queryEncoding>UTF-8</queryEncoding>
 	    <udb>z-local</udb>
