@@ -595,7 +595,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (m_backend && m_backend->m_frontend_database == database)
         return m_backend;
 
-    const char *sru_proxy = 0;
     std::string db_args;
     std::string torus_db;
     size_t db_arg_pos = database.find(',');
@@ -700,66 +699,83 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     b->xsp = xsp;
     b->m_frontend_database = database;
-    std::string authentication = sptr->authentication;
-        
-    b->set_option("timeout", "40");
 
     if (sptr->query_encoding.length())
         b->set_option("rpnCharset", sptr->query_encoding.c_str());
+
+    b->set_option("timeout", "40");
+
+
+    std::string authentication = sptr->authentication;
+    std::string proxy = sptr->cfProxy;
+        
+    const char *param_user = 0;
+    const char *param_password = 0;
+    const char *param_proxy = 0;
+    if (db_args.length())
+    {
+        char **names;
+        char **values;
+        int i;
+        int no_parms = yaz_uri_to_array(db_args.c_str(),
+                                        odr, &names, &values);
+        for (i = 0; i < no_parms; i++)
+        {
+            const char *name = names[i];
+            const char *value = values[i];
+            if (!strcmp(name, "user"))
+                param_user = value;
+            else if (!strcmp(name, "password"))
+                param_password = value;
+            else if (!strcmp(name, "proxy"))
+                param_proxy = value;
+            else
+            {
+                BackendPtr notfound;
+                char *msg = (char*) odr_malloc(odr, strlen(name) + 30);
+                *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+                sprintf(msg, "Bad database argument: %s", name);
+                *addinfo = msg;
+                return notfound;
+            }
+        }
+        if (param_user && param_password)
+        {
+            authentication = std::string(param_user)
+                + "/" + std::string(param_password);
+        }
+        if (param_proxy)
+            proxy = param_proxy;
+    }
 
     if (sptr->cfAuth.length())
     {
         // A CF target
         b->set_option("user", sptr->cfAuth.c_str());
-        if (db_args.length() == 0)
+        if (!param_user && !param_password && authentication.length())
         {
-            if (authentication.length())
+            if (db_args.length())
+                db_args += "&";
+            // no database (auth) args specified already.. and the
+            // Torus authentication has it.. Generate the args that CF
+            // understands..
+            size_t found = authentication.find('/');
+            if (found != std::string::npos)
             {
-                // no database (auth) args specified already.. and the
-                // Torus authentication has it.. Generate the args that CF
-                // understands..
-                size_t found = authentication.find('/');
-                if (found != std::string::npos)
-                {
-                    db_args += "user=" + mp::util::uri_encode(authentication.substr(0, found))
-                        + "&password=" + mp::util::uri_encode(authentication.substr(found+1));
-                }
-                else
-                    db_args += "user=" + mp::util::uri_encode(authentication);
+                db_args += "user=" +
+                    mp::util::uri_encode(authentication.substr(0, found))
+                    + "&password=" +
+                    mp::util::uri_encode(authentication.substr(found+1));
             }
-            if (sptr->cfProxy.length())
-            {
-                if (db_args.length())
-                    db_args += "&";
-                db_args += "proxy=" + mp::util::uri_encode(sptr->cfProxy);
-            }
+            else
+                db_args += "user=" + mp::util::uri_encode(authentication);
         }
-        else
+        if (!param_proxy && proxy.length())
         {
-            // user may specify backend authentication for CF target
-            const char *param_user = 0;
-            const char *param_password = 0;
-            char **names;
-            char **values;
-            int i;
-            int no_parms = yaz_uri_to_array(db_args.c_str(),
-                                            odr, &names, &values);
-            for (i = 0; i < no_parms; i++)
-            {
-                const char *name = names[i];
-                const char *value = values[i];
-                if (!strcmp(name, "user"))
-                    param_user = value;
-                else if (!strcmp(name, "password"))
-                    param_password = value;
-            }
-            if (param_user && param_password)
-            {
-                authentication = std::string(param_user)
-                    + "/" + std::string(param_password);
-            }
+            if (db_args.length())
+                db_args += "&";
+            db_args += "proxy=" + mp::util::uri_encode(proxy);
         }
-
         if (sptr->cfSubDb.length())
         {
             if (db_args.length())
@@ -769,51 +785,13 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     }
     else
     {
-        // A non-CF target
-        if (db_args.length())
-        {
-            // user has specified backend authentication
-            const char *param_user = 0;
-            const char *param_password = 0;
-            char **names;
-            char **values;
-            int i;
-            int no_parms = yaz_uri_to_array(db_args.c_str(),
-                                            odr, &names, &values);
-            for (i = 0; i < no_parms; i++)
-            {
-                const char *name = names[i];
-                const char *value = values[i];
-                if (!strcmp(name, "user"))
-                    param_user = value;
-                else if (!strcmp(name, "password"))
-                    param_password = value;
-                else if (!strcmp(name, "proxy"))
-                    sru_proxy = value;
-                else
-                {
-                    BackendPtr notfound;
-                    char *msg = (char*) odr_malloc(odr, strlen(name) + 30);
-                    *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-                    sprintf(msg, "Bad database argument: %s", name);
-                    *addinfo = msg;
-                    return notfound;
-                }
-            }
-            if (param_user && param_password)
-            {
-                authentication = std::string(param_user)
-                    + "/" + std::string(param_password);
-            }
-            db_args.clear(); // no arguments to be passed (non-CF)
-        }
+        db_args.clear(); // no arguments to be passed (non-CF)
+
         if (authentication.length())
             b->set_option("user", authentication.c_str());
+        if (proxy.length())
+            b->set_option("proxy", proxy.c_str());
     }
-
-    if (sru_proxy)
-        b->set_option("proxy", sru_proxy);
-    
     if (b->sptr->contentConnector.length())
     {
         int fd;
@@ -838,8 +816,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         wrbuf_puts(w, "#content_proxy\n");
         if (authentication.length())
             wrbuf_printf(w, "authentication: %s\n", authentication.c_str());
-        if (sru_proxy)
-            wrbuf_printf(w, "proxy: %s\n", sru_proxy);
+        if (proxy.length())
+            wrbuf_printf(w, "proxy: %s\n", proxy.c_str());
         if (sptr->cfAuth.length())
             wrbuf_printf(w, "cfauth: %s\n", sptr->cfAuth.c_str());
         if (sptr->cfProxy.length())
