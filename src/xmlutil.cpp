@@ -206,10 +206,16 @@ void mp_xml::check_empty(const xmlNode *node)
     if (node)
     {
         const xmlNode *n;
+        const struct _xmlAttr *attr;
+        std::string extra;
+        for (attr = node->properties; attr; attr = attr->next)
+            if (!strcmp((const char *) attr->name, "type"))
+                extra = " of type " + get_text(attr);
         for (n = node->children; n; n = n->next)
             if (n->type == XML_ELEMENT_NODE)
                 throw mp::XMLError("No child elements allowed inside element "
-                                    + std::string((const char *) node->name));
+                                   + std::string((const char *) node->name)
+                                   + extra);
     }
 }
 
