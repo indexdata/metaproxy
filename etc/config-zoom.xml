@@ -74,7 +74,10 @@
           <attr type="1" value="12"/>
         </qual>
       </cclmap>
-      <contentProxy server="proxy.indexdata.com"/>
+      <contentProxy
+         server="proxy.indexdata.com"
+         tmp_file="/tmp/mp_content_proxy."
+      />
     </filter>
   </filters>
   <routes>  

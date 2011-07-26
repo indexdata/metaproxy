@@ -79,6 +79,7 @@ namespace metaproxy_1 {
             std::string m_frontend_database;
             SearchablePtr sptr;
             xsltStylesheetPtr xsp;
+            std::string content_session_id;
         public:
             Backend(SearchablePtr sptr);
             ~Backend();
@@ -142,6 +143,7 @@ namespace metaproxy_1 {
             std::string xsldir;
             std::string file_path;
             std::string content_proxy_server;
+            std::string content_tmp_file;
             CCL_bibset bibset;
             std::string element_transform;
             std::string element_raw;
@@ -508,6 +510,7 @@ void yf::Zoom::Impl::configure_local_records(const xmlNode *ptr, bool test_only)
 void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                                const char *path)
 {
+    content_tmp_file = "/tmp/mp_content_proxy.";
     if (path && *path)
     {
         file_path = path;
@@ -567,6 +570,8 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
             {
                 if (!strcmp((const char *) attr->name, "server"))
                     content_proxy_server = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "tmp_file"))
+                    content_tmp_file = mp::xml::get_text(attr->children);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
@@ -790,6 +795,36 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     if (sru_proxy)
         b->set_option("proxy", sru_proxy);
+    
+    if (b->sptr->contentConnector.length())
+    {
+        int fd;
+        
+        char *fname = (char *) xmalloc(m_p->content_tmp_file.length() + 8);
+        strcpy(fname, m_p->content_tmp_file.c_str());
+        strcat(fname, "XXXXXX");
+        fd = mkstemp(fname);
+        
+        if (fd == -1)
+        {
+            yaz_log(YLOG_WARN|YLOG_ERRNO, "create %s", fname);
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            *addinfo = (char *)  odr_malloc(odr, 40 + strlen(fname));
+            sprintf(*addinfo, "Could not create %s", fname);
+
+            xfree(fname);
+            BackendPtr backend_null;
+            return backend_null;
+        }
+        b->content_session_id.assign(fname + (strlen(fname) - 6));
+        char buf[1024];
+        sprintf(buf, "#content_proxy\n");
+        write(fd, buf, strlen(buf));
+        close(fd);
+        yaz_log(YLOG_LOG, "file %s created\n", fname);
+        xfree(fname);
+    }
+    
 
     std::string url;
     if (sptr->sru.length())
@@ -956,17 +991,16 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                     xmlDoc *doc = xmlParseMemory(rec_buf, rec_len);
                     std::string res = 
                         mp::xml::url_recipe_handle(doc, b->sptr->urlRecipe);
-                    if (res.length() && b->sptr->contentConnector.length())
+                    if (res.length() && b->content_session_id.length())
                     {
-                        yaz_log(YLOG_LOG, "contentConnector: %s",
-                                b->sptr->contentConnector.c_str());
                         size_t off = res.find_first_of("://");
                         if (off != std::string::npos)
                         {
                             char tmp[1024];
                             long id = 12345;
-                            sprintf(tmp, "%ld.%s/",
-                                    id, m_p->content_proxy_server.c_str());
+                            sprintf(tmp, "%s.%s/",
+                                    b->content_session_id.c_str(),
+                                    m_p->content_proxy_server.c_str());
                             res.insert(off + 3, tmp);
                         }
                     }

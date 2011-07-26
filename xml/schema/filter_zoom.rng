@@ -181,9 +181,16 @@
     </optional>
     <optional>
       <element name="mp:contentProxy">
-        <attribute name="server">
-          <data type="string"/>
-        </attribute>
+        <optional>
+          <attribute name="server">
+            <data type="string"/>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="tmp_file">
+            <data type="string"/>
+          </attribute>
+        </optional>
       </element>
     </optional>
   </define>

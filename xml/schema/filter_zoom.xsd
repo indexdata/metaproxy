@@ -106,7 +106,8 @@
   </xs:element>
   <xs:element name="contentProxy">
     <xs:complexType>
-      <xs:attribute name="server" use="required" type="xs:string"/>
+      <xs:attribute name="server" type="xs:string"/>
+      <xs:attribute name="tmp_file" type="xs:string"/>
     </xs:complexType>
   </xs:element>
   <xs:attributeGroup name="filter_zoom">
