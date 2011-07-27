@@ -1105,6 +1105,103 @@ struct cql_node *yf::Zoom::Impl::convert_cql_fields(struct cql_node *cn,
     return r;
 }
 
+static void sort_pqf_type_7(WRBUF pqf_wrbuf, const char *sru_sortkeys)
+{
+    /* sortkey layour: path,schema,ascending,caseSensitive,missingValue */
+    /* see cql_sortby_to_sortkeys of YAZ. */
+    char **sortspec;
+    int num_sortspec = 0;
+    int i;
+    NMEM nmem = nmem_create();
+    
+    if (sru_sortkeys)
+        nmem_strsplit_blank(nmem, sru_sortkeys, &sortspec, &num_sortspec);
+    if (num_sortspec > 0)
+    {
+        WRBUF w = wrbuf_alloc();
+        for (i = 0; i < num_sortspec; i++)
+        {
+            char **arg;
+            int num_arg;
+            int ascending = 1;
+            nmem_strsplitx(nmem, ",", sortspec[i], &arg, &num_arg, 0);
+            
+            if (num_arg > 2 && arg[2][0])
+                ascending = atoi(arg[2]);
+            
+            wrbuf_puts(w, "@or @attr 1=");
+            yaz_encode_pqf_term(w, arg[0], strlen(arg[0]));
+            wrbuf_printf(w, "@attr 7=%d %d ", ascending ? 1 : 2, i);
+        }
+        if (wrbuf_len(w))
+        {
+            wrbuf_puts(w, wrbuf_cstr(pqf_wrbuf));
+            wrbuf_rewind(pqf_wrbuf);
+            wrbuf_puts(pqf_wrbuf, wrbuf_cstr(w));
+        }
+        wrbuf_destroy(w);
+    }
+    nmem_destroy(nmem);
+}
+
+static void sort_via_cql(WRBUF cql_sortby, const char *sru_sortkeys)
+{
+    /* sortkey layour: path,schema,ascending,caseSensitive,missingValue */
+    /* see cql_sortby_to_sortkeys of YAZ. */
+    char **sortspec;
+    int num_sortspec = 0;
+    int i;
+    NMEM nmem = nmem_create();
+    
+    if (sru_sortkeys)
+        nmem_strsplit_blank(nmem, sru_sortkeys, &sortspec, &num_sortspec);
+    if (num_sortspec > 0)
+    {
+        WRBUF w = wrbuf_alloc();
+        for (i = 0; i < num_sortspec; i++)
+        {
+            char **arg;
+            int num_arg;
+            int ascending = 1;
+            int case_sensitive = 0;
+            const char *missing = 0;
+            nmem_strsplitx(nmem, ",", sortspec[i], &arg, &num_arg, 0);
+            
+            if (num_arg > 2 && arg[2][0])
+                ascending = atoi(arg[2]);
+            if (num_arg > 3 && arg[3][0])
+                case_sensitive = atoi(arg[3]);
+            if (num_arg > 4 && arg[4][0])
+                missing = arg[4];
+            if (i > 0)
+                wrbuf_puts(w, " ");
+            else
+                wrbuf_puts(w, " sortby ");
+            wrbuf_puts(w, arg[0]);  /* field */
+            wrbuf_puts(w, "/");
+            wrbuf_puts(w, ascending ? "ascending" : "descending");
+            if (case_sensitive)
+                wrbuf_puts(w, "/respectCase");
+            if (missing)
+            {
+                if (!strcmp(missing, "omit"))
+                    wrbuf_puts(w, "/missingOmit");
+                else if (!strcmp(missing, "abort"))
+                    wrbuf_puts(w, "/missingFail");
+                else if (!strcmp(missing, "lowValue"))
+                    wrbuf_puts(w, "/missingLow");
+                else if (!strcmp(missing, "highValue"))
+                    wrbuf_puts(w, "/missingHigh");
+            }
+        }
+        if (wrbuf_len(w))
+            wrbuf_puts(cql_sortby, wrbuf_cstr(w));
+        wrbuf_destroy(w);
+    }
+    nmem_destroy(nmem);
+}
+
+
 void yf::Zoom::Frontend::handle_search(mp::Package &package)
 {
     Z_GDU *gdu = package.request().get();
@@ -1138,6 +1235,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     Z_Query *query = sr->query;
     WRBUF ccl_wrbuf = 0;
     WRBUF pqf_wrbuf = 0;
+    std::string sru_sortkeys;
 
     if (query->which == Z_Query_type_1 || query->which == Z_Query_type_101)
     {
@@ -1192,6 +1290,13 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         {
             ccl_wrbuf = wrbuf_alloc();
             wrbuf_puts(ccl_wrbuf, ccl_buf);
+            
+            WRBUF sru_sortkeys_wrbuf = wrbuf_alloc();
+
+            cql_sortby_to_sortkeys(cn, wrbuf_vp_puts, sru_sortkeys_wrbuf);
+
+            sru_sortkeys.assign(wrbuf_cstr(sru_sortkeys_wrbuf));
+            wrbuf_destroy(sru_sortkeys_wrbuf);
         }
         cql_parser_destroy(cp);
         if (r)
@@ -1271,6 +1376,9 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
             status = cql_transform_rpn2cql_wrbuf(cqlt, wrb, zquery);
             
             cql_transform_close(cqlt);
+
+            if (status == 0)
+                sort_via_cql(wrb, sru_sortkeys.c_str());
         }
         if (status == 0)
         {
@@ -1291,12 +1399,13 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     }
     else
     {
+        sort_pqf_type_7(pqf_wrbuf, sru_sortkeys.c_str());
+
         yaz_log(YLOG_LOG, "search PQF: %s", wrbuf_cstr(pqf_wrbuf));
         b->search_pqf(wrbuf_cstr(pqf_wrbuf), &hits, &error, &addinfo, odr);
         wrbuf_destroy(pqf_wrbuf);
     }
-    
-    
+
     const char *element_set_name = 0;
     Odr_int number_to_present = 0;
     if (!error)
