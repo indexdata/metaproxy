@@ -729,6 +729,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                 param_password = value;
             else if (!strcmp(name, "proxy"))
                 param_proxy = value;
+            else if (!strcmp(name, "cproxysession"))
+                ;
             else
             {
                 BackendPtr notfound;
