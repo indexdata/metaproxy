@@ -1252,6 +1252,13 @@ static void sort_via_cql(WRBUF cql_sortby, const char *sru_sortkeys)
     nmem_destroy(nmem);
 }
 
+#if YAZ_VERSIONL < 0x40206
+static void wrbuf_vp_puts(const char *buf, void *client_data)
+{
+    WRBUF b = (WRBUF) client_data;
+    wrbuf_puts(b, buf);
+}
+#endif
 
 void yf::Zoom::Frontend::handle_search(mp::Package &package)
 {
