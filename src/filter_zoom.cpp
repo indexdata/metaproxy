@@ -991,20 +991,52 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                 xmlChar *xmlrec_buf = 0;
                 const char *rec_buf = ZOOM_record_get(recs[i], rec_type_str,
                                                       &rec_len);
+                if (!rec_buf && !npr)
+                {
+                    std::string addinfo("ZOOM_record_get failed for type ");
+
+                    addinfo += rec_type_str;
+                    npr = zget_surrogateDiagRec(
+                        odr, odr_database, 
+                        YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                        addinfo.c_str());
+                }
+
                 if (rec_buf && b->xsp && enable_pz2_transform)
                 {
                     xmlDoc *rec_doc = xmlParseMemory(rec_buf, rec_len);
-                    if (rec_doc)
+                    if (!rec_doc)
+                    {
+                        npr = zget_surrogateDiagRec(
+                            odr, odr_database, 
+                            YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                            "xml parse failed for record");
+                    }
+                    else
                     { 
-                        xmlDoc *rec_res;
-                        rec_res = xsltApplyStylesheet(b->xsp, rec_doc, 0);
+                        xmlDoc *rec_res = 
+                            xsltApplyStylesheet(b->xsp, rec_doc, 0);
 
                         if (rec_res)
+                        {
                             xsltSaveResultToString(&xmlrec_buf, &rec_len,
                                                    rec_res, b->xsp);
-                        rec_buf = (const char *) xmlrec_buf;
+                            rec_buf = (const char *) xmlrec_buf;
+
+                            xmlFreeDoc(rec_res);
+                        }
+                        if (!rec_buf)
+                        {
+                            std::string addinfo;
+
+                            addinfo = "xslt apply failed for "
+                                + b->sptr->transform_xsl_fname;
+                            npr = zget_surrogateDiagRec(
+                                odr, odr_database, 
+                                YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                                addinfo.c_str());
+                        }
                         xmlFreeDoc(rec_doc);
-                        xmlFreeDoc(rec_res);
                     }
                 }
 
@@ -1043,20 +1075,22 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                     }
                     xmlFreeDoc(doc);
                 }
-                if (rec_buf)
+                if (!npr)
                 {
-                    npr = (Z_NamePlusRecord *) odr_malloc(odr, sizeof(*npr));
-                    npr->databaseName = odr_database;
-                    npr->which = Z_NamePlusRecord_databaseRecord;
-                    npr->u.databaseRecord =
-                        z_ext_record_xml(odr, rec_buf, rec_len);
-                }
-                else
-                {
-                    npr = zget_surrogateDiagRec(
-                        odr, odr_database, 
-                        YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
-                        rec_type_str);
+                    if (!rec_buf)
+                        npr = zget_surrogateDiagRec(
+                            odr, odr_database, 
+                            YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                            rec_type_str);
+                    else
+                    {
+                        npr = (Z_NamePlusRecord *)
+                            odr_malloc(odr, sizeof(*npr));
+                        npr->databaseName = odr_database;
+                        npr->which = Z_NamePlusRecord_databaseRecord;
+                        npr->u.databaseRecord =
+                            z_ext_record_xml(odr, rec_buf, rec_len);
+                    }
                 }
                 if (xmlrec_buf)
                     xmlFree(xmlrec_buf);
