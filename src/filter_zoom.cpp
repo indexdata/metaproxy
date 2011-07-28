@@ -92,6 +92,7 @@ namespace metaproxy_1 {
             void present(Odr_int start, Odr_int number, ZOOM_record *recs,
                          int *error, char **addinfo, ODR odr);
             void set_option(const char *name, const char *value);
+            void set_option(const char *name, std::string value);
             const char *get_option(const char *name);
             void get_zoom_error(int *error, char **addinfo, ODR odr);
         };
@@ -278,6 +279,11 @@ void yf::Zoom::Backend::set_option(const char *name, const char *value)
     ZOOM_connection_option_set(m_connection, name, value);
     if (m_resultset)
         ZOOM_resultset_option_set(m_resultset, name, value);
+}
+
+void yf::Zoom::Backend::set_option(const char *name, std::string value)
+{
+    set_option(name, value.c_str());
 }
 
 const char *yf::Zoom::Backend::get_option(const char *name)
@@ -701,7 +707,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     b->m_frontend_database = database;
 
     if (sptr->query_encoding.length())
-        b->set_option("rpnCharset", sptr->query_encoding.c_str());
+        b->set_option("rpnCharset", sptr->query_encoding);
 
     b->set_option("timeout", "40");
 
@@ -741,10 +747,11 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                 return notfound;
             }
         }
-        if (param_user && param_password)
+        if (param_user)
         {
-            authentication = std::string(param_user)
-                + "/" + std::string(param_password);
+            authentication = std::string(param_user);
+            if (param_password)
+                authentication += "/" + std::string(param_password);
         }
         if (param_proxy)
             proxy = param_proxy;
@@ -753,7 +760,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (sptr->cfAuth.length())
     {
         // A CF target
-        b->set_option("user", sptr->cfAuth.c_str());
+        b->set_option("user", sptr->cfAuth);
         if (!param_user && !param_password && authentication.length())
         {
             if (db_args.length())
@@ -789,10 +796,18 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         db_args.clear(); // no arguments to be passed (non-CF)
 
-        if (authentication.length())
-            b->set_option("user", authentication.c_str());
+        size_t found = authentication.find('/');
+        
+        if (sptr->sru.length() && found != std::string::npos)
+        {
+            b->set_option("user", authentication.substr(0, found));
+            b->set_option("password", authentication.substr(found+1));
+        }
+        else
+            b->set_option("user", authentication);
+
         if (proxy.length())
-            b->set_option("proxy", proxy.c_str());
+            b->set_option("proxy", proxy);
     }
     if (b->sptr->contentConnector.length())
     {
@@ -837,7 +852,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (sptr->sru.length())
     {
         url = "http://" + sptr->target;
-        b->set_option("sru", sptr->sru.c_str());
+        b->set_option("sru", sptr->sru);
     }
     else
     {
