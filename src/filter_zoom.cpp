@@ -145,6 +145,7 @@ namespace metaproxy_1 {
             std::string file_path;
             std::string content_proxy_server;
             std::string content_tmp_file;
+            bool apdu_log;
             CCL_bibset bibset;
             std::string element_transform;
             std::string element_raw;
@@ -360,7 +361,8 @@ void yf::Zoom::Impl::release_frontend(mp::Package &package)
     }
 }
 
-yf::Zoom::Impl::Impl() : element_transform("pz2") , element_raw("raw")
+yf::Zoom::Impl::Impl() :
+    apdu_log(false), element_transform("pz2") , element_raw("raw")
 {
     bibset = ccl_qual_mk();
 }
@@ -587,6 +589,19 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                                                        attr->name));
             }
         }
+        else if (!strcmp((const char *) ptr->name, "log"))
+        { 
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "apdu"))
+                    apdu_log = mp::xml::get_bool(attr->children, false);
+                else
+                    throw mp::filter::FilterException(
+                        "Bad attribute " + std::string((const char *)
+                                                       attr->name));
+            }
+        }
         else
         {
             throw mp::filter::FilterException
@@ -713,7 +728,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         b->set_option("rpnCharset", sptr->query_encoding);
 
     b->set_option("timeout", "40");
-
+    
+    if (m_p->apdu_log) 
+        b->set_option("apdulog", "1");
 
     std::string authentication = sptr->authentication;
     std::string proxy = sptr->cfProxy;

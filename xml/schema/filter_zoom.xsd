@@ -9,6 +9,7 @@
       <xs:element minOccurs="0" maxOccurs="unbounded" ref="mp:fieldmap"/>
       <xs:element minOccurs="0" ref="mp:cclmap"/>
       <xs:element minOccurs="0" ref="mp:contentProxy"/>
+      <xs:element minOccurs="0" ref="mp:log"/>
     </xs:sequence>
   </xs:group>
   <xs:element name="torus">
@@ -108,6 +109,11 @@
     <xs:complexType>
       <xs:attribute name="server" type="xs:string"/>
       <xs:attribute name="tmp_file" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="log">
+    <xs:complexType>
+      <xs:attribute name="apdu" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
   <xs:attributeGroup name="filter_zoom">

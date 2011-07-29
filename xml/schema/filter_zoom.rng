@@ -193,5 +193,14 @@
         </optional>
       </element>
     </optional>
+    <optional>
+      <element name="mp:log">
+        <optional>
+          <attribute name="apdu">
+            <data type="boolean"/>
+          </attribute>
+        </optional>
+      </element>
+    </optional>
   </define>
 </grammar>
