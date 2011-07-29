@@ -198,7 +198,8 @@ void yf::Zoom::Backend::get_zoom_error(int *error, char **addinfo,
 {
     const char *msg = 0;
     const char *zoom_addinfo = 0;
-    *error = ZOOM_connection_error(m_connection, &msg, &zoom_addinfo);
+    const char *dset = 0;
+    *error = ZOOM_connection_error_x(m_connection, &msg, &zoom_addinfo, &dset);
     if (*error)
     {
         if (*error >= ZOOM_ERROR_CONNECT)
@@ -218,6 +219,8 @@ void yf::Zoom::Backend::get_zoom_error(int *error, char **addinfo,
         }
         else
         {
+            if (dset && !strcmp(dset, "info:srw/diagnostic/1"))
+                *error = yaz_diag_srw_to_bib1(*error);
             *addinfo = (char *) odr_malloc(
                 odr, 20 + (zoom_addinfo ? strlen(zoom_addinfo) : 0));
             **addinfo = '\0';
