@@ -1,3 +1,17 @@
+--- 1.3.2 2011/08/01
+
+Change location of Metaproxy modules from libdir/metaproxy to
+libdir/metaproxy4. Directory libdir/metaproxy is also owned by 
+libmetaproxy3 and, thus, should not be used by libmetaproxy4.
+
+New facility to dump APDUs from zoom filter. Enabled by 
+<log apdu="true"/> in the zoom filter configuation.
+
+zoom filter bug fix: SRU diagnostics received from backend was
+not properly converted to Bib-1 diagnostics.
+
+Package metaproxy depends on libmetaproxy4, same version.
+
 --- 1.3.1 2011/07/28
 
 zoom: fix a bug WRT passing authentication parameters to backends.
