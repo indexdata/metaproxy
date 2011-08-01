@@ -521,7 +521,7 @@ void yf::Zoom::Impl::configure_local_records(const xmlNode *ptr, bool test_only)
 void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                                const char *path)
 {
-    content_tmp_file = "/tmp/mp_content_proxy.";
+    content_tmp_file = "/tmp/cf.XXXXXX.p";
     if (path && *path)
     {
         file_path = path;
@@ -831,13 +831,19 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     }
     if (b->sptr->contentConnector.length())
     {
-        int fd;
-        
         char *fname = (char *) xmalloc(m_p->content_tmp_file.length() + 8);
         strcpy(fname, m_p->content_tmp_file.c_str());
-        strcat(fname, "XXXXXX");
-        fd = mkstemp(fname);
-        
+        int suffixlen;
+        char *xx = strstr(fname, "XXXXXX");
+        if (xx)
+            suffixlen = strlen(xx) - 6;
+        else
+        {
+            suffixlen = 0;
+            xx = fname + strlen(fname);
+            strcat(fname, "XXXXXX");
+        }
+        int fd = mkstemps(fname, suffixlen);
         if (fd == -1)
         {
             yaz_log(YLOG_WARN|YLOG_ERRNO, "create %s", fname);
@@ -848,7 +854,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             BackendPtr backend_null;
             return backend_null;
         }
-        b->content_session_id.assign(fname + (strlen(fname) - 6));
+        b->content_session_id.assign(xx, 6);
         WRBUF w = wrbuf_alloc();
         wrbuf_puts(w, "#content_proxy\n");
         wrbuf_printf(w, "connector: %s\n", b->sptr->contentConnector.c_str());
@@ -866,7 +872,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         yaz_log(YLOG_LOG, "file %s created\n", fname);
         xfree(fname);
     }
-    
 
     std::string url;
     if (sptr->sru.length())
