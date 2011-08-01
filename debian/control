@@ -15,7 +15,7 @@ Build-Depends: debhelper (>= 4),
 Package: metaproxy
 Section: net
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, libmetaproxy4 (= ${Source-Version})
 Description: Z39.50/SRU router (main executable)
  This is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets
@@ -29,7 +29,7 @@ Package: libmetaproxy4
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}
-Description: Metaproxy Z39.50/SRU router (main executable)
+Description: Z39.50/SRU router (runtime)
  This is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets
  and redirects requests from IR clients using standard protocols such as
@@ -48,7 +48,7 @@ Depends: libmetaproxy4 (= ${Source-Version}),
 	libboost-thread-dev,
 	libgnutls-dev
 Conflicts: libmetaproxy2-dev, libmetaproxy3-dev
-Description: Metaproxy Z39.50/SRU router (main executable)
+Description: Z39.50/SRU router (development)
  This is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets
  and redirects requests from IR clients using standard protocols such as
@@ -60,7 +60,7 @@ Description: Metaproxy Z39.50/SRU router (main executable)
 Package: metaproxy-doc
 Section: doc
 Architecture: all
-Description: Metaproxy Z39.50/SRU router (documentation)
+Description: Z39.50/SRU router (documentation)
  This is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets
  and redirects requests from IR clients using standard protocols such as
