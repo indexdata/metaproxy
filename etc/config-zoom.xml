@@ -77,8 +77,9 @@
       </cclmap>
       <contentProxy
          server="proxy.indexdata.com"
-         tmp_file="/tmp/mp_content_proxy."
+         tmp_file="/tmp/content_cf.XXXXXX.p"
       />
+      <log apdu="true"/>
     </filter>
   </filters>
   <routes>  
