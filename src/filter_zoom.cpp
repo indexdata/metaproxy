@@ -738,6 +738,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (m_p->apdu_log) 
         b->set_option("apdulog", "1");
 
+    if (sptr->piggyback)
+        b->set_option("count", "10");
+
     std::string authentication = sptr->authentication;
     std::string proxy = sptr->cfProxy;
         
