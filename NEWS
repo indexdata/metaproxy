@@ -1,3 +1,8 @@
+--- 1.3.3 2011/08/01
+
+Fix dlpath in installed metaproxy.xml for RPM/Deb package. The
+file was not update for libdir/metaproxy4 in version 1.3.2.
+
 --- 1.3.2 2011/08/01
 
 Change location of Metaproxy modules from libdir/metaproxy to
