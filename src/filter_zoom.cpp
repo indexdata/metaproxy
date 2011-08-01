@@ -17,6 +17,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "config.hpp"
+
+#include <stdlib.h>
+#include <sys/types.h>
+#include <fcntl.h>
 #include "filter_zoom.hpp"
 #include <yaz/zoom.h>
 #include <yaz/yaz-version.h>
@@ -365,6 +369,8 @@ yf::Zoom::Impl::Impl() :
     apdu_log(false), element_transform("pz2") , element_raw("raw")
 {
     bibset = ccl_qual_mk();
+
+    srand(time(0));
 }
 
 yf::Zoom::Impl::~Impl()
@@ -843,7 +849,11 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             xx = fname + strlen(fname);
             strcat(fname, "XXXXXX");
         }
-        int fd = mkstemps(fname, suffixlen);
+        char tmp_char = xx[6];
+        sprintf(xx, "%06d", ((unsigned) rand()) % 1000000);
+        xx[6] = tmp_char;
+
+        int fd = creat(fname, 0666);
         if (fd == -1)
         {
             yaz_log(YLOG_WARN|YLOG_ERRNO, "create %s", fname);
