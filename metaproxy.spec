@@ -59,7 +59,7 @@ make prefix=${RPM_BUILD_ROOT}/%{_prefix} mandir=${RPM_BUILD_ROOT}/%{_mandir} \
 rm ${RPM_BUILD_ROOT}/%{_libdir}/*.la
 rm -fr ${RPM_BUILD_ROOT}/%{_prefix}/share/metaproxy
 rm -f ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy/*
-mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy/modules
+mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy4/modules
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/filters-enabled
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/filters-available
 mkdir -p ${RPM_BUILD_ROOT}/etc/logrotate.d
@@ -77,7 +77,7 @@ rm -fr ${RPM_BUILD_ROOT}
 %doc README LICENSE NEWS
 %defattr(-,root,root)
 %{_libdir}/*.so.*
-%dir %{_libdir}/metaproxy/modules
+%dir %{_libdir}/metaproxy4/modules
 
 %post -n libmetaproxy4 -p /sbin/ldconfig
 
