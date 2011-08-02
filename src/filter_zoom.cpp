@@ -871,8 +871,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             wrbuf_printf(w, "authentication: %s\n", authentication.c_str());
         if (proxy.length())
             wrbuf_printf(w, "proxy: %s\n", proxy.c_str());
-        if (sptr->cfAuth.length())
-            wrbuf_printf(w, "cfauth: %s\n", sptr->cfAuth.c_str());
         if (sptr->cfProxy.length())
             wrbuf_printf(w, "cfproxy: %s\n", sptr->cfProxy.c_str());
 
