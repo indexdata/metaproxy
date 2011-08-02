@@ -53,7 +53,8 @@ namespace yf = mp::filter;
 
 namespace metaproxy_1 {
     namespace filter {
-        struct Zoom::Searchable : boost::noncopyable {
+        class Zoom::Searchable : boost::noncopyable {
+          public:
             std::string authentication;
             std::string cfAuth;
             std::string cfProxy;
@@ -370,7 +371,7 @@ yf::Zoom::Impl::Impl() :
 {
     bibset = ccl_qual_mk();
 
-    srand(time(0));
+    srand((unsigned int) time(0));
 }
 
 yf::Zoom::Impl::~Impl()
@@ -927,7 +928,7 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
         number_to_present = 10000;
     
     ZOOM_record *recs = (ZOOM_record *)
-        odr_malloc(odr, number_to_present * sizeof(*recs));
+        odr_malloc(odr, (size_t) number_to_present * sizeof(*recs));
 
     char oid_name_str[OID_STR_MAX];
     const char *syntax_name = 0;
@@ -976,7 +977,7 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
 
     b->present(start, number_to_present, recs, error, addinfo, odr);
 
-    Odr_int i = 0;
+    int i = 0;
     if (!*error)
     {
         for (i = 0; i < number_to_present; i++)
