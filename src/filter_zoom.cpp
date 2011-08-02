@@ -842,13 +842,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         char *fname = (char *) xmalloc(m_p->content_tmp_file.length() + 8);
         strcpy(fname, m_p->content_tmp_file.c_str());
-        int suffixlen;
         char *xx = strstr(fname, "XXXXXX");
-        if (xx)
-            suffixlen = strlen(xx) - 6;
-        else
+        if (!xx)
         {
-            suffixlen = 0;
             xx = fname + strlen(fname);
             strcat(fname, "XXXXXX");
         }
