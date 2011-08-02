@@ -740,6 +740,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     if (sptr->piggyback)
         b->set_option("count", "10");
+    b->set_option("piggyback", sptr->piggyback ? "1" : "0");
 
     std::string authentication = sptr->authentication;
     std::string proxy = sptr->cfProxy;
