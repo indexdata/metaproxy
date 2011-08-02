@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdlib.h>
 #include <sys/types.h>
-#include <fcntl.h>
 #include "filter_zoom.hpp"
 #include <yaz/zoom.h>
 #include <yaz/yaz-version.h>
@@ -853,8 +852,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         sprintf(xx, "%06d", ((unsigned) rand()) % 1000000);
         xx[6] = tmp_char;
 
-        int fd = creat(fname, 0666);
-        if (fd == -1)
+        FILE *file = fopen(fname, "w");
+        if (!file)
         {
             yaz_log(YLOG_WARN|YLOG_ERRNO, "create %s", fname);
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
@@ -877,8 +876,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (sptr->cfProxy.length())
             wrbuf_printf(w, "cfproxy: %s\n", sptr->cfProxy.c_str());
 
-        write(fd, wrbuf_buf(w), wrbuf_len(w));
-        close(fd);
+        fwrite(wrbuf_buf(w), 1, wrbuf_len(w), file);
+        fclose(file);
         yaz_log(YLOG_LOG, "file %s created\n", fname);
         xfree(fname);
     }
