@@ -386,8 +386,16 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
     c->m_waiting = true;
     if (!c->m_connected)
     {
-        c->client(c->m_host.c_str());
+        if (c->client(c->m_host.c_str()))
+        {
+            mp::odr odr;
+            package.response() =
+                odr.create_close(gdu->u.z3950, Z_Close_peerAbort, 0);
+            package.session().close();
+            return;
+        }
         c->timeout(1);  // so timeoutNotify gets called once per second
+        
 
         while (!c->m_destroyed && c->m_waiting 
                && c->m_socket_manager->processEvent() > 0)
