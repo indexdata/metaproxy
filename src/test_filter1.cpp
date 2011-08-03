@@ -32,6 +32,8 @@ namespace mp = metaproxy_1;
 class TFilter: public mp::filter::Base {
 public:
     void process(mp::Package & package) const {};
+    void configure(const xmlNode * ptr, bool test_only,
+                   const char *path) { };
 };
     
 

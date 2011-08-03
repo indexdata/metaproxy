@@ -127,7 +127,7 @@ void mp::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
         }
         mp::filter::Base* filter_base = m_factory->create(type_value);
 
-        filter_base->configure(node, test_only);
+        filter_base->configure(node, test_only, file_include_path);
 
         if (m_id_filter_map.find(id_value) != m_id_filter_map.end())
             throw mp::XMLError("Filter " + id_value + " already defined");
@@ -220,7 +220,7 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
                 }
                 mp::filter::Base* filter_base = m_factory->create(type_value);
 
-                filter_base->configure(node3, test_only);
+                filter_base->configure(node3, test_only, file_include_path);
                 
                 route.m_list.push_back(
                     boost::shared_ptr<mp::filter::Base>(filter_base));

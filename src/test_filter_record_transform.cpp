@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE( test_filter_record_transform_3 )
 
         // creating and configuring filter
         mp::filter::RecordTransform f_rec_trans;
-        f_rec_trans.configure(root_element, true);
+        f_rec_trans.configure(root_element, true, 0);
         
         // remeber to free XML DOM
         xmlFreeDoc(doc);

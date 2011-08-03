@@ -46,7 +46,8 @@ namespace metaproxy_1 {
             ~Multi();
             Multi();
             void process(metaproxy_1::Package & package) const;
-            void configure(const xmlNode * ptr, bool test_only);
+            void configure(const xmlNode * ptr, bool test_only,
+                           const char *path);
             void add_map_host2hosts(std::string host,
                                     std::list<std::string> hosts,
                                     std::string route);

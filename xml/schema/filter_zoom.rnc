@@ -32,7 +32,8 @@ filter_zoom =
         element mp:zurl { xsd:string },
         element mp:cfAuth { xsd:string }?,
         element mp:cfProxy { xsd:string }?,
-        element mp:cfSubDb { xsd:string }?
+        element mp:cfSubDb { xsd:string }?,
+        element mp:contentConnector { xsd:string }?
       }*
     }?
   }?,
@@ -48,6 +49,14 @@ filter_zoom =
         attribute value { xsd:string }
       }+
     }*
+  }?,
+  element mp:contentProxy {
+    attribute server { xsd:string }?,
+    attribute tmp_file { xsd:string }?
+  }?,
+  element mp:log {
+    attribute apdu { xsd:boolean }?
   }?
+
 
 

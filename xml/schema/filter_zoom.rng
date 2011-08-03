@@ -135,6 +135,11 @@
                     <data type="string"/>
                   </element>
                 </optional>
+                <optional>
+                  <element name="mp:contentConnector">
+                    <data type="string"/>
+                  </element>
+                </optional>
               </element>
             </zeroOrMore>
           </element>
@@ -172,6 +177,29 @@
             </oneOrMore>
           </element>
         </zeroOrMore>
+      </element>
+    </optional>
+    <optional>
+      <element name="mp:contentProxy">
+        <optional>
+          <attribute name="server">
+            <data type="string"/>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="tmp_file">
+            <data type="string"/>
+          </attribute>
+        </optional>
+      </element>
+    </optional>
+    <optional>
+      <element name="mp:log">
+        <optional>
+          <attribute name="apdu">
+            <data type="boolean"/>
+          </attribute>
+        </optional>
       </element>
     </optional>
   </define>

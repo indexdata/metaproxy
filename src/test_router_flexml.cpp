@@ -38,6 +38,7 @@ public:
     void process(mp::Package & package) const {};
     TFilter() { tfilter_ref++; };
     ~TFilter() { tfilter_ref--; };
+    void configure(const xmlNode* ptr, bool test_only, const char *path) {};
 };
 
 static mp::filter::Base* filter_creator()

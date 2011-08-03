@@ -39,7 +39,7 @@ namespace metaproxy_1 {
             Impl();
             ~Impl();
             void process(metaproxy_1::Package & package) const;
-            void configure(const xmlNode * xml_node);
+            void configure(const xmlNode * xml_node, const char *path);
         private:
             yaz_retrieval_t m_retrieval;
         };
@@ -56,9 +56,10 @@ yf::RecordTransform::~RecordTransform()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
-void yf::RecordTransform::configure(const xmlNode *xmlnode, bool test_only)
+void yf::RecordTransform::configure(const xmlNode *xmlnode, bool test_only,
+                                    const char *path)
 {
-    m_p->configure(xmlnode);
+    m_p->configure(xmlnode, path);
 }
 
 void yf::RecordTransform::process(mp::Package &package) const
@@ -83,11 +84,10 @@ yf::RecordTransform::Impl::~Impl()
         yaz_retrieval_destroy(m_retrieval);
 }
 
-void yf::RecordTransform::Impl::configure(const xmlNode *xml_node)
+void yf::RecordTransform::Impl::configure(const xmlNode *xml_node,
+                                          const char *path)
 {
-    //const char *srcdir = getenv("srcdir");
-    //if (srcdir)
-    //    yaz_retrieval_set_path(m_retrieval, srcdir);
+    yaz_retrieval_set_path(m_retrieval, path);
 
     if (!xml_node)
         throw mp::XMLError("RecordTransform filter config: empty XML DOM");

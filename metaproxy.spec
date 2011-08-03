@@ -1,6 +1,6 @@
 Summary: Z39.50/SRU router
 Name: metaproxy
-Version: 1.2.9
+Version: 1.3.4
 Release: 1indexdata
 License: GPL
 Group: Applications/Internet
@@ -8,12 +8,12 @@ Vendor: Index Data ApS <info@indexdata.dk>
 Source: metaproxy-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Prefix: %{_prefix} /etc/metaproxy
-BuildRequires: pkgconfig, libyaz4-devel >= 4.2.3, libyazpp4-devel >= 1.2.6
+BuildRequires: pkgconfig, libyaz4-devel >= 4.2.6, libyazpp4-devel >= 1.2.6
 BuildRequires: libxslt-devel, boost-devel
 Packager: Adam Dickmeiss <adam@indexdata.dk>
 URL: http://www.indexdata.com/metaproxy
 Group:  Applications/Internet
-# Requires: 
+Requires:  libmetaproxy4 = %{version}
 
 %description
 Metaproxy daemon.
@@ -25,20 +25,21 @@ Group: Documentation
 %description doc
 Metaproxy documentation.
 
-%package -n libmetaproxy3
+%package -n libmetaproxy4
 Summary: Metaproxy library
 Group: Libraries
 Requires: libyazpp4
 
-%description -n libmetaproxy3
+%description -n libmetaproxy4
 The Metaproxy libraries.
 
-%package -n libmetaproxy3-devel
+%package -n libmetaproxy4-devel
 Summary: Metaproxy development package
 Group: Development/Libraries
-Requires: libmetaproxy3 = %{version}, libyazpp4-devel, boost-devel
+Requires: libmetaproxy4 = %{version}, libyazpp4-devel, boost-devel
+Conflicts: libmetaproxy3-devel
 
-%description -n libmetaproxy3-devel
+%description -n libmetaproxy4-devel
 Development libraries and include files for the Metaproxy package.
 
 %prep
@@ -58,7 +59,7 @@ make prefix=${RPM_BUILD_ROOT}/%{_prefix} mandir=${RPM_BUILD_ROOT}/%{_mandir} \
 rm ${RPM_BUILD_ROOT}/%{_libdir}/*.la
 rm -fr ${RPM_BUILD_ROOT}/%{_prefix}/share/metaproxy
 rm -f ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy/*
-mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy/modules
+mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy4/modules
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/filters-enabled
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/filters-available
 mkdir -p ${RPM_BUILD_ROOT}/etc/logrotate.d
@@ -72,17 +73,17 @@ install -m 644 rpm/metaproxy.logrotate  ${RPM_BUILD_ROOT}/etc/logrotate.d/metapr
 %clean
 rm -fr ${RPM_BUILD_ROOT}
 
-%files -n libmetaproxy3
+%files -n libmetaproxy4
 %doc README LICENSE NEWS
 %defattr(-,root,root)
 %{_libdir}/*.so.*
-%dir %{_libdir}/metaproxy/modules
+%dir %{_libdir}/metaproxy4/modules
 
-%post -n libmetaproxy3 -p /sbin/ldconfig
+%post -n libmetaproxy4 -p /sbin/ldconfig
 
-%postun -n libmetaproxy3 -p /sbin/ldconfig
+%postun -n libmetaproxy4 -p /sbin/ldconfig
 
-%files -n libmetaproxy3-devel
+%files -n libmetaproxy4-devel
 %defattr(-,root,root)
 %{_includedir}/metaproxy
 %{_libdir}/*.so

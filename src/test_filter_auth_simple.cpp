@@ -51,6 +51,7 @@ public:
         }
         package.move();
     };
+    void configure(const xmlNode* ptr, bool test_only, const char *path) {};
 };
 
 

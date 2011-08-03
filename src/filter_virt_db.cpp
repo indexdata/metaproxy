@@ -867,7 +867,8 @@ void yf::VirtualDB::process(mp::Package &package) const
     m_p->release_frontend(package);
 }
 
-void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only)
+void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only,
+                                      const char *path)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {

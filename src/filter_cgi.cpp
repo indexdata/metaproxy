@@ -146,7 +146,7 @@ void yf::CGI::process(mp::Package &package) const
     package.move();
 }
 
-void yf::CGI::configure(const xmlNode *ptr, bool test_only)
+void yf::CGI::configure(const xmlNode *ptr, bool test_only, const char *path)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {

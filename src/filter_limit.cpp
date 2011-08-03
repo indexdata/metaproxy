@@ -68,7 +68,8 @@ yf::Limit::~Limit()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
-void yf::Limit::configure(const xmlNode *xmlnode, bool test_only)
+void yf::Limit::configure(const xmlNode *xmlnode, bool test_only,
+                          const char *path)
 {
     m_p->configure(xmlnode);
 }

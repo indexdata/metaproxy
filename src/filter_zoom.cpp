@@ -17,9 +17,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "config.hpp"
+
+#include <stdlib.h>
+#include <sys/types.h>
 #include "filter_zoom.hpp"
 #include <yaz/zoom.h>
 #include <yaz/yaz-version.h>
+#include <yaz/tpath.h>
 #include <yaz/srw.h>
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
@@ -48,7 +52,8 @@ namespace yf = mp::filter;
 
 namespace metaproxy_1 {
     namespace filter {
-        struct Zoom::Searchable : boost::noncopyable {
+        class Zoom::Searchable : boost::noncopyable {
+          public:
             std::string authentication;
             std::string cfAuth;
             std::string cfProxy;
@@ -62,6 +67,7 @@ namespace metaproxy_1 {
             std::string record_encoding;
             std::string transform_xsl_fname;
             std::string urlRecipe;
+            std::string contentConnector;
             bool use_turbomarc;
             bool piggyback;
             CCL_bibset ccl_bibset;
@@ -77,19 +83,22 @@ namespace metaproxy_1 {
             std::string m_frontend_database;
             SearchablePtr sptr;
             xsltStylesheetPtr xsp;
+            std::string content_session_id;
         public:
             Backend(SearchablePtr sptr);
             ~Backend();
-            void connect(std::string zurl, int *error, const char **addinfo);
+            void connect(std::string zurl, int *error, char **addinfo,
+                         ODR odr);
             void search_pqf(const char *pqf, Odr_int *hits,
-                            int *error, const char **addinfo);
+                            int *error, char **addinfo, ODR odr);
             void search_cql(const char *cql, Odr_int *hits,
-                            int *error, const char **addinfo);
+                            int *error, char **addinfo, ODR odr);
             void present(Odr_int start, Odr_int number, ZOOM_record *recs,
-                         int *error, const char **addinfo);
+                         int *error, char **addinfo, ODR odr);
             void set_option(const char *name, const char *value);
+            void set_option(const char *name, std::string value);
             const char *get_option(const char *name);
-            void get_zoom_error(int *error, const char **addinfo);
+            void get_zoom_error(int *error, char **addinfo, ODR odr);
         };
         class Zoom::Frontend : boost::noncopyable {
             friend class Impl;
@@ -108,7 +117,7 @@ namespace metaproxy_1 {
             Z_Records *get_records(Odr_int start,
                                    Odr_int number_to_present,
                                    int *error,
-                                   const char **addinfo,
+                                   char **addinfo,
                                    Odr_int *number_of_records_returned,
                                    ODR odr, BackendPtr b,
                                    Odr_oid *preferredRecordSyntax,
@@ -123,7 +132,8 @@ namespace metaproxy_1 {
             Impl();
             ~Impl();
             void process(metaproxy_1::Package & package);
-            void configure(const xmlNode * ptr, bool test_only);
+            void configure(const xmlNode * ptr, bool test_only,
+                           const char *path);
         private:
             void configure_local_records(const xmlNode * ptr, bool test_only);
             FrontendPtr get_frontend(mp::Package &package);
@@ -136,6 +146,10 @@ namespace metaproxy_1 {
             std::string torus_url;
             std::map<std::string,std::string> fieldmap;
             std::string xsldir;
+            std::string file_path;
+            std::string content_proxy_server;
+            std::string content_tmp_file;
+            bool apdu_log;
             CCL_bibset bibset;
             std::string element_transform;
             std::string element_raw;
@@ -154,9 +168,10 @@ yf::Zoom::~Zoom()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
-void yf::Zoom::configure(const xmlNode *xmlnode, bool test_only)
+void yf::Zoom::configure(const xmlNode *xmlnode, bool test_only,
+                         const char *path)
 {
-    m_p->configure(xmlnode, test_only);
+    m_p->configure(xmlnode, test_only, path);
 }
 
 void yf::Zoom::process(mp::Package &package) const
@@ -183,34 +198,60 @@ yf::Zoom::Backend::~Backend()
 }
 
 
-void yf::Zoom::Backend::get_zoom_error(int *error, const char **addinfo)
+void yf::Zoom::Backend::get_zoom_error(int *error, char **addinfo,
+                                       ODR odr)
 {
     const char *msg = 0;
-    *error = ZOOM_connection_error(m_connection, &msg, addinfo);
+    const char *zoom_addinfo = 0;
+    const char *dset = 0;
+    *error = ZOOM_connection_error_x(m_connection, &msg, &zoom_addinfo, &dset);
     if (*error)
     {
         if (*error >= ZOOM_ERROR_CONNECT)
         {
             // turn ZOOM diagnostic into a Bib-1 2: with addinfo=zoom err msg
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-            if (addinfo)
-                *addinfo = msg;
+            *addinfo = (char *) odr_malloc(
+                odr, 20 + strlen(msg) + 
+                (zoom_addinfo ? strlen(zoom_addinfo) : 0));
+            strcpy(*addinfo, msg);
+            if (zoom_addinfo)
+            {
+                strcat(*addinfo, ": ");
+                strcat(*addinfo, zoom_addinfo);
+                strcat(*addinfo, " ");
+            }
+        }
+        else
+        {
+            if (dset && !strcmp(dset, "info:srw/diagnostic/1"))
+                *error = yaz_diag_srw_to_bib1(*error);
+            *addinfo = (char *) odr_malloc(
+                odr, 20 + (zoom_addinfo ? strlen(zoom_addinfo) : 0));
+            **addinfo = '\0';
+            if (zoom_addinfo && *zoom_addinfo)
+            {
+                strcpy(*addinfo, zoom_addinfo);
+                strcat(*addinfo, " ");
+            }
+            strcat(*addinfo, "(backend)");
         }
     }
 }
 
 void yf::Zoom::Backend::connect(std::string zurl,
-                                int *error, const char **addinfo)
+                                int *error, char **addinfo,
+                                ODR odr)
 {
     ZOOM_connection_connect(m_connection, zurl.c_str(), 0);
-    get_zoom_error(error, addinfo);
+    get_zoom_error(error, addinfo, odr);
 }
 
 void yf::Zoom::Backend::search_pqf(const char *pqf, Odr_int *hits,
-                                   int *error, const char **addinfo)
+                                   int *error, char **addinfo, ODR odr)
 {
     m_resultset = ZOOM_connection_search_pqf(m_connection, pqf);
-    get_zoom_error(error, addinfo);
+    get_zoom_error(error, addinfo, odr);
     if (*error == 0)
         *hits = ZOOM_resultset_size(m_resultset);
     else
@@ -218,7 +259,7 @@ void yf::Zoom::Backend::search_pqf(const char *pqf, Odr_int *hits,
 }
 
 void yf::Zoom::Backend::search_cql(const char *cql, Odr_int *hits,
-                                   int *error, const char **addinfo)
+                                   int *error, char **addinfo, ODR odr)
 {
     ZOOM_query q = ZOOM_query_create();
 
@@ -226,7 +267,7 @@ void yf::Zoom::Backend::search_cql(const char *cql, Odr_int *hits,
 
     m_resultset = ZOOM_connection_search(m_connection, q);
     ZOOM_query_destroy(q);
-    get_zoom_error(error, addinfo);
+    get_zoom_error(error, addinfo, odr);
     if (*error == 0)
         *hits = ZOOM_resultset_size(m_resultset);
     else
@@ -235,10 +276,10 @@ void yf::Zoom::Backend::search_cql(const char *cql, Odr_int *hits,
 
 void yf::Zoom::Backend::present(Odr_int start, Odr_int number,
                                 ZOOM_record *recs,
-                                int *error, const char **addinfo)
+                                int *error, char **addinfo, ODR odr)
 {
     ZOOM_resultset_records(m_resultset, recs, start, number);
-    get_zoom_error(error, addinfo);
+    get_zoom_error(error, addinfo, odr);
 }
 
 void yf::Zoom::Backend::set_option(const char *name, const char *value)
@@ -246,6 +287,11 @@ void yf::Zoom::Backend::set_option(const char *name, const char *value)
     ZOOM_connection_option_set(m_connection, name, value);
     if (m_resultset)
         ZOOM_resultset_option_set(m_resultset, name, value);
+}
+
+void yf::Zoom::Backend::set_option(const char *name, std::string value)
+{
+    set_option(name, value.c_str());
 }
 
 const char *yf::Zoom::Backend::get_option(const char *name)
@@ -319,9 +365,12 @@ void yf::Zoom::Impl::release_frontend(mp::Package &package)
     }
 }
 
-yf::Zoom::Impl::Impl() : element_transform("pz2") , element_raw("raw")
+yf::Zoom::Impl::Impl() :
+    apdu_log(false), element_transform("pz2") , element_raw("raw")
 {
     bibset = ccl_qual_mk();
+
+    srand((unsigned int) time(0));
 }
 
 yf::Zoom::Impl::~Impl()
@@ -358,6 +407,11 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
                          "cfSubDb"))
         {
             s->cfSubDb = mp::xml::get_text(ptr);
+        }  
+        else if (!strcmp((const char *) ptr->name,
+                         "contentConnector"))
+        {
+            s->contentConnector = mp::xml::get_text(ptr);
         }  
         else if (!strcmp((const char *) ptr->name, "udb"))
         {
@@ -470,8 +524,14 @@ void yf::Zoom::Impl::configure_local_records(const xmlNode *ptr, bool test_only)
     }
 }
 
-void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
+void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
+                               const char *path)
 {
+    content_tmp_file = "/tmp/cf.XXXXXX.p";
+    if (path && *path)
+    {
+        file_path = path;
+    }
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
         if (ptr->type != XML_ELEMENT_NODE)
@@ -520,6 +580,34 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only)
             if (cql_field.length())
                 fieldmap[cql_field] = ccl_field;
         }
+        else if (!strcmp((const char *) ptr->name, "contentProxy"))
+        {
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "server"))
+                    content_proxy_server = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "tmp_file"))
+                    content_tmp_file = mp::xml::get_text(attr->children);
+                else
+                    throw mp::filter::FilterException(
+                        "Bad attribute " + std::string((const char *)
+                                                       attr->name));
+            }
+        }
+        else if (!strcmp((const char *) ptr->name, "log"))
+        { 
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "apdu"))
+                    apdu_log = mp::xml::get_bool(attr->children, false);
+                else
+                    throw mp::filter::FilterException(
+                        "Bad attribute " + std::string((const char *)
+                                                       attr->name));
+            }
+        }
         else
         {
             throw mp::filter::FilterException
@@ -537,7 +625,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (m_backend && m_backend->m_frontend_database == database)
         return m_backend;
 
-    const char *sru_proxy = 0;
     std::string db_args;
     std::string torus_db;
     size_t db_arg_pos = database.find(',');
@@ -593,18 +680,35 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     xsltStylesheetPtr xsp = 0;
     if (sptr->transform_xsl_fname.length())
     {
+        const char *path = 0;
+
+        if (m_p->xsldir.length())
+            path = m_p->xsldir.c_str();
+        else
+            path = m_p->file_path.c_str();
         std::string fname;
 
-        if (m_p->xsldir.length()) 
-            fname = m_p->xsldir + "/" + sptr->transform_xsl_fname;
+        char fullpath[1024];
+        char *cp = yaz_filepath_resolve(sptr->transform_xsl_fname.c_str(),
+                                        path, 0, fullpath);
+        if (cp)
+            fname.assign(cp);
         else
-            fname = sptr->transform_xsl_fname;
+        {
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            *addinfo = (char *)
+                odr_malloc(odr, 40 + sptr->transform_xsl_fname.length());
+            sprintf(*addinfo, "File could not be read: %s", 
+                    sptr->transform_xsl_fname.c_str());
+            BackendPtr b;
+            return b;
+        }
         xmlDoc *xsp_doc = xmlParseFile(fname.c_str());
         if (!xsp_doc)
         {
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-            *addinfo = (char *) odr_malloc(odr, 40 + strlen(fname.c_str()));
-            sprintf(*addinfo, "xmlParseFile failed. File %s", fname.c_str());
+            *addinfo = (char *) odr_malloc(odr, 40 + fname.length());
+            sprintf(*addinfo, "xmlParseFile failed. File: %s", fname.c_str());
             BackendPtr b;
             return b;
         }
@@ -625,39 +729,91 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     b->xsp = xsp;
     b->m_frontend_database = database;
-    std::string authentication = sptr->authentication;
-        
-    b->set_option("timeout", "40");
 
     if (sptr->query_encoding.length())
-        b->set_option("rpnCharset", sptr->query_encoding.c_str());
+        b->set_option("rpnCharset", sptr->query_encoding);
+
+    b->set_option("timeout", "40");
+    
+    if (m_p->apdu_log) 
+        b->set_option("apdulog", "1");
+
+    if (sptr->piggyback)
+        b->set_option("count", "10");
+    b->set_option("piggyback", sptr->piggyback ? "1" : "0");
+
+    std::string authentication = sptr->authentication;
+    std::string proxy = sptr->cfProxy;
+        
+    const char *param_user = 0;
+    const char *param_password = 0;
+    const char *param_proxy = 0;
+    if (db_args.length())
+    {
+        char **names;
+        char **values;
+        int i;
+        int no_parms = yaz_uri_to_array(db_args.c_str(),
+                                        odr, &names, &values);
+        for (i = 0; i < no_parms; i++)
+        {
+            const char *name = names[i];
+            const char *value = values[i];
+            if (!strcmp(name, "user"))
+                param_user = value;
+            else if (!strcmp(name, "password"))
+                param_password = value;
+            else if (!strcmp(name, "proxy"))
+                param_proxy = value;
+            else if (!strcmp(name, "cproxysession"))
+                ;
+            else
+            {
+                BackendPtr notfound;
+                char *msg = (char*) odr_malloc(odr, strlen(name) + 30);
+                *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+                sprintf(msg, "Bad database argument: %s", name);
+                *addinfo = msg;
+                return notfound;
+            }
+        }
+        if (param_user)
+        {
+            authentication = std::string(param_user);
+            if (param_password)
+                authentication += "/" + std::string(param_password);
+        }
+        if (param_proxy)
+            proxy = param_proxy;
+    }
 
     if (sptr->cfAuth.length())
     {
         // A CF target
-        b->set_option("user", sptr->cfAuth.c_str());
-        if (db_args.length() == 0)
+        b->set_option("user", sptr->cfAuth);
+        if (!param_user && !param_password && authentication.length())
         {
-            if (authentication.length())
+            if (db_args.length())
+                db_args += "&";
+            // no database (auth) args specified already.. and the
+            // Torus authentication has it.. Generate the args that CF
+            // understands..
+            size_t found = authentication.find('/');
+            if (found != std::string::npos)
             {
-                // no database (auth) args specified already.. and the
-                // Torus authentication has it.. Generate the args that CF
-                // understands..
-                size_t found = authentication.find('/');
-                if (found != std::string::npos)
-                {
-                    db_args += "user=" + mp::util::uri_encode(authentication.substr(0, found))
-                        + "&password=" + mp::util::uri_encode(authentication.substr(found+1));
-                }
-                else
-                    db_args += "user=" + mp::util::uri_encode(authentication);
+                db_args += "user=" +
+                    mp::util::uri_encode(authentication.substr(0, found))
+                    + "&password=" +
+                    mp::util::uri_encode(authentication.substr(found+1));
             }
-            if (sptr->cfProxy.length())
-            {
-                if (db_args.length())
-                    db_args += "&";
-                db_args += "proxy=" + mp::util::uri_encode(sptr->cfProxy);
-            }
+            else
+                db_args += "user=" + mp::util::uri_encode(authentication);
+        }
+        if (!param_proxy && proxy.length())
+        {
+            if (db_args.length())
+                db_args += "&";
+            db_args += "proxy=" + mp::util::uri_encode(proxy);
         }
         if (sptr->cfSubDb.length())
         {
@@ -668,64 +824,68 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     }
     else
     {
-        // A non-CF target
-        if (db_args.length())
+        db_args.clear(); // no arguments to be passed (non-CF)
+
+        size_t found = authentication.find('/');
+        
+        if (sptr->sru.length() && found != std::string::npos)
         {
-            // user has specified backend authentication
-            const char *param_user = 0;
-            const char *param_password = 0;
-            char **names;
-            char **values;
-            int i;
-            int no_parms = yaz_uri_to_array(db_args.c_str(),
-                                            odr, &names, &values);
-            for (i = 0; i < no_parms; i++)
-            {
-                const char *name = names[i];
-                const char *value = values[i];
-                if (!strcmp(name, "user"))
-                    param_user = value;
-                else if (!strcmp(name, "password"))
-                    param_password = value;
-                else if (!strcmp(name, "proxy"))
-                    sru_proxy = value;
-                else
-                {
-                    BackendPtr notfound;
-                    char *msg = (char*) odr_malloc(odr, strlen(name) + 30);
-                    *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-                    sprintf(msg, "Bad database argument: %s", name);
-                    *addinfo = msg;
-                    return notfound;
-                }
-            }
-            if (param_user && param_password)
-            {
-                char *auth = (char*) odr_malloc(
-                    odr, strlen(param_user) + strlen(param_password) + 2);
-                strcpy(auth, param_user);
-                strcat(auth, "/");
-                strcat(auth, param_password);
-                b->set_option("user", auth);
-            }
-            db_args.clear(); // no arguments to be passed (non-CF)
+            b->set_option("user", authentication.substr(0, found));
+            b->set_option("password", authentication.substr(found+1));
         }
         else
-        {
-            // use authentication from Torus, if given
-            if (authentication.length())
-                b->set_option("user", authentication.c_str());
-        }
-    }
+            b->set_option("user", authentication);
 
-    if (sru_proxy)
-        b->set_option("proxy", sru_proxy);
+        if (proxy.length())
+            b->set_option("proxy", proxy);
+    }
+    if (b->sptr->contentConnector.length())
+    {
+        char *fname = (char *) xmalloc(m_p->content_tmp_file.length() + 8);
+        strcpy(fname, m_p->content_tmp_file.c_str());
+        char *xx = strstr(fname, "XXXXXX");
+        if (!xx)
+        {
+            xx = fname + strlen(fname);
+            strcat(fname, "XXXXXX");
+        }
+        char tmp_char = xx[6];
+        sprintf(xx, "%06d", ((unsigned) rand()) % 1000000);
+        xx[6] = tmp_char;
+
+        FILE *file = fopen(fname, "w");
+        if (!file)
+        {
+            yaz_log(YLOG_WARN|YLOG_ERRNO, "create %s", fname);
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            *addinfo = (char *)  odr_malloc(odr, 40 + strlen(fname));
+            sprintf(*addinfo, "Could not create %s", fname);
+            xfree(fname);
+            BackendPtr backend_null;
+            return backend_null;
+        }
+        b->content_session_id.assign(xx, 6);
+        WRBUF w = wrbuf_alloc();
+        wrbuf_puts(w, "#content_proxy\n");
+        wrbuf_printf(w, "connector: %s\n", b->sptr->contentConnector.c_str());
+        if (authentication.length())
+            wrbuf_printf(w, "authentication: %s\n", authentication.c_str());
+        if (proxy.length())
+            wrbuf_printf(w, "proxy: %s\n", proxy.c_str());
+        if (sptr->cfProxy.length())
+            wrbuf_printf(w, "cfproxy: %s\n", sptr->cfProxy.c_str());
+
+        fwrite(wrbuf_buf(w), 1, wrbuf_len(w), file);
+        fclose(file);
+        yaz_log(YLOG_LOG, "file %s created\n", fname);
+        xfree(fname);
+    }
 
     std::string url;
     if (sptr->sru.length())
     {
         url = "http://" + sptr->target;
-        b->set_option("sru", sptr->sru.c_str());
+        b->set_option("sru", sptr->sru);
     }
     else
     {
@@ -734,10 +894,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (db_args.length())
         url += "," + db_args;
     yaz_log(YLOG_LOG, "url=%s", url.c_str());
-    const char *addinfo_c = 0;
-    b->connect(url, error, &addinfo_c);
-    if (addinfo_c)
-        *addinfo = odr_strdup(odr, addinfo_c);
+    b->connect(url, error, addinfo, odr);
     if (*error == 0)
     {
         m_backend = b;
@@ -748,7 +905,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                                            Odr_int number_to_present,
                                            int *error,
-                                           const char **addinfo,
+                                           char **addinfo,
                                            Odr_int *number_of_records_returned,
                                            ODR odr,
                                            BackendPtr b,
@@ -768,7 +925,7 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
         number_to_present = 10000;
     
     ZOOM_record *recs = (ZOOM_record *)
-        odr_malloc(odr, number_to_present * sizeof(*recs));
+        odr_malloc(odr, (size_t) number_to_present * sizeof(*recs));
 
     char oid_name_str[OID_STR_MAX];
     const char *syntax_name = 0;
@@ -815,9 +972,9 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
 
     b->set_option("elementSetName", element_set_name);
 
-    b->present(start, number_to_present, recs, error, addinfo);
+    b->present(start, number_to_present, recs, error, addinfo, odr);
 
-    Odr_int i = 0;
+    int i = 0;
     if (!*error)
     {
         for (i = 0; i < number_to_present; i++)
@@ -867,20 +1024,52 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                 xmlChar *xmlrec_buf = 0;
                 const char *rec_buf = ZOOM_record_get(recs[i], rec_type_str,
                                                       &rec_len);
+                if (!rec_buf && !npr)
+                {
+                    std::string addinfo("ZOOM_record_get failed for type ");
+
+                    addinfo += rec_type_str;
+                    npr = zget_surrogateDiagRec(
+                        odr, odr_database, 
+                        YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                        addinfo.c_str());
+                }
+
                 if (rec_buf && b->xsp && enable_pz2_transform)
                 {
                     xmlDoc *rec_doc = xmlParseMemory(rec_buf, rec_len);
-                    if (rec_doc)
+                    if (!rec_doc)
+                    {
+                        npr = zget_surrogateDiagRec(
+                            odr, odr_database, 
+                            YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                            "xml parse failed for record");
+                    }
+                    else
                     { 
-                        xmlDoc *rec_res;
-                        rec_res = xsltApplyStylesheet(b->xsp, rec_doc, 0);
+                        xmlDoc *rec_res = 
+                            xsltApplyStylesheet(b->xsp, rec_doc, 0);
 
                         if (rec_res)
+                        {
                             xsltSaveResultToString(&xmlrec_buf, &rec_len,
                                                    rec_res, b->xsp);
-                        rec_buf = (const char *) xmlrec_buf;
+                            rec_buf = (const char *) xmlrec_buf;
+
+                            xmlFreeDoc(rec_res);
+                        }
+                        if (!rec_buf)
+                        {
+                            std::string addinfo;
+
+                            addinfo = "xslt apply failed for "
+                                + b->sptr->transform_xsl_fname;
+                            npr = zget_surrogateDiagRec(
+                                odr, odr_database, 
+                                YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                                addinfo.c_str());
+                        }
                         xmlFreeDoc(rec_doc);
-                        xmlFreeDoc(rec_res);
                     }
                 }
 
@@ -889,6 +1078,18 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                     xmlDoc *doc = xmlParseMemory(rec_buf, rec_len);
                     std::string res = 
                         mp::xml::url_recipe_handle(doc, b->sptr->urlRecipe);
+                    if (res.length() && b->content_session_id.length())
+                    {
+                        size_t off = res.find_first_of("://");
+                        if (off != std::string::npos)
+                        {
+                            char tmp[1024];
+                            sprintf(tmp, "%s.%s/",
+                                    b->content_session_id.c_str(),
+                                    m_p->content_proxy_server.c_str());
+                            res.insert(off + 3, tmp);
+                        }
+                    }
                     if (res.length())
                     {
                         xmlNode *ptr = xmlDocGetRootElement(doc);
@@ -907,20 +1108,22 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                     }
                     xmlFreeDoc(doc);
                 }
-                if (rec_buf)
+                if (!npr)
                 {
-                    npr = (Z_NamePlusRecord *) odr_malloc(odr, sizeof(*npr));
-                    npr->databaseName = odr_database;
-                    npr->which = Z_NamePlusRecord_databaseRecord;
-                    npr->u.databaseRecord =
-                        z_ext_record_xml(odr, rec_buf, rec_len);
-                }
-                else
-                {
-                    npr = zget_surrogateDiagRec(
-                        odr, odr_database, 
-                        YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
-                        rec_type_str);
+                    if (!rec_buf)
+                        npr = zget_surrogateDiagRec(
+                            odr, odr_database, 
+                            YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                            rec_type_str);
+                    else
+                    {
+                        npr = (Z_NamePlusRecord *)
+                            odr_malloc(odr, sizeof(*npr));
+                        npr->databaseName = odr_database;
+                        npr->which = Z_NamePlusRecord_databaseRecord;
+                        npr->u.databaseRecord =
+                            z_ext_record_xml(odr, rec_buf, rec_len);
+                    }
                 }
                 if (xmlrec_buf)
                     xmlFree(xmlrec_buf);
@@ -986,6 +1189,110 @@ struct cql_node *yf::Zoom::Impl::convert_cql_fields(struct cql_node *cn,
     return r;
 }
 
+static void sort_pqf_type_7(WRBUF pqf_wrbuf, const char *sru_sortkeys)
+{
+    /* sortkey layour: path,schema,ascending,caseSensitive,missingValue */
+    /* see cql_sortby_to_sortkeys of YAZ. */
+    char **sortspec;
+    int num_sortspec = 0;
+    int i;
+    NMEM nmem = nmem_create();
+    
+    if (sru_sortkeys)
+        nmem_strsplit_blank(nmem, sru_sortkeys, &sortspec, &num_sortspec);
+    if (num_sortspec > 0)
+    {
+        WRBUF w = wrbuf_alloc();
+        for (i = 0; i < num_sortspec; i++)
+        {
+            char **arg;
+            int num_arg;
+            int ascending = 1;
+            nmem_strsplitx(nmem, ",", sortspec[i], &arg, &num_arg, 0);
+            
+            if (num_arg > 2 && arg[2][0])
+                ascending = atoi(arg[2]);
+            
+            wrbuf_puts(w, "@or @attr 1=");
+            yaz_encode_pqf_term(w, arg[0], strlen(arg[0]));
+            wrbuf_printf(w, "@attr 7=%d %d ", ascending ? 1 : 2, i);
+        }
+        if (wrbuf_len(w))
+        {
+            wrbuf_puts(w, wrbuf_cstr(pqf_wrbuf));
+            wrbuf_rewind(pqf_wrbuf);
+            wrbuf_puts(pqf_wrbuf, wrbuf_cstr(w));
+        }
+        wrbuf_destroy(w);
+    }
+    nmem_destroy(nmem);
+}
+
+static void sort_via_cql(WRBUF cql_sortby, const char *sru_sortkeys)
+{
+    /* sortkey layour: path,schema,ascending,caseSensitive,missingValue */
+    /* see cql_sortby_to_sortkeys of YAZ. */
+    char **sortspec;
+    int num_sortspec = 0;
+    int i;
+    NMEM nmem = nmem_create();
+    
+    if (sru_sortkeys)
+        nmem_strsplit_blank(nmem, sru_sortkeys, &sortspec, &num_sortspec);
+    if (num_sortspec > 0)
+    {
+        WRBUF w = wrbuf_alloc();
+        for (i = 0; i < num_sortspec; i++)
+        {
+            char **arg;
+            int num_arg;
+            int ascending = 1;
+            int case_sensitive = 0;
+            const char *missing = 0;
+            nmem_strsplitx(nmem, ",", sortspec[i], &arg, &num_arg, 0);
+            
+            if (num_arg > 2 && arg[2][0])
+                ascending = atoi(arg[2]);
+            if (num_arg > 3 && arg[3][0])
+                case_sensitive = atoi(arg[3]);
+            if (num_arg > 4 && arg[4][0])
+                missing = arg[4];
+            if (i > 0)
+                wrbuf_puts(w, " ");
+            else
+                wrbuf_puts(w, " sortby ");
+            wrbuf_puts(w, arg[0]);  /* field */
+            wrbuf_puts(w, "/");
+            wrbuf_puts(w, ascending ? "ascending" : "descending");
+            if (case_sensitive)
+                wrbuf_puts(w, "/respectCase");
+            if (missing)
+            {
+                if (!strcmp(missing, "omit"))
+                    wrbuf_puts(w, "/missingOmit");
+                else if (!strcmp(missing, "abort"))
+                    wrbuf_puts(w, "/missingFail");
+                else if (!strcmp(missing, "lowValue"))
+                    wrbuf_puts(w, "/missingLow");
+                else if (!strcmp(missing, "highValue"))
+                    wrbuf_puts(w, "/missingHigh");
+            }
+        }
+        if (wrbuf_len(w))
+            wrbuf_puts(cql_sortby, wrbuf_cstr(w));
+        wrbuf_destroy(w);
+    }
+    nmem_destroy(nmem);
+}
+
+#if YAZ_VERSIONL < 0x40206
+static void wrbuf_vp_puts(const char *buf, void *client_data)
+{
+    WRBUF b = (WRBUF) client_data;
+    wrbuf_puts(b, buf);
+}
+#endif
+
 void yf::Zoom::Frontend::handle_search(mp::Package &package)
 {
     Z_GDU *gdu = package.request().get();
@@ -1002,25 +1309,24 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     }
 
     int error = 0;
-    char *addinfo_s = 0;
+    char *addinfo = 0;
     std::string db(sr->databaseNames[0]);
-    BackendPtr b = get_backend_from_databases(db, &error, &addinfo_s, odr);
+    BackendPtr b = get_backend_from_databases(db, &error, &addinfo, odr);
     if (error)
     {
         apdu_res = 
-            odr.create_searchResponse(
-                apdu_req, error, addinfo_s);
+            odr.create_searchResponse(apdu_req, error, addinfo);
         package.response() = apdu_res;
         return;
     }
 
-    const char *addinfo_c = 0;
     b->set_option("setname", "default");
 
     Odr_int hits = 0;
     Z_Query *query = sr->query;
     WRBUF ccl_wrbuf = 0;
     WRBUF pqf_wrbuf = 0;
+    std::string sru_sortkeys;
 
     if (query->which == Z_Query_type_1 || query->which == Z_Query_type_101)
     {
@@ -1057,14 +1363,14 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         if (cn_error)
         {
             // hopefully we are getting a ptr to a index+relation+term node
-            addinfo_c = 0;
+            addinfo = 0;
             if (cn_error->which == CQL_NODE_ST)
-                addinfo_c = cn_error->u.st.index;
+                addinfo = cn_error->u.st.index;
 
             apdu_res = 
                 odr.create_searchResponse(apdu_req, 
                                           YAZ_BIB1_UNSUPP_USE_ATTRIBUTE,
-                                          addinfo_c);
+                                          addinfo);
             package.response() = apdu_res;
             return;
         }
@@ -1075,6 +1381,13 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         {
             ccl_wrbuf = wrbuf_alloc();
             wrbuf_puts(ccl_wrbuf, ccl_buf);
+            
+            WRBUF sru_sortkeys_wrbuf = wrbuf_alloc();
+
+            cql_sortby_to_sortkeys(cn, wrbuf_vp_puts, sru_sortkeys_wrbuf);
+
+            sru_sortkeys.assign(wrbuf_cstr(sru_sortkeys_wrbuf));
+            wrbuf_destroy(sru_sortkeys_wrbuf);
         }
         cql_parser_destroy(cp);
         if (r)
@@ -1154,11 +1467,14 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
             status = cql_transform_rpn2cql_wrbuf(cqlt, wrb, zquery);
             
             cql_transform_close(cqlt);
+
+            if (status == 0)
+                sort_via_cql(wrb, sru_sortkeys.c_str());
         }
         if (status == 0)
         {
             yaz_log(YLOG_LOG, "search CQL: %s", wrbuf_cstr(wrb));
-            b->search_cql(wrbuf_cstr(wrb), &hits, &error, &addinfo_c);
+            b->search_cql(wrbuf_cstr(wrb), &hits, &error, &addinfo, odr);
         }
         
         wrbuf_destroy(wrb);
@@ -1174,12 +1490,13 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     }
     else
     {
+        sort_pqf_type_7(pqf_wrbuf, sru_sortkeys.c_str());
+
         yaz_log(YLOG_LOG, "search PQF: %s", wrbuf_cstr(pqf_wrbuf));
-        b->search_pqf(wrbuf_cstr(pqf_wrbuf), &hits, &error, &addinfo_c);
+        b->search_pqf(wrbuf_cstr(pqf_wrbuf), &hits, &error, &addinfo, odr);
         wrbuf_destroy(pqf_wrbuf);
     }
-    
-    
+
     const char *element_set_name = 0;
     Odr_int number_to_present = 0;
     if (!error)
@@ -1187,10 +1504,10 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     
     Odr_int number_of_records_returned = 0;
     Z_Records *records = get_records(
-        0, number_to_present, &error, &addinfo_c,
+        0, number_to_present, &error, &addinfo,
         &number_of_records_returned, odr, b, sr->preferredRecordSyntax,
         element_set_name);
-    apdu_res = odr.create_searchResponse(apdu_req, error, addinfo_c);
+    apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
     if (records)
     {
         apdu_res->u.searchResponse->records = records;
@@ -1228,7 +1545,7 @@ void yf::Zoom::Frontend::handle_present(mp::Package &package)
         element_set_name = comp->u.simple->u.generic;
     Odr_int number_of_records_returned = 0;
     int error = 0;
-    const char *addinfo = 0;
+    char *addinfo = 0;
     Z_Records *records = get_records(
         *pr->resultSetStartPoint - 1, *pr->numberOfRecordsRequested,
         &error, &addinfo, &number_of_records_returned, odr, m_backend,

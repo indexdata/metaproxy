@@ -8,6 +8,8 @@
       <xs:element minOccurs="0" ref="mp:torus"/>
       <xs:element minOccurs="0" maxOccurs="unbounded" ref="mp:fieldmap"/>
       <xs:element minOccurs="0" ref="mp:cclmap"/>
+      <xs:element minOccurs="0" ref="mp:contentProxy"/>
+      <xs:element minOccurs="0" ref="mp:log"/>
     </xs:sequence>
   </xs:group>
   <xs:element name="torus">
@@ -51,6 +53,7 @@
         <xs:element minOccurs="0" ref="mp:cfAuth"/>
         <xs:element minOccurs="0" ref="mp:cfProxy"/>
         <xs:element minOccurs="0" ref="mp:cfSubDb"/>
+        <xs:element minOccurs="0" ref="mp:contentConnector"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -74,6 +77,7 @@
   <xs:element name="cfAuth" type="xs:string"/>
   <xs:element name="cfProxy" type="xs:string"/>
   <xs:element name="cfSubDb" type="xs:string"/>
+  <xs:element name="contentConnector" type="xs:string"/>
   <xs:element name="fieldmap">
     <xs:complexType>
       <xs:attribute name="cql" use="required" type="xs:string"/>
@@ -99,6 +103,17 @@
     <xs:complexType>
       <xs:attribute name="type" use="required" type="xs:string"/>
       <xs:attribute name="value" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="contentProxy">
+    <xs:complexType>
+      <xs:attribute name="server" type="xs:string"/>
+      <xs:attribute name="tmp_file" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="log">
+    <xs:complexType>
+      <xs:attribute name="apdu" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
   <xs:attributeGroup name="filter_zoom">

@@ -73,7 +73,8 @@ static void die(std::string s) { throw mp::filter::FilterException(s); }
 
 
 // Read XML config.. Put config info in m_p.
-void mp::filter::AuthSimple::configure(const xmlNode * ptr, bool test_only)
+void mp::filter::AuthSimple::configure(const xmlNode * ptr, bool test_only,
+                                       const char *path)
 {
     std::string userRegisterName;
     std::string targetRegisterName;

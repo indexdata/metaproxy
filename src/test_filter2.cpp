@@ -41,7 +41,7 @@ public:
     void process(mp::Package & package) const {
 	package.move();
     };
-    void configure(const xmlNode* ptr, bool test_only);
+    void configure(const xmlNode* ptr, bool test_only, const char *path);
     int get_constant() const { return m_constant; };
 private:
     const xmlNode *m_ptr;
@@ -49,7 +49,8 @@ private:
 };
 
 
-void FilterConstant::configure(const xmlNode* ptr, bool test_only)
+void FilterConstant::configure(const xmlNode* ptr, bool test_only,
+                               const char *path)
 {
     m_ptr = ptr;
 
@@ -93,6 +94,8 @@ public:
     void process(mp::Package & package) const {
 	package.move();
     };
+    void configure(const xmlNode * ptr, bool test_only,
+                   const char *path) { };
 };
 
 
@@ -170,7 +173,7 @@ BOOST_AUTO_TEST_CASE( testfilter2_2 )
         {
             xmlNodePtr root_element = xmlDocGetRootElement(doc);
             
-            base->configure(root_element, true);
+            base->configure(root_element, true, 0);
             
             xmlFreeDoc(doc);
         }

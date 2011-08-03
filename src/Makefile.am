@@ -16,7 +16,7 @@ bin_SCRIPTS = metaproxy-config
 # Rules for the library..
 
 lib_LTLIBRARIES = libmetaproxy.la
-libmetaproxy_la_LDFLAGS = -version-info 3:0:0 -export-dynamic
+libmetaproxy_la_LDFLAGS = -version-info 4:0:0 -export-dynamic
 
 libmetaproxy_la_SOURCES = \
 	factory_filter.cpp factory_filter.hpp \

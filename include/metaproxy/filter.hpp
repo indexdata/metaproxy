@@ -37,7 +37,8 @@ namespace metaproxy_1 {
             virtual void process(Package & package) const = 0;
 
             /// configuration during filter load 
-            virtual void configure(const xmlNode * ptr, bool test_only);
+            virtual void configure(const xmlNode * ptr, bool test_only,
+                                   const char *path) = 0;
 
             virtual void start() const;
         };

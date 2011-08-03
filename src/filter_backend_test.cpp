@@ -389,6 +389,12 @@ void yf::BackendTest::process(Package &package) const
         m_p->m_sessions.release(package.session());
 }
 
+void mp::filter::BackendTest::configure(const xmlNode * ptr, bool test_only,
+                                        const char *path)
+{
+    mp::xml::check_empty(ptr);
+}
+
 static mp::filter::Base* filter_creator()
 {
     return new mp::filter::BackendTest;

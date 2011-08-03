@@ -71,7 +71,8 @@ void yf::QueryRewrite::process(mp::Package &package) const
     m_p->process(package);
 }
 
-void mp::filter::QueryRewrite::configure(const xmlNode *ptr, bool test_only)
+void mp::filter::QueryRewrite::configure(const xmlNode *ptr, bool test_only,
+                                         const char *path)
 {
     m_p->configure(ptr);
 }

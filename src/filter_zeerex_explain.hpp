@@ -32,7 +32,8 @@ namespace metaproxy_1 {
         public:
             ZeeRexExplain();
             ~ZeeRexExplain();
-            void configure(const xmlNode *xmlnode, bool test_only);
+            void configure(const xmlNode *xmlnode, bool test_only,
+                           const char *path);
             void process(metaproxy_1::Package & package) const;
         };
     }

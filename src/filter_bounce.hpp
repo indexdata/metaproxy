@@ -34,6 +34,8 @@ namespace metaproxy_1 {
             Bounce();
             ~Bounce();
             void process(metaproxy_1::Package & package) const;
+            void configure(const xmlNode * ptr, bool test_only,
+                           const char *path);
         };
     }
 }

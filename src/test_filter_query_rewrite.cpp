@@ -213,7 +213,7 @@ BOOST_AUTO_TEST_CASE( test_filter_query_rewrite3 )
 
         // creating and configuring filter
         mp::filter::QueryRewrite f_query_rewrite;
-        f_query_rewrite.configure(root_element, true);
+        f_query_rewrite.configure(root_element, true, 0);
         
         // remeber to free XML DOM
         xmlFreeDoc(doc);

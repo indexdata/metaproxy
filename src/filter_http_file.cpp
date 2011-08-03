@@ -218,7 +218,8 @@ void yf::HttpFile::process(mp::Package &package) const
         package.move();
 }
 
-void mp::filter::HttpFile::configure(const xmlNode * ptr, bool test_only)
+void mp::filter::HttpFile::configure(const xmlNode * ptr, bool test_only,
+                                     const char *path)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
