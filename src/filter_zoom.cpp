@@ -661,8 +661,17 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                 if (ptr->type == XML_ELEMENT_NODE
                     && !strcmp((const char *) ptr->name, "record"))
                 {
+                    if (sptr)
+                    {
+                        *error = YAZ_BIB1_UNSPECIFIED_ERROR;
+                        *addinfo = (char*) odr_malloc(odr, 40 + database.length()),
+                        sprintf(*addinfo, "multiple records for udb=%s",
+                                 database.c_str());
+                        xmlFreeDoc(doc);
+                        BackendPtr b;
+                        return b;
+                    }
                     sptr = m_p->parse_torus_record(ptr);
-                    break;
                 }
             }
         }
