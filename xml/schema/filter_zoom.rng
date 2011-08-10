@@ -36,6 +36,11 @@
           </attribute>
         </optional>
         <optional>
+          <attribute name="proxy">
+            <data type="string"/>
+          </attribute>
+        </optional>
+        <optional>
           <element name="mp:records">
             <zeroOrMore>
               <element name="mp:record">

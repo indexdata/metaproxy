@@ -153,6 +153,7 @@ namespace metaproxy_1 {
             CCL_bibset bibset;
             std::string element_transform;
             std::string element_raw;
+            std::string proxy;
             std::map<std::string,SearchablePtr> s_map;
         };
     }
@@ -549,6 +550,8 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                     element_transform = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "element_raw"))
                     element_raw = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "proxy"))
+                    proxy = mp::xml::get_text(attr->children);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
@@ -644,7 +647,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         sptr = it->second;
     else
     {
-        xmlDoc *doc = mp::get_searchable(m_p->torus_url, torus_db);
+        xmlDoc *doc = mp::get_searchable(m_p->torus_url, torus_db, m_p->proxy);
         if (!doc)
         {
             *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;

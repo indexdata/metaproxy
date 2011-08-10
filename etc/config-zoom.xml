@@ -8,10 +8,11 @@
     </filter>
     <filter id="backend" type="zoom">
       <torus
-	  url="http://newmk2.indexdata.com/torus2/searchable.ebsco/records/?query=udb%3D%db"
+         url="http://mk2.indexdata.com/torus2/searchable.usi-test/records/?query=udb%3D%db"
             xsldir="."
             element_transform="pz2"
             element_raw="raw"
+	    proxy="localhost:3128"
 	    >	
         <!-- these records are examples only -->
 	<records>
