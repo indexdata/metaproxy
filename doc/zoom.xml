@@ -54,95 +54,137 @@
 
  <refsect1><title>CONFIGURATION</title>
    <para>
-     The configuration consists of three parts: <literal>torus</literal>,
-     <literal>fieldmap</literal> and <literal>cclmap</literal>.
+     The configuration consists of four parts: <literal>torus</literal>,
+     <literal>fieldmap</literal>, <literal>cclmap</literal>
+     and <literal>log</literal>.
    </para>
-   <para>
-     The <literal>torus</literal> element specifies target profiles
-     and takes the following content:
-   </para>
-   <variablelist>
-     <varlistentry>
-       <term>attribute <literal>url</literal></term>
-       <listitem><para>
-	   URL of Web service to be used to fetch target profile
-	   for a given database (udb). The special sequence
-	   <literal>%db</literal> of the URL is replaced by the
-	   actual database specified as part of Search.
-	 </para>
-       </listitem>
-     </varlistentry>
-     <varlistentry>
-       <term>attribute <literal>xsldir</literal></term>
-       <listitem><para>
-	   Directory that is searched for XSL stylesheets. Stylesheets
-	   are specified in the target profile by the
-	   <literal>transform</literal> element.
-	 </para>
-       </listitem>
-     </varlistentry>
-     <varlistentry>
-       <term>attribute <literal>element_transform</literal></term>
-       <listitem><para>
-	   Specifies the element that triggers retrieval and transform using
-	   the parameters elementSet, recordEncoding, requestSyntax, transform
-	   from the target profile. Default value
-	   is "pz2", due to the fact that for historical reasons the
-	   common format is that used in Pazpar2.
-	 </para>
-       </listitem>
-     </varlistentry>
-     <varlistentry>
-       <term>attribute <literal>element_raw</literal></term>
-       <listitem><para>
-	   Specifies an element that triggers retrieval using the
-	   parameters elementSet, recordEncoding, requestSyntax from the
-	   target profile. Same actions as for element_transform, but without
-	   the XSL transform. Useful for debugging. The default value is "raw".
-	 </para>
-       </listitem>
-     </varlistentry>
-     <varlistentry>
-       <term>element <literal>records</literal></term>
-       <listitem><para>
-	   Local target profiles. This element may includes zero or
-	   more <literal>record</literal> elements (one per target
-	   profile). See section TARGET PROFILE.
-	 </para>
-       </listitem>
-     </varlistentry>
-   </variablelist>
-   <para>
-     The <literal>fieldmap</literal> may be specified zero or more times and
-     specifies the map from CQL fields to CCL fields and takes the
-     following content:
-   </para>
-   <variablelist>
-     <varlistentry>
-       <term>attribute <literal>cql</literal></term>
-       <listitem>
-	 <para>
-	   CQL field that we are mapping "from".
-	 </para>
-       </listitem>
-     </varlistentry>
-     <varlistentry>
-       <term>attribute <literal>ccl</literal></term>
-       <listitem>
-	 <para>
-	   CCL field that we are mapping "to".
-	 </para>
-       </listitem>
-     </varlistentry>
-   </variablelist>
-   <para>
-     The final part of the configuration consists of zero or more
-     <literal>cclmap</literal> elements that specifies <emphasis>base</emphasis>
-     CCL profile to be used for all targets. This configuration, thus, will
-     be combined with cclmap-definitions from the target profile.
-   </para>
+   <refsect2><title>torus</title>
+     <para>
+       The <literal>torus</literal> element specifies target profiles
+       and takes the following content:
+     </para>
+     <variablelist>
+       <varlistentry>
+	 <term>attribute <literal>url</literal></term>
+	 <listitem>
+	   <para>
+	     URL of Web service to be used to fetch target profile
+	     for a given database (udb). The special sequence
+	     <literal>%db</literal> of the URL is replaced by the
+	     actual database specified as part of Search.
+	   </para>
+	 </listitem>
+       </varlistentry>
+       <varlistentry>
+	 <term>attribute <literal>proxy</literal></term>
+	 <listitem>
+	   <para>
+	     HTTP proxy to bse used for fetching target profiles.
+	   </para>
+	 </listitem>
+       </varlistentry>
+       <varlistentry>
+	 <term>attribute <literal>xsldir</literal></term>
+	 <listitem>
+	   <para>
+	     Directory that is searched for XSL stylesheets. Stylesheets
+	     are specified in the target profile by the
+	     <literal>transform</literal> element.
+	   </para>
+	 </listitem>
+       </varlistentry>
+       <varlistentry>
+	 <term>attribute <literal>element_transform</literal></term>
+	 <listitem>
+	   <para>
+	     Specifies the element that triggers retrieval and transform using
+	     the parameters elementSet, recordEncoding, requestSyntax, transform
+	     from the target profile. Default value
+	     is "pz2", due to the fact that for historical reasons the
+	     common format is that used in Pazpar2.
+	   </para>
+	 </listitem>
+       </varlistentry>
+       <varlistentry>
+	 <term>attribute <literal>element_raw</literal></term>
+	 <listitem>
+	   <para>
+	     Specifies an element that triggers retrieval using the
+	     parameters elementSet, recordEncoding, requestSyntax from the
+	     target profile. Same actions as for element_transform, but without
+	     the XSL transform. Useful for debugging.
+	     The default value is "raw".
+	   </para>
+	 </listitem>
+       </varlistentry>
+       <varlistentry>
+	 <term>element <literal>records</literal></term>
+	 <listitem>
+	   <para>
+	     Local target profiles. This element may includes zero or
+	     more <literal>record</literal> elements (one per target
+	     profile). See section TARGET PROFILE.
+	   </para>
+	 </listitem>
+       </varlistentry>
+     </variablelist>
+   </refsect2>
+   <refsect2><title>fieldmap</title>
+     <para>
+       The <literal>fieldmap</literal> may be specified zero or more times and
+       specifies the map from CQL fields to CCL fields and takes the
+       following content:
+     </para>
+     <variablelist>
+       <varlistentry>
+	 <term>attribute <literal>cql</literal></term>
+	 <listitem>
+	   <para>
+	     CQL field that we are mapping "from".
+	   </para>
+	 </listitem>
+       </varlistentry>
+       <varlistentry>
+	 <term>attribute <literal>ccl</literal></term>
+	 <listitem>
+	   <para>
+	     CCL field that we are mapping "to".
+	   </para>
+	 </listitem>
+       </varlistentry>
+     </variablelist>
+   </refsect2>
+   <refsect2><title>cclmap</title>
+     <para>
+       The third part of the configuration consists of zero or more
+       <literal>cclmap</literal> elements that specifies
+       <emphasis>base</emphasis> CCL profile to be used for all targets.
+       This configuration, thus, will be combined with cclmap-definitions
+       from the target profile.
+     </para>
+   </refsect2>
+   <refsect2><title>log</title>
+     <para>
+       The <literal>log</literal> element controls logging for the
+       ZOOM filter.
+     </para>
+     <variablelist>
+       <varlistentry>
+	 <term>attribute <literal>apdu</literal></term>
+	 <listitem>
+	   <para>
+	     If the value of apdu is "true", then protocol packages
+	     (APDUs and HTTP packages) from the ZOOM filter will be
+	     logged to the yaz_log system. A value of "false" will
+	     not perform logging of protocol packages (the default
+	     behavior).
+	   </para>
+	 </listitem>
+       </varlistentry>
+     </variablelist>
+   </refsect2>
  </refsect1>
- <refsect1><title>QUERIES</title>
+ <refsect1><title>QUERY HANDLING</title>
    <para>
      The ZOOM filter accepts three query types: RPN(Type-1), CCL and
      CQL.
@@ -304,7 +346,8 @@
        <term>zurl</term><listitem>
 	 <para>
 	   This is setting is mandatory and specifies the ZURL of the
-	   targetin the form of host/database.
+	   target in the form of host/database. The HTTP method should
+	   not be provide as this is guessed from the "sru" attribute value.
 	 </para>
        </listitem>
      </varlistentry>
@@ -326,7 +369,7 @@
     <filter type="zoom">
       <torus
          url="http://torus.indexdata.com/src/records/?query=udb%3D%db"
-         xsldir="."
+	 proxy="localhost:3128"
          />
       <fieldmap cql="cql.anywhere"/>
       <fieldmap cql="cql.serverChoice"/>
@@ -340,6 +383,7 @@
           <attr type="s" value="107"/>
         </qual>
       </cclmap>
+      <log apdu="true"/>
     </filter>
 ]]>
    </screen>
