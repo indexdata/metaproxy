@@ -1,3 +1,9 @@
+--- 1.3.5 2011/08/12
+
+z3950_client: mark non-surrogate diagnostics from backend.
+
+zoom: a proxy may be specified for HTTP fetch of target profiles.
+
 --- 1.3.4 2011/08/01
 
 Honor piggyback. Makes some SRU targets behave that insist on
