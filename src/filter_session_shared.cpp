@@ -528,6 +528,10 @@ bool yf::SessionShared::BackendSet::search(
     for (; it != m_databases.end(); it++)
         req->databaseNames[i++] = odr_strdup(odr, it->c_str());
 
+    if (frontend_apdu->which == Z_APDU_searchRequest)
+        req->preferredRecordSyntax =
+            frontend_apdu->u.searchRequest->preferredRecordSyntax;
+
     search_package.request() = apdu_req;
 
     search_package.move();
