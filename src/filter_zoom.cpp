@@ -1008,7 +1008,8 @@ void yf::Zoom::Frontend::prepare_elements(BackendPtr b,
     }
 
     b->set_option("elementSetName", element_set_name);
-
+    if (b->sptr->sru.length() && element_set_name)
+        b->set_option("schema", element_set_name);
 }
 
 Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
