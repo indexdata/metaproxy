@@ -57,6 +57,90 @@
 	    <cclmap_ti>1=title s=pw t=l,r</cclmap_ti>
 	    <sru>get</sru>
 	    <transform>dc.xsl</transform>
+	    <literalTransform>&lt;?xml version="1.0" encoding="UTF-8"?>
+&lt;!--
+
+    This stylesheet expects oai/dc records
+-->
+&lt;xsl:stylesheet
+    version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:pz="http://www.indexdata.com/pazpar2/1.0"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:dcterms="http://purl.org/dc/terms/">
+
+ &lt;xsl:output indent="yes"
+        method="xml"
+        version="1.0"
+        encoding="UTF-8"/>
+
+  &lt;xsl:param name="medium" />
+
+  &lt;xsl:template match="/*">
+    &lt;pz:record>
+
+      &lt;pz:metadata type="id">
+        &lt;xsl:value-of select="dc:identifier"/>
+      &lt;/pz:metadata>
+
+      &lt;xsl:for-each select="dc:title">
+        &lt;pz:metadata type="title">
+          &lt;xsl:value-of select="."/>
+        &lt;/pz:metadata>
+      &lt;/xsl:for-each>
+
+      &lt;xsl:for-each select="dc:date">
+        &lt;pz:metadata type="date">
+      	  &lt;xsl:value-of select="."/>
+	      &lt;/pz:metadata>
+      &lt;/xsl:for-each>
+
+      &lt;xsl:for-each select="dc:subject">
+        &lt;pz:metadata type="subject">
+	        &lt;xsl:value-of select="."/>
+	      &lt;/pz:metadata>
+      &lt;/xsl:for-each>
+
+      &lt;xsl:for-each select="dc:creator">
+	      &lt;pz:metadata type="author">
+          &lt;xsl:value-of select="."/>
+	      &lt;/pz:metadata>
+      &lt;/xsl:for-each>
+
+      &lt;xsl:for-each select="dc:description">
+        &lt;pz:metadata type="description">
+	        &lt;xsl:value-of select="."/>
+	      &lt;/pz:metadata>
+      &lt;/xsl:for-each>
+
+      &lt;xsl:for-each select="dc:identifier">
+        &lt;pz:metadata type="electronic-url">
+	        &lt;xsl:value-of select="."/>
+	      &lt;/pz:metadata>
+      &lt;/xsl:for-each>
+
+      &lt;xsl:for-each select="dc:type">
+        &lt;pz:metadata type="medium">
+	        &lt;xsl:value-of select="."/>
+	      &lt;/pz:metadata>
+      &lt;/xsl:for-each>
+
+      &lt;xsl:for-each select="dcterms:bibliographicCitation">
+        &lt;pz:metadata type="citation">
+          &lt;xsl:value-of select="."/>
+        &lt;/pz:metadata>
+      &lt;/xsl:for-each>
+
+      &lt;pz:metadata type="medium">
+        &lt;xsl:value-of select="$medium" />
+      &lt;/pz:metadata>
+
+    &lt;/pz:record>
+  &lt;/xsl:template>
+
+  &lt;xsl:template match="text()"/>
+
+&lt;/xsl:stylesheet></literalTransform>
 	    <zurl>dfr.jstor.org/sru</zurl>
 	  </record>
 

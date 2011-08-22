@@ -1,3 +1,7 @@
+zoom: new target profile element literalTransform that holds XSLT
+(encoded as string) for target. Only if present and non-zero length it is
+considered present. This takes precedence over transform.
+
 --- 1.3.5 2011/08/12
 
 z3950_client: mark non-surrogate diagnostics from backend.

@@ -66,6 +66,7 @@ namespace metaproxy_1 {
             std::string element_set;
             std::string record_encoding;
             std::string transform_xsl_fname;
+            std::string transform_xsl_content;
             std::string urlRecipe;
             std::string contentConnector;
             bool use_turbomarc;
@@ -466,6 +467,11 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
             s->transform_xsl_fname = mp::xml::get_text(ptr);
         }
         else if (!strcmp((const char *) ptr->name,
+                         "literalTransform"))
+        {
+            s->transform_xsl_content = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name,
                          "urlRecipe"))
         {
             s->urlRecipe = mp::xml::get_text(ptr);
@@ -699,7 +705,29 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     }
         
     xsltStylesheetPtr xsp = 0;
-    if (sptr->transform_xsl_fname.length())
+    if (sptr->transform_xsl_content.length())
+    {
+        xmlDoc *xsp_doc = xmlParseMemory(sptr->transform_xsl_content.c_str(),
+                                         sptr->transform_xsl_content.length());
+        if (!xsp_doc)
+        {
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            *addinfo = (char *) odr_malloc(odr, 40);
+            sprintf(*addinfo, "xmlParseMemory failed");
+            BackendPtr b;
+            return b;
+        }
+        xsp = xsltParseStylesheetDoc(xsp_doc);
+        if (!xsp)
+        {
+            *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
+            *addinfo = odr_strdup(odr, "xsltParseStylesheetDoc failed");
+            BackendPtr b;
+            xmlFreeDoc(xsp_doc);
+            return b;
+        }
+    }
+    else if (sptr->transform_xsl_fname.length())
     {
         const char *path = 0;
 
