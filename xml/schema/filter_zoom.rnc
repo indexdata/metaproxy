@@ -11,6 +11,7 @@ filter_zoom =
     attribute xsldir { xsd:string }?,
     attribute element_transform { xsd:string }?,
     attribute element_raw { xsd:string }?,
+    attribute proxy { xsd:string }?,
     element mp:records {
       element mp:record {
         element mp:authentication { xsd:string }?,
@@ -28,6 +29,7 @@ filter_zoom =
         element mp:requestSyntax { xsd:string }?,
         element mp:sru { xsd:string }?,
         element mp:transform { xsd:string }?,
+        element mp:literalTransform { xsd:string }?,
         element mp:urlRecipe { xsd:string }?,
         element mp:zurl { xsd:string },
         element mp:cfAuth { xsd:string }?,

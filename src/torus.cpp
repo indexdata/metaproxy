@@ -20,135 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <string.h>
 #include <yaz/wrbuf.h>
-#include <yaz/zgdu.h>
-#include <yaz/srw.h>
-#include <yaz/comstack.h>
+#include <yaz/url.h>
 #include <metaproxy/util.hpp>
 #include "torus.hpp"
 
 namespace mp = metaproxy_1;
 
-
-static Z_GDU *get_HTTP_Request_url(ODR odr, const char *url)
-{
-    Z_GDU *p = z_get_HTTP_Request(odr);
-    const char *host = url;
-    const char *cp0 = strstr(host, "://");
-    const char *cp1 = 0;
-    if (cp0)
-        cp0 = cp0+3;
-    else
-        cp0 = host;
-    
-    cp1 = strchr(cp0, '/');
-    if (!cp1)
-        cp1 = cp0 + strlen(cp0);
-    
-    if (cp0 && cp1)
-    {
-        char *h = (char*) odr_malloc(odr, cp1 - cp0 + 1);
-        memcpy (h, cp0, cp1 - cp0);
-        h[cp1-cp0] = '\0';
-        z_HTTP_header_add(odr, &p->u.HTTP_Request->headers, "Host", h);
-    }
-    p->u.HTTP_Request->path = odr_strdup(odr, *cp1 ? cp1 : "/");
-    return p;
-}
-
-static WRBUF get_url(const char *uri, WRBUF username, WRBUF password,
-                     int *code)
-{
-    int number_of_redirects = 0;
-    WRBUF result = 0;
-    ODR out = odr_createmem(ODR_ENCODE);
-    ODR in = odr_createmem(ODR_DECODE);
-
-    while (1)
-    {
-        Z_HTTP_Response *res = 0;
-        const char *location = 0;
-        Z_GDU *gdu = get_HTTP_Request_url(out, uri);
-        yaz_log(YLOG_LOG, "GET %s", uri);
-        gdu->u.HTTP_Request->method = odr_strdup(out, "GET");
-        if (username && password)
-        {
-            z_HTTP_header_add_basic_auth(out, &gdu->u.HTTP_Request->headers,
-                                         wrbuf_cstr(username),
-                                         wrbuf_cstr(password));
-        }
-        z_HTTP_header_add(out, &gdu->u.HTTP_Request->headers, "Accept",
-                          "application/xml");
-        if (!z_GDU(out, &gdu, 0, 0))
-        {
-            yaz_log(YLOG_WARN, "Can not encode HTTP request URL:%s", uri);        
-            break;
-        }
-        void *add;
-        COMSTACK conn = cs_create_host(uri, 1, &add);
-        if (!conn)
-            yaz_log(YLOG_WARN, "Bad address for URL:%s", uri);
-        else if (cs_connect(conn, add) < 0)
-            yaz_log(YLOG_WARN, "Can not connect to URL:%s", uri);
-        else
-        {
-            int len;
-            char *buf = odr_getbuf(out, &len, 0);
-            
-            if (cs_put(conn, buf, len) < 0)
-                yaz_log(YLOG_WARN, "cs_put failed URL:%s", uri);
-            else
-            {
-                char *netbuffer = 0;
-                int netlen = 0;
-                int cs_res = cs_get(conn, &netbuffer, &netlen);
-                if (cs_res <= 0)
-                {
-                    yaz_log(YLOG_WARN, "cs_get failed URL:%s", uri);
-                }
-                else
-                {
-                    Z_GDU *gdu;
-                    odr_setbuf(in, netbuffer, cs_res, 0);
-                    if (!z_GDU(in, &gdu, 0, 0)
-                        || gdu->which != Z_GDU_HTTP_Response)
-                    {
-                        yaz_log(YLOG_WARN, "HTTP decoding failed "
-                                "URL:%s", uri);
-                    }
-                    else
-                    {
-                        res = gdu->u.HTTP_Response;
-                    }
-                }
-                xfree(netbuffer);
-            }
-            cs_close(conn);
-        }
-        if (!res)
-            break; // ERROR
-        *code = res->code;
-        location = z_HTTP_header_lookup(res->headers, "Location");
-        if (++number_of_redirects < 10 &&
-            location && (*code == 301 || *code == 302 || *code == 307))
-        {
-            odr_reset(out);
-            uri = odr_strdup(out, location);
-            odr_reset(in);
-        }
-        else
-        {
-            result = wrbuf_alloc();
-            wrbuf_write(result, res->content_buf, res->content_len);
-            break;
-        }
-    }
-    odr_destroy(out);
-    odr_destroy(in);
-    return result;
-}
-
-
-xmlDoc *mp::get_searchable(std::string url_template, const std::string &db)
+xmlDoc *mp::get_searchable(std::string url_template, const std::string &db,
+                           const std::string &proxy)
 {
     // http://newmk2.indexdata.com/torus2/searchable.ebsco/records/?query=udb=aberdeenUni
     xmlDoc *doc = 0;
@@ -157,11 +36,27 @@ xmlDoc *mp::get_searchable(std::string url_template, const std::string &db)
     found = url_template.find("%db");
     if (found != std::string::npos)
         url_template.replace(found, found+3, mp::util::uri_encode(db));
-    int code;
-    WRBUF w = get_url(url_template.c_str(), 0, 0, &code);
-    if (code == 200)
-        doc = xmlParseMemory(wrbuf_buf(w), wrbuf_len(w));
-    wrbuf_destroy(w);
+
+    Z_HTTP_Header *http_headers = 0;
+    mp::odr odr;
+    
+    z_HTTP_header_add(odr, &http_headers, "Accept","application/xml");
+
+    yaz_url_t url_p = yaz_url_create();
+    if (proxy.length())
+        yaz_url_set_proxy(url_p, proxy.c_str());
+
+    Z_HTTP_Response *http_response = yaz_url_exec(url_p,
+                                                  url_template.c_str(),
+                                                  "GET",
+                                                  http_headers,
+                                                  0, /* content buf */
+                                                  0  /* content_len */
+        );
+    if (http_response->code == 200 && http_response->content_buf)
+        doc = xmlParseMemory(http_response->content_buf,
+                             http_response->content_len);
+    yaz_url_destroy(url_p);
     return doc;
 }
 

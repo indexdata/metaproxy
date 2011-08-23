@@ -66,6 +66,7 @@ namespace metaproxy_1 {
             std::string element_set;
             std::string record_encoding;
             std::string transform_xsl_fname;
+            std::string transform_xsl_content;
             std::string urlRecipe;
             std::string contentConnector;
             bool use_turbomarc;
@@ -114,6 +115,15 @@ namespace metaproxy_1 {
                                                   int *error,
                                                   char **addinfo,
                                                   ODR odr);
+
+
+            void prepare_elements(BackendPtr b,
+                                  Odr_oid *preferredRecordSyntax,
+                                  const char *element_set_name,
+                                  bool &enable_pz2_retrieval,
+                                  bool &enable_pz2_transform,
+                                  bool &assume_marc8_charset);
+
             Z_Records *get_records(Odr_int start,
                                    Odr_int number_to_present,
                                    int *error,
@@ -153,6 +163,7 @@ namespace metaproxy_1 {
             CCL_bibset bibset;
             std::string element_transform;
             std::string element_raw;
+            std::string proxy;
             std::map<std::string,SearchablePtr> s_map;
         };
     }
@@ -456,6 +467,11 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
             s->transform_xsl_fname = mp::xml::get_text(ptr);
         }
         else if (!strcmp((const char *) ptr->name,
+                         "literalTransform"))
+        {
+            s->transform_xsl_content = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name,
                          "urlRecipe"))
         {
             s->urlRecipe = mp::xml::get_text(ptr);
@@ -549,6 +565,8 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                     element_transform = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "element_raw"))
                     element_raw = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "proxy"))
+                    proxy = mp::xml::get_text(attr->children);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
@@ -644,7 +662,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         sptr = it->second;
     else
     {
-        xmlDoc *doc = mp::get_searchable(m_p->torus_url, torus_db);
+        xmlDoc *doc = mp::get_searchable(m_p->torus_url, torus_db, m_p->proxy);
         if (!doc)
         {
             *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
@@ -661,8 +679,17 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                 if (ptr->type == XML_ELEMENT_NODE
                     && !strcmp((const char *) ptr->name, "record"))
                 {
+                    if (sptr)
+                    {
+                        *error = YAZ_BIB1_UNSPECIFIED_ERROR;
+                        *addinfo = (char*) odr_malloc(odr, 40 + database.length()),
+                        sprintf(*addinfo, "multiple records for udb=%s",
+                                 database.c_str());
+                        xmlFreeDoc(doc);
+                        BackendPtr b;
+                        return b;
+                    }
                     sptr = m_p->parse_torus_record(ptr);
-                    break;
                 }
             }
         }
@@ -678,7 +705,29 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     }
         
     xsltStylesheetPtr xsp = 0;
-    if (sptr->transform_xsl_fname.length())
+    if (sptr->transform_xsl_content.length())
+    {
+        xmlDoc *xsp_doc = xmlParseMemory(sptr->transform_xsl_content.c_str(),
+                                         sptr->transform_xsl_content.length());
+        if (!xsp_doc)
+        {
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            *addinfo = (char *) odr_malloc(odr, 40);
+            sprintf(*addinfo, "xmlParseMemory failed");
+            BackendPtr b;
+            return b;
+        }
+        xsp = xsltParseStylesheetDoc(xsp_doc);
+        if (!xsp)
+        {
+            *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
+            *addinfo = odr_strdup(odr, "xsltParseStylesheetDoc failed");
+            BackendPtr b;
+            xmlFreeDoc(xsp_doc);
+            return b;
+        }
+    }
+    else if (sptr->transform_xsl_fname.length())
     {
         const char *path = 0;
 
@@ -739,7 +788,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         b->set_option("apdulog", "1");
 
     if (sptr->piggyback)
-        b->set_option("count", "10");
+        b->set_option("count", "1"); /* some SRU servers INSIST on getting
+                                        maximumRecords > 0 */
     b->set_option("piggyback", sptr->piggyback ? "1" : "0");
 
     std::string authentication = sptr->authentication;
@@ -902,31 +952,14 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     return b;
 }
 
-Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
-                                           Odr_int number_to_present,
-                                           int *error,
-                                           char **addinfo,
-                                           Odr_int *number_of_records_returned,
-                                           ODR odr,
-                                           BackendPtr b,
-                                           Odr_oid *preferredRecordSyntax,
-                                           const char *element_set_name)
+void yf::Zoom::Frontend::prepare_elements(BackendPtr b,
+                                          Odr_oid *preferredRecordSyntax,
+                                          const char *element_set_name,
+                                          bool &enable_pz2_retrieval,
+                                          bool &enable_pz2_transform,
+                                          bool &assume_marc8_charset)
+
 {
-    *number_of_records_returned = 0;
-    Z_Records *records = 0;
-    bool enable_pz2_retrieval = false; // whether target profile is used
-    bool enable_pz2_transform = false; // whether XSLT is used as well
-    bool assume_marc8_charset = false;
-
-    if (start < 0 || number_to_present <= 0)
-        return records;
-    
-    if (number_to_present > 10000)
-        number_to_present = 10000;
-    
-    ZOOM_record *recs = (ZOOM_record *)
-        odr_malloc(odr, (size_t) number_to_present * sizeof(*recs));
-
     char oid_name_str[OID_STR_MAX];
     const char *syntax_name = 0;
     
@@ -947,9 +980,10 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
     
     if (enable_pz2_retrieval)
     {
-        if (b->sptr->request_syntax.length())
+        std::string configured_request_syntax = b->sptr->request_syntax;
+        if (configured_request_syntax.length())
         {
-            syntax_name = b->sptr->request_syntax.c_str();
+            syntax_name = configured_request_syntax.c_str();
             const Odr_oid *syntax_oid = 
                 yaz_string_to_oid(yaz_oid_std(), CLASS_RECSYN, syntax_name);
             if (!oid_oidcmp(syntax_oid, yaz_oid_recsyn_usmarc)
@@ -961,6 +995,9 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
         syntax_name =
             yaz_oid_to_string_buf(preferredRecordSyntax, 0, oid_name_str);
 
+    if (b->sptr->sru.length())
+        syntax_name = "XML";
+
     b->set_option("preferredRecordSyntax", syntax_name);
 
     if (enable_pz2_retrieval)
@@ -971,6 +1008,40 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
     }
 
     b->set_option("elementSetName", element_set_name);
+    if (b->sptr->sru.length() && element_set_name)
+        b->set_option("schema", element_set_name);
+}
+
+Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
+                                           Odr_int number_to_present,
+                                           int *error,
+                                           char **addinfo,
+                                           Odr_int *number_of_records_returned,
+                                           ODR odr,
+                                           BackendPtr b,
+                                           Odr_oid *preferredRecordSyntax,
+                                           const char *element_set_name)
+{
+    *number_of_records_returned = 0;
+    Z_Records *records = 0;
+    bool enable_pz2_retrieval = false; // whether target profile is used
+    bool enable_pz2_transform = false; // whether XSLT is used as well
+    bool assume_marc8_charset = false;
+
+    prepare_elements(b, preferredRecordSyntax,
+                     element_set_name,
+                     enable_pz2_retrieval,
+                     enable_pz2_transform,
+                     assume_marc8_charset);
+
+    if (start < 0 || number_to_present <=0)
+        return records;
+    
+    if (number_to_present > 10000)
+        number_to_present = 10000;
+
+    ZOOM_record *recs = (ZOOM_record *)
+        odr_malloc(odr, (size_t) number_to_present * sizeof(*recs));
 
     b->present(start, number_to_present, recs, error, addinfo, odr);
 
@@ -1155,7 +1226,7 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
     }
     return records;
 }
-    
+
 struct cql_node *yf::Zoom::Impl::convert_cql_fields(struct cql_node *cn,
                                                     ODR odr)
 {
@@ -1321,6 +1392,14 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     }
 
     b->set_option("setname", "default");
+
+    bool enable_pz2_retrieval = false;
+    bool enable_pz2_transform = false;
+    bool assume_marc8_charset = false;
+    prepare_elements(b, sr->preferredRecordSyntax, 0 /*element_set_name */,
+                     enable_pz2_retrieval,
+                     enable_pz2_transform,
+                     assume_marc8_charset);
 
     Odr_int hits = 0;
     Z_Query *query = sr->query;

@@ -55,6 +55,7 @@ namespace metaproxy_1 {
             void failNotify();
             void timeoutNotify();
             void recv_GDU(Z_GDU *gdu, int len);
+            void fixup_nsd(ODR odr, Z_Records *records);
             yazpp_1::IPDU_Observer* sessionNotify(
                 yazpp_1::IPDU_Observable *the_PDU_Observable,
                 int fd);
@@ -168,12 +169,48 @@ void yf::Z3950Client::Assoc::timeoutNotify()
     }
 }
 
+void yf::Z3950Client::Assoc::fixup_nsd(ODR odr, Z_Records *records)
+{
+    if (records && records->which == Z_Records_NSD)
+    {
+        Z_DefaultDiagFormat *nsd = records->u.nonSurrogateDiagnostic;
+        if (nsd->which == Z_DiagRec_defaultFormat)
+        {
+            std::string addinfo;
+
+            if (nsd->u.v2Addinfo)
+            {
+                addinfo.assign(nsd->u.v2Addinfo);
+                addinfo += " ";
+            }
+            addinfo += "(backend=" + m_host + ")";
+            nsd->u.v2Addinfo = odr_strdup(odr, addinfo.c_str());
+        }
+    }
+}
+
 void yf::Z3950Client::Assoc::recv_GDU(Z_GDU *gdu, int len)
 {
     m_waiting = false;
 
     if (m_package)
+    { 
+        mp::odr odr; // must be in scope for response() = assignment
+        if (gdu && gdu->which == Z_GDU_Z3950)
+        {
+            Z_APDU *apdu = gdu->u.z3950;
+            switch (apdu->which)
+            {
+            case Z_APDU_searchResponse:
+                fixup_nsd(odr, apdu->u.searchResponse->records);
+                break;
+            case Z_APDU_presentResponse:
+                fixup_nsd(odr, apdu->u.presentResponse->records);
+                break;
+            }
+        }
         m_package->response() = gdu;
+    }
 }
 
 yazpp_1::IPDU_Observer *yf::Z3950Client::Assoc::sessionNotify(

@@ -1,3 +1,27 @@
+--- 1.3.8 2011/08/22
+
+zooom: relay schema in SRU mode. Previously recordSchema was not affected
+by elementSet.
+
+--- 1.3.6 2011/08/22
+
+zoom: new target profile element literalTransform that holds XSLT
+(encoded as string) for target. Only if present and non-zero length it is
+considered present. This takes precedence over transform.
+
+Don't rely on trang anymore for Git checkout builds. Configuration in etc
+will only be properly validated if trang is available. From now on only
+relax NC files are bundled with the source dist.
+
+Updates to check for Boost unit test (autoconf stuff). On MacOSX this
+component was not detected when it should be.
+
+--- 1.3.5 2011/08/12
+
+z3950_client: mark non-surrogate diagnostics from backend.
+
+zoom: a proxy may be specified for HTTP fetch of target profiles.
+
 --- 1.3.4 2011/08/01
 
 Honor piggyback. Makes some SRU targets behave that insist on

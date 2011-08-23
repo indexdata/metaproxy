@@ -34,8 +34,10 @@ etcdata_DATA = $(xmlconfig) $(config)
 EXTRA_DIST = $(etcdata_DATA) cgi.sh
 
 .PHONY: check_rng
-check_rng: 
-	xmllint --noout --xinclude --relaxng $(rng) $(xmlconfig)
+check_rng:
+	if test -f $(rng); then \
+		xmllint --noout --xinclude --relaxng $(rng) $(xmlconfig); \
+	fi
 
 ## Only run XSD checks for a "new" Libxml2
 .PHONY: check_xsd
