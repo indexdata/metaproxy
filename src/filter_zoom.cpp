@@ -919,7 +919,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         wrbuf_puts(w, "#content_proxy\n");
         wrbuf_printf(w, "connector: %s\n", b->sptr->contentConnector.c_str());
         if (authentication.length())
-            wrbuf_printf(w, "authentication: %s\n", authentication.c_str());
+            wrbuf_printf(w, "auth: %s\n", authentication.c_str());
         if (proxy.length())
             wrbuf_printf(w, "proxy: %s\n", proxy.c_str());
         if (sptr->cfProxy.length())
@@ -1520,6 +1520,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         }
         pqf_wrbuf = wrbuf_alloc();
         ccl_pquery(pqf_wrbuf, cn);
+        yaz_log(YLOG_LOG, "RPN: %s", wrbuf_cstr(pqf_wrbuf));
         ccl_rpn_delete(cn);
     }
     
@@ -1552,7 +1553,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         }
         if (status == 0)
         {
-            yaz_log(YLOG_LOG, "search CQL: %s", wrbuf_cstr(wrb));
+            yaz_log(YLOG_LOG, "CQL: %s", wrbuf_cstr(wrb));
             b->search_cql(wrbuf_cstr(wrb), &hits, &error, &addinfo, odr);
         }
         
