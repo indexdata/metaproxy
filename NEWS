@@ -1,6 +1,13 @@
+--- 1.3.9 2011/08/25
+
+zoom: urlRecipe result is stored in <pz:metadata type="generated-url">.
+
+zoom: For content proxy authentication is stored in param name
+"auth", instead of "authentication".
+
 --- 1.3.8 2011/08/22
 
-zooom: relay schema in SRU mode. Previously recordSchema was not affected
+zoom: relay schema in SRU mode. Previously recordSchema was not affected
 by elementSet.
 
 --- 1.3.6 2011/08/22
