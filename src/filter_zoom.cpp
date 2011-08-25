@@ -1167,7 +1167,9 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                         while (ptr && ptr->type != XML_ELEMENT_NODE)
                             ptr = ptr->next;
                         xmlNode *c = 
-                            xmlNewChild(ptr, 0, BAD_CAST "generated-url", 0);
+                            xmlNewChild(ptr, 0, BAD_CAST "metadata", 0);
+                        xmlNewProp(c, BAD_CAST "type", BAD_CAST
+                                   "generated-url");
                         xmlNode * t = xmlNewText(BAD_CAST res.c_str());
                         xmlAddChild(c, t);
 
