@@ -919,7 +919,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         wrbuf_puts(w, "#content_proxy\n");
         wrbuf_printf(w, "connector: %s\n", b->sptr->contentConnector.c_str());
         if (authentication.length())
-            wrbuf_printf(w, "authentication: %s\n", authentication.c_str());
+            wrbuf_printf(w, "auth: %s\n", authentication.c_str());
         if (proxy.length())
             wrbuf_printf(w, "proxy: %s\n", proxy.c_str());
         if (sptr->cfProxy.length())
