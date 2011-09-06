@@ -47,6 +47,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/zgdu.h>
 #include <yaz/querytowrbuf.h>
 
+#define ZOOM_SORTBY2 0
+
+#if ZOOM_SORTBY2
+#include <yaz/sortspec.h>
+#endif
+
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
 
@@ -90,10 +96,8 @@ namespace metaproxy_1 {
             ~Backend();
             void connect(std::string zurl, int *error, char **addinfo,
                          ODR odr);
-            void search_pqf(const char *pqf, Odr_int *hits,
-                            int *error, char **addinfo, ODR odr);
-            void search_cql(const char *cql, Odr_int *hits,
-                            int *error, char **addinfo, ODR odr);
+            void search(ZOOM_query q, Odr_int *hits,
+                        int *error, char **addinfo, ODR odr);
             void present(Odr_int start, Odr_int number, ZOOM_record *recs,
                          int *error, char **addinfo, ODR odr);
             void set_option(const char *name, const char *value);
@@ -258,26 +262,10 @@ void yf::Zoom::Backend::connect(std::string zurl,
     get_zoom_error(error, addinfo, odr);
 }
 
-void yf::Zoom::Backend::search_pqf(const char *pqf, Odr_int *hits,
-                                   int *error, char **addinfo, ODR odr)
+void yf::Zoom::Backend::search(ZOOM_query q, Odr_int *hits,
+                               int *error, char **addinfo, ODR odr)
 {
-    m_resultset = ZOOM_connection_search_pqf(m_connection, pqf);
-    get_zoom_error(error, addinfo, odr);
-    if (*error == 0)
-        *hits = ZOOM_resultset_size(m_resultset);
-    else
-        *hits = 0;
-}
-
-void yf::Zoom::Backend::search_cql(const char *cql, Odr_int *hits,
-                                   int *error, char **addinfo, ODR odr)
-{
-    ZOOM_query q = ZOOM_query_create();
-
-    ZOOM_query_cql(q, cql);
-
     m_resultset = ZOOM_connection_search(m_connection, q);
-    ZOOM_query_destroy(q);
     get_zoom_error(error, addinfo, odr);
     if (*error == 0)
         *hits = ZOOM_resultset_size(m_resultset);
@@ -1262,6 +1250,8 @@ struct cql_node *yf::Zoom::Impl::convert_cql_fields(struct cql_node *cn,
     return r;
 }
 
+
+#if !ZOOM_SORTBY2
 static void sort_pqf_type_7(WRBUF pqf_wrbuf, const char *sru_sortkeys)
 {
     /* sortkey layour: path,schema,ascending,caseSensitive,missingValue */
@@ -1300,7 +1290,9 @@ static void sort_pqf_type_7(WRBUF pqf_wrbuf, const char *sru_sortkeys)
     }
     nmem_destroy(nmem);
 }
+#endif
 
+#if !ZOOM_SORTBY2
 static void sort_via_cql(WRBUF cql_sortby, const char *sru_sortkeys)
 {
     /* sortkey layour: path,schema,ascending,caseSensitive,missingValue */
@@ -1357,6 +1349,7 @@ static void sort_via_cql(WRBUF cql_sortby, const char *sru_sortkeys)
     }
     nmem_destroy(nmem);
 }
+#endif
 
 #if YAZ_VERSIONL < 0x40206
 static void wrbuf_vp_puts(const char *buf, void *client_data)
@@ -1407,7 +1400,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     Z_Query *query = sr->query;
     WRBUF ccl_wrbuf = 0;
     WRBUF pqf_wrbuf = 0;
-    std::string sru_sortkeys;
+    std::string sortkeys;
 
     if (query->which == Z_Query_type_1 || query->which == Z_Query_type_101)
     {
@@ -1466,8 +1459,15 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
             WRBUF sru_sortkeys_wrbuf = wrbuf_alloc();
 
             cql_sortby_to_sortkeys(cn, wrbuf_vp_puts, sru_sortkeys_wrbuf);
-
-            sru_sortkeys.assign(wrbuf_cstr(sru_sortkeys_wrbuf));
+#if ZOOM_SORTBY2
+            WRBUF sort_spec_wrbuf = wrbuf_alloc();
+            yaz_srw_sortkeys_to_sort_spec(wrbuf_cstr(sru_sortkeys_wrbuf),
+                                          sort_spec_wrbuf);
+            sortkeys.assign(wrbuf_cstr(sort_spec_wrbuf));
+            wrbuf_destroy(sort_spec_wrbuf);
+#else
+            sortkeys.assign(wrbuf_cstr(sru_sortkeys_wrbuf));
+#endif
             wrbuf_destroy(sru_sortkeys_wrbuf);
         }
         cql_parser_destroy(cp);
@@ -1527,6 +1527,12 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     }
     
     assert(pqf_wrbuf);
+
+    ZOOM_query q = ZOOM_query_create();
+#if ZOOM_SORTBY2
+    ZOOM_query_sortby2(q, "embed", sortkeys.c_str());
+#endif
+
     if (b->get_option("sru"))
     {
         int status = 0;
@@ -1549,15 +1555,18 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
             status = cql_transform_rpn2cql_wrbuf(cqlt, wrb, zquery);
             
             cql_transform_close(cqlt);
-
+#if !ZOOM_SORTBY2
             if (status == 0)
-                sort_via_cql(wrb, sru_sortkeys.c_str());
+                sort_via_cql(wrb, sortkeys.c_str());
+#endif
         }
         if (status == 0)
         {
+            ZOOM_query_cql(q, wrbuf_cstr(wrb));
             yaz_log(YLOG_LOG, "CQL: %s", wrbuf_cstr(wrb));
-            b->search_cql(wrbuf_cstr(wrb), &hits, &error, &addinfo, odr);
+            b->search(q, &hits, &error, &addinfo, odr);
         }
+        ZOOM_query_destroy(q);
         
         wrbuf_destroy(wrb);
         wrbuf_destroy(pqf_wrbuf);
@@ -1572,10 +1581,13 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     }
     else
     {
-        sort_pqf_type_7(pqf_wrbuf, sru_sortkeys.c_str());
-
+#if !ZOOM_SORTBY2
+        sort_pqf_type_7(pqf_wrbuf, sortkeys.c_str());
+#endif
+        ZOOM_query_prefix(q, wrbuf_cstr(pqf_wrbuf));
         yaz_log(YLOG_LOG, "search PQF: %s", wrbuf_cstr(pqf_wrbuf));
-        b->search_pqf(wrbuf_cstr(pqf_wrbuf), &hits, &error, &addinfo, odr);
+        b->search(q, &hits, &error, &addinfo, odr);
+        ZOOM_query_destroy(q);
         wrbuf_destroy(pqf_wrbuf);
     }
 
