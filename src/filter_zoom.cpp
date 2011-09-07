@@ -46,12 +46,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/log.h>
 #include <yaz/zgdu.h>
 #include <yaz/querytowrbuf.h>
-
-#define ZOOM_SORTBY2 0
-
-#if ZOOM_SORTBY2
 #include <yaz/sortspec.h>
-#endif
 
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
@@ -75,6 +70,7 @@ namespace metaproxy_1 {
             std::string transform_xsl_content;
             std::string urlRecipe;
             std::string contentConnector;
+            std::string sortStrategy;
             bool use_turbomarc;
             bool piggyback;
             CCL_bibset ccl_bibset;
@@ -302,6 +298,7 @@ yf::Zoom::Searchable::Searchable(CCL_bibset base)
 {
     piggyback = true;
     use_turbomarc = true;
+    sortStrategy = "embed";
     ccl_bibset = ccl_qual_dup(base);
 }
 
@@ -475,6 +472,11 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
             std::string value = mp::xml::get_text(ptr);
             ccl_qual_fitem(s->ccl_bibset, value.c_str(),
                            (const char *) ptr->name + 7);
+        }
+        else if (!strcmp((const char *) ptr->name,
+                          "sortStrategy"))
+        {
+            s->sortStrategy = mp::xml::get_text(ptr);
         }
     }
     return s;
@@ -1250,115 +1252,6 @@ struct cql_node *yf::Zoom::Impl::convert_cql_fields(struct cql_node *cn,
     return r;
 }
 
-
-#if !ZOOM_SORTBY2
-static void sort_pqf_type_7(WRBUF pqf_wrbuf, const char *sru_sortkeys)
-{
-    /* sortkey layour: path,schema,ascending,caseSensitive,missingValue */
-    /* see cql_sortby_to_sortkeys of YAZ. */
-    char **sortspec;
-    int num_sortspec = 0;
-    int i;
-    NMEM nmem = nmem_create();
-    
-    if (sru_sortkeys)
-        nmem_strsplit_blank(nmem, sru_sortkeys, &sortspec, &num_sortspec);
-    if (num_sortspec > 0)
-    {
-        WRBUF w = wrbuf_alloc();
-        for (i = 0; i < num_sortspec; i++)
-        {
-            char **arg;
-            int num_arg;
-            int ascending = 1;
-            nmem_strsplitx(nmem, ",", sortspec[i], &arg, &num_arg, 0);
-            
-            if (num_arg > 2 && arg[2][0])
-                ascending = atoi(arg[2]);
-            
-            wrbuf_puts(w, "@or @attr 1=");
-            yaz_encode_pqf_term(w, arg[0], strlen(arg[0]));
-            wrbuf_printf(w, "@attr 7=%d %d ", ascending ? 1 : 2, i);
-        }
-        if (wrbuf_len(w))
-        {
-            wrbuf_puts(w, wrbuf_cstr(pqf_wrbuf));
-            wrbuf_rewind(pqf_wrbuf);
-            wrbuf_puts(pqf_wrbuf, wrbuf_cstr(w));
-        }
-        wrbuf_destroy(w);
-    }
-    nmem_destroy(nmem);
-}
-#endif
-
-#if !ZOOM_SORTBY2
-static void sort_via_cql(WRBUF cql_sortby, const char *sru_sortkeys)
-{
-    /* sortkey layour: path,schema,ascending,caseSensitive,missingValue */
-    /* see cql_sortby_to_sortkeys of YAZ. */
-    char **sortspec;
-    int num_sortspec = 0;
-    int i;
-    NMEM nmem = nmem_create();
-    
-    if (sru_sortkeys)
-        nmem_strsplit_blank(nmem, sru_sortkeys, &sortspec, &num_sortspec);
-    if (num_sortspec > 0)
-    {
-        WRBUF w = wrbuf_alloc();
-        for (i = 0; i < num_sortspec; i++)
-        {
-            char **arg;
-            int num_arg;
-            int ascending = 1;
-            int case_sensitive = 0;
-            const char *missing = 0;
-            nmem_strsplitx(nmem, ",", sortspec[i], &arg, &num_arg, 0);
-            
-            if (num_arg > 2 && arg[2][0])
-                ascending = atoi(arg[2]);
-            if (num_arg > 3 && arg[3][0])
-                case_sensitive = atoi(arg[3]);
-            if (num_arg > 4 && arg[4][0])
-                missing = arg[4];
-            if (i > 0)
-                wrbuf_puts(w, " ");
-            else
-                wrbuf_puts(w, " sortby ");
-            wrbuf_puts(w, arg[0]);  /* field */
-            wrbuf_puts(w, "/");
-            wrbuf_puts(w, ascending ? "ascending" : "descending");
-            if (case_sensitive)
-                wrbuf_puts(w, "/respectCase");
-            if (missing)
-            {
-                if (!strcmp(missing, "omit"))
-                    wrbuf_puts(w, "/missingOmit");
-                else if (!strcmp(missing, "abort"))
-                    wrbuf_puts(w, "/missingFail");
-                else if (!strcmp(missing, "lowValue"))
-                    wrbuf_puts(w, "/missingLow");
-                else if (!strcmp(missing, "highValue"))
-                    wrbuf_puts(w, "/missingHigh");
-            }
-        }
-        if (wrbuf_len(w))
-            wrbuf_puts(cql_sortby, wrbuf_cstr(w));
-        wrbuf_destroy(w);
-    }
-    nmem_destroy(nmem);
-}
-#endif
-
-#if YAZ_VERSIONL < 0x40206
-static void wrbuf_vp_puts(const char *buf, void *client_data)
-{
-    WRBUF b = (WRBUF) client_data;
-    wrbuf_puts(b, buf);
-}
-#endif
-
 void yf::Zoom::Frontend::handle_search(mp::Package &package)
 {
     Z_GDU *gdu = package.request().get();
@@ -1459,15 +1352,11 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
             WRBUF sru_sortkeys_wrbuf = wrbuf_alloc();
 
             cql_sortby_to_sortkeys(cn, wrbuf_vp_puts, sru_sortkeys_wrbuf);
-#if ZOOM_SORTBY2
             WRBUF sort_spec_wrbuf = wrbuf_alloc();
             yaz_srw_sortkeys_to_sort_spec(wrbuf_cstr(sru_sortkeys_wrbuf),
                                           sort_spec_wrbuf);
             sortkeys.assign(wrbuf_cstr(sort_spec_wrbuf));
             wrbuf_destroy(sort_spec_wrbuf);
-#else
-            sortkeys.assign(wrbuf_cstr(sru_sortkeys_wrbuf));
-#endif
             wrbuf_destroy(sru_sortkeys_wrbuf);
         }
         cql_parser_destroy(cp);
@@ -1529,9 +1418,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     assert(pqf_wrbuf);
 
     ZOOM_query q = ZOOM_query_create();
-#if ZOOM_SORTBY2
-    ZOOM_query_sortby2(q, "embed", sortkeys.c_str());
-#endif
+    ZOOM_query_sortby2(q, b->sptr->sortStrategy.c_str(), sortkeys.c_str());
 
     if (b->get_option("sru"))
     {
@@ -1555,10 +1442,6 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
             status = cql_transform_rpn2cql_wrbuf(cqlt, wrb, zquery);
             
             cql_transform_close(cqlt);
-#if !ZOOM_SORTBY2
-            if (status == 0)
-                sort_via_cql(wrb, sortkeys.c_str());
-#endif
         }
         if (status == 0)
         {
@@ -1581,9 +1464,6 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     }
     else
     {
-#if !ZOOM_SORTBY2
-        sort_pqf_type_7(pqf_wrbuf, sortkeys.c_str());
-#endif
         ZOOM_query_prefix(q, wrbuf_cstr(pqf_wrbuf));
         yaz_log(YLOG_LOG, "search PQF: %s", wrbuf_cstr(pqf_wrbuf));
         b->search(q, &hits, &error, &addinfo, odr);

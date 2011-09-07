@@ -35,7 +35,8 @@ filter_zoom =
         element mp:cfAuth { xsd:string }?,
         element mp:cfProxy { xsd:string }?,
         element mp:cfSubDb { xsd:string }?,
-        element mp:contentConnector { xsd:string }?
+        element mp:contentConnector { xsd:string }?,
+        element mp:sortStrategy { xsd:string }?
       }*
     }?
   }?,
