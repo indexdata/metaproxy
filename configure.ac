@@ -40,8 +40,20 @@ YAZPP_INIT([threads],[1.2.7])
 if test -z "$YAZPPLIB"; then
     AC_MSG_ERROR([YAZ++ development libraries missing])
 fi
-YAZ_DOC
 CPPFLAGS="$YAZPPINC $CPPFLAGS"
+AC_MSG_CHECKING([if YAZ is version 4.2.14 or later])
+AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM([[#include <yaz/yaz-version.h>]],
+                         [[
+#if YAZ_VERSIONL < 0x4020e
+#error too old
+#endif
+]])],
+        [AC_MSG_RESULT([yes])],
+        [AC_MSG_RESULT([no])
+	 AC_MSG_ERROR([newer version of YAZ required])]
+)
+YAZ_DOC
 
 ID_BOOST([thread test regex],[1.33])
 if test -z "${BOOST_THREAD_LIB}"; then
