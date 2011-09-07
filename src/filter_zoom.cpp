@@ -47,6 +47,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/zgdu.h>
 #include <yaz/querytowrbuf.h>
 #include <yaz/sortspec.h>
+#include <yaz/tokenizer.h>
 
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
@@ -74,6 +75,7 @@ namespace metaproxy_1 {
             bool use_turbomarc;
             bool piggyback;
             CCL_bibset ccl_bibset;
+            std::map<std::string, std::string> sortmap;
             Searchable(CCL_bibset base);
             ~Searchable();
         };
@@ -472,6 +474,12 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
             std::string value = mp::xml::get_text(ptr);
             ccl_qual_fitem(s->ccl_bibset, value.c_str(),
                            (const char *) ptr->name + 7);
+        }
+        else if (!strncmp((const char *) ptr->name,
+                          "sortmap_", 8))
+        {
+            std::string value = mp::xml::get_text(ptr);
+            s->sortmap[(const char *) ptr->name + 8] = value;
         }
         else if (!strcmp((const char *) ptr->name,
                           "sortStrategy"))
@@ -1355,9 +1363,41 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
             WRBUF sort_spec_wrbuf = wrbuf_alloc();
             yaz_srw_sortkeys_to_sort_spec(wrbuf_cstr(sru_sortkeys_wrbuf),
                                           sort_spec_wrbuf);
-            sortkeys.assign(wrbuf_cstr(sort_spec_wrbuf));
-            wrbuf_destroy(sort_spec_wrbuf);
             wrbuf_destroy(sru_sortkeys_wrbuf);
+
+            yaz_tok_cfg_t tc = yaz_tok_cfg_create();
+            yaz_tok_parse_t tp =
+                yaz_tok_parse_buf(tc, wrbuf_cstr(sort_spec_wrbuf));
+            yaz_tok_cfg_destroy(tc);
+
+            /* go through sortspec and map fields */
+            int token = yaz_tok_move(tp);
+            while (token != YAZ_TOK_EOF)
+            {
+                if (token == YAZ_TOK_STRING)
+                {
+                    const char *field = yaz_tok_parse_string(tp);
+                    std::map<std::string,std::string>::iterator it;
+                    it = b->sptr->sortmap.find(field);
+                    if (it != b->sptr->sortmap.end())
+                        sortkeys += it->second;
+                    else
+                        sortkeys += field;
+                }
+                sortkeys += " ";
+                token = yaz_tok_move(tp);
+                if (token == YAZ_TOK_STRING)
+                {
+                    sortkeys += yaz_tok_parse_string(tp);
+                }
+                if (token != YAZ_TOK_EOF)
+                {
+                    sortkeys += " ";
+                    token = yaz_tok_move(tp);
+                }
+            }
+            yaz_tok_parse_destroy(tp);
+            wrbuf_destroy(sort_spec_wrbuf);
         }
         cql_parser_destroy(cp);
         if (r)
