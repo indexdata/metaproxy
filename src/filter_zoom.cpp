@@ -658,7 +658,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     it = m_p->s_map.find(torus_db);
     if (it != m_p->s_map.end())
         sptr = it->second;
-    else
+    else if (m_p->torus_url.length() > 0)
     {
         xmlDoc *doc = mp::get_searchable(m_p->torus_url, torus_db, m_p->proxy);
         if (!doc)
