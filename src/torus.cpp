@@ -53,7 +53,8 @@ xmlDoc *mp::get_searchable(std::string url_template, const std::string &db,
                                                   0, /* content buf */
                                                   0  /* content_len */
         );
-    if (http_response->code == 200 && http_response->content_buf)
+    if (http_response && http_response->code == 200 && 
+        http_response->content_buf)
         doc = xmlParseMemory(http_response->content_buf,
                              http_response->content_len);
     yaz_url_destroy(url_p);
