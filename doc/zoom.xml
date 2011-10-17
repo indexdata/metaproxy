@@ -56,80 +56,81 @@
  <refsect1>
   <title>CONFIGURATION</title>
   <para>
-   The configuration consists of four parts: <literal>torus</literal>,
-   <literal>fieldmap</literal>, <literal>cclmap</literal>
-   and <literal>log</literal>.
+   The configuration consists of five parts: <literal>torus</literal>,
+   <literal>fieldmap</literal>, <literal>cclmap</literal>,
+   <literal>contentProxy</literal> and <literal>log</literal>.
   </para>
-  <refsect2><title>torus</title>
-  <para>
-   The <literal>torus</literal> element specifies target profiles
-   and takes the following content:
-  </para>
-  <variablelist>
-   <varlistentry>
-    <term>attribute <literal>url</literal></term>
-    <listitem>
-     <para>
-      URL of Web service to be used to fetch target profile
-      for a given database (udb). The special sequence
-      <literal>%db</literal> of the URL is replaced by the
-      actual database specified as part of Search.
-     </para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term>attribute <literal>proxy</literal></term>
-    <listitem>
-     <para>
-      HTTP proxy to bse used for fetching target profiles.
-     </para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term>attribute <literal>xsldir</literal></term>
-    <listitem>
-     <para>
-      Directory that is searched for XSL stylesheets. Stylesheets
-      are specified in the target profile by the
-      <literal>transform</literal> element.
-     </para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term>attribute <literal>element_transform</literal></term>
-    <listitem>
-     <para>
-      Specifies the element that triggers retrieval and transform using
-      the parameters elementSet, recordEncoding, requestSyntax, transform
-      from the target profile. Default value
-      is "pz2", due to the fact that for historical reasons the
-      common format is that used in Pazpar2.
-     </para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term>attribute <literal>element_raw</literal></term>
-    <listitem>
-     <para>
-      Specifies an element that triggers retrieval using the
-      parameters elementSet, recordEncoding, requestSyntax from the
-      target profile. Same actions as for element_transform, but without
-      the XSL transform. Useful for debugging.
-      The default value is "raw".
-     </para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term>element <literal>records</literal></term>
-    <listitem>
-     <para>
-      Local target profiles. This element may includes zero or
-      more <literal>record</literal> elements (one per target
-      profile). See section TARGET PROFILE.
-     </para>
-    </listitem>
-   </varlistentry>
-  </variablelist>
+  <refsect2>
+   <title>torus</title>
+   <para>
+    The <literal>torus</literal> element specifies target profiles
+    and takes the following content:
+   </para>
+   <variablelist>
+    <varlistentry>
+     <term>attribute <literal>url</literal></term>
+     <listitem>
+      <para>
+       URL of Web service to be used to fetch target profile
+       for a given database (udb). The special sequence
+       <literal>%db</literal> of the URL is replaced by the
+       actual database specified as part of Search.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>attribute <literal>proxy</literal></term>
+     <listitem>
+      <para>
+       HTTP proxy to bse used for fetching target profiles.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>attribute <literal>xsldir</literal></term>
+     <listitem>
+      <para>
+       Directory that is searched for XSL stylesheets. Stylesheets
+       are specified in the target profile by the
+       <literal>transform</literal> element.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>attribute <literal>element_transform</literal></term>
+     <listitem>
+      <para>
+       Specifies the element that triggers retrieval and transform using
+       the parameters elementSet, recordEncoding, requestSyntax, transform
+       from the target profile. Default value
+       is "pz2", due to the fact that for historical reasons the
+       common format is that used in Pazpar2.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>attribute <literal>element_raw</literal></term>
+     <listitem>
+      <para>
+       Specifies an element that triggers retrieval using the
+       parameters elementSet, recordEncoding, requestSyntax from the
+       target profile. Same actions as for element_transform, but without
+       the XSL transform. Useful for debugging.
+       The default value is "raw".
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>element <literal>records</literal></term>
+     <listitem>
+      <para>
+       Local target profiles. This element may includes zero or
+       more <literal>record</literal> elements (one per target
+       profile). See section TARGET PROFILE.
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
   </refsect2>
   <refsect2>
    <title>fieldmap</title>
@@ -166,28 +167,60 @@
     This configuration, thus, will be combined with cclmap-definitions
     from the target profile.
    </para>
-   </refsect2>
-   <refsect2>
-    <title>log</title>
-    <para>
-     The <literal>log</literal> element controls logging for the
-     ZOOM filter.
-    </para>
-    <variablelist>
-     <varlistentry>
-      <term>attribute <literal>apdu</literal></term>
-      <listitem>
-       <para>
-	If the value of apdu is "true", then protocol packages
-	(APDUs and HTTP packages) from the ZOOM filter will be
-	logged to the yaz_log system. A value of "false" will
-	not perform logging of protocol packages (the default
-	behavior).
-       </para>
-      </listitem>
-     </varlistentry>
-    </variablelist>
-   </refsect2>
+  </refsect2>
+  <refsect2>
+   <title>contentProxy</title>
+   <para>
+    The <literal>contentProxy</literal> element controls content proxy'in.
+    This section
+    is optional and must only be defined if content proxy'ing is enabled.
+   </para>
+   <variablelist>
+    <varlistentry>
+     <term>attribute <literal>server</literal></term>
+     <listitem>
+      <para>
+       Specifies the content proxy host. The host is of the form
+       host[:port]. That is without a method (such as HTTP) and optional
+       port number.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>attribute <literal>tmp_file</literal></term>
+     <listitem>
+      <para>
+       Specifies a filename of a session file for content proxy'ing. The
+       file should be an absolute filename that includes
+       <literal>XXXXXX</literal> which is replaced by a unique filename
+       using the mkstemp(3) system call. The default value of this
+       setting is <literal>/tmp/cf.XXXXXX.p</literal>.
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>log</title>
+   <para>
+    The <literal>log</literal> element controls logging for the
+    ZOOM filter.
+   </para>
+   <variablelist>
+    <varlistentry>
+     <term>attribute <literal>apdu</literal></term>
+     <listitem>
+      <para>
+       If the value of apdu is "true", then protocol packages
+       (APDUs and HTTP packages) from the ZOOM filter will be
+       logged to the yaz_log system. A value of "false" will
+       not perform logging of protocol packages (the default
+       behavior).
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
  </refsect1>
  <refsect1>
   <title>QUERY HANDLING</title>
@@ -202,7 +235,7 @@
    In step 2 the query is converted to the native query type of the target.
   </para>
   <para>
-   Step 1: for RPN, the query is passed unmodified to the target.
+   Step 1: for RPN, the query is passed un-modified to the target.
   </para>
   <para>
    Step 1: for CCL, the query is converted to RPN via
@@ -226,16 +259,28 @@
  <refsect1>
   <title>SORTING</title>
   <para>
-   
+   The ZOOM module actively handle CQL sorting - using the SORTBY parameter
+   which was introduced in SRU version 1.2. The conversion from SORTBY clause
+   to native sort for some target is driven by the two parameters: 
+   <literal>sortStrategy</literal>
+   and <literal>sortmap_</literal><replaceable>field</replaceable>.
+  </para>
+  <para>
+   If a sort field that does not have an equivalent
+   <literal>sortmap_</literal>-mapping is passed un-modified through the
+   conversion. It doesn't throw a diagnostic.
   </para>
  </refsect1>
  
  <refsect1>
   <title>TARGET PROFILE</title>
   <para>
-   The following elements are honored by the ZOOM module of Metaproxy.
-   Note that unknown elements are silently ignored. There are several
-   elements in use that makes no sense to the ZOOM module.
+   The ZOOM module is driven by a number of settings that specifies how
+   to handle each target.
+   Note that unknown elements are silently <emphasis>ignored</emphasis>.
+  </para>
+  <para>
+   The elements, in alphabetical order, are:
   </para>
   <variablelist>
    <varlistentry>
@@ -246,8 +291,87 @@
      Init Request.
     </para>
     <para>
-     If this value is omitted or empty, not authentication information
-     is simply omitted.
+     If this value is omitted or empty no authentication information is sent.
+    </para>
+   </listitem>
+   </varlistentry>
+   
+   <varlistentry>
+    <term>cclmap_*</term><listitem>
+    <para>
+     This value specifies CCL field (qualifier) definition for some
+     field. For Z39.50 targets this most likely will specify the
+     mapping to a numeric use attribute + a structure attribute.
+     For SRU targets, the use attribute should be string based, in
+     order to make the RPN to CQL conversion work properly (step 2).
+    </para>
+   </listitem>
+   </varlistentry>
+   
+   <varlistentry>
+    <term>cfAuth</term><listitem>
+    <para>
+     When cfAuth is defined, its value will be used as authentication
+     to backend target and authentication setting will be specified
+     as part of a database. This is like a "proxy" for authentication and
+     is used for Connector Framework based targets.
+    </para>
+   </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>cfProxy</term><listitem>
+    <para>
+     Specifies HTTP proxy for the target in the form
+     <replaceable>host</replaceable>:<replaceable>port</replaceable>.
+    </para>
+   </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>cfSubDb</term><listitem>
+    <para>
+     Specifies sub database for a Connector Framework based target.
+    </para>
+   </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>contentConnector</term><listitem>
+    <para>
+     Specifies a database for content-based proxy'ing.
+    </para>
+   </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>elementSet</term><listitem>
+    <para>
+     Specifies the elementSet to be sent to the target if record
+     transform is enabled (not to be confused' with the record_transform
+     module). The record transform is enabled only if the client uses
+     record syntax = XML and a element set determined by
+     the <literal>element_transform</literal> /
+     <literal>element_raw</literal> from the configuration.
+     By default that is the element sets <literal>pz2</literal>
+     and <literal>raw</literal>.
+     If record transform is not enabled, this setting is 
+     not used and the element set specified by the client
+     is passed verbatim.
+    </para>
+   </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>literalTransform</term><listitem>
+    <para>
+     Specifies a XSL stylesheet to be used if record
+     transform is anabled; see description of elementSet.
+     The XSL transform is only used if the element set is set to the
+     value of <literal>element_transform</literal> in the configuration.
+    </para>
+    <para>
+     The value of literalTransform is the XSL - string encoded.
     </para>
    </listitem>
    </varlistentry>
@@ -274,45 +398,6 @@
    </varlistentry>
    
    <varlistentry>
-    <term>udb</term><listitem>
-    <para>
-     This value is required and specifies the unique database for
-     this profile . All target profiles should hold a unique database.
-    </para>
-   </listitem>
-   </varlistentry>
-   
-   <varlistentry>
-    <term>cclmap_*</term><listitem>
-    <para>
-     This value specifies CCL field (qualifier) definition for some
-     field. For Z39.50 targets this most likely will specify the
-     mapping to a numeric use attribute + a structure attribute.
-     For SRU targets, the use attribute should be string based, in
-     order to make the RPN to CQL conversion work properly (step 2).
-    </para>
-   </listitem>
-   </varlistentry>
-   
-   <varlistentry>
-    <term>elementSet</term><listitem>
-    <para>
-     Specifies the elementSet to be sent to the target if record
-     transform is enabled (not to be confused' with the record_transform
-     module). The record transform is enabled only if the client uses
-     record syntax = XML and a element set determined by
-     the <literal>element_transform</literal> /
-     <literal>element_raw</literal> from the configuration.
-     By default that is the element sets <literal>pz2</literal>
-     and <literal>raw</literal>.
-     If record transform is not enabled, this setting is 
-     not used and the element set specified by the client
-     is passed verbatim.
-    </para>
-   </listitem>
-   </varlistentry>
-
-   <varlistentry>
     <term>recordEncoding</term><listitem>
     <para>
      Specifies the character encoding of records that are returned
@@ -335,6 +420,27 @@
    </varlistentry>
 
    <varlistentry>
+    <term>sortmap_</term><listitem>
+    <para>
+     This value the native field for a target.
+    </para>
+   </listitem>
+   </varlistentry>
+   
+   <varlistentry>
+    <term>sortStrategy</term><listitem>
+    <para>
+     Specifies sort strategy for a target. One of:
+     <literal>z3950</literal>, <literal>type7</literal>,
+     <literal>cql</literal>, <literal>sru11</literal> or
+     <literal>embed</literal>. The <literal>embed</literal> chooses type-7
+     or CQL sortby depending on whether Type-1 or CQL is
+     actually sent to the target.
+    </para>
+   </listitem>
+   </varlistentry>
+   
+   <varlistentry>
     <term>sru</term><listitem>
     <para>
      If this setting is set, it specifies that the target is web service
@@ -349,13 +455,43 @@
     <term>transform</term><listitem>
     <para>
      Specifies a XSL stylesheet filename to be used if record
-     transform is anabled; see desciprion of elementSet.
+     transform is anabled; see description of elementSet.
      The XSL transform is only used if the element set is set to the
      value of <literal>element_transform</literal> in the configuration.
     </para>
    </listitem>
    </varlistentry>
 
+   <varlistentry>
+    <term>udb</term><listitem>
+    <para>
+     This value is required and specifies the unique database for
+     this profile . All target profiles should hold a unique database.
+    </para>
+   </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>urlRecipe</term><listitem>
+    <para>
+     The value of this field is a string that generates a dynamic link
+     based on content. If the resulting string is non-zero in length
+     a new field, <literal>metadata</literal> with attribute 
+     type=generated-url. The contents of this field is the result of the
+     URL recipe conversion. The urlRecipe value may refer to an existing
+     metadata element by ${field[pattern/result/flags]}, which will take content
+     of field and perform a regular expression conversion using the pattern
+     given. For example: <literal>${md-title[\s+/+/g]}</literal> takes
+     metadadata element <literal>title</literal> and converts one or more
+     spaces to a plus character.
+    </para>
+    <para>
+     If the contentConnector setting is defined the resulting value is
+     agmented with a session string as well as the content proxy server.
+    </para>
+   </listitem>
+   </varlistentry>
+   
    <varlistentry>
     <term>zurl</term><listitem>
     <para>
