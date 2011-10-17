@@ -132,7 +132,7 @@
     </varlistentry>
    </variablelist>
   </refsect2>
-  <refsect2>
+  <refsect2 id="fieldmap">
    <title>fieldmap</title>
    <para>
     The <literal>fieldmap</literal> may be specified zero or more times and
@@ -158,7 +158,7 @@
     </varlistentry>
    </variablelist>
   </refsect2>
-  <refsect2>
+  <refsect2 id="cclmap_base">
    <title>cclmap</title>
    <para>
     The third part of the configuration consists of zero or more
@@ -239,11 +239,14 @@
   </para>
   <para>
    Step 1: for CCL, the query is converted to RPN via
-   <literal>cclmap</literal> elements part of the target profile.
+   <link linkend="cclmap"><literal>cclmap</literal></link> elements part of
+   the target profile as well as 
+   <link linkend="cclmap_base">base CCL maps</link>.
   </para>
   <para>
    Step 1: For CQL, the query is converted to CCL. The mappings of
-   CQL fields to CCL fields are handled by <literal>fieldmap</literal>
+   CQL fields to CCL fields are handled by
+   <link linkend="fieldmap"><literal>fieldmap</literal></link>
    elements as part of the target profile. The resulting query, CCL,
    is the converted to RPN using the schema mentioned earlier (via
    <literal>cclmap</literal>).
@@ -262,8 +265,8 @@
    The ZOOM module actively handle CQL sorting - using the SORTBY parameter
    which was introduced in SRU version 1.2. The conversion from SORTBY clause
    to native sort for some target is driven by the two parameters: 
-   <literal>sortStrategy</literal>
-   and <literal>sortmap_</literal><replaceable>field</replaceable>.
+   <link linkend="sortStrategy"><literal>sortStrategy</literal></link>
+   and <link linkend="sortmap"><literal>sortmap_</literal><replaceable>field</replaceable></link>.
   </para>
   <para>
    If a sort field that does not have an equivalent
@@ -296,8 +299,8 @@
    </listitem>
    </varlistentry>
    
-   <varlistentry>
-    <term>cclmap_*</term><listitem>
+   <varlistentry id="cclmap">
+    <term>cclmap_<replaceable>field</replaceable></term><listitem>
     <para>
      This value specifies CCL field (qualifier) definition for some
      field. For Z39.50 targets this most likely will specify the
@@ -336,7 +339,7 @@
    </listitem>
    </varlistentry>
 
-   <varlistentry>
+   <varlistentry id="contentConnector">
     <term>contentConnector</term><listitem>
     <para>
      Specifies a database for content-based proxy'ing.
@@ -419,15 +422,16 @@
    </listitem>
    </varlistentry>
 
-   <varlistentry>
-    <term>sortmap_</term><listitem>
+   <varlistentry id="sortmap">
+    <term>sortmap_<replaceable>field</replaceable></term><listitem>
     <para>
-     This value the native field for a target.
+     This value the native field for a target. The form of the value is
+     given by <link linkend="sortStrategy">sortStrategy</link>.
     </para>
    </listitem>
    </varlistentry>
    
-   <varlistentry>
+   <varlistentry id="sortStrategy">
     <term>sortStrategy</term><listitem>
     <para>
      Specifies sort strategy for a target. One of:
@@ -471,23 +475,25 @@
    </listitem>
    </varlistentry>
 
-   <varlistentry>
+   <varlistentry id="urlRecipe">
     <term>urlRecipe</term><listitem>
     <para>
      The value of this field is a string that generates a dynamic link
-     based on content. If the resulting string is non-zero in length
+     based on record content. If the resulting string is non-zero in length
      a new field, <literal>metadata</literal> with attribute 
-     type=generated-url. The contents of this field is the result of the
-     URL recipe conversion. The urlRecipe value may refer to an existing
-     metadata element by ${field[pattern/result/flags]}, which will take content
+     <literal>type="generated-url"</literal>.
+     The contents of this field is the result of the URL recipe conversion.
+     The urlRecipe value may refer to an existing metadata element by
+     ${field[pattern/result/flags]}, which will take content
      of field and perform a regular expression conversion using the pattern
      given. For example: <literal>${md-title[\s+/+/g]}</literal> takes
      metadadata element <literal>title</literal> and converts one or more
      spaces to a plus character.
     </para>
     <para>
-     If the contentConnector setting is defined the resulting value is
-     agmented with a session string as well as the content proxy server.
+     If the <link linkend="contentConnector">contentConnector</link>
+     setting also defined, the resulting value is
+     augmented with a session string as well as the content proxy server.
     </para>
    </listitem>
    </varlistentry>
@@ -497,7 +503,7 @@
     <para>
      This is setting is mandatory and specifies the ZURL of the
      target in the form of host/database. The HTTP method should
-     not be provide as this is guessed from the "sru" attribute value.
+     not be provided as this is guessed from the "sru" attribute value.
     </para>
    </listitem>
    </varlistentry>
