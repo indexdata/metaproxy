@@ -59,6 +59,8 @@ namespace metaproxy_1 {
         
         /// get tcpip address
         std::string get_address();
+
+        void set_custom_session(const std::string &s);
     private:
         friend std::ostream& 
         std::operator<<(std::ostream& os,  metaproxy_1::Origin& o);
@@ -73,6 +75,7 @@ namespace metaproxy_1 {
         std::string m_listen_host;
         unsigned int m_listen_port;
         int m_max_sockets;
+        std::string m_custom_session;
     };
 
 }

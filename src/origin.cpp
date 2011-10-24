@@ -67,6 +67,11 @@ void mp::Origin::set_tcpip_address(std::string addr, unsigned long s)
     m_origin_id = s;
 }
 
+void mp::Origin::set_custom_session(const std::string &s)
+{
+    m_custom_session = s;
+}
+
 std::string mp::Origin::get_address()
 {
     return m_address;
@@ -74,11 +79,13 @@ std::string mp::Origin::get_address()
 
 std::ostream& std::operator<<(std::ostream& os,  mp::Origin& o)
 {
-    if (o.m_address != "")
+    if (o.m_address.length())
         os << o.m_address;
     else
         os << "0";
     os << ":" << o.m_origin_id;
+    if (o.m_custom_session.length())
+        os << ":" << o.m_custom_session;
     return os;
 }
                 
