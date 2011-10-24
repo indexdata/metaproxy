@@ -113,7 +113,8 @@ namespace metaproxy_1 {
             void handle_package(mp::Package &package);
             void handle_search(mp::Package &package);
             void handle_present(mp::Package &package);
-            BackendPtr get_backend_from_databases(std::string &database,
+            BackendPtr get_backend_from_databases(const mp::Package &package,
+                                                  std::string &database,
                                                   int *error,
                                                   char **addinfo,
                                                   ODR odr);
@@ -635,6 +636,7 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
 }
 
 yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
+    const mp::Package &package,
     std::string &database, int *error, char **addinfo, ODR odr)
 {
     std::list<BackendPtr>::const_iterator map_it;
@@ -904,7 +906,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         FILE *file = fopen(fname, "w");
         if (!file)
         {
-            yaz_log(YLOG_WARN|YLOG_ERRNO, "create %s", fname);
+            package.log("zoom", YLOG_WARN|YLOG_ERRNO, "create %s", fname);
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
             *addinfo = (char *)  odr_malloc(odr, 40 + strlen(fname));
             sprintf(*addinfo, "Could not create %s", fname);
@@ -925,7 +927,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
         fwrite(wrbuf_buf(w), 1, wrbuf_len(w), file);
         fclose(file);
-        yaz_log(YLOG_LOG, "file %s created\n", fname);
+        package.log("zoom", YLOG_LOG, "file %s created\n", fname);
         xfree(fname);
     }
 
@@ -941,7 +943,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     }
     if (db_args.length())
         url += "," + db_args;
-    yaz_log(YLOG_LOG, "url=%s", url.c_str());
+    package.log("zoom", YLOG_LOG, "url=%s", url.c_str());
     b->connect(url, error, addinfo, odr);
     if (*error == 0)
     {
@@ -1278,7 +1280,8 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     int error = 0;
     char *addinfo = 0;
     std::string db(sr->databaseNames[0]);
-    BackendPtr b = get_backend_from_databases(db, &error, &addinfo, odr);
+    BackendPtr b = get_backend_from_databases(package, db, &error,
+                                              &addinfo, odr);
     if (error)
     {
         apdu_res = 
@@ -1424,7 +1427,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         assert(pqf_wrbuf == 0);
         int cerror, cpos;
         struct ccl_rpn_node *cn;
-        yaz_log(YLOG_LOG, "CCL: %s", wrbuf_cstr(ccl_wrbuf));
+        package.log("zoom", YLOG_LOG, "CCL: %s", wrbuf_cstr(ccl_wrbuf));
         cn = ccl_find_str(b->sptr->ccl_bibset, wrbuf_cstr(ccl_wrbuf),
                           &cerror, &cpos);
         wrbuf_destroy(ccl_wrbuf);
@@ -1451,7 +1454,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         }
         pqf_wrbuf = wrbuf_alloc();
         ccl_pquery(pqf_wrbuf, cn);
-        yaz_log(YLOG_LOG, "RPN: %s", wrbuf_cstr(pqf_wrbuf));
+        package.log("zoom", YLOG_LOG, "RPN: %s", wrbuf_cstr(pqf_wrbuf));
         ccl_rpn_delete(cn);
     }
     
@@ -1486,7 +1489,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         if (status == 0)
         {
             ZOOM_query_cql(q, wrbuf_cstr(wrb));
-            yaz_log(YLOG_LOG, "CQL: %s", wrbuf_cstr(wrb));
+            package.log("zoom", YLOG_LOG, "CQL: %s", wrbuf_cstr(wrb));
             b->search(q, &hits, &error, &addinfo, odr);
         }
         ZOOM_query_destroy(q);
@@ -1505,7 +1508,7 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     else
     {
         ZOOM_query_prefix(q, wrbuf_cstr(pqf_wrbuf));
-        yaz_log(YLOG_LOG, "search PQF: %s", wrbuf_cstr(pqf_wrbuf));
+        package.log("zoom", YLOG_LOG, "search PQF: %s", wrbuf_cstr(pqf_wrbuf));
         b->search(q, &hits, &error, &addinfo, odr);
         ZOOM_query_destroy(q);
         wrbuf_destroy(pqf_wrbuf);

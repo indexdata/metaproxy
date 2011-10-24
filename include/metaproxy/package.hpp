@@ -35,7 +35,7 @@ namespace metaproxy_1 {
 
 namespace std 
 {
-    std::ostream& operator<<(std::ostream& os, metaproxy_1::Package& p);
+    std::ostream& operator<<(std::ostream& os, const metaproxy_1::Package& p);
 }
 
 namespace metaproxy_1 {
@@ -79,7 +79,8 @@ namespace metaproxy_1 {
                 
         /// get function - right val in assignment
         Session session() const;
-        
+
+        void log(const char *module, int level, const char *fmt, ...) const;
     private:
         Session m_session;
         Origin m_origin;

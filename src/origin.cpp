@@ -77,7 +77,7 @@ std::string mp::Origin::get_address()
     return m_address;
 }
 
-std::ostream& std::operator<<(std::ostream& os,  mp::Origin& o)
+std::ostream& std::operator<<(std::ostream& os, const mp::Origin& o)
 {
     if (o.m_address.length())
         os << o.m_address;

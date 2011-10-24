@@ -18,6 +18,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 #include <metaproxy/package.hpp>
+#include <yaz/snprintf.h>
+#include <yaz/log.h>
 
 #include <iostream>
 
@@ -113,13 +115,28 @@ mp::Session mp::Package::session() const
     return m_session;
 }
 
-std::ostream& std::operator<<(std::ostream& os,  mp::Package& p)
+std::ostream& std::operator<<(std::ostream& os, const mp::Package& p)
 {
     os << p.origin() << " ";
     os << p.session().id();
     return os;
 }
 
+void mp::Package::log(const char *module, int level, const char *fmt, ...) const
+{
+    char buf[4096];
+    va_list ap;
+    va_start(ap, fmt);
+
+    yaz_vsnprintf(buf, sizeof(buf)-30, fmt, ap);
+
+    std::ostringstream os;
+
+    os << module << " " << *this << " " << buf;
+
+    va_end(ap);
+    yaz_log(level, "%s", os.str().c_str());
+}
                 
 /*
  * Local variables:

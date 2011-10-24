@@ -27,7 +27,7 @@ namespace metaproxy_1 {
 }
 
 namespace std {
-    std::ostream& operator<<(std::ostream& os, metaproxy_1::Origin& o);
+    std::ostream& operator<<(std::ostream& os, const metaproxy_1::Origin& o);
 }
 
 namespace metaproxy_1 {
@@ -63,7 +63,7 @@ namespace metaproxy_1 {
         void set_custom_session(const std::string &s);
     private:
         friend std::ostream& 
-        std::operator<<(std::ostream& os,  metaproxy_1::Origin& o);
+        std::operator<<(std::ostream& os, const metaproxy_1::Origin& o);
         
         enum origin_t {
             API,
