@@ -817,6 +817,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                 param_proxy = value;
             else if (!strcmp(name, "cproxysession"))
                 ;
+            else if (name[0] == 'x' && name[1] == '-')
+                ;
             else
             {
                 BackendPtr notfound;
