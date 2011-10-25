@@ -25,16 +25,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <sstream>
 
-//#include "config.hpp"
-//#include "filter.hpp"
-
-//#include <boost/thread/mutex.hpp>
-
-
-
-
-
-namespace mp = metaproxy_1;
 namespace yf = mp::filter;
 
 namespace metaproxy_1 {
