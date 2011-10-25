@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 #include <metaproxy/xmlutil.hpp>
+#include <string.h>
 #include "router_flexml.hpp"
 #include "factory_filter.hpp"
 #include "factory_static.hpp"
@@ -70,6 +71,7 @@ namespace metaproxy_1 {
                                bool test_only, const char *file_include_path);
         void parse_xml_routes(xmlDocPtr doc, const xmlNode *node,
                               bool test_only, const char *file_include_path);
+        void check_routes_in_filters(const xmlNode *n);
 
         bool m_xinclude;
     private:
@@ -239,6 +241,43 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
     }
 }
 
+void mp::RouterFleXML::Rep::check_routes_in_filters(const xmlNode *node)
+{
+    while (node)
+    {
+        if (mp::xml::is_element_mp(node, "filter"))
+        {
+            const xmlNode *n =
+                mp::xml::jump_to_children(node, XML_ELEMENT_NODE);
+            while (n)
+            {
+                const struct _xmlAttr *attr;
+                // we assume thar that route attribute is only at one level
+                // below filter.. At least that works for multi and virt_db.
+                for (attr = n->properties; attr; attr = attr->next)
+                {
+                    if (!strcmp((const char *) attr->name, "route"))
+                    {
+                        std::string value;
+                        
+                        if (attr->children && attr->children->type == XML_TEXT_NODE)
+                            value = std::string((const char *)attr->children->content);
+       
+                        std::map<std::string,RouterFleXML::Route>::iterator it;
+                        it = m_routes.find(value);
+                        if (it == m_routes.end())
+                        {
+                            throw mp::XMLError("Route '" + value + "' does not exist");
+                        }
+                    }
+                }
+                n = mp::xml::jump_to_next(n, XML_ELEMENT_NODE);
+            }
+        }
+        node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
+    }
+}
+
 void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
                                                  bool test_only,
                                                  const char *file_include_path)
@@ -305,7 +344,32 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
         throw mp::XMLError("Unexpected element " 
                             + std::string((const char *)node->name));
     }
-}        
+
+    node = mp::xml::jump_to_children(root, XML_ELEMENT_NODE);
+    while (node)
+    {
+        if (mp::xml::is_element_mp(node, "filters"))
+            check_routes_in_filters(
+                mp::xml::jump_to_children(node,
+                                          XML_ELEMENT_NODE));
+        else if (mp::xml::is_element_mp(node, "routes"))
+        {
+            const xmlNode* n = mp::xml::jump_to_children(node,
+                                                         XML_ELEMENT_NODE);
+            while (n)
+            {
+                if (mp::xml::is_element_mp(n, "route"))
+                {
+                    check_routes_in_filters(
+                        mp::xml::jump_to_children(n, XML_ELEMENT_NODE));
+                    
+                }
+                n = mp::xml::jump_to_next(n, XML_ELEMENT_NODE);
+            }
+        }
+        node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
+    }
+}
 
 mp::RouterFleXML::Rep::Rep() : m_xinclude(false)
 {
