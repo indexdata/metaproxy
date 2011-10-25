@@ -95,7 +95,7 @@ void mp::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
                                               const char *file_include_path)
 {
     unsigned int filter_nr = 0;
-    while(node && mp::xml::check_element_mp(node, "filter"))
+    while (node && mp::xml::check_element_mp(node, "filter"))
     {
         filter_nr++;
 
@@ -147,7 +147,7 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
     mp::xml::check_element_mp(node, "route");
 
     unsigned int route_nr = 0;
-    while(mp::xml::is_element_mp(node, "route"))
+    while (mp::xml::is_element_mp(node, "route"))
     {
         route_nr++;
 
@@ -175,7 +175,7 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
         const xmlNode* node3 = mp::xml::jump_to_children(node, XML_ELEMENT_NODE);
 
         unsigned int filter3_nr = 0;
-        while(node3 && mp::xml::check_element_mp(node3, "filter"))
+        while (node3 && mp::xml::check_element_mp(node3, "filter"))
         {
             filter3_nr++;
             
