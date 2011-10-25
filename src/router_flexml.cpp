@@ -268,7 +268,6 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
     if (mp::xml::check_element_mp(node, "start"))
     {
         const struct _xmlAttr *attr;
-        std::string id_value;
         for (attr = node->properties; attr; attr = attr->next)
         {
             std::string name = std::string((const char *) attr->name);
