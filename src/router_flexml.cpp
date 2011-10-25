@@ -279,7 +279,7 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
             if (name == "route")
                 m_start_route = value;
             else
-                throw mp::XMLError("Only attribute start allowed"
+                throw mp::XMLError("Only attribute route allowed"
                                     " in element 'start'. Got " + name);
         }
         node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
