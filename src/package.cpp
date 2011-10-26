@@ -81,7 +81,12 @@ mp::Origin mp::Package::origin() const
 {
     return m_origin;
 }
-        
+    
+mp::Origin & mp::Package::origin()
+{
+    return m_origin;
+}
+
 mp::Package & mp::Package::router(const mp::Router &router)
 {
     m_route_pos = router.createpos();
