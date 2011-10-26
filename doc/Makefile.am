@@ -104,7 +104,7 @@ multi.png: multi.svg
 	unset DISPLAY; ${INKSCAPE} --export-png=$@ --export-area=0:0:1050:500 $?
 
 multi.eps: multi.svg
-	unset DISPLAY; ${INKSCAPE} --export-eps=$@ --export-bbox-page $?
+	unset DISPLAY; ${INKSCAPE} --export-eps=$@ --export-area-page $?
 
 .eps.pdf:
 	epstopdf -hires $?
