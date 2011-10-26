@@ -64,12 +64,6 @@ namespace metaproxy_1 {
         /// get function - right val in assignment
         Origin origin() const;
         
-        /// set function - left val in assignment
-        Origin & origin();
-        
-        /// set function - can be chained
-        Package & origin(const Origin & origin);
-
         /// set function - can be chained
         Package & router(const Router &router);
 
