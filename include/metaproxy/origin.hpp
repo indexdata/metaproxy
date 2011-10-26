@@ -34,20 +34,8 @@ namespace metaproxy_1 {
     
     class Origin {
     public:
-        Origin(std::string listen_host = "", unsigned int listen_port = 0);
+        Origin();
         
-        /// get function - right val in assignment
-        std::string listen_host() const;
-
-        /// set function - left val in assignment
-        std::string & listen_host();
- 
-        /// get function - right val in assignment
-        unsigned int listen_port() const;
-        
-        /// set function - left val in assignment
-        unsigned int & listen_port();
- 
         /// set client IP info - left val in assignment
         void set_tcpip_address(std::string addr, unsigned long id);
 
@@ -65,22 +53,12 @@ namespace metaproxy_1 {
         friend std::ostream& 
         std::operator<<(std::ostream& os, const metaproxy_1::Origin& o);
         
-        enum origin_t {
-            API,
-            UNIX,
-            TCPIP
-        } m_type;
-        std::string m_address; // UNIX+TCPIP
+        std::string m_address;
         unsigned int m_origin_id;
-        std::string m_listen_host;
-        unsigned int m_listen_port;
         int m_max_sockets;
         std::string m_custom_session;
     };
-
 }
-
-
 
 #endif
 /*

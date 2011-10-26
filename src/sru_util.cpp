@@ -49,8 +49,8 @@ mp_util::SRUServerInfo mp_util::get_sru_server_info(mp::Package &package)
     mp_util::SRUServerInfo sruinfo;
 
     // getting host and port info
-    sruinfo.host = package.origin().listen_host();
-    sruinfo.port = mp_util::to_string(package.origin().listen_port());
+    sruinfo.host = "localhost";
+    sruinfo.port = "80";
 
     // overwriting host and port info if set from HTTP Host header
     Z_GDU *zgdu_req = package.request().get();
