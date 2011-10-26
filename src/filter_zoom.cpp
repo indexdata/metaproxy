@@ -798,17 +798,27 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     const char *param_user = 0;
     const char *param_password = 0;
     const char *param_proxy = 0;
+    char *x_args = 0;  // all x-args to be passed to backend
+    
     if (db_args.length())
     {
+        
         char **names;
         char **values;
-        int i;
         int no_parms = yaz_uri_to_array(db_args.c_str(),
                                         odr, &names, &values);
+        const char **x_names = (const char **)
+            odr_malloc(odr, (1 + no_parms) * sizeof(*x_names));
+        const char **x_values = (const char **)
+            odr_malloc(odr, (1 + no_parms) * sizeof(*x_values));
+        int no_x_names = 0;
+        int i;
         for (i = 0; i < no_parms; i++)
         {
             const char *name = names[i];
             const char *value = values[i];
+            assert(name);
+            assert(value);
             if (!strcmp(name, "user"))
                 param_user = value;
             else if (!strcmp(name, "password"))
@@ -818,7 +828,11 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             else if (!strcmp(name, "cproxysession"))
                 ;
             else if (name[0] == 'x' && name[1] == '-')
-                ;
+            {
+                x_names[no_x_names] = name;
+                x_values[no_x_names] = value;
+                no_x_names++;
+            }
             else
             {
                 BackendPtr notfound;
@@ -828,6 +842,12 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                 *addinfo = msg;
                 return notfound;
             }
+        }
+        if (no_x_names)
+        {
+            x_names[no_x_names] = 0; // terminate list
+            yaz_array_to_uri(&x_args, odr, (char **) x_names,
+                             (char **) x_values);
         }
         if (param_user)
         {
@@ -876,7 +896,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     }
     else
     {
-        db_args.clear(); // no arguments to be passed (non-CF)
+        db_args.clear(); // Only x-args to be passed (non-CF)
+        if (x_args)
+            db_args = x_args;
 
         size_t found = authentication.find('/');
         
