@@ -1,5 +1,14 @@
---- 1.3.11 2011/09/09
+--- 1.3.12 2011/10/26
 
+zoom: database args x-name=value are passed through to backend database.
+
+SRU filter: user may specify session ID that is passed to log entries
+that follows. It is specified by using x-session-id in the SRU arguments.
+
+zoom: fix null pointer reference which would occur for bad url parameter
+inside "torus" or if url was not given.
+
+--- 1.3.11 2011/09/09
 Fix bug in filter session_shared where sessions would not expire
 properly (session ttl). This in turn could make the target close the
 connection before expected and session_shared would return diagnostic
