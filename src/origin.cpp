@@ -23,32 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace mp = metaproxy_1;
 
-mp::Origin::Origin(std::string listen_host, 
-                   unsigned int listen_port) 
-    : m_type(API), m_address(""), m_origin_id(0),
-      m_listen_host(listen_host), m_listen_port(listen_port), m_max_sockets(0)
+mp::Origin::Origin() : m_address(""), m_origin_id(0), m_max_sockets(0)
 {
 }
-
-std::string mp::Origin::listen_host() const
-{
-    return m_listen_host;
-};
-
-std::string & mp::Origin::listen_host()
-{
-    return m_listen_host;
-};
-
-unsigned int mp::Origin::listen_port() const
-{
-    return m_listen_port;
-};
-
-unsigned int & mp::Origin::listen_port()
-{
-    return m_listen_port;
-};
 
 void mp::Origin::set_max_sockets(int max_sockets)
 {
@@ -62,9 +39,13 @@ int mp::Origin::get_max_sockets()
 
 void mp::Origin::set_tcpip_address(std::string addr, unsigned long s)
 {
-    m_type = TCPIP;
     m_address = addr;
     m_origin_id = s;
+}
+
+void mp::Origin::set_custom_session(const std::string &s)
+{
+    m_custom_session = s;
 }
 
 std::string mp::Origin::get_address()
@@ -72,13 +53,15 @@ std::string mp::Origin::get_address()
     return m_address;
 }
 
-std::ostream& std::operator<<(std::ostream& os,  mp::Origin& o)
+std::ostream& std::operator<<(std::ostream& os, const mp::Origin& o)
 {
-    if (o.m_address != "")
+    if (o.m_address.length())
         os << o.m_address;
     else
         os << "0";
     os << ":" << o.m_origin_id;
+    if (o.m_custom_session.length())
+        os << ":" << o.m_custom_session;
     return os;
 }
                 

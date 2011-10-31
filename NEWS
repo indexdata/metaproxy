@@ -1,3 +1,33 @@
+--- 1.3.13 2011/10/26
+
+Fix Origin class assigment method; was removd by mistake in 1.3.12.
+
+--- 1.3.12 2011/10/26
+
+zoom: database args x-name=value are passed through to backend database.
+
+SRU filter: user may specify session ID that is passed to log entries
+that follows. It is specified by using x-session-id in the SRU arguments.
+
+zoom: fix null pointer reference which would occur for bad url parameter
+inside "torus" or if url was not given.
+
+--- 1.3.11 2011/09/09
+Fix bug in filter session_shared where sessions would not expire
+properly (session ttl). This in turn could make the target close the
+connection before expected and session_shared would return diagnostic
+2: system temporarily available.
+
+--- 1.3.10 2011/09/09
+
+zoom: new target profile setting: sortmap_field. If sortmap_field is given
+the field is mapped to the value for the sortmap. Values not matching
+sortmap_field are passed verbatim.
+  
+zoom: new target profile setting: sortStrategy. One of: "z3950", "type7",
+"cql", "sru11" or "embed". The "embed" chooses type-7 or CQL sortby
+depending on whether RPN or CQL is actually sent to the target.
+
 --- 1.3.9 2011/08/25
 
 zoom: urlRecipe result is stored in <pz:metadata type="generated-url">.

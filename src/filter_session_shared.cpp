@@ -104,6 +104,7 @@ namespace metaproxy_1 {
             time_t m_time_last_use;
             mp::Package * m_close_package;
             ~BackendInstance();
+            void timestamp();
         };
         // backends of some class (all with same InitKey)
         class SessionShared::BackendClass : boost::noncopyable {
@@ -331,8 +332,13 @@ yf::SessionShared::BackendClass::get_backend(
 void yf::SessionShared::BackendClass::use_backend(BackendInstancePtr backend)
 {
     backend->m_in_use = true;
-    time(&backend->m_time_last_use);
     backend->m_sequence_this = m_sequence_top++;
+}
+
+void yf::SessionShared::BackendInstance::timestamp()
+{
+    assert(m_in_use);
+    time(&m_time_last_use);
 }
 
 yf::SessionShared::BackendInstance::~BackendInstance()
@@ -687,6 +693,8 @@ restart:
         else
             result_set_id = "default";
     }
+    found_backend->timestamp();
+
     // we must search ...
     BackendSetPtr new_set(new BackendSet(result_set_id,
                                          databases, query));
@@ -881,6 +889,8 @@ void yf::SessionShared::Frontend::present(mp::Package &package,
         bc->release_backend(found_backend);
         return;
     }
+
+    found_backend->timestamp();
                               
     Z_APDU *p_apdu = zget_APDU(odr, Z_APDU_presentRequest);
     Z_PresentRequest *p_req = p_apdu->u.presentRequest;
@@ -954,6 +964,7 @@ void yf::SessionShared::Frontend::scan(mp::Package &frontend_package,
     else
     {
         Package scan_package(backend->m_session, frontend_package.origin());
+        backend->timestamp();
         scan_package.copy_filter(frontend_package);
         scan_package.request() = apdu_req;
         scan_package.move();
@@ -1015,7 +1026,7 @@ void yf::SessionShared::Rep::expire()
     {
         boost::xtime xt;
         boost::xtime_get(&xt, boost::TIME_UTC);
-        xt.sec += 30;
+        xt.sec += m_session_ttl / 3;
         boost::thread::sleep(xt);
         
         BackendClassMap::const_iterator b_it = m_backend_map.begin();

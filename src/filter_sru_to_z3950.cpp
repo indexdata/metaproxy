@@ -223,6 +223,10 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
         {
             package.origin().set_max_sockets(atoi(arg->value));
         }
+        else if (!strcmp(arg->name, "x-session-id"))
+        {
+            package.origin().set_custom_session(arg->value);
+        }
 
     assert(sru_pdu_req);
 

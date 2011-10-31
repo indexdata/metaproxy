@@ -46,6 +46,8 @@
 	    <sru>get</sru>
 	    <transform>tmarc.xsl</transform>
 	    <zurl>localhost:9998/db01</zurl>
+            <sortStrategy>embed</sortStrategy>
+            <sortmap_title>dc.title</sortmap_title>
 	  </record>
 
           <!-- jstor1 -->

@@ -693,7 +693,6 @@ std::string mp_util::uri_encode(std::string s)
     return result;
 }
 
-
 /*
  * Local variables:
  * c-basic-offset: 4

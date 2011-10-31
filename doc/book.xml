@@ -150,7 +150,7 @@
       <para>
        The popular C++ library. Initial versions of Metaproxy
        was built with 1.32 but this is no longer supported.
-       Metaproxy is known to work with Boost version 1.33 through 1.38.
+       Metaproxy is known to work with Boost version 1.33 through 1.46.
       </para>
      </listitem>
     </varlistentry>
@@ -166,7 +166,7 @@
   <para>
    We have successfully built Metaproxy using the compilers
    <ulink url="&url.gcc;">GCC</ulink> version 4.0 and
-   <ulink url="&url.vstudio;">Microsoft Visual Studio</ulink> 2003/2005.
+   <ulink url="&url.vstudio;">Microsoft Visual Studio</ulink> 2003/2005/2008.
   </para>
 
   <section id="installation.unix">
@@ -228,7 +228,7 @@
     <screen>
      gunzip -c boost-version.tar.gz|tar xf -
      cd boost-version
-     ./configure --with-libraries=thread,test --with-toolset=gcc
+     ./configure --with-libraries=thread,test,regex --with-toolset=gcc
      make
      su
      make install
@@ -237,7 +237,7 @@
      However, under the hood bjam is used. You can invoke that with
     </para>
     <screen>
-     ./bjam --toolset=gcc --with-thread --with-test stage
+     ./bjam --toolset=gcc --with-thread --with-test --with-regex stage
     </screen>
     <para>
      Replace <literal>stage</literal> with <literal>clean</literal> /
@@ -286,7 +286,7 @@
    <para>
     There is currently no official Debian package for YAZ++.
     And the official Debian package for YAZ is probably too old.
-    But Index Data bulds "new" versions of those for Debian (i386 only).
+    But Index Data builds "new" versions of those for Debian (i386, amd64 only).
    </para>
    <para>
     Update the <filename>/etc/apt/sources.list</filename>
@@ -300,6 +300,7 @@
     apt-get install libboost-dev
     apt-get install libboost-thread-dev
     apt-get install libboost-test-dev
+    apt-get install libboost-regex-dev
    </screen>
    <para>
     With these packages installed, the usual configure + make
@@ -346,7 +347,7 @@
    <para>
     Metaproxy can be compiled with Microsoft
     <ulink url="&url.vstudio;">Visual Studio</ulink>.
-    Versions 2003 (C 7.1), 2005 (C 8.0) and 2008 (C 9.0) is known to work.
+    Versions 2003 (C 7.1), 2005 (C 8.0) and 2008 (C 9.0) are known to work.
    </para>
    <section id="installation.windows.boost">
     <title>Boost</title>
@@ -392,7 +393,7 @@
     <title>YAZ++</title>
     <para>
      Get <ulink url="&url.yazplusplus;">YAZ++</ulink> as well.
-     Version 1.1.0 or later is required.
+     Version 1.2.7 or later is required.
     </para>
     <para>
      YAZ++ includes NMAKE makefiles, similar to those found in the
@@ -2096,17 +2097,9 @@ Z>
  &gpl2;
 </book>
 
- <!-- Keep this comment at the end of the file
- Local variables:
- mode: sgml
- sgml-omittag:t
- sgml-shorttag:t
- sgml-minimize-attributes:nil
- sgml-always-quote-attributes:t
- sgml-indent-step:1
- sgml-indent-data:t
- sgml-parent-document: nil
- sgml-local-catalogs: nil
- sgml-namecase-general:t
- End:
- -->
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: nxml
+nxml-child-indent: 1
+End:
+-->
