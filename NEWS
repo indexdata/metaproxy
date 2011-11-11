@@ -1,3 +1,7 @@
+--- 1.3.14 2011/11/11
+
+zoom: realm may be given as part of database.
+
 --- 1.3.13 2011/10/26
 
 Fix Origin class assigment method; was removd by mistake in 1.3.12.

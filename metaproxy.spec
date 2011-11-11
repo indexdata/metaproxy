@@ -1,6 +1,6 @@
 Summary: Z39.50/SRU router
 Name: metaproxy
-Version: 1.3.13
+Version: 1.3.14
 Release: 1indexdata
 License: GPL
 Group: Applications/Internet
