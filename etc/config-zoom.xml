@@ -8,7 +8,8 @@
     </filter>
     <filter id="backend" type="zoom">
       <torus
-         url="http://mk2.indexdata.com/torus2/searchable.usi-test/records/?query=udb%3D%db"
+	  url="http://usi.indexdata.com/torus2/%realm/records/?query=udb%3D%3D%db"
+            realm="searchable.usi-test"
             xsldir="."
             element_transform="pz2"
             element_raw="raw"
