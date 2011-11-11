@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <string.h>
 #include <yaz/wrbuf.h>
+#include <yaz/log.h>
 #include <yaz/url.h>
 #include <metaproxy/util.hpp>
 #include "torus.hpp"
@@ -27,6 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace mp = metaproxy_1;
 
 xmlDoc *mp::get_searchable(std::string url_template, const std::string &db,
+                           const std::string &realm,
                            const std::string &proxy)
 {
     // http://newmk2.indexdata.com/torus2/searchable.ebsco/records/?query=udb=aberdeenUni
@@ -35,7 +37,11 @@ xmlDoc *mp::get_searchable(std::string url_template, const std::string &db,
 
     found = url_template.find("%db");
     if (found != std::string::npos)
-        url_template.replace(found, found+3, mp::util::uri_encode(db));
+        url_template.replace(found, 3, mp::util::uri_encode(db));
+
+    found = url_template.find("%realm");
+    if (found != std::string::npos)
+        url_template.replace(found, 6, mp::util::uri_encode(realm));
 
     Z_HTTP_Header *http_headers = 0;
     mp::odr odr;
@@ -57,6 +63,8 @@ xmlDoc *mp::get_searchable(std::string url_template, const std::string &db,
         http_response->content_buf)
         doc = xmlParseMemory(http_response->content_buf,
                              http_response->content_len);
+    else
+        yaz_log(YLOG_WARN, "Could not fetch %s", url_template.c_str());
     yaz_url_destroy(url_p);
     return doc;
 }

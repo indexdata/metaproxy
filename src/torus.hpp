@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace metaproxy_1 {
     xmlDoc *get_searchable(std::string url_template, const std::string &db,
+                           const std::string &realm,
                            const std::string &proxy);
 }
 
