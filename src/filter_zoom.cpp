@@ -646,13 +646,13 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (m_backend && m_backend->m_frontend_database == database)
         return m_backend;
 
-    std::string db_args;
+    std::string input_args;
     std::string torus_db;
     size_t db_arg_pos = database.find(',');
     if (db_arg_pos != std::string::npos)
     {
         torus_db = database.substr(0, db_arg_pos);
-        db_args = database.substr(db_arg_pos + 1);
+        input_args = database.substr(db_arg_pos + 1);
     }
     else
         torus_db = database;
@@ -663,69 +663,61 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     const char *param_user = 0;
     const char *param_password = 0;
-    const char *param_proxy = 0;
-    char *x_args = 0;  // all x-args to be passed to backend
+    int no_parms = 0;
+
+    char **names;
+    char **values;
+    int no_out_args = 0;
+    if (input_args.length())
+        no_parms = yaz_uri_to_array(input_args.c_str(),
+                                    odr, &names, &values);
+    // adding 10 because we'll be adding other URL args
+    const char **out_names = (const char **)
+        odr_malloc(odr, (10 + no_parms) * sizeof(*out_names));
+    const char **out_values = (const char **)
+        odr_malloc(odr, (10 + no_parms) * sizeof(*out_values));
     
-    if (db_args.length())
+    int i;
+    for (i = 0; i < no_parms; i++)
     {
-        char **names;
-        char **values;
-        int no_parms = yaz_uri_to_array(db_args.c_str(),
-                                        odr, &names, &values);
-        const char **x_names = (const char **)
-            odr_malloc(odr, (1 + no_parms) * sizeof(*x_names));
-        const char **x_values = (const char **)
-            odr_malloc(odr, (1 + no_parms) * sizeof(*x_values));
-        int no_x_names = 0;
-        int i;
-        for (i = 0; i < no_parms; i++)
+        const char *name = names[i];
+        const char *value = values[i];
+        assert(name);
+        assert(value);
+        if (!strcmp(name, "user"))
+            param_user = value;
+        else if (!strcmp(name, "password"))
+            param_password = value;
+        else if (!strcmp(name, "proxy"))
+            proxy = value;
+        else if (!strcmp(name, "cproxysession"))
         {
-            const char *name = names[i];
-            const char *value = values[i];
-            assert(name);
-            assert(value);
-            if (!strcmp(name, "user"))
-                param_user = value;
-            else if (!strcmp(name, "password"))
-                param_password = value;
-            else if (!strcmp(name, "proxy"))
-                param_proxy = value;
-            else if (!strcmp(name, "cproxysession"))
-                ;
-            else if (!strcmp(name, "realm"))
-                realm = value;
-            else if (name[0] == 'x' && name[1] == '-')
-            {
-                x_names[no_x_names] = name;
-                x_values[no_x_names] = value;
-                no_x_names++;
-            }
-            else
-            {
-                BackendPtr notfound;
-                char *msg = (char*) odr_malloc(odr, strlen(name) + 30);
-                *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-                sprintf(msg, "Bad database argument: %s", name);
-                *addinfo = msg;
-                return notfound;
-            }
+            out_names[no_out_args] = name;
+            out_values[no_out_args++] = value;
         }
-        if (no_x_names)
+        else if (!strcmp(name, "realm"))
+            realm = value;
+        else if (name[0] == 'x' && name[1] == '-')
         {
-            x_names[no_x_names] = 0; // terminate list
-            yaz_array_to_uri(&x_args, odr, (char **) x_names,
-                             (char **) x_values);
+            out_names[no_out_args] = name;
+            out_values[no_out_args++] = value;
         }
-        if (param_user)
+        else
         {
-            authentication = std::string(param_user);
-            if (param_password)
-                authentication += "/" + std::string(param_password);
+            BackendPtr notfound;
+            char *msg = (char*) odr_malloc(odr, strlen(name) + 30);
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            sprintf(msg, "Bad database argument: %s", name);
+            *addinfo = msg;
+            return notfound;
         }
-        if (param_proxy)
-            proxy = param_proxy;
     }
- 
+    if (param_user)
+    {
+        authentication = std::string(param_user);
+        if (param_password)
+            authentication += "/" + std::string(param_password);
+    }
     SearchablePtr sptr;
 
     std::map<std::string,SearchablePtr>::iterator it;
@@ -875,43 +867,39 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         // A CF target
         b->set_option("user", sptr->cfAuth);
-        if (!param_user && !param_password && authentication.length())
+        if (authentication.length())
         {
-            if (db_args.length())
-                db_args += "&";
-            // no database (auth) args specified already.. and the
-            // Torus authentication has it.. Generate the args that CF
-            // understands..
             size_t found = authentication.find('/');
             if (found != std::string::npos)
             {
-                db_args += "user=" +
-                    mp::util::uri_encode(authentication.substr(0, found))
-                    + "&password=" +
-                    mp::util::uri_encode(authentication.substr(found+1));
+                out_names[no_out_args] = "user";
+                out_values[no_out_args++] =
+                    odr_strdup(odr, authentication.substr(0, found).c_str());
+
+                out_names[no_out_args] = "password";
+                out_values[no_out_args++] =
+                    odr_strdup(odr, authentication.substr(found+1).c_str());
             }
             else
-                db_args += "user=" + mp::util::uri_encode(authentication);
+            {
+                out_names[no_out_args] = "user";
+                out_values[no_out_args++] =
+                    odr_strdup(odr, authentication.c_str());
+            }                
         }
-        if (!param_proxy && proxy.length())
+        if (proxy.length())
         {
-            if (db_args.length())
-                db_args += "&";
-            db_args += "proxy=" + mp::util::uri_encode(proxy);
+            out_names[no_out_args] = "proxy";
+            out_values[no_out_args++] = odr_strdup(odr, proxy.c_str());
         }
         if (sptr->cfSubDb.length())
         {
-            if (db_args.length())
-                db_args += "&";
-            db_args += "subdatabase=" + mp::util::uri_encode(sptr->cfSubDb);
+            out_names[no_out_args] = "subdatabase";
+            out_values[no_out_args++] = odr_strdup(odr, sptr->cfSubDb.c_str());
         }
     }
     else
     {
-        db_args.clear(); // Only x-args to be passed (non-CF)
-        if (x_args)
-            db_args = x_args;
-
         size_t found = authentication.find('/');
         
         if (sptr->sru.length() && found != std::string::npos)
@@ -977,8 +965,15 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         url = sptr->target;
     }
-    if (db_args.length())
-        url += "," + db_args;
+    if (no_out_args)
+    {
+        char *x_args = 0;
+        out_names[no_out_args] = 0; // terminate list
+        
+        yaz_array_to_uri(&x_args, odr, (char **) out_names,
+                         (char **) out_values);
+        url += "," + std::string(x_args);
+    }
     package.log("zoom", YLOG_LOG, "url=%s", url.c_str());
     b->connect(url, error, addinfo, odr);
     if (*error == 0)
