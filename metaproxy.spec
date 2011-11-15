@@ -1,6 +1,7 @@
+%define idmetaversion %(. ./IDMETA; echo $VERSION|tr -d '\n')
 Summary: Z39.50/SRU router
 Name: metaproxy
-Version: 1.3.15
+Version: %{idmetaversion}
 Release: 1indexdata
 License: GPL
 Group: Applications/Internet
