@@ -31,15 +31,15 @@ xmlschemadata_DATA = $(rnc)
 
 EXTRA_DIST = $(rnc)
 
-clean:
+clean-local:
 	rm -f *.xsd *.rng
 
 metaproxy.rng:$(rnc)
 	if test -x $(TRANG); then \
-		$(TRANG) metaproxy.rnc metaproxy.rng; \
+		$(TRANG) $(srcdir)/metaproxy.rnc metaproxy.rng; \
 	fi
 
 metaproxy.xsd:$(rnc)
 	if test -x $(TRANG); then \
-		$(TRANG) metaproxy.rnc metaproxy.xsd; \
+		$(TRANG) $(srcdir)/metaproxy.rnc metaproxy.xsd; \
 	fi

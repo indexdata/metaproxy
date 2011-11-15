@@ -89,7 +89,7 @@ else
 fi
 AC_DEFINE_UNQUOTED([VERSION_SHA1], "$SHA1", [SHA-1 from Git])
 
-AC_CONFIG_FILES([
+AC_OUTPUT([
 	metaproxy-config
         Doxyfile
 	Makefile
@@ -107,12 +107,6 @@ AC_CONFIG_FILES([
         sed s%echo_source=yes%echo_source=no%g < metaproxy-config > src/metaproxy-config && chmod +x metaproxy-config src/metaproxy-config
 
 ])
-
-AC_OUTPUT
-
-
-# postamble
-
 
 echo \
 "------------------------------------------------------------------------
