@@ -30,6 +30,7 @@ Metaproxy documentation.
 Summary: Metaproxy library
 Group: Libraries
 Requires: libyazpp4
+Conflicts: libyaz4 = 4.2.18
 
 %description -n libmetaproxy4
 The Metaproxy libraries.
