@@ -332,7 +332,7 @@
    </varlistentry>
 
    <varlistentry>
-    <term>cfSubDb</term><listitem>
+    <term>cfSubDB</term><listitem>
     <para>
      Specifies sub database for a Connector Framework based target.
     </para>

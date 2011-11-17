@@ -59,7 +59,7 @@ namespace metaproxy_1 {
             std::string authentication;
             std::string cfAuth;
             std::string cfProxy;
-            std::string cfSubDb;
+            std::string cfSubDB;
             std::string udb;
             std::string target;
             std::string query_encoding;
@@ -404,9 +404,9 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
             s->cfProxy = mp::xml::get_text(ptr);
         }  
         else if (!strcmp((const char *) ptr->name,
-                         "cfSubDb"))
+                         "cfSubDB"))
         {
-            s->cfSubDb = mp::xml::get_text(ptr);
+            s->cfSubDB = mp::xml::get_text(ptr);
         }  
         else if (!strcmp((const char *) ptr->name,
                          "contentConnector"))
@@ -892,10 +892,10 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             out_names[no_out_args] = "proxy";
             out_values[no_out_args++] = odr_strdup(odr, proxy.c_str());
         }
-        if (sptr->cfSubDb.length())
+        if (sptr->cfSubDB.length())
         {
             out_names[no_out_args] = "subdatabase";
-            out_values[no_out_args++] = odr_strdup(odr, sptr->cfSubDb.c_str());
+            out_values[no_out_args++] = odr_strdup(odr, sptr->cfSubDB.c_str());
         }
     }
     else

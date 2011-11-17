@@ -173,7 +173,7 @@
 	    <zurl>localhost:9999/db01</zurl>
 	    <cfAuth>cfuser/cfpassword</cfAuth>
 	    <cfProxy>localhost:3128</cfProxy>
-	    <cfSubDb>mysub</cfSubDb>
+	    <cfSubDB>mysub</cfSubDB>
 	  </record>
 	</records>
       </torus>
