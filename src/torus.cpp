@@ -61,10 +61,27 @@ xmlDoc *mp::get_searchable(std::string url_template, const std::string &db,
         );
     if (http_response && http_response->code == 200 && 
         http_response->content_buf)
+    {
+        yaz_log(YLOG_LOG, "Torus: %s OK", url_template.c_str());
         doc = xmlParseMemory(http_response->content_buf,
                              http_response->content_len);
+        
+    }
     else
-        yaz_log(YLOG_WARN, "Could not fetch %s", url_template.c_str());
+    {
+        yaz_log(YLOG_WARN, "Torus: %s FAIL", url_template.c_str());
+        if (http_response)
+        {
+            yaz_log(YLOG_LOG, "HTTP code: %d", http_response->code);
+        }
+    }
+
+    if (http_response && http_response->content_buf)
+    {
+        yaz_log(YLOG_LOG, "HTTP content:\n%.*s",
+                (int) http_response->content_len,
+                http_response->content_buf);
+    }
     yaz_url_destroy(url_p);
     return doc;
 }
