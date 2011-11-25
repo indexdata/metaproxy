@@ -300,11 +300,12 @@
   </para>
   <variablelist>
    <varlistentry>
-    <term>authentication</term><listitem>
+    <term id="zoom-torus-authentication">authentication</term><listitem>
     <para>
      Authentication parameters to be sent to the target. For
      Z39.50 targets, this will be sent as part of the
-     Init Request.
+     Init Request. Authentication consists of two components: username
+     and password, separated by a slash.
     </para>
     <para>
      If this value is omitted or empty no authentication information is sent.
@@ -336,7 +337,7 @@
    </varlistentry>
 
    <varlistentry>
-    <term>cfProxy</term><listitem>
+    <term id="zoom-torus-cfproxy">cfProxy</term><listitem>
     <para>
      Specifies HTTP proxy for the target in the form
      <replaceable>host</replaceable>:<replaceable>port</replaceable>.
@@ -352,7 +353,7 @@
    </listitem>
    </varlistentry>
 
-   <varlistentry id="contentConnector">
+   <varlistentry id="zoom-torus-contentConnector">
     <term>contentConnector</term><listitem>
     <para>
      Specifies a database for content-based proxy'ing.
@@ -504,7 +505,7 @@
      spaces to a plus character.
     </para>
     <para>
-     If the <link linkend="contentConnector">contentConnector</link>
+     If the <link linkend="zoom-torus-contentConnector">contentConnector</link>
      setting also defined, the resulting value is
      augmented with a session string as well as the content proxy server.
     </para>
@@ -525,7 +526,7 @@
  <refsect1>
   <title>DATABASE parameters</title>
   <para>
-   Extra information may be carried in the Z39.50 Datbase or SRU path,
+   Extra information may be carried in the Z39.50 Database or SRU path,
    such as authentication to be passed to backend etc. Some of
    the parameters override TARGET profile values. The format is
   </para>
@@ -535,16 +536,22 @@
   <para>
    Where udb is the unique database recognised by the backend and parm1,
    value1, .. are parameters to be passed. The following describes the
-   supported parameters.
+   supported parameters. Like form values in HTTP the parameters and
+   values are URL encoded. The separator, though, between udb and parameters
+   is a comma rather than a question mark. What follows question mark are
+   HTTP arguments (in this case SRU arguments).
   </para>
   <variablelist>  
    <varlistentry>
     <term>user</term>
     <listitem>
      <para>
-      Specifies user to be passed to backend. If this parameters is
+      Specifies user to be passed to backend. If this parameter is
       omitted, the user will be taken from TARGET profile setting
-      <literal>authentication</literal>.
+      <link linkend="zoom-torus-authentication">
+       <literal>authentication</literal>
+      </link>
+      .
      </para>
     </listitem>
    </varlistentry>
@@ -554,7 +561,10 @@
      <para>
       Specifies password to be passed to backend. If this parameters is
       omitted, the password will be taken from TARGET profile setting
-      <literal>authentication</literal>.
+      <link linkend="zoom-torus-authentication">
+       <literal>authentication</literal>
+      </link>
+      .
      </para>
     </listitem>
    </varlistentry>
@@ -564,7 +574,10 @@
      <para>
       Specifies proxy to be for backend. If this parameters is
       omitted, the proxy will be taken from TARGET profile setting
-      <literal>cfProxy</literal>.
+      <link linkend="zoom-torus-cfproxy">
+       <literal>cfProxy</literal>
+      </link>
+      .
      </para>
     </listitem>
    </varlistentry>
