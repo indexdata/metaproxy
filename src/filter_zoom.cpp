@@ -64,6 +64,7 @@ namespace metaproxy_1 {
             std::string target;
             std::string query_encoding;
             std::string sru;
+            std::string sru_version;
             std::string request_syntax;
             std::string element_set;
             std::string record_encoding;
@@ -424,6 +425,10 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
         else if (!strcmp((const char *) ptr->name, "sru"))
         {
             s->sru = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name, "SRUVersion"))
+        {
+            s->sru_version = mp::xml::get_text(ptr);
         }
         else if (!strcmp((const char *) ptr->name,
                          "queryEncoding"))
@@ -960,6 +965,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         url = "http://" + sptr->target;
         b->set_option("sru", sptr->sru);
+
+        if (sptr->sru_version.length())
+            b->set_option("sru_version", sptr->sru_version);
     }
     else
     {

@@ -470,6 +470,16 @@
    </varlistentry>
 
    <varlistentry>
+    <term>SRUVersion</term><listitem>
+    <para>
+     Specifies the SRU version to use. It unset, version 1.2 will be
+     used. Some servers do not support this version, in which case
+     version 1.1 or even 1.0 could be set it.
+    </para>
+   </listitem>
+   </varlistentry>
+
+   <varlistentry>
     <term>transform</term><listitem>
     <para>
      Specifies a XSL stylesheet filename to be used if record
