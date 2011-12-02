@@ -114,7 +114,7 @@ namespace metaproxy_1 {
             void handle_package(mp::Package &package);
             void handle_search(mp::Package &package);
             void handle_present(mp::Package &package);
-            BackendPtr get_backend_from_databases(const mp::Package &package,
+            BackendPtr get_backend_from_databases(mp::Package &package,
                                                   std::string &database,
                                                   int *error,
                                                   char **addinfo,
@@ -644,7 +644,7 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
 }
 
 yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
-    const mp::Package &package,
+    mp::Package &package,
     std::string &database, int *error, char **addinfo, ODR odr)
 {
     std::list<BackendPtr>::const_iterator map_it;
@@ -956,7 +956,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
         fwrite(wrbuf_buf(w), 1, wrbuf_len(w), file);
         fclose(file);
-        package.log("zoom", YLOG_LOG, "file %s created\n", fname);
+        package.log("zoom", YLOG_LOG, "file %s created", fname);
         xfree(fname);
     }
 
@@ -982,7 +982,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                          (char **) out_values);
         url += "," + std::string(x_args);
     }
-    package.log("zoom", YLOG_LOG, "url=%s", url.c_str());
+    package.log("zoom", YLOG_LOG, "url: %s", url.c_str());
     b->connect(url, error, addinfo, odr);
     if (*error == 0)
     {
@@ -1365,9 +1365,11 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         const char *cql = query->u.type_104->u.cql;
         CQL_parser cp = cql_parser_create();
         int r = cql_parser_string(cp, cql);
+        package.log("zoom", YLOG_LOG, "CQL: %s", cql);
         if (r)
         {
             cql_parser_destroy(cp);
+            package.log("zoom", YLOG_WARN, "CQL syntax error");
             apdu_res = 
                 odr.create_searchResponse(apdu_req, 
                                           YAZ_BIB1_MALFORMED_QUERY,
