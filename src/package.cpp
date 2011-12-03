@@ -25,8 +25,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace mp = metaproxy_1;
 
+namespace metaproxy_1 {
+    class Package::PackageLogger : boost::noncopyable {
+        friend class Package;
+        std::string str;
+    };
+}
+
 mp::Package::Package() 
-    : m_route_pos(0)
+    : m_route_pos(0), p_logger(new PackageLogger)
 {
 }
 
@@ -37,7 +44,7 @@ mp::Package::~Package()
 
 mp::Package::Package(mp::Session &session, const mp::Origin &origin) 
     : m_session(session), m_origin(origin),
-      m_route_pos(0)
+      m_route_pos(0), p_logger(new PackageLogger)
 {
 }
 
@@ -46,6 +53,7 @@ mp::Package & mp::Package::copy_filter(const Package &p)
 {
     delete m_route_pos;
     m_route_pos = p.m_route_pos->clone();
+    p_logger = p.p_logger;
     return *this;
 }
 
@@ -116,22 +124,31 @@ std::ostream& std::operator<<(std::ostream& os, const mp::Package& p)
     return os;
 }
 
-void mp::Package::log(const char *module, int level, const char *fmt, ...) const
+void mp::Package::log(const char *module, int level, const char *fmt, ...)
 {
     char buf[4096];
     va_list ap;
     va_start(ap, fmt);
 
-    yaz_vsnprintf(buf, sizeof(buf)-30, fmt, ap);
+    buf[0] = ' ';
+    yaz_vsnprintf(buf + 1, sizeof(buf)-30, fmt, ap);
 
     std::ostringstream os;
 
-    os << module << " " << *this << " " << buf;
+    os << module << " " << *this << buf;
 
     va_end(ap);
     yaz_log(level, "%s", os.str().c_str());
+
+    p_logger->str += std::string(module) + std::string(buf) + std::string("\n");
 }
-                
+
+void mp::Package::reset_log(std::string &res)
+{
+    res = p_logger->str;
+    p_logger->str.clear();
+}
+
 /*
  * Local variables:
  * c-basic-offset: 4

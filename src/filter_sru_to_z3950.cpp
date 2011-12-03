@@ -289,6 +289,22 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
                                YAZ_SRW_UNSUPP_OPERATION, "unknown");
     }
 
+
+    std::string l;
+    package.reset_log(l);
+    if (l.length())
+    {
+        WRBUF w = wrbuf_alloc();
+
+        wrbuf_puts(w, "<log>\n");
+        wrbuf_xmlputs(w, l.c_str());
+        wrbuf_puts(w, "</log>");
+        
+        sru_pdu_res->extraResponseData_len = wrbuf_len(w);
+        sru_pdu_res->extraResponseData_buf = odr_strdup(odr_en, wrbuf_cstr(w));
+        wrbuf_destroy(w);
+    }
+    
     // build and send SRU response
     mp_util::build_sru_response(package, odr_en, soap, 
                                 sru_pdu_res, charset, stylesheet);

@@ -77,21 +77,25 @@ namespace metaproxy_1 {
         /// get function - right val in assignment
         Session session() const;
 
-        void log(const char *module, int level, const char *fmt, ...) const;
+        void log(const char *module, int level, const char *fmt, ...);
+        
+        void reset_log(std::string &res);
+
+        class PackageLogger;
+        typedef boost::shared_ptr<PackageLogger> PackageLoggerPtr;
+
     private:
         Session m_session;
         Origin m_origin;
 
         RoutePos *m_route_pos;
 
-        //int m_data;
+        PackageLoggerPtr p_logger;
         
         yazpp_1::GDU m_request_gdu;
         yazpp_1::GDU m_response_gdu;
     };
 }
-
-
 
 #endif
 /*
