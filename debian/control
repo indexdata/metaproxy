@@ -4,7 +4,7 @@ Standards-Version: 3.6.2
 Maintainer: Adam Dickmeiss <adam@indexdata.dk>
 Priority: extra
 Build-Depends: debhelper (>= 4),
-	libyaz4-dev (>= 4.2.14),
+	libyaz4-dev (>= 4.2.22),
 	libyazpp4-dev (>= 1.2.7),
 	libxslt1-dev,
 	libboost-dev,
@@ -28,8 +28,7 @@ Description: Z39.50/SRU router (main executable)
 Package: libmetaproxy4
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}
-Conflicts: libyaz4 (= 4.2.18)
+Depends: ${shlibs:Depends}, libyaz4 (>= 4.2.22)
 Description: Z39.50/SRU router (runtime)
  This is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets
