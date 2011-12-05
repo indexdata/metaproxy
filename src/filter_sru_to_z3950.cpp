@@ -227,7 +227,11 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
         {
             package.origin().set_custom_session(arg->value);
         }
-
+        else if (!strcmp(arg->name, "x-log-enable"))
+        {
+            if (*arg->value == '1')
+                package.log_enable();
+        }
     assert(sru_pdu_req);
 
     // filter acts as sink for SRU explain requests
@@ -291,7 +295,7 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
 
 
     std::string l;
-    package.reset_log(l);
+    package.log_reset(l);
     if (l.length())
     {
         WRBUF w = wrbuf_alloc();

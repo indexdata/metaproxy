@@ -49,8 +49,11 @@ namespace metaproxy_1 {
         Package(metaproxy_1::Session &session, 
                 const metaproxy_1::Origin &origin);
 
-        /// shallow copy constructor which only copies the filter chain info
+        /// copy constructor which copies route pos + logger
         Package & copy_filter(const Package &p);
+
+        /// copy constructor which only copies the filter chain info
+        void copy_route(const Package &p);
 
         /// send Package to it's next Filter defined in Router
         void move();
@@ -78,8 +81,9 @@ namespace metaproxy_1 {
         Session session() const;
 
         void log(const char *module, int level, const char *fmt, ...);
-        
-        void reset_log(std::string &res);
+        void log_write(const char *buf, size_t sz);
+        void log_enable(void);
+        void log_reset(std::string &res);
 
         class PackageLogger;
         typedef boost::shared_ptr<PackageLogger> PackageLoggerPtr;

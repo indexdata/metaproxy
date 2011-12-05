@@ -21,10 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdlib.h>
 #include <sys/types.h>
 #include "filter_zoom.hpp"
-#include <yaz/zoom.h>
-#include <yaz/yaz-version.h>
-#include <yaz/tpath.h>
-#include <yaz/srw.h>
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
 #include <metaproxy/xmlutil.hpp>
@@ -35,6 +31,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
+
+#include <yaz/yaz-version.h>
+#include <yaz/tpath.h>
+#include <yaz/srw.h>
 #include <yaz/ccl_xml.h>
 #include <yaz/ccl.h>
 #include <yaz/rpn2cql.h>
@@ -48,6 +48,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/querytowrbuf.h>
 #include <yaz/sortspec.h>
 #include <yaz/tokenizer.h>
+#include <yaz/zoom.h>
 
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
@@ -84,6 +85,7 @@ namespace metaproxy_1 {
             friend class Impl;
             friend class Frontend;
             std::string zurl;
+            WRBUF m_apdu_wrbuf;
             ZOOM_connection m_connection;
             ZOOM_resultset m_resultset;
             std::string m_frontend_database;
@@ -200,7 +202,9 @@ void yf::Zoom::process(mp::Package &package) const
 
 yf::Zoom::Backend::Backend(SearchablePtr ptr) : sptr(ptr)
 {
+    m_apdu_wrbuf = wrbuf_alloc();
     m_connection = ZOOM_connection_create(0);
+    ZOOM_connection_save_apdu_wrbuf(m_connection, m_apdu_wrbuf);
     m_resultset = 0;
     xsp = 0;
 }
@@ -1627,6 +1631,9 @@ void yf::Zoom::Frontend::handle_package(mp::Package &package)
     else if (gdu->which == Z_GDU_Z3950)
     {
         Z_APDU *apdu_req = gdu->u.z3950;
+
+        if (m_backend)
+            wrbuf_rewind(m_backend->m_apdu_wrbuf);
         if (apdu_req->which == Z_APDU_initRequest)
         {
             mp::odr odr;
@@ -1651,6 +1658,11 @@ void yf::Zoom::Frontend::handle_package(mp::Package &package)
                 Z_Close_protocolError,
                 "zoom filter cannot handle this APDU");
             package.session().close();
+        }
+        if (m_backend)
+        {
+            WRBUF w = m_backend->m_apdu_wrbuf;
+            package.log_write(wrbuf_buf(w), wrbuf_len(w));
         }
     }
     else

@@ -224,7 +224,7 @@ void mp::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
     mp::Package *p = new mp::Package(m_session, m_origin);
 
     mp::ThreadPoolPackage *tp = new mp::ThreadPoolPackage(p, this);
-    p->copy_filter(*m_package);
+    p->copy_route(*m_package);
     p->request() = yazpp_1::GDU(z_pdu);
     m_thread_pool_observer->put(tp);  
 }
@@ -245,7 +245,7 @@ void mp::ZAssocChild::failNotify()
     mp::Package *p = new mp::Package(m_session, m_origin);
 
     mp::ThreadPoolPackage *tp = new mp::ThreadPoolPackage(p, this);
-    p->copy_filter(*m_package);
+    p->copy_route(*m_package);
     m_thread_pool_observer->put(tp);  
 }
 

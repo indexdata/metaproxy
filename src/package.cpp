@@ -33,7 +33,7 @@ namespace metaproxy_1 {
 }
 
 mp::Package::Package() 
-    : m_route_pos(0), p_logger(new PackageLogger)
+    : m_route_pos(0)
 {
 }
 
@@ -44,19 +44,22 @@ mp::Package::~Package()
 
 mp::Package::Package(mp::Session &session, const mp::Origin &origin) 
     : m_session(session), m_origin(origin),
-      m_route_pos(0), p_logger(new PackageLogger)
+      m_route_pos(0)
 {
 }
-
 
 mp::Package & mp::Package::copy_filter(const Package &p)
 {
-    delete m_route_pos;
-    m_route_pos = p.m_route_pos->clone();
     p_logger = p.p_logger;
+    copy_route(p);
     return *this;
 }
 
+void mp::Package::copy_route(const Package &p)
+{
+    delete m_route_pos;
+    m_route_pos = p.m_route_pos->clone();
+}
 
 void mp::Package::move()
 {
@@ -140,13 +143,29 @@ void mp::Package::log(const char *module, int level, const char *fmt, ...)
     va_end(ap);
     yaz_log(level, "%s", os.str().c_str());
 
-    p_logger->str += std::string(module) + std::string(buf) + std::string("\n");
+    if (p_logger)
+        p_logger->str += std::string(module) + std::string(buf) + std::string("\n");
 }
 
-void mp::Package::reset_log(std::string &res)
+void mp::Package::log_enable(void)
 {
-    res = p_logger->str;
-    p_logger->str.clear();
+    p_logger.reset(new PackageLogger);
+}
+
+void mp::Package::log_write(const char *buf, size_t sz)
+{
+    if (p_logger)
+        p_logger->str += std::string(buf, sz);
+}
+
+void mp::Package::log_reset(std::string &res)
+{
+    if (p_logger)
+    {
+        res = p_logger->str;
+        // p_logger->str.clear();
+        p_logger.reset();
+    }
 }
 
 /*
