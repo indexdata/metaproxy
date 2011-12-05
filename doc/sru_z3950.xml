@@ -82,6 +82,29 @@
 	  </para>
 	</listitem>
       </varlistentry>
+      <varlistentry>
+	<term>x-session-id</term>
+	<listitem>
+	  <para>
+	    Allow a user-defined session ID to be attached to filter
+	    log that follows sru_z3950. The ID is present in the
+	    log files and not available to the SRU webservice. In order
+	    to log material out via SRU, the x-log-enable may be used
+	    instead.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>x-log-enable</term>
+	<listitem>
+	  <para>
+            Controls whether log is to be collected for filters that
+            sru_z3950. Log data is extra response data's log element.
+            A value of 1 enables logging; other value disables
+            logging (default).
+	  </para>
+	</listitem>
+      </varlistentry>
     </variablelist>
   </para>
  </refsect1>
