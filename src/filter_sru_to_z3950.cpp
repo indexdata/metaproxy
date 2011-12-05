@@ -211,6 +211,7 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
         return;
     }
     
+    bool enable_package_log = false;
     std::string zurl;
     Z_SRW_extra_arg *arg;
 
@@ -230,7 +231,10 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
         else if (!strcmp(arg->name, "x-log-enable"))
         {
             if (*arg->value == '1')
+            {
+                enable_package_log = true;
                 package.log_enable();
+            }
         }
     assert(sru_pdu_req);
 
@@ -293,20 +297,23 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
                                YAZ_SRW_UNSUPP_OPERATION, "unknown");
     }
 
-
-    std::string l;
-    package.log_reset(l);
-    if (l.length())
+    if (enable_package_log)
     {
-        WRBUF w = wrbuf_alloc();
-
-        wrbuf_puts(w, "<log>\n");
-        wrbuf_xmlputs(w, l.c_str());
-        wrbuf_puts(w, "</log>");
-        
-        sru_pdu_res->extraResponseData_len = wrbuf_len(w);
-        sru_pdu_res->extraResponseData_buf = odr_strdup(odr_en, wrbuf_cstr(w));
-        wrbuf_destroy(w);
+        std::string l;
+        package.log_reset(l);
+        if (l.length())
+        {
+            WRBUF w = wrbuf_alloc();
+            
+            wrbuf_puts(w, "<log>\n");
+            wrbuf_xmlputs(w, l.c_str());
+            wrbuf_puts(w, "</log>");
+            
+            sru_pdu_res->extraResponseData_len = wrbuf_len(w);
+            sru_pdu_res->extraResponseData_buf =
+                odr_strdup(odr_en, wrbuf_cstr(w));
+            wrbuf_destroy(w);
+        }
     }
     
     // build and send SRU response
