@@ -122,7 +122,14 @@ namespace metaproxy_1 {
                                                   char **addinfo,
                                                   ODR odr);
 
-
+            bool create_content_session(mp::Package &package,
+                                        BackendPtr b,
+                                        int *error,
+                                        char **addinfo,
+                                        ODR odr,
+                                        std::string authentication,
+                                        std::string proxy);
+            
             void prepare_elements(BackendPtr b,
                                   Odr_oid *preferredRecordSyntax,
                                   const char *element_set_name,
@@ -239,7 +246,6 @@ void yf::Zoom::Backend::get_zoom_error(int *error, char **addinfo,
             {
                 strcat(*addinfo, ": ");
                 strcat(*addinfo, zoom_addinfo);
-                strcat(*addinfo, " ");
             }
         }
         else
@@ -647,6 +653,54 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
     }
 }
 
+bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
+                                                BackendPtr b,
+                                                int *error, char **addinfo,
+                                                ODR odr,
+                                                std::string authentication,
+                                                std::string proxy)
+{
+    if (b->sptr->contentConnector.length())
+    {
+        char *fname = (char *) xmalloc(m_p->content_tmp_file.length() + 8);
+        strcpy(fname, m_p->content_tmp_file.c_str());
+        char *xx = strstr(fname, "XXXXXX");
+        if (!xx)
+        {
+            xx = fname + strlen(fname);
+            strcat(fname, "XXXXXX");
+        }
+        char tmp_char = xx[6];
+        sprintf(xx, "%06d", ((unsigned) rand()) % 1000000);
+        xx[6] = tmp_char;
+
+        FILE *file = fopen(fname, "w");
+        if (!file)
+        {
+            package.log("zoom", YLOG_WARN|YLOG_ERRNO, "create %s", fname);
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            *addinfo = (char *)  odr_malloc(odr, 40 + strlen(fname));
+            sprintf(*addinfo, "Could not create %s", fname);
+            xfree(fname);
+            return false;
+        }
+        b->content_session_id.assign(xx, 6);
+        WRBUF w = wrbuf_alloc();
+        wrbuf_puts(w, "#content_proxy\n");
+        wrbuf_printf(w, "connector: %s\n", b->sptr->contentConnector.c_str());
+        if (authentication.length())
+            wrbuf_printf(w, "auth: %s\n", authentication.c_str());
+        if (proxy.length())
+            wrbuf_printf(w, "proxy: %s\n", proxy.c_str());
+
+        fwrite(wrbuf_buf(w), 1, wrbuf_len(w), file);
+        fclose(file);
+        package.log("zoom", YLOG_LOG, "content file: %s", fname);
+        xfree(fname);
+    }
+    return true;
+}
+
 yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     mp::Package &package,
     std::string &database, int *error, char **addinfo, ODR odr)
@@ -922,48 +976,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (proxy.length())
             b->set_option("proxy", proxy);
     }
-    if (b->sptr->contentConnector.length())
-    {
-        char *fname = (char *) xmalloc(m_p->content_tmp_file.length() + 8);
-        strcpy(fname, m_p->content_tmp_file.c_str());
-        char *xx = strstr(fname, "XXXXXX");
-        if (!xx)
-        {
-            xx = fname + strlen(fname);
-            strcat(fname, "XXXXXX");
-        }
-        char tmp_char = xx[6];
-        sprintf(xx, "%06d", ((unsigned) rand()) % 1000000);
-        xx[6] = tmp_char;
-
-        FILE *file = fopen(fname, "w");
-        if (!file)
-        {
-            package.log("zoom", YLOG_WARN|YLOG_ERRNO, "create %s", fname);
-            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-            *addinfo = (char *)  odr_malloc(odr, 40 + strlen(fname));
-            sprintf(*addinfo, "Could not create %s", fname);
-            xfree(fname);
-            BackendPtr backend_null;
-            return backend_null;
-        }
-        b->content_session_id.assign(xx, 6);
-        WRBUF w = wrbuf_alloc();
-        wrbuf_puts(w, "#content_proxy\n");
-        wrbuf_printf(w, "connector: %s\n", b->sptr->contentConnector.c_str());
-        if (authentication.length())
-            wrbuf_printf(w, "auth: %s\n", authentication.c_str());
-        if (proxy.length())
-            wrbuf_printf(w, "proxy: %s\n", proxy.c_str());
-        if (sptr->cfProxy.length())
-            wrbuf_printf(w, "cfproxy: %s\n", sptr->cfProxy.c_str());
-
-        fwrite(wrbuf_buf(w), 1, wrbuf_len(w), file);
-        fclose(file);
-        package.log("zoom", YLOG_LOG, "file %s created", fname);
-        xfree(fname);
-    }
-
     std::string url;
     if (sptr->sru.length())
     {
@@ -989,9 +1001,10 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     package.log("zoom", YLOG_LOG, "url: %s", url.c_str());
     b->connect(url, error, addinfo, odr);
     if (*error == 0)
-    {
+        create_content_session(package, b, error, addinfo, odr,
+                               authentication, proxy);
+    if (*error == 0)
         m_backend = b;
-    }
     return b;
 }
 
