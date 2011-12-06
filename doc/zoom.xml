@@ -470,7 +470,7 @@
    </varlistentry>
 
    <varlistentry>
-    <term>SRUVersion</term><listitem>
+    <term>sruVersion</term><listitem>
     <para>
      Specifies the SRU version to use. It unset, version 1.2 will be
      used. Some servers do not support this version, in which case

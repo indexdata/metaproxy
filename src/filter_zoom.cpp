@@ -436,7 +436,8 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
         {
             s->sru = mp::xml::get_text(ptr);
         }
-        else if (!strcmp((const char *) ptr->name, "SRUVersion"))
+        else if (!strcmp((const char *) ptr->name, "SRUVersion") ||
+                 !strcmp((const char *) ptr->name, "sruVersion"))
         {
             s->sru_version = mp::xml::get_text(ptr);
         }

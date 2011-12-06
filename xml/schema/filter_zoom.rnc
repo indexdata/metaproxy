@@ -29,7 +29,7 @@ filter_zoom =
         element mp:recordEncoding { xsd:string }?,
         element mp:requestSyntax { xsd:string }?,
         element mp:sru { xsd:string }?,
-        element mp:SRUVersion { xsd:string }?,
+        element mp:sruVersion { xsd:string }?,
         element mp:transform { xsd:string }?,
         element mp:literalTransform { xsd:string }?,
         element mp:urlRecipe { xsd:string }?,
