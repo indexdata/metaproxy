@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter.hpp"
 #include "session.hpp"
 #include "origin.hpp"
+#include <boost/shared_ptr.hpp>
 
 namespace metaproxy_1 {
     class Package;
