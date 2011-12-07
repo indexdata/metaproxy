@@ -235,37 +235,30 @@ void yf::Zoom::Backend::get_zoom_error(int *error, char **addinfo,
     const char *msg = 0;
     const char *zoom_addinfo = 0;
     const char *dset = 0;
-    *error = ZOOM_connection_error_x(m_connection, &msg, &zoom_addinfo, &dset);
-    if (*error)
+    int error0 = ZOOM_connection_error_x(m_connection, &msg,
+                                         &zoom_addinfo, &dset);
+    if (error0)
     {
-        if (*error >= ZOOM_ERROR_CONNECT)
-        {
-            // turn ZOOM diagnostic into a Bib-1 2: with addinfo=zoom err msg
-            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-            *addinfo = (char *) odr_malloc(
-                odr, 20 + strlen(msg) + 
-                (zoom_addinfo ? strlen(zoom_addinfo) : 0));
-            strcpy(*addinfo, msg);
-            if (zoom_addinfo)
-            {
-                strcat(*addinfo, ": ");
-                strcat(*addinfo, zoom_addinfo);
-            }
-        }
+        if (!dset)
+            dset = "Unknown";
+        
+        if (!strcmp(dset, "info:srw/diagnostic/1"))
+            *error = yaz_diag_srw_to_bib1(error0);
+        else if (!strcmp(dset, "Bib-1"))
+            *error = error0;
         else
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+        
+        *addinfo = (char *) odr_malloc(
+            odr, 30 + strlen(dset) + strlen(msg) +
+            (zoom_addinfo ? strlen(zoom_addinfo) : 0));
+        **addinfo = '\0';
+        if (zoom_addinfo && *zoom_addinfo)
         {
-            if (dset && !strcmp(dset, "info:srw/diagnostic/1"))
-                *error = yaz_diag_srw_to_bib1(*error);
-            *addinfo = (char *) odr_malloc(
-                odr, 20 + (zoom_addinfo ? strlen(zoom_addinfo) : 0));
-            **addinfo = '\0';
-            if (zoom_addinfo && *zoom_addinfo)
-            {
-                strcpy(*addinfo, zoom_addinfo);
-                strcat(*addinfo, " ");
-            }
-            strcat(*addinfo, "(backend)");
+            strcpy(*addinfo, zoom_addinfo);
+            strcat(*addinfo, " ");
         }
+        sprintf(*addinfo + strlen(*addinfo), "(%s %d %s)", dset, error0, msg);
     }
 }
 
