@@ -505,19 +505,20 @@
      The value of this field is a string that generates a dynamic link
      based on record content. If the resulting string is non-zero in length
      a new field, <literal>metadata</literal> with attribute 
-     <literal>type="generated-url"</literal>.
+     <literal>type="generated-url"</literal> is generated.
      The contents of this field is the result of the URL recipe conversion.
      The urlRecipe value may refer to an existing metadata element by
      ${field[pattern/result/flags]}, which will take content
      of field and perform a regular expression conversion using the pattern
      given. For example: <literal>${md-title[\s+/+/g]}</literal> takes
-     metadadata element <literal>title</literal> and converts one or more
+     metadata element <literal>title</literal> and converts one or more
      spaces to a plus character.
     </para>
     <para>
      If the <link linkend="zoom-torus-contentConnector">contentConnector</link>
      setting also defined, the resulting value is
-     augmented with a session string as well as the content proxy server.
+     augmented with a session string as well as host name of the
+     content proxy server.
     </para>
    </listitem>
    </varlistentry>
