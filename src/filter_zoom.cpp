@@ -137,7 +137,8 @@ namespace metaproxy_1 {
                                   bool &enable_pz2_transform,
                                   bool &assume_marc8_charset);
 
-            Z_Records *get_records(Odr_int start,
+            Z_Records *get_records(Package &package,
+                                   Odr_int start,
                                    Odr_int number_to_present,
                                    int *error,
                                    char **addinfo,
@@ -145,6 +146,9 @@ namespace metaproxy_1 {
                                    ODR odr, BackendPtr b,
                                    Odr_oid *preferredRecordSyntax,
                                    const char *element_set_name);
+
+            void log_diagnostic(mp::Package &package,
+                                int error, const char *addinfo);
         public:
             Frontend(Impl *impl);
             ~Frontend();
@@ -804,7 +808,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         sptr = it->second;
     else if (m_p->torus_url.length() > 0)
     {
-        xmlDoc *doc = mp::get_searchable(m_p->torus_url, torus_db, realm,
+        xmlDoc *doc = mp::get_searchable(package,
+                                         m_p->torus_url, torus_db, realm,
                                          m_p->proxy);
         if (!doc)
         {
@@ -930,7 +935,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (m_p->apdu_log) 
         b->set_option("apdulog", "1");
 
-    if (sptr->piggyback)
+    if (sptr->piggyback && sptr->sru.length())
         b->set_option("count", "1"); /* some SRU servers INSIST on getting
                                         maximumRecords > 0 */
     b->set_option("piggyback", sptr->piggyback ? "1" : "0");
@@ -1084,7 +1089,8 @@ void yf::Zoom::Frontend::prepare_elements(BackendPtr b,
         b->set_option("schema", element_set_name);
 }
 
-Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
+Z_Records *yf::Zoom::Frontend::get_records(Package &package,
+                                           Odr_int start,
                                            Odr_int number_to_present,
                                            int *error,
                                            char **addinfo,
@@ -1105,6 +1111,10 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                      enable_pz2_retrieval,
                      enable_pz2_transform,
                      assume_marc8_charset);
+
+    package.log("zoom", YLOG_LOG, "pz2_retrieval: %s . pz2_transform: %s",
+                enable_pz2_retrieval ? "yes" : "no",
+                enable_pz2_transform ? "yes" : "no");
 
     if (start < 0 || number_to_present <=0)
         return records;
@@ -1138,11 +1148,15 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
         {
             Z_NamePlusRecord *npr = 0;
             const char *addinfo;
+
+            package.log("zoom", YLOG_LOG, "Inspecting record at position %d",
+                        start + i);
             int sur_error = ZOOM_record_error(recs[i], 0 /* msg */,
                                               &addinfo, 0 /* diagset */);
                 
             if (sur_error)
             {
+                log_diagnostic(package, sur_error, addinfo);
                 npr = zget_surrogateDiagRec(odr, odr_database, sur_error,
                                             addinfo);
             }
@@ -1162,7 +1176,9 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                     strcat(rec_type_str, "; charset=");
                     strcat(rec_type_str, record_encoding);
                 }
-                
+
+                package.log("zoom", YLOG_LOG, "Getting record of type %s",
+                            rec_type_str);
                 int rec_len;
                 xmlChar *xmlrec_buf = 0;
                 const char *rec_buf = ZOOM_record_get(recs[i], rec_type_str,
@@ -1171,11 +1187,16 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                 {
                     std::string addinfo("ZOOM_record_get failed for type ");
 
+                    int error = YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS;
                     addinfo += rec_type_str;
-                    npr = zget_surrogateDiagRec(
-                        odr, odr_database, 
-                        YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
-                        addinfo.c_str());
+                    log_diagnostic(package, error, addinfo.c_str());
+                    npr = zget_surrogateDiagRec(odr, odr_database,
+                                                error, addinfo.c_str());
+                }
+                else
+                {
+                    package.log_write(rec_buf, rec_len);
+                    package.log_write("\r\n", 2);
                 }
 
                 if (rec_buf && b->xsp && enable_pz2_transform)
@@ -1183,10 +1204,11 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                     xmlDoc *rec_doc = xmlParseMemory(rec_buf, rec_len);
                     if (!rec_doc)
                     {
+                        const char *addinfo = "xml parse failed for record";
+                        int error = YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS;
+                        log_diagnostic(package, error, addinfo);
                         npr = zget_surrogateDiagRec(
-                            odr, odr_database, 
-                            YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
-                            "xml parse failed for record");
+                            odr, odr_database, error, addinfo);
                     }
                     else
                     { 
@@ -1198,19 +1220,22 @@ Z_Records *yf::Zoom::Frontend::get_records(Odr_int start,
                             xsltSaveResultToString(&xmlrec_buf, &rec_len,
                                                    rec_res, b->xsp);
                             rec_buf = (const char *) xmlrec_buf;
+                            package.log("zoom", YLOG_LOG, "xslt successful");
+                            package.log_write(rec_buf, rec_len);
 
                             xmlFreeDoc(rec_res);
                         }
                         if (!rec_buf)
                         {
                             std::string addinfo;
+                            int error =
+                                YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS;
 
                             addinfo = "xslt apply failed for "
                                 + b->sptr->transform_xsl_fname;
+                            log_diagnostic(package, error, addinfo.c_str());
                             npr = zget_surrogateDiagRec(
-                                odr, odr_database, 
-                                YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
-                                addinfo.c_str());
+                                odr, odr_database, error, addinfo.c_str());
                         }
                         xmlFreeDoc(rec_doc);
                     }
@@ -1334,6 +1359,18 @@ struct cql_node *yf::Zoom::Impl::convert_cql_fields(struct cql_node *cn,
     return r;
 }
 
+void yf::Zoom::Frontend::log_diagnostic(mp::Package &package,
+                                        int error, const char *addinfo)
+{
+    const char *err_msg = yaz_diag_bib1_str(error);
+    if (addinfo)
+        package.log("zoom", YLOG_WARN, "Diagnostic %d %s: %s",
+                    error, err_msg, addinfo);
+    else
+        package.log("zoom", YLOG_WARN, "Diagnostic %d %s:",
+                    error, err_msg);
+}
+
 void yf::Zoom::Frontend::handle_search(mp::Package &package)
 {
     Z_GDU *gdu = package.request().get();
@@ -1343,8 +1380,9 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     Z_SearchRequest *sr = apdu_req->u.searchRequest;
     if (sr->num_databaseNames != 1)
     {
-        apdu_res = odr.create_searchResponse(
-            apdu_req, YAZ_BIB1_TOO_MANY_DATABASES_SPECIFIED, 0);
+        int error = YAZ_BIB1_TOO_MANY_DATABASES_SPECIFIED;
+        log_diagnostic(package, error, 0);
+        apdu_res = odr.create_searchResponse(apdu_req, error, 0);
         package.response() = apdu_res;
         return;
     }
@@ -1356,8 +1394,8 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
                                               &addinfo, odr);
     if (error)
     {
-        apdu_res = 
-            odr.create_searchResponse(apdu_req, error, addinfo);
+        log_diagnostic(package, error, addinfo);
+        apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
         package.response() = apdu_res;
         return;
     }
@@ -1402,11 +1440,11 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         if (r)
         {
             cql_parser_destroy(cp);
-            package.log("zoom", YLOG_WARN, "CQL syntax error");
+            error = YAZ_BIB1_MALFORMED_QUERY;
+            const char *addinfo = "CQL syntax error";
+            log_diagnostic(package, error, addinfo);
             apdu_res = 
-                odr.create_searchResponse(apdu_req, 
-                                          YAZ_BIB1_MALFORMED_QUERY,
-                                          "CQL syntax error");
+                odr.create_searchResponse(apdu_req, error, addinfo);
             package.response() = apdu_res;
             return;
         }
@@ -1415,14 +1453,13 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         if (cn_error)
         {
             // hopefully we are getting a ptr to a index+relation+term node
+            error = YAZ_BIB1_UNSUPP_USE_ATTRIBUTE;
             addinfo = 0;
             if (cn_error->which == CQL_NODE_ST)
                 addinfo = cn_error->u.st.index;
-
-            apdu_res = 
-                odr.create_searchResponse(apdu_req, 
-                                          YAZ_BIB1_UNSUPP_USE_ATTRIBUTE,
-                                          addinfo);
+            
+            log_diagnostic(package, error, addinfo);
+            apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
             package.response() = apdu_res;
             return;
         }
@@ -1479,18 +1516,21 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         cql_parser_destroy(cp);
         if (r)
         {
-            apdu_res = 
-                odr.create_searchResponse(apdu_req, 
-                                          YAZ_BIB1_MALFORMED_QUERY,
-                                          "CQL to CCL conversion error");
+            error = YAZ_BIB1_MALFORMED_QUERY;
+            const char *addinfo = "CQL to CCL conversion error";
+
+            log_diagnostic(package, error, addinfo);
+            apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
             package.response() = apdu_res;
             return;
         }
     }
     else
     {
-        apdu_res = 
-            odr.create_searchResponse(apdu_req, YAZ_BIB1_QUERY_TYPE_UNSUPP, 0);
+        error = YAZ_BIB1_QUERY_TYPE_UNSUPP;
+        const char *addinfo = 0;
+        log_diagnostic(package, error, addinfo);
+        apdu_res =  odr.create_searchResponse(apdu_req, error, addinfo);
         package.response() = apdu_res;
         return;
     }
@@ -1508,21 +1548,21 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         if (!cn)
         {
             char *addinfo = odr_strdup(odr, ccl_err_msg(cerror));
-            int z3950_diag = YAZ_BIB1_MALFORMED_QUERY;
+            error = YAZ_BIB1_MALFORMED_QUERY;
 
             switch (cerror)
             {
             case CCL_ERR_UNKNOWN_QUAL:
-                z3950_diag = YAZ_BIB1_UNSUPP_USE_ATTRIBUTE;
+                error = YAZ_BIB1_UNSUPP_USE_ATTRIBUTE;
                 break;
             case CCL_ERR_TRUNC_NOT_LEFT: 
             case CCL_ERR_TRUNC_NOT_RIGHT:
             case CCL_ERR_TRUNC_NOT_BOTH:
-                z3950_diag = YAZ_BIB1_UNSUPP_TRUNCATION_ATTRIBUTE;
+                error = YAZ_BIB1_UNSUPP_TRUNCATION_ATTRIBUTE;
                 break;
             }
-            apdu_res = 
-                odr.create_searchResponse(apdu_req, z3950_diag, addinfo);
+            log_diagnostic(package, error, addinfo);
+            apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
             package.response() = apdu_res;
             return;
         }
@@ -1572,9 +1612,10 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         wrbuf_destroy(pqf_wrbuf);
         if (status)
         {
-            apdu_res = 
-                odr.create_searchResponse(apdu_req, YAZ_BIB1_MALFORMED_QUERY,
-                                          "can not convert from RPN to CQL/SOLR");
+            error = YAZ_BIB1_MALFORMED_QUERY;
+            const char *addinfo = "can not convert from RPN to CQL/SOLR";
+            log_diagnostic(package, error, addinfo);
+            apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
             package.response() = apdu_res;
             return;
         }
@@ -1595,9 +1636,12 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
     
     Odr_int number_of_records_returned = 0;
     Z_Records *records = get_records(
+        package,
         0, number_to_present, &error, &addinfo,
         &number_of_records_returned, odr, b, sr->preferredRecordSyntax,
         element_set_name);
+    if (error)
+        log_diagnostic(package, error, addinfo);
     apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
     if (records)
     {
@@ -1637,7 +1681,7 @@ void yf::Zoom::Frontend::handle_present(mp::Package &package)
     Odr_int number_of_records_returned = 0;
     int error = 0;
     char *addinfo = 0;
-    Z_Records *records = get_records(
+    Z_Records *records = get_records(package,
         *pr->resultSetStartPoint - 1, *pr->numberOfRecordsRequested,
         &error, &addinfo, &number_of_records_returned, odr, m_backend,
         pr->preferredRecordSyntax, element_set_name);

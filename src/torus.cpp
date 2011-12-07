@@ -27,7 +27,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace mp = metaproxy_1;
 
-xmlDoc *mp::get_searchable(std::string url_template, const std::string &db,
+xmlDoc *mp::get_searchable(mp::Package &package,
+                           std::string url_template, const std::string &db,
                            const std::string &realm,
                            const std::string &proxy)
 {
@@ -62,25 +63,25 @@ xmlDoc *mp::get_searchable(std::string url_template, const std::string &db,
     if (http_response && http_response->code == 200 && 
         http_response->content_buf)
     {
-        yaz_log(YLOG_LOG, "Torus: %s OK", url_template.c_str());
+        package.log("zoom", YLOG_LOG, "Torus: %s OK", url_template.c_str());
         doc = xmlParseMemory(http_response->content_buf,
                              http_response->content_len);
         
     }
     else
     {
-        yaz_log(YLOG_WARN, "Torus: %s FAIL", url_template.c_str());
+        package.log("zoom", YLOG_WARN, "Torus: %s FAIL", url_template.c_str());
         if (http_response)
         {
-            yaz_log(YLOG_LOG, "HTTP code: %d", http_response->code);
+            package.log("zoom", YLOG_LOG, "HTTP code: %d", http_response->code);
         }
     }
 
     if (http_response && http_response->content_buf)
     {
-        yaz_log(YLOG_LOG, "HTTP content:\n%.*s",
-                (int) http_response->content_len,
-                http_response->content_buf);
+        package.log("zoom", YLOG_LOG, "HTTP content");
+        package.log_write(http_response->content_buf,
+                          http_response->content_len);
     }
     yaz_url_destroy(url_p);
     return doc;

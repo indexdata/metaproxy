@@ -23,8 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdexcept>
 #include <libxml/tree.h>
 
+#include <metaproxy/package.hpp>
+
 namespace metaproxy_1 {
-    xmlDoc *get_searchable(std::string url_template, const std::string &db,
+    xmlDoc *get_searchable(Package &package,
+                           std::string url_template, const std::string &db,
                            const std::string &realm,
                            const std::string &proxy);
 }
