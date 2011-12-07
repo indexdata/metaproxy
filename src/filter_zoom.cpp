@@ -723,11 +723,14 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         torus_db = database;
 
     std::string authentication;
+    std::string content_authentication;
     std::string proxy;
     std::string realm = m_p->default_realm;
 
     const char *param_user = 0;
     const char *param_password = 0;
+    const char *param_content_user = 0;
+    const char *param_content_password = 0;
     int no_parms = 0;
 
     char **names;
@@ -753,6 +756,10 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             param_user = value;
         else if (!strcmp(name, "password"))
             param_password = value;
+        else if (!strcmp(name, "content-user"))
+            param_content_user = value;
+        else if (!strcmp(name, "content-password"))
+            param_content_password = value;
         else if (!strcmp(name, "proxy"))
             proxy = value;
         else if (!strcmp(name, "cproxysession"))
@@ -782,6 +789,12 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         authentication = std::string(param_user);
         if (param_password)
             authentication += "/" + std::string(param_password);
+    }
+    if (param_content_user)
+    {
+        content_authentication = std::string(param_content_user);
+        if (param_content_password)
+            content_authentication += "/" + std::string(param_content_password);
     }
     SearchablePtr sptr;
 
@@ -1004,7 +1017,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     b->connect(url, error, addinfo, odr);
     if (*error == 0)
         create_content_session(package, b, error, addinfo, odr,
-                               authentication, proxy);
+                               content_authentication.length() ?
+                               content_authentication : authentication, proxy);
     if (*error == 0)
         m_backend = b;
     return b;
