@@ -722,6 +722,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     std::string authentication;
     std::string content_authentication;
     std::string proxy;
+    std::string content_proxy;
     std::string realm = m_p->default_realm;
 
     const char *param_user = 0;
@@ -757,6 +758,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             param_content_user = value;
         else if (!strcmp(name, "content-password"))
             param_content_password = value;
+        else if (!strcmp(name, "content-proxy"))
+            content_proxy = value;
         else if (!strcmp(name, "proxy"))
             proxy = value;
         else if (!strcmp(name, "cproxysession"))
@@ -1016,7 +1019,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (*error == 0)
         create_content_session(package, b, error, addinfo, odr,
                                content_authentication.length() ?
-                               content_authentication : authentication, proxy);
+                               content_authentication : authentication,
+                               content_proxy.length() ? content_proxy : proxy);
     if (*error == 0)
         m_backend = b;
     return b;
