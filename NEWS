@@ -1,3 +1,4 @@
+--- 1.3.18 2011/12/08
 
 zoom: content-{user,password,proxy} are passed on to content proxy
 system and takes precedence over user,password,proxy .
