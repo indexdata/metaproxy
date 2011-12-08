@@ -170,7 +170,8 @@ namespace metaproxy_1 {
             std::map<mp::Session, FrontendPtr> m_clients;            
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
-            std::string torus_url;
+            std::string torus_searchable_url;
+            std::string torus_content_url;
             std::string default_realm;
             std::map<std::string,std::string> fieldmap;
             std::string xsldir;
@@ -572,7 +573,9 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
             for (attr = ptr->properties; attr; attr = attr->next)
             {
                 if (!strcmp((const char *) attr->name, "url"))
-                    torus_url = mp::xml::get_text(attr->children);
+                    torus_searchable_url = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "content_url"))
+                    torus_content_url = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "realm"))
                     default_realm = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "xsldir"))
@@ -588,6 +591,10 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                         "Bad attribute " + std::string((const char *)
                                                        attr->name));
             }
+            // If content_url is not given, use value of searchable, to
+            // ensure backwards compatibility
+            if (!torus_content_url.length())
+                torus_content_url = torus_searchable_url;
             configure_local_records(ptr->children, test_only);
         }
         else if (!strcmp((const char *) ptr->name, "cclmap"))
@@ -743,6 +750,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     const char **out_values = (const char **)
         odr_malloc(odr, (10 + no_parms) * sizeof(*out_values));
     
+    // may be changed if it's a content connection
+    std::string torus_url = m_p->torus_searchable_url;
     int i;
     for (i = 0; i < no_parms; i++)
     {
@@ -766,6 +775,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         {
             out_names[no_out_args] = name;
             out_values[no_out_args++] = value;
+            torus_url = m_p->torus_content_url;
         }
         else if (!strcmp(name, "realm"))
             realm = value;
@@ -802,11 +812,10 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     it = m_p->s_map.find(torus_db);
     if (it != m_p->s_map.end())
         sptr = it->second;
-    else if (m_p->torus_url.length() > 0)
+    else if (torus_url.length() > 0)
     {
-        xmlDoc *doc = mp::get_searchable(package,
-                                         m_p->torus_url, torus_db, realm,
-                                         m_p->proxy);
+        xmlDoc *doc = mp::get_searchable(package,torus_url, torus_db,
+                                         realm, m_p->proxy);
         if (!doc)
         {
             *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;

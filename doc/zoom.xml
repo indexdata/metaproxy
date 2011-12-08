@@ -72,13 +72,23 @@
      <listitem>
       <para>
        URL of Web service to be used to fetch target profile
-       for a given database (udb). The special sequence
+       for a given database (udb) of type searchable. The special sequence
        <literal>%db</literal> of the URL is replaced by the
        actual database specified as part of Search.
       </para>
       <para>
        The special sequence <literal>%realm</literal> is replaced by value
        of attribute <literal>realm</literal> or by realm DATABASE argument.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>attribute <literal>content_url</literal></term>
+     <listitem>
+      <para>
+       URL of Web service to be used to fetch target profile
+       for a given database (udb) of type content. Semantics otherwise like
+       <literal>url</literal> attribute above.
       </para>
      </listitem>
     </varlistentry>
