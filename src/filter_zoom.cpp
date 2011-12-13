@@ -120,7 +120,8 @@ namespace metaproxy_1 {
                                                   std::string &database,
                                                   int *error,
                                                   char **addinfo,
-                                                  ODR odr);
+                                                  ODR odr,
+                                                  int *proxy_step);
 
             bool create_content_session(mp::Package &package,
                                         BackendPtr b,
@@ -709,7 +710,8 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
 
 yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     mp::Package &package,
-    std::string &database, int *error, char **addinfo, ODR odr)
+    std::string &database, int *error, char **addinfo, ODR odr,
+    int *proxy_step)
 {
     std::list<BackendPtr>::const_iterator map_it;
     if (m_backend && m_backend->m_frontend_database == database)
@@ -770,7 +772,21 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         else if (!strcmp(name, "content-proxy"))
             content_proxy = value;
         else if (!strcmp(name, "proxy"))
-            proxy = value;
+        {
+            char **dstr;
+            int dnum = 0;
+            nmem_strsplit(odr->mem, ",", value, &dstr, &dnum);
+            if (*proxy_step >= dnum)
+                *proxy_step = 0;
+            else
+            {
+                proxy = dstr[*proxy_step];
+                
+                (*proxy_step)++;
+                if (*proxy_step == dnum)
+                    *proxy_step = 0;
+            }
+        }
         else if (!strcmp(name, "cproxysession"))
         {
             out_names[no_out_args] = name;
@@ -1001,6 +1017,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (proxy.length())
             b->set_option("proxy", proxy);
     }
+    if (proxy.length())
+        package.log("zoom", YLOG_LOG, "proxy: %s", proxy.c_str());
+                
     std::string url;
     if (sptr->sru.length())
     {
@@ -1393,11 +1412,22 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         return;
     }
 
+    int proxy_step = 0;
+
+next_proxy:
+
     int error = 0;
     char *addinfo = 0;
     std::string db(sr->databaseNames[0]);
+
     BackendPtr b = get_backend_from_databases(package, db, &error,
-                                              &addinfo, odr);
+                                              &addinfo, odr, &proxy_step);
+    if (error && proxy_step)
+    {
+        package.log("zoom", YLOG_WARN,
+                    "create backend failed: trying next proxy");
+        goto next_proxy;
+    }
     if (error)
     {
         log_diagnostic(package, error, addinfo);
@@ -1633,6 +1663,14 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         b->search(q, &hits, &error, &addinfo, odr);
         ZOOM_query_destroy(q);
         wrbuf_destroy(pqf_wrbuf);
+    }
+
+    if (error && proxy_step)
+    {
+        // reset below prevent reuse in get_backend_from_databases
+        m_backend.reset();
+        package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
+        goto next_proxy;
     }
 
     const char *element_set_name = 0;
