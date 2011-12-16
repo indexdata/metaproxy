@@ -690,8 +690,20 @@ std::string mp_util::uri_encode(std::string s)
     char *x = (char *) xmalloc(1 + s.length() * 3);
     yaz_encode_uri_component(x, s.c_str());
     std::string result(x);
+    xfree(x);
     return result;
 }
+
+
+std::string mp_util::uri_decode(std::string s)
+{
+    char *x = (char *) xmalloc(1 + s.length());
+    yaz_decode_uri_component(x, s.c_str(), s.length());
+    std::string result(x);
+    xfree(x);
+    return result;
+}
+
 
 /*
  * Local variables:
