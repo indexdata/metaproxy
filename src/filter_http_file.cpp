@@ -214,9 +214,7 @@ void yf::HttpFile::Rep::fetch_uri(mp::Session &session,
             }
         }
     }
-    mp::odr o;
-    Z_GDU *gdu = o.create_HTTP_Response(session, req, 404);
-    package.response() = gdu;
+    package.move();
 }
                          
 void yf::HttpFile::process(mp::Package &package) const
