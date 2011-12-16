@@ -1,3 +1,10 @@
+
+zoom: Multiple proxy hosts may be given for proxy rich database 
+parameter. List is comma separated.
+
+http_file: decodes URI paths properly. Does not return 404: not found
+if no prefix are matches. Instead packages are passed on.
+
 --- 1.3.18 2011/12/08
 
 zoom: content-{user,password,proxy} are passed on to content proxy
