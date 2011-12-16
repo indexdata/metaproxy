@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_http_file.hpp"
 
 #include <yaz/zgdu.h>
+#include <yaz/log.h>
 
 #include <boost/thread/mutex.hpp>
 
@@ -179,12 +180,21 @@ void yf::HttpFile::Rep::fetch_uri(mp::Session &session,
                                   Z_HTTP_Request *req, mp::Package &package)
 {
     bool sane = true;
+    std::string::size_type p;
     std::string path = req->path;
+    
+    p = path.find("#");
+    if (p != std::string::npos)
+        path = path.erase(p);
 
-    // we don't consider ?, # yet..
+    p = path.find("?");
+    if (p != std::string::npos)
+        path = path.erase(p);
+
+    path = mp::util::uri_decode(path);
 
     // we don't allow ..
-    std::string::size_type p = path.find("..");
+    p = path.find("..");
     if (p != std::string::npos)
         sane = false;
 
@@ -198,7 +208,7 @@ void yf::HttpFile::Rep::fetch_uri(mp::Session &session,
             if (path.compare(0, l, it->m_url_path_prefix) == 0)
             {
                 std::string fname = it->m_file_root + path.substr(l);
-                std::cout << "fname = " << fname << "\n";
+                package.log("http_file", YLOG_LOG, "%s", fname.c_str());
                 fetch_file(session, req, fname, package);
                 return;
             }
