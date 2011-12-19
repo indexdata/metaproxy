@@ -738,6 +738,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     const char *param_password = 0;
     const char *param_content_user = 0;
     const char *param_content_password = 0;
+    const char *param_nocproxy = 0;
     int no_parms = 0;
 
     char **names;
@@ -771,6 +772,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             param_content_password = value;
         else if (!strcmp(name, "content-proxy"))
             content_proxy = value;
+        else if (!strcmp(name, "nocproxy"))
+            param_nocproxy = value;
         else if (!strcmp(name, "proxy"))
         {
             char **dstr;
@@ -1001,6 +1004,11 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             out_names[no_out_args] = "subdatabase";
             out_values[no_out_args++] = odr_strdup(odr, sptr->cfSubDB.c_str());
         }
+        if (param_nocproxy)
+        {
+            out_names[no_out_args] = "nocproxy";
+            out_values[no_out_args++] = odr_strdup(odr, param_nocproxy);
+        }
     }
     else
     {
@@ -1044,7 +1052,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     }
     package.log("zoom", YLOG_LOG, "url: %s", url.c_str());
     b->connect(url, error, addinfo, odr);
-    if (*error == 0)
+    if (*error == 0 && !param_nocproxy)
         create_content_session(package, b, error, addinfo, odr,
                                content_authentication.length() ?
                                content_authentication : authentication,
