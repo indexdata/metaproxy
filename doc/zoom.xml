@@ -593,12 +593,12 @@
     <term>proxy</term>
     <listitem>
      <para>
-      Specifies proxy to be for backend. If this parameters is
+      Specifies one or more proxies for backend. If this parameter is
       omitted, the proxy will be taken from TARGET profile setting
       <link linkend="zoom-torus-cfproxy">
-       <literal>cfProxy</literal>
-      </link>
-      .
+       <literal>cfProxy</literal></link>.
+       The parameter is a list of  comma-separated  host:port entries.
+       Bost host and port must be given for each proxy.
      </para>
     </listitem>
    </varlistentry>
@@ -608,6 +608,15 @@
      <para>
       Session ID for content proxy. This parameter is, generally,
       not used by anything but the content proxy itself.
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>nocproxy</term>
+    <listitem>
+     <para>
+      If this parameter is specified, content-proyxing is disabled
+      for the search.
      </para>
     </listitem>
    </varlistentry>
