@@ -1,3 +1,11 @@
+zoom: return diagnostic if CQL sortby conv fails.  Diagnostic Bib-1 214
+"Illegal sort relation" is returned. Gets translated to SRU diagnostic
+90: "Unsupported direction value".
+
+zoom: honor database argument nocproxy. This disables creating a content
+connector session (for non-CF targets, usually) and also relays nocproxy
+as database argument to a CF target.
+
 --- 1.3.19 2011/12/16
 
 zoom: Multiple proxy hosts may be given for proxy rich database 
