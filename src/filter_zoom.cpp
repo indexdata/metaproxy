@@ -1505,59 +1505,11 @@ next_proxy:
             log_diagnostic(package, error, addinfo);
             apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
             package.response() = apdu_res;
+            cql_parser_destroy(cp);
             return;
         }
         char ccl_buf[1024];
-
         r = cql_to_ccl_buf(cn, ccl_buf, sizeof(ccl_buf));
-        if (r == 0)
-        {
-            ccl_wrbuf = wrbuf_alloc();
-            wrbuf_puts(ccl_wrbuf, ccl_buf);
-            
-            WRBUF sru_sortkeys_wrbuf = wrbuf_alloc();
-
-            cql_sortby_to_sortkeys(cn, wrbuf_vp_puts, sru_sortkeys_wrbuf);
-            WRBUF sort_spec_wrbuf = wrbuf_alloc();
-            yaz_srw_sortkeys_to_sort_spec(wrbuf_cstr(sru_sortkeys_wrbuf),
-                                          sort_spec_wrbuf);
-            wrbuf_destroy(sru_sortkeys_wrbuf);
-
-            yaz_tok_cfg_t tc = yaz_tok_cfg_create();
-            yaz_tok_parse_t tp =
-                yaz_tok_parse_buf(tc, wrbuf_cstr(sort_spec_wrbuf));
-            yaz_tok_cfg_destroy(tc);
-
-            /* go through sortspec and map fields */
-            int token = yaz_tok_move(tp);
-            while (token != YAZ_TOK_EOF)
-            {
-                if (token == YAZ_TOK_STRING)
-                {
-                    const char *field = yaz_tok_parse_string(tp);
-                    std::map<std::string,std::string>::iterator it;
-                    it = b->sptr->sortmap.find(field);
-                    if (it != b->sptr->sortmap.end())
-                        sortkeys += it->second;
-                    else
-                        sortkeys += field;
-                }
-                sortkeys += " ";
-                token = yaz_tok_move(tp);
-                if (token == YAZ_TOK_STRING)
-                {
-                    sortkeys += yaz_tok_parse_string(tp);
-                }
-                if (token != YAZ_TOK_EOF)
-                {
-                    sortkeys += " ";
-                    token = yaz_tok_move(tp);
-                }
-            }
-            yaz_tok_parse_destroy(tp);
-            wrbuf_destroy(sort_spec_wrbuf);
-        }
-        cql_parser_destroy(cp);
         if (r)
         {
             error = YAZ_BIB1_MALFORMED_QUERY;
@@ -1566,8 +1518,66 @@ next_proxy:
             log_diagnostic(package, error, addinfo);
             apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
             package.response() = apdu_res;
+            cql_parser_destroy(cp);
             return;
         }
+
+        WRBUF sru_sortkeys_wrbuf = wrbuf_alloc();
+        if (cql_sortby_to_sortkeys(cn, wrbuf_vp_puts, sru_sortkeys_wrbuf))
+        {
+            error = YAZ_BIB1_ILLEGAL_SORT_RELATION;
+            const char *addinfo = "CQL to CCL sortby conversion";
+
+            log_diagnostic(package, error, addinfo);
+            apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
+            package.response() = apdu_res;
+            wrbuf_destroy(sru_sortkeys_wrbuf);
+            cql_parser_destroy(cp);
+            return;
+        }
+        WRBUF sort_spec_wrbuf = wrbuf_alloc();
+        yaz_srw_sortkeys_to_sort_spec(wrbuf_cstr(sru_sortkeys_wrbuf),
+                                      sort_spec_wrbuf);
+        wrbuf_destroy(sru_sortkeys_wrbuf);
+
+        ccl_wrbuf = wrbuf_alloc();
+        wrbuf_puts(ccl_wrbuf, ccl_buf);
+        
+        yaz_tok_cfg_t tc = yaz_tok_cfg_create();
+        yaz_tok_parse_t tp =
+            yaz_tok_parse_buf(tc, wrbuf_cstr(sort_spec_wrbuf));
+        yaz_tok_cfg_destroy(tc);
+        
+        /* go through sortspec and map fields */
+        int token = yaz_tok_move(tp);
+        while (token != YAZ_TOK_EOF)
+        {
+            if (token == YAZ_TOK_STRING)
+            {
+                const char *field = yaz_tok_parse_string(tp);
+                std::map<std::string,std::string>::iterator it;
+                it = b->sptr->sortmap.find(field);
+                if (it != b->sptr->sortmap.end())
+                    sortkeys += it->second;
+                else
+                    sortkeys += field;
+            }
+            sortkeys += " ";
+            token = yaz_tok_move(tp);
+            if (token == YAZ_TOK_STRING)
+            {
+                sortkeys += yaz_tok_parse_string(tp);
+            }
+            if (token != YAZ_TOK_EOF)
+            {
+                sortkeys += " ";
+                token = yaz_tok_move(tp);
+            }
+        }
+        yaz_tok_parse_destroy(tp);
+        wrbuf_destroy(sort_spec_wrbuf);
+
+        cql_parser_destroy(cp);
     }
     else
     {
