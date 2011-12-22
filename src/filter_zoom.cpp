@@ -92,6 +92,7 @@ namespace metaproxy_1 {
             SearchablePtr sptr;
             xsltStylesheetPtr xsp;
             std::string content_session_id;
+            bool enable_cproxy;
         public:
             Backend(SearchablePtr sptr);
             ~Backend();
@@ -220,6 +221,7 @@ yf::Zoom::Backend::Backend(SearchablePtr ptr) : sptr(ptr)
     ZOOM_connection_save_apdu_wrbuf(m_connection, m_apdu_wrbuf);
     m_resultset = 0;
     xsp = 0;
+    enable_cproxy = true;
 }
 
 yf::Zoom::Backend::~Backend()
@@ -950,6 +952,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     b->xsp = xsp;
     b->m_frontend_database = database;
+    b->enable_cproxy = param_nocproxy ? false : true;
 
     if (sptr->query_encoding.length())
         b->set_option("rpnCharset", sptr->query_encoding);
@@ -1052,7 +1055,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     }
     package.log("zoom", YLOG_LOG, "url: %s", url.c_str());
     b->connect(url, error, addinfo, odr);
-    if (*error == 0 && !param_nocproxy)
+    if (*error == 0 && b->enable_cproxy)
         create_content_session(package, b, error, addinfo, odr,
                                content_authentication.length() ?
                                content_authentication : authentication,
@@ -1274,7 +1277,7 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
                     }
                 }
 
-                if (rec_buf)
+                if (rec_buf && b->enable_cproxy)
                 {
                     xmlDoc *doc = xmlParseMemory(rec_buf, rec_len);
                     std::string res = 
