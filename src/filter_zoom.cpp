@@ -130,7 +130,8 @@ namespace metaproxy_1 {
                                         char **addinfo,
                                         ODR odr,
                                         std::string authentication,
-                                        std::string proxy);
+                                        std::string proxy,
+                                        std::string realm);
             
             void prepare_elements(BackendPtr b,
                                   Odr_oid *preferredRecordSyntax,
@@ -667,7 +668,8 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
                                                 int *error, char **addinfo,
                                                 ODR odr,
                                                 std::string authentication,
-                                                std::string proxy)
+                                                std::string proxy,
+                                                std::string realm)
 {
     if (b->sptr->contentConnector.length())
     {
@@ -701,6 +703,8 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
             wrbuf_printf(w, "auth: %s\n", authentication.c_str());
         if (proxy.length())
             wrbuf_printf(w, "proxy: %s\n", proxy.c_str());
+        if (realm.length())
+            wrbuf_printf(w, "realm: %s\n", realm.c_str());
 
         fwrite(wrbuf_buf(w), 1, wrbuf_len(w), file);
         fclose(file);
@@ -1059,7 +1063,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         create_content_session(package, b, error, addinfo, odr,
                                content_authentication.length() ?
                                content_authentication : authentication,
-                               content_proxy.length() ? content_proxy : proxy);
+                               content_proxy.length() ? content_proxy : proxy,
+                               realm);
     if (*error == 0)
         m_backend = b;
     return b;
