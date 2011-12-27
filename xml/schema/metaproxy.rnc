@@ -57,7 +57,13 @@ metaproxy =
 route =
   element mp:route {
     attribute id { xsd:NCName },
-    filter+
+    filters+
+  }
+
+filters =
+  filter |
+  element mp:filters {
+    filters+
   }
 
 filter =

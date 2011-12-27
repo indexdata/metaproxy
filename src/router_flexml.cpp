@@ -69,6 +69,9 @@ namespace metaproxy_1 {
 
         void parse_xml_filters(xmlDocPtr doc, const xmlNode *node,
                                bool test_only, const char *file_include_path);
+        void parse_xml_filters1(xmlDocPtr doc, const xmlNode *node,
+                                bool test_only, const char *file_include_path,
+                                Route &route);
         void parse_xml_routes(xmlDocPtr doc, const xmlNode *node,
                               bool test_only, const char *file_include_path);
         void check_routes_in_filters(const xmlNode *n);
@@ -141,6 +144,76 @@ void mp::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
     }
 }
 
+void mp::RouterFleXML::Rep::parse_xml_filters1(xmlDocPtr doc,
+                                              const xmlNode *node,
+                                              bool test_only,
+                                              const char *file_include_path,
+                                              Route &route)
+{
+    while (node)
+    {
+        if (mp::xml::is_element_mp(node, "filters"))
+        {
+            const xmlNode* node1 =
+                mp::xml::jump_to_children(node, XML_ELEMENT_NODE);
+
+            parse_xml_filters1(doc, node1, test_only, file_include_path, route);
+        }
+        else if (mp::xml::check_element_mp(node, "filter"))
+        {
+            const struct _xmlAttr *attr;
+            std::string refid_value;
+            std::string type_value;
+            for (attr = node->properties; attr; attr = attr->next)
+            {
+                std::string name = std::string((const char *) attr->name);
+                std::string value;
+            
+                if (attr->children && attr->children->type == XML_TEXT_NODE)
+                    value = std::string((const char *)attr->children->content);
+            
+                if (name == "refid")
+                    refid_value = value;
+                else if (name == "type")
+                    type_value = value;
+                else
+                    throw mp::XMLError("Only attribute 'refid' or 'type'"
+                                       " allowed for element 'filter'."
+                                       " Got " + name);
+            }
+            if (refid_value.length())
+            {
+                std::map<std::string,
+                         boost::shared_ptr<const mp::filter::Base > >::iterator it;
+                it = m_id_filter_map.find(refid_value);
+                if (it == m_id_filter_map.end())
+                    throw mp::XMLError("Unknown filter refid "
+                                       + refid_value);
+                else
+                    route.m_list.push_back(it->second);
+            }
+            else if (type_value.length())
+            {
+                if (!m_factory->exist(type_value))
+                {
+                    yaz_log(YLOG_LOG, "Loading %s (dlpath %s)",
+                            type_value.c_str(), m_dl_path.c_str());
+                    m_factory->add_creator_dl(type_value, m_dl_path);
+                }
+                mp::filter::Base* filter_base = m_factory->create(type_value);
+            
+                filter_base->configure(node, test_only, file_include_path);
+            
+                route.m_list.push_back(
+                    boost::shared_ptr<mp::filter::Base>(filter_base));
+            }
+        
+        }
+        node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
+    }
+}
+
+
 void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
                                              const xmlNode *node,
                                              bool test_only,
@@ -173,63 +246,10 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
 
         Route route;
 
-        // process <filter> nodes in third level
+        // process <filter> / <filters> nodes in third level
         const xmlNode* node3 = mp::xml::jump_to_children(node, XML_ELEMENT_NODE);
+        parse_xml_filters1(doc, node3, test_only, file_include_path, route);
 
-        unsigned int filter3_nr = 0;
-        while (node3 && mp::xml::check_element_mp(node3, "filter"))
-        {
-            filter3_nr++;
-            
-            const struct _xmlAttr *attr;
-            std::string refid_value;
-            std::string type_value;
-            for (attr = node3->properties; attr; attr = attr->next)
-            {
-                std::string name = std::string((const char *) attr->name);
-                std::string value;
-                
-                if (attr->children && attr->children->type == XML_TEXT_NODE)
-                    value = std::string((const char *)attr->children->content);
-                
-                if (name == "refid")
-                    refid_value = value;
-                else if (name == "type")
-                    type_value = value;
-                else
-                    throw mp::XMLError("Only attribute 'refid' or 'type'"
-                                        " allowed for element 'filter'."
-                                        " Got " + name);
-            }
-            if (refid_value.length())
-            {
-                std::map<std::string,
-                    boost::shared_ptr<const mp::filter::Base > >::iterator it;
-                it = m_id_filter_map.find(refid_value);
-                if (it == m_id_filter_map.end())
-                    throw mp::XMLError("Unknown filter refid "
-                                        + refid_value);
-                else
-                    route.m_list.push_back(it->second);
-            }
-            else if (type_value.length())
-            {
-                if (!m_factory->exist(type_value))
-                {
-                    yaz_log(YLOG_LOG, "Loading %s (dlpath %s)",
-                            type_value.c_str(), m_dl_path.c_str());
-                    m_factory->add_creator_dl(type_value, m_dl_path);
-                }
-                mp::filter::Base* filter_base = m_factory->create(type_value);
-
-                filter_base->configure(node3, test_only, file_include_path);
-                
-                route.m_list.push_back(
-                    boost::shared_ptr<mp::filter::Base>(filter_base));
-            }
-            node3 = mp::xml::jump_to_next(node3, XML_ELEMENT_NODE);
-            
-        }
         std::map<std::string,RouterFleXML::Route>::iterator it;
         it = m_routes.find(id_value);
         if (it != m_routes.end())
@@ -245,7 +265,13 @@ void mp::RouterFleXML::Rep::check_routes_in_filters(const xmlNode *node)
 {
     while (node)
     {
-        if (mp::xml::is_element_mp(node, "filter"))
+        if (mp::xml::is_element_mp(node, "filters"))
+        {
+            const xmlNode *n =
+                mp::xml::jump_to_children(node, XML_ELEMENT_NODE);
+            check_routes_in_filters(n);
+        }
+        else if (mp::xml::is_element_mp(node, "filter"))
         {
             const xmlNode *n =
                 mp::xml::jump_to_children(node, XML_ELEMENT_NODE);
