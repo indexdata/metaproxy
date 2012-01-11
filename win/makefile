@@ -1,4 +1,4 @@
-# Copyright (C) 2005-2011 Index Data
+# Copyright (C) 2005-2012 Index Data
 # All rights reserved.
 
 # MS NMAKE makefile for metaproxy
