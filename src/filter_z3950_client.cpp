@@ -174,18 +174,20 @@ void yf::Z3950Client::Assoc::fixup_nsd(ODR odr, Z_Records *records)
     if (records && records->which == Z_Records_NSD)
     {
         Z_DefaultDiagFormat *nsd = records->u.nonSurrogateDiagnostic;
-        if (nsd->which == Z_DiagRec_defaultFormat)
-        {
-            std::string addinfo;
+	std::string addinfo;
+        
+        // should really check for nsd->which.. But union has two members
+        // containing almost same data
+        //  char *v2Addinfo;
+	//  Z_InternationalString *v3Addinfo;
 
-            if (nsd->u.v2Addinfo)
-            {
-                addinfo.assign(nsd->u.v2Addinfo);
-                addinfo += " ";
-            }
-            addinfo += "(backend=" + m_host + ")";
-            nsd->u.v2Addinfo = odr_strdup(odr, addinfo.c_str());
+        if (nsd->u.v2Addinfo)
+        {
+            addinfo.assign(nsd->u.v2Addinfo);
+            addinfo += " ";
         }
+        addinfo += "(backend=" + m_host + ")";
+        nsd->u.v2Addinfo = odr_strdup(odr, addinfo.c_str());
     }
 }
 
