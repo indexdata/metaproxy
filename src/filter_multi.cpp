@@ -566,8 +566,9 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     // look at each response
     FrontendSet resultSet(std::string(req->resultSetName));
 
+    mp::odr odr;
     Odr_int result_set_size = 0;
-    Z_Records *z_records_diag = 0;  // no diagnostics (yet)
+    Z_DiagRecs *z_diag = 0;
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
         PackagePtr p = (*bit)->m_package;
@@ -585,10 +586,36 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
             // see we get any errors (AKA diagnstics)
             if (b_resp->records)
             {
-                if (b_resp->records->which == Z_Records_NSD
-                    || b_resp->records->which == Z_Records_multipleNSD)
-                    z_records_diag = b_resp->records;
-                // we may set this multiple times (TOO BAD!)
+                if (b_resp->records->which == Z_Records_NSD)
+                {
+                    if (!z_diag)
+                    {
+                        z_diag = (Z_DiagRecs *)
+                            odr_malloc(odr, sizeof(*z_diag));
+                        z_diag->num_diagRecs = 0;
+                        z_diag->diagRecs = (Z_DiagRec**)
+                            odr_malloc(odr, sizeof(*z_diag->diagRecs));
+                    }
+                    else
+                    {
+                        Z_DiagRec **n = (Z_DiagRec **)
+                            odr_malloc(odr,
+                                       (1+z_diag->num_diagRecs) * sizeof(*n));
+                        memcpy(n, z_diag->diagRecs, z_diag->num_diagRecs
+                               * sizeof(*n));
+                        z_diag->diagRecs = n;
+                    }
+                    Z_DiagRec *nr = (Z_DiagRec *) odr_malloc(odr, sizeof(*nr));
+                    nr->which = Z_DiagRec_defaultFormat;
+                    nr->u.defaultFormat =
+                        b_resp->records->u.nonSurrogateDiagnostic;
+                    z_diag->diagRecs[z_diag->num_diagRecs++] = nr;
+                }
+                if (b_resp->records->which == Z_Records_multipleNSD)
+                {
+                    // we may set this multiple times (TOO BAD!)
+                    z_diag = b_resp->records->u.multipleNonSurDiagnostics;
+                }
             }
             BackendSet backendSet;
             backendSet.m_backend = *bit;
@@ -604,17 +631,25 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
         }
     }
 
-    mp::odr odr;
     Z_APDU *f_apdu = odr.create_searchResponse(apdu_req, 0, 0);
     Z_SearchResponse *f_resp = f_apdu->u.searchResponse;
 
     *f_resp->resultCount = result_set_size;
-    if (z_records_diag)
+    if (z_diag)
     {
-        // search error
-        f_resp->records = z_records_diag;
-        package.response() = f_apdu;
-        return;
+        f_resp->records = (Z_Records *)
+            odr_malloc(odr, sizeof(*f_resp->records));
+        if (z_diag->num_diagRecs > 1)
+        {
+            f_resp->records->which = Z_Records_multipleNSD;
+            f_resp->records->u.multipleNonSurDiagnostics = z_diag;
+        }
+        else
+        {
+            f_resp->records->which = Z_Records_NSD;
+            f_resp->records->u.nonSurrogateDiagnostic =
+                z_diag->diagRecs[0]->u.defaultFormat;
+        }
     }
     // assume OK
     m_sets[resultSet.m_setname] = resultSet;
@@ -627,7 +662,7 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
                         result_set_size,
                         number, 0);
     Package pp(package.session(), package.origin());
-    if (number > 0)
+    if (z_diag == 0 && number > 0)
     {
         pp.copy_filter(package);
         Z_APDU *p_apdu = zget_APDU(odr, Z_APDU_presentRequest);
