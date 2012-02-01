@@ -582,8 +582,8 @@ void yf::SessionShared::Frontend::override_set(
             BackendSetList::iterator set_it = (*it)->m_sets.begin();
             for (; set_it != (*it)->m_sets.end(); set_it++)
             {
-                if (now >= (*set_it)->m_time_last_use &&
-                    now - (*set_it)->m_time_last_use > bc->m_backend_set_ttl)
+                if (now < (*set_it)->m_time_last_use ||
+                    now - (*set_it)->m_time_last_use >= bc->m_backend_set_ttl)
                 {
                     found_backend = *it;
                     result_set_id = (*set_it)->m_result_set_id;
@@ -1002,8 +1002,7 @@ void yf::SessionShared::BackendClass::expire_class()
         {
             bit++;
         }
-        else if ((now >= last_use && now - last_use > m_backend_expiry_ttl)
-            || (now < last_use))
+        else if (now < last_use || now - last_use > m_backend_expiry_ttl)
         {
             mp::odr odr;
             (*bit)->m_close_package->response() = odr.create_close(
