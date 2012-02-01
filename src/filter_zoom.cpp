@@ -231,6 +231,7 @@ yf::Zoom::Backend::~Backend()
         xsltFreeStylesheet(xsp);
     ZOOM_connection_destroy(m_connection);
     ZOOM_resultset_destroy(m_resultset);
+    wrbuf_destroy(m_apdu_wrbuf);
 }
 
 
@@ -710,6 +711,7 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
         fclose(file);
         package.log("zoom", YLOG_LOG, "content file: %s", fname);
         xfree(fname);
+        wrbuf_destroy(w);
     }
     return true;
 }
