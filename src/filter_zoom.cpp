@@ -279,6 +279,7 @@ void yf::Zoom::Backend::connect(std::string zurl,
 void yf::Zoom::Backend::search(ZOOM_query q, Odr_int *hits,
                                int *error, char **addinfo, ODR odr)
 {
+    ZOOM_resultset_destroy(m_resultset);
     m_resultset = ZOOM_connection_search(m_connection, q);
     get_zoom_error(error, addinfo, odr);
     if (*error == 0)
