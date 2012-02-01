@@ -1192,8 +1192,6 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
             Z_NamePlusRecord *npr = 0;
             const char *addinfo;
 
-            package.log("zoom", YLOG_LOG, "Inspecting record at position %d",
-                        start + i);
             int sur_error = ZOOM_record_error(recs[i], 0 /* msg */,
                                               &addinfo, 0 /* diagset */);
                 
