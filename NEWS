@@ -1,3 +1,15 @@
+zoom: fix memory leaks.
+
+session_shared: maximum number of sessons is configurable. Default
+value is 100. Result-sets for backends without named result sets are
+only re-used if databases is identical for a search. This is under the
+assumption that performance may suffer for those backends when
+changing the database for each search.
+
+multi: combines diagnostics from all backends. All diagnostics from
+backends are combined into multiple non-surrogate diagnostics; rather
+than just one diagnostic from first backend.
+
 --- 1.3.21 2011/12/27
 
 zoom: relay realm to cproxy parameter file.
