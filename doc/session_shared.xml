@@ -61,6 +61,17 @@
       </para>
      </listitem>
     </varlistentry>
+    <varlistentry><term>Session max</term>
+     <listitem>
+      <para>
+       Specifiers maximum number of sessions to any particular
+       target. If this number (limit) is reached, the session_shared
+       module will re-use result sets even if TTL is not met.
+       Failing that the session_shared will return a diagnostic.
+       Default value is 100 sessions.
+      </para>
+     </listitem>
+    </varlistentry>
     <varlistentry><term>Result-Set TTL</term>
      <listitem>
       <para>
