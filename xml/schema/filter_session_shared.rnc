@@ -7,11 +7,12 @@ filter_session_shared =
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
   element mp:resultset {
-    attribute max { xsd:integer },
-    attribute ttl { xsd:integer },
-    attribute optimizesearch { xsd:boolean }
+    attribute max { xsd:integer }?,
+    attribute ttl { xsd:integer }?,
+    attribute optimizesearch { xsd:boolean }?
   }?,
   element mp:session {
-    attribute ttl { xsd:integer }
+    attribute ttl { xsd:integer }?,
+    attribute max { xsd:integer }?
   }?
 
