@@ -162,7 +162,8 @@ namespace metaproxy_1 {
                          BackendInstancePtr &found_backend,
                          BackendSetPtr &found_set);
             void override_set(BackendInstancePtr &found_backend,
-                              std::string &result_set_id);
+                              std::string &result_set_id,
+                              const Databases &databases);
 
             Rep *m_p;
             BackendClassPtr m_backend_class;
@@ -568,13 +569,15 @@ bool yf::SessionShared::BackendSet::search(
 
 void yf::SessionShared::Frontend::override_set(
     BackendInstancePtr &found_backend,
-    std::string &result_set_id)
+    std::string &result_set_id,
+    const Databases &databases)
 {
     BackendClassPtr bc = m_backend_class;
     BackendInstanceList::const_iterator it = bc->m_backend_list.begin();
     time_t now;
     time(&now);
-    
+
+    size_t max_sets = bc->m_named_result_sets ? bc->m_backend_set_max : 1;
     for (; it != bc->m_backend_list.end(); it++)
     {
         if (!(*it)->m_in_use)
@@ -582,8 +585,10 @@ void yf::SessionShared::Frontend::override_set(
             BackendSetList::iterator set_it = (*it)->m_sets.begin();
             for (; set_it != (*it)->m_sets.end(); set_it++)
             {
-                if (now < (*set_it)->m_time_last_use ||
-                    now - (*set_it)->m_time_last_use >= bc->m_backend_set_ttl)
+                if ((max_sets > 1 || (*set_it)->m_databases == databases)
+                    &&
+                    (now < (*set_it)->m_time_last_use ||
+                     now - (*set_it)->m_time_last_use >= bc->m_backend_set_ttl))
                 {
                     found_backend = *it;
                     result_set_id = (*set_it)->m_result_set_id;
@@ -593,7 +598,6 @@ void yf::SessionShared::Frontend::override_set(
             }
         }
     }
-    size_t max_sets = bc->m_named_result_sets ? bc->m_backend_set_max : 1;
     for (it = bc->m_backend_list.begin(); it != bc->m_backend_list.end(); it++)
     {
         if (!(*it)->m_in_use && (*it)->m_sets.size() < max_sets)
@@ -653,7 +657,7 @@ restart:
                 }
             }
         }
-        override_set(found_backend, result_set_id);
+        override_set(found_backend, result_set_id, databases);
         if (found_backend)
             bc->use_backend(found_backend);
     }
