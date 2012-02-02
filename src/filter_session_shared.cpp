@@ -163,7 +163,8 @@ namespace metaproxy_1 {
                          BackendSetPtr &found_set);
             void override_set(BackendInstancePtr &found_backend,
                               std::string &result_set_id,
-                              const Databases &databases);
+                              const Databases &databases,
+                              bool out_of_sessions);
 
             Rep *m_p;
             BackendClassPtr m_backend_class;
@@ -194,6 +195,7 @@ namespace metaproxy_1 {
             int m_resultset_max;
             int m_session_ttl;
             bool m_optimize_search;
+            int m_session_max;
         };
     }
 }
@@ -570,7 +572,8 @@ bool yf::SessionShared::BackendSet::search(
 void yf::SessionShared::Frontend::override_set(
     BackendInstancePtr &found_backend,
     std::string &result_set_id,
-    const Databases &databases)
+    const Databases &databases,
+    bool out_of_sessions)
 {
     BackendClassPtr bc = m_backend_class;
     BackendInstanceList::const_iterator it = bc->m_backend_list.begin();
@@ -587,7 +590,8 @@ void yf::SessionShared::Frontend::override_set(
             {
                 if ((max_sets > 1 || (*set_it)->m_databases == databases)
                     &&
-                    (now < (*set_it)->m_time_last_use ||
+                    (out_of_sessions ||
+                     now < (*set_it)->m_time_last_use ||
                      now - (*set_it)->m_time_last_use >= bc->m_backend_set_ttl))
                 {
                     found_backend = *it;
@@ -628,9 +632,13 @@ void yf::SessionShared::Frontend::get_set(mp::Package &package,
 
 restart:
     std::string result_set_id;
+    bool out_of_sessions = false;
     BackendClassPtr bc = m_backend_class;
     {
         boost::mutex::scoped_lock lock(bc->m_mutex_backend_class);
+
+        if ((int) bc->m_backend_list.size() >= m_p->m_session_max)
+            out_of_sessions = true;
         
         if (m_p->m_optimize_search)
         {
@@ -657,33 +665,38 @@ restart:
                 }
             }
         }
-        override_set(found_backend, result_set_id, databases);
+        override_set(found_backend, result_set_id, databases, out_of_sessions);
         if (found_backend)
             bc->use_backend(found_backend);
     }
     if (!found_backend)
     {
-        // create a new backend set (and new set)
-        found_backend = bc->create_backend(package);
+        // create a new backend set (and new set) if we're not out of sessions
+        if (!out_of_sessions)
+            found_backend = bc->create_backend(package);
 
         if (!found_backend)
         {
             Z_APDU *f_apdu = 0;
             mp::odr odr;
+            const char *addinfo = 0;
+            
+            if (out_of_sessions)
+                addinfo = "session_shared: all sessions in use";
             if (apdu_req->which == Z_APDU_searchRequest)
             {
                 f_apdu = odr.create_searchResponse(
-                        apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+                    apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, addinfo);
             }
             else if (apdu_req->which == Z_APDU_presentRequest)
             {
                 f_apdu = odr.create_presentResponse(
-                    apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+                    apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, addinfo);
             }
             else
             {
                 f_apdu = odr.create_close(
-                    apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+                    apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, addinfo);
             }
             package.response() = f_apdu;
             return;
@@ -1044,6 +1057,7 @@ yf::SessionShared::Rep::Rep()
     m_resultset_max = 10;
     m_session_ttl = 90;
     m_optimize_search = true;
+    m_session_max = 100;
 }
 
 void yf::SessionShared::Rep::start()
@@ -1218,7 +1232,10 @@ void yf::SessionShared::configure(const xmlNode *ptr, bool test_only,
             {
                 if (!strcmp((const char *) attr->name, "ttl"))
                     m_p->m_session_ttl = 
-                        mp::xml::get_int(attr->children, 120);
+                        mp::xml::get_int(attr->children, 90);
+                else if (!strcmp((const char *) attr->name, "max"))
+                    m_p->m_session_max = 
+                        mp::xml::get_int(attr->children, 100);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
