@@ -29,12 +29,19 @@ namespace mp = metaproxy_1;
 
 xmlDoc *mp::get_searchable(mp::Package &package,
                            std::string url_template, const std::string &db,
+                           const std::string &query,
                            const std::string &realm,
                            const std::string &proxy)
 {
-    // http://newmk2.indexdata.com/torus2/searchable.ebsco/records/?query=udb=aberdeenUni
+    // http://mk2.indexdata.com/torus2/searchable/records/?query=udb%3d%db
+    // or
+    // http://mk2.indexdata.com/torus2/searchable/records/?query=%query
     xmlDoc *doc = 0;
     size_t found;
+
+    found = url_template.find("%query");
+    if (found != std::string::npos)
+        url_template.replace(found, 6, mp::util::uri_encode(query));
 
     found = url_template.find("%db");
     if (found != std::string::npos)

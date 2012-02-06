@@ -93,8 +93,10 @@ namespace metaproxy_1 {
             xsltStylesheetPtr xsp;
             std::string content_session_id;
             bool enable_cproxy;
+            bool enable_explain;
+            xmlDoc *explain_doc;
         public:
-            Backend(SearchablePtr sptr);
+            Backend();
             ~Backend();
             void connect(std::string zurl, int *error, char **addinfo,
                          ODR odr);
@@ -116,6 +118,14 @@ namespace metaproxy_1 {
             BackendPtr m_backend;
             void handle_package(mp::Package &package);
             void handle_search(mp::Package &package);
+
+            BackendPtr explain_search(mp::Package &package,
+                                      std::string &database,
+                                      int *error,
+                                      char **addinfo,
+                                      ODR odr,
+                                      std::string &torus_db,
+                                      std::string &realm);
             void handle_present(mp::Package &package);
             BackendPtr get_backend_from_databases(mp::Package &package,
                                                   std::string &database,
@@ -186,6 +196,7 @@ namespace metaproxy_1 {
             std::string element_transform;
             std::string element_raw;
             std::string proxy;
+            xsltStylesheetPtr explain_xsp;
             std::map<std::string,SearchablePtr> s_map;
         };
     }
@@ -215,7 +226,7 @@ void yf::Zoom::process(mp::Package &package) const
 
 // define Implementation stuff
 
-yf::Zoom::Backend::Backend(SearchablePtr ptr) : sptr(ptr)
+yf::Zoom::Backend::Backend()
 {
     m_apdu_wrbuf = wrbuf_alloc();
     m_connection = ZOOM_connection_create(0);
@@ -223,12 +234,16 @@ yf::Zoom::Backend::Backend(SearchablePtr ptr) : sptr(ptr)
     m_resultset = 0;
     xsp = 0;
     enable_cproxy = true;
+    enable_explain = false;
+    explain_doc = 0;
 }
 
 yf::Zoom::Backend::~Backend()
 {
     if (xsp)
         xsltFreeStylesheet(xsp);
+    if (explain_doc)
+        xmlFreeDoc(explain_doc);
     ZOOM_connection_destroy(m_connection);
     ZOOM_resultset_destroy(m_resultset);
     wrbuf_destroy(m_apdu_wrbuf);
@@ -386,11 +401,14 @@ yf::Zoom::Impl::Impl() :
 {
     bibset = ccl_qual_mk();
 
+    explain_xsp = 0;
     srand((unsigned int) time(0));
 }
 
 yf::Zoom::Impl::~Impl()
-{ 
+{
+    if (explain_xsp)
+        xsltFreeStylesheet(explain_xsp);
     ccl_qual_rm(&bibset);
 }
 
@@ -564,6 +582,8 @@ void yf::Zoom::Impl::configure_local_records(const xmlNode *ptr, bool test_only)
 void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                                const char *path)
 {
+    std::string explain_xslt_fname;
+
     content_tmp_file = "/tmp/cf.XXXXXX.p";
     if (path && *path)
     {
@@ -592,6 +612,8 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                     element_raw = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "proxy"))
                     proxy = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "explain_xsl"))
+                    explain_xslt_fname = mp::xml::get_text(attr->children);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
@@ -661,6 +683,41 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                 ("Bad element " 
                  + std::string((const char *) ptr->name)
                  + " in zoom filter");
+        }
+    }
+
+    if (explain_xslt_fname.length())
+    {
+        const char *path = 0;
+        
+        if (xsldir.length())
+            path = xsldir.c_str();
+        else
+            path = file_path.c_str();
+        
+        char fullpath[1024];
+        char *cp = yaz_filepath_resolve(explain_xslt_fname.c_str(),
+                                        path, 0, fullpath);
+        if (!cp)
+        {
+            throw mp::filter::FilterException
+                ("Cannot read XSLT " + explain_xslt_fname);
+        }
+
+        xmlDoc *xsp_doc = xmlParseFile(cp);
+        if (!xsp_doc)
+        {
+            throw mp::filter::FilterException
+                ("Cannot parse XSLT " + explain_xslt_fname);
+        }
+
+        explain_xsp = xsltParseStylesheetDoc(xsp_doc);
+        if (!explain_xsp)
+        {
+            xmlFreeDoc(xsp_doc);
+            throw mp::filter::FilterException
+                ("Cannot parse XSLT " + explain_xslt_fname);
+            
         }
     }
 }
@@ -834,6 +891,11 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (param_content_password)
             content_authentication += "/" + std::string(param_content_password);
     }
+
+    if (torus_db.compare("IR-Explain---1") == 0)
+        return explain_search(package, database, error, addinfo, odr, torus_db,
+            realm);
+    
     SearchablePtr sptr;
 
     std::map<std::string,SearchablePtr>::iterator it;
@@ -842,7 +904,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         sptr = it->second;
     else if (torus_url.length() > 0)
     {
+        std::string torus_query = "udb=" + torus_db;
         xmlDoc *doc = mp::get_searchable(package,torus_url, torus_db,
+                                         torus_query,
                                          realm, m_p->proxy);
         if (!doc)
         {
@@ -955,8 +1019,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     m_backend.reset();
 
-    BackendPtr b(new Backend(sptr));
+    BackendPtr b(new Backend);
 
+    b->sptr = sptr;
     b->xsp = xsp;
     b->m_frontend_database = database;
     b->enable_cproxy = param_nocproxy ? false : true;
@@ -1413,6 +1478,65 @@ void yf::Zoom::Frontend::log_diagnostic(mp::Package &package,
                     error, err_msg);
 }
 
+yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
+                                                        std::string &database,
+                                                        int *error,
+                                                        char **addinfo,
+                                                        ODR odr,
+                                                        std::string &torus_db,
+                                                        std::string &realm)
+{
+    m_backend.reset();
+
+    BackendPtr b(new Backend);
+
+    b->m_frontend_database = database;
+    b->enable_explain = true;
+   
+    Z_GDU *gdu = package.request().get();
+    Z_APDU *apdu_req = gdu->u.z3950;
+    Z_APDU *apdu_res = 0;
+    Z_SearchRequest *sr = apdu_req->u.searchRequest;
+    Z_Query *query = sr->query;
+
+    if (query->which == Z_Query_type_104 &&
+        query->u.type_104->which == Z_External_CQL)
+    {
+        std::string torus_url = m_p->torus_searchable_url;
+        std::string torus_query(query->u.type_104->u.cql);
+        xmlDoc *doc = mp::get_searchable(package, torus_url, "",
+                                         torus_query,
+                                         realm, m_p->proxy);
+        if (m_p->explain_xsp)
+        {
+            xmlDoc *rec_res =  xsltApplyStylesheet(m_p->explain_xsp, doc, 0);
+
+            xmlFreeDoc(doc);
+            doc = rec_res;
+        }
+        *error = YAZ_BIB1_QUERY_TYPE_UNSUPP;
+        *addinfo = odr_strdup(odr, "CQL, IR-Explain---1");
+
+        xmlChar *buf_out = 0;
+        int len_out;
+        xmlDocDumpMemory(doc, &buf_out, &len_out);
+
+        fwrite(buf_out, 1, len_out, yaz_log_file());
+        
+        xmlFree(buf_out);
+        if (b->explain_doc)
+            xmlFreeDoc(b->explain_doc);
+        b->explain_doc = doc;
+        return m_backend;
+    }
+    else
+    {
+        *error = YAZ_BIB1_QUERY_TYPE_UNSUPP;
+        *addinfo = odr_strdup(odr, "RPN/CCL, IR-Explain---1");
+        return m_backend;
+    }
+}
+
 void yf::Zoom::Frontend::handle_search(mp::Package &package)
 {
     Z_GDU *gdu = package.request().get();
@@ -1428,7 +1552,6 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         package.response() = apdu_res;
         return;
     }
-
     int proxy_step = 0;
 
 next_proxy:
@@ -1452,6 +1575,8 @@ next_proxy:
         package.response() = apdu_res;
         return;
     }
+    if (b->enable_explain)
+        return;
 
     b->set_option("setname", "default");
 
@@ -1752,19 +1877,31 @@ void yf::Zoom::Frontend::handle_present(mp::Package &package)
     Odr_int number_of_records_returned = 0;
     int error = 0;
     char *addinfo = 0;
-    Z_Records *records = get_records(package,
-        *pr->resultSetStartPoint - 1, *pr->numberOfRecordsRequested,
-        &error, &addinfo, &number_of_records_returned, odr, m_backend,
-        pr->preferredRecordSyntax, element_set_name);
 
-    apdu_res = odr.create_presentResponse(apdu_req, error, addinfo);
-    if (records)
+    if (m_backend->enable_explain)
     {
-        apdu_res->u.presentResponse->records = records;
-        apdu_res->u.presentResponse->numberOfRecordsReturned =
-            odr_intdup(odr, number_of_records_returned);
+        package.response() = odr.create_presentResponse(
+            apdu_req, YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+            "IR-Explain---1 fetch not implemented");
+        return;
     }
-    package.response() = apdu_res;
+    else
+    {
+        Z_Records *records =
+            get_records(package,
+                        *pr->resultSetStartPoint - 1, *pr->numberOfRecordsRequested,
+                        &error, &addinfo, &number_of_records_returned, odr, m_backend,
+                        pr->preferredRecordSyntax, element_set_name);
+        
+        apdu_res = odr.create_presentResponse(apdu_req, error, addinfo);
+        if (records)
+        {
+            apdu_res->u.presentResponse->records = records;
+            apdu_res->u.presentResponse->numberOfRecordsReturned =
+                odr_intdup(odr, number_of_records_returned);
+        }
+        package.response() = apdu_res;
+    }
 }
 
 void yf::Zoom::Frontend::handle_package(mp::Package &package)
