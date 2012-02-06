@@ -463,33 +463,42 @@ void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
         }
     }
     BackendClassPtr bc = frontend->m_backend_class;
-    BackendInstancePtr backend = bc->get_backend(package);
-    
+    BackendInstancePtr backend;
     mp::odr odr;
-    if (!backend)
+
+    // we only need to get init response from "first" target in
+    // backend class - the assumption being that init response is
+    // same for all
+    if (bc->m_init_response.get() == 0)
     {
-        Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950, 0, 0);
-        *apdu->u.initResponse->result = 0;
-        package.response() = apdu;
-        package.session().close();
+        backend = bc->get_backend(package);
     }
-    else
     {
         boost::mutex::scoped_lock lock(bc->m_mutex_backend_class);
-        yazpp_1::GDU init_response = bc->m_init_response;
-        Z_GDU *response_gdu = init_response.get();
-        mp::util::transfer_referenceId(odr, gdu->u.z3950,
-                                       response_gdu->u.z3950);
-
-        Z_Options *server_options =
-            response_gdu->u.z3950->u.initResponse->options;
-        Z_Options *client_options = &frontend->m_init_options;
-
-        int i;
-        for (i = 0; i<30; i++)
-            if (!ODR_MASK_GET(client_options, i))
-                ODR_MASK_CLEAR(server_options, i);
-        package.response() = init_response;
+        if (bc->m_init_response.get() == 0)
+        {
+            Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950, 0, 0);
+            *apdu->u.initResponse->result = 0;
+            package.response() = apdu;
+            package.session().close();
+        }
+        else
+        {
+            yazpp_1::GDU init_response = bc->m_init_response;
+            Z_GDU *response_gdu = init_response.get();
+            mp::util::transfer_referenceId(odr, gdu->u.z3950,
+                                           response_gdu->u.z3950);
+            
+            Z_Options *server_options =
+                response_gdu->u.z3950->u.initResponse->options;
+            Z_Options *client_options = &frontend->m_init_options;
+            
+            int i;
+            for (i = 0; i < 30; i++)
+                if (!ODR_MASK_GET(client_options, i))
+                    ODR_MASK_CLEAR(server_options, i);
+            package.response() = init_response;
+        }
     }
     if (backend)
         bc->release_backend(backend);
@@ -825,7 +834,7 @@ void yf::SessionShared::Frontend::search(mp::Package &package,
     query.set_Z_Query(req->query);
     Databases databases;
     int i;
-    for (i = 0; i<req->num_databaseNames; i++)
+    for (i = 0; i < req->num_databaseNames; i++)
         databases.push_back(req->databaseNames[i]);
 
     BackendSetPtr found_set; // null
