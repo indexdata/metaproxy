@@ -8,12 +8,12 @@
     </filter>
     <filter id="backend" type="zoom">
       <torus
-	  url="http://usi.indexdata.com/torus2/%realm/records/?query=udb%3D%3D%db"
+	  url="http://usi.indexdata.com/torus2/%realm/records/?query=%query"
             realm="searchable.usi-test"
             xsldir="."
             element_transform="pz2"
             element_raw="raw"
-	    proxy="localhost:3128"
+            explain_xsl="torus2zeerex.xsl"
 	    >	
         <!-- these records are examples only -->
 	<records>

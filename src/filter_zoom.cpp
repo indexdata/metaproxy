@@ -123,7 +123,7 @@ namespace metaproxy_1 {
                                       std::string &database,
                                       int *error,
                                       char **addinfo,
-                                      ODR odr,
+                                      mp::odr &odr,
                                       std::string &torus_db,
                                       std::string &realm);
             void handle_present(mp::Package &package);
@@ -131,7 +131,7 @@ namespace metaproxy_1 {
                                                   std::string &database,
                                                   int *error,
                                                   char **addinfo,
-                                                  ODR odr,
+                                                  mp::odr &odr,
                                                   int *proxy_step);
 
             bool create_content_session(mp::Package &package,
@@ -159,6 +159,15 @@ namespace metaproxy_1 {
                                    ODR odr, BackendPtr b,
                                    Odr_oid *preferredRecordSyntax,
                                    const char *element_set_name);
+            Z_Records *get_explain_records(Package &package,
+                                           Odr_int start,
+                                           Odr_int number_to_present,
+                                           int *error,
+                                           char **addinfo,
+                                           Odr_int *number_of_records_returned,
+                                           ODR odr, BackendPtr b,
+                                           Odr_oid *preferredRecordSyntax,
+                                           const char *element_set_name);
 
             void log_diagnostic(mp::Package &package,
                                 int error, const char *addinfo);
@@ -200,6 +209,29 @@ namespace metaproxy_1 {
             std::map<std::string,SearchablePtr> s_map;
         };
     }
+}
+
+
+static xmlNode *xml_node_search(xmlNode *ptr, int *num, int m)
+{
+    while (ptr)
+    {
+        if (ptr->type == XML_ELEMENT_NODE &&
+            !strcmp((const char *) ptr->name, "recordData"))
+        {
+            (*num)++;
+            if (m == *num)
+                return ptr;
+        }
+        else  // else: we don't want to find nested nodes
+        {   
+            xmlNode *ret_node = xml_node_search(ptr->children, num, m);
+            if (ret_node)
+                return ret_node;
+        }
+        ptr = ptr->next;
+    }
+    return 0;
 }
 
 // define Pimpl wrapper forwarding to Impl
@@ -776,7 +808,7 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
 
 yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     mp::Package &package,
-    std::string &database, int *error, char **addinfo, ODR odr,
+    std::string &database, int *error, char **addinfo, mp::odr &odr,
     int *proxy_step)
 {
     std::list<BackendPtr>::const_iterator map_it;
@@ -844,7 +876,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         {
             char **dstr;
             int dnum = 0;
-            nmem_strsplit(odr->mem, ",", value, &dstr, &dnum);
+            nmem_strsplit(((ODR) odr)->mem, ",", value, &dstr, &dnum);
             if (*proxy_step >= dnum)
                 *proxy_step = 0;
             else
@@ -1198,6 +1230,61 @@ void yf::Zoom::Frontend::prepare_elements(BackendPtr b,
         b->set_option("schema", element_set_name);
 }
 
+Z_Records *yf::Zoom::Frontend::get_explain_records(
+    Package &package,
+    Odr_int start,
+    Odr_int number_to_present,
+    int *error,
+    char **addinfo,
+    Odr_int *number_of_records_returned,
+    ODR odr,
+    BackendPtr b,
+    Odr_oid *preferredRecordSyntax,
+    const char *element_set_name)
+{
+    Odr_int i;
+    Z_Records *records = 0;
+
+    if (!b->explain_doc)
+    {
+        return records;
+    }
+    if (number_to_present > 10000)
+        number_to_present = 10000;
+
+    xmlNode *ptr = xmlDocGetRootElement(b->explain_doc);
+    
+    Z_NamePlusRecordList *npl = (Z_NamePlusRecordList *)
+        odr_malloc(odr, sizeof(*npl));
+    npl->records = (Z_NamePlusRecord **)
+        odr_malloc(odr, number_to_present * sizeof(*npl->records));
+    
+    for (i = start; i < start + number_to_present; i++)
+    {
+        const char *rec_buf = "<x/>";
+        int rec_len = strlen(rec_buf);
+        int num = 0;
+        xmlNode *res = xml_node_search(ptr, &num, start + i);
+        if (!res)
+            break;
+
+        Z_NamePlusRecord *npr =
+            (Z_NamePlusRecord *) odr_malloc(odr, sizeof(*npr));
+        npr->databaseName = odr_strdup(odr, b->m_frontend_database.c_str());
+        npr->which = Z_NamePlusRecord_databaseRecord;
+        npr->u.databaseRecord =
+            z_ext_record_xml(odr, rec_buf, rec_len);
+    }
+    records = (Z_Records*) odr_malloc(odr, sizeof(*records));
+    records->which = Z_Records_DBOSD;
+    records->u.databaseOrSurDiagnostics = npl;
+
+    npl->num_records = i;
+    *number_of_records_returned = i;
+    return records;
+}
+
+
 Z_Records *yf::Zoom::Frontend::get_records(Package &package,
                                            Odr_int start,
                                            Odr_int number_to_present,
@@ -1482,7 +1569,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
                                                         std::string &database,
                                                         int *error,
                                                         char **addinfo,
-                                                        ODR odr,
+                                                        mp::odr &odr,
                                                         std::string &torus_db,
                                                         std::string &realm)
 {
@@ -1495,7 +1582,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
    
     Z_GDU *gdu = package.request().get();
     Z_APDU *apdu_req = gdu->u.z3950;
-    Z_APDU *apdu_res = 0;
     Z_SearchRequest *sr = apdu_req->u.searchRequest;
     Z_Query *query = sr->query;
 
@@ -1514,16 +1600,30 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
             xmlFreeDoc(doc);
             doc = rec_res;
         }
-        *error = YAZ_BIB1_QUERY_TYPE_UNSUPP;
-        *addinfo = odr_strdup(odr, "CQL, IR-Explain---1");
+        if (!doc)
+        {
+            *error = YAZ_BIB1_UNSPECIFIED_ERROR;
+            *addinfo = odr_strdup(odr, "Torus XML/Explain problem");
+        }
+        else
+        {
+#if 1
+            xmlChar *buf_out = 0;
+            int len_out;
+            xmlDocDumpMemory(doc, &buf_out, &len_out);
+            fwrite(buf_out, 1, len_out, yaz_log_file());
+            xmlFree(buf_out);
+#endif
+            xmlNode *ptr = xmlDocGetRootElement(doc);
+            int hits = 0;
+            
+            xml_node_search(ptr, &hits, 0);
 
-        xmlChar *buf_out = 0;
-        int len_out;
-        xmlDocDumpMemory(doc, &buf_out, &len_out);
-
-        fwrite(buf_out, 1, len_out, yaz_log_file());
-        
-        xmlFree(buf_out);
+            Z_APDU *apdu_res = odr.create_searchResponse(apdu_req, 0, 0);
+            apdu_res->u.searchResponse->resultCount = odr_intdup(odr, hits);
+            package.response() = apdu_res;
+            m_backend = b;
+        }
         if (b->explain_doc)
             xmlFreeDoc(b->explain_doc);
         b->explain_doc = doc;
@@ -1575,7 +1675,7 @@ next_proxy:
         package.response() = apdu_res;
         return;
     }
-    if (b->enable_explain)
+    if (!b || b->enable_explain)
         return;
 
     b->set_option("setname", "default");
@@ -1880,10 +1980,21 @@ void yf::Zoom::Frontend::handle_present(mp::Package &package)
 
     if (m_backend->enable_explain)
     {
-        package.response() = odr.create_presentResponse(
-            apdu_req, YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
-            "IR-Explain---1 fetch not implemented");
-        return;
+        Z_Records *records =
+            get_explain_records(
+                package,
+                *pr->resultSetStartPoint - 1, *pr->numberOfRecordsRequested,
+                &error, &addinfo, &number_of_records_returned, odr, m_backend,
+                pr->preferredRecordSyntax, element_set_name);
+        
+        apdu_res = odr.create_presentResponse(apdu_req, error, addinfo);
+        if (records)
+        {
+            apdu_res->u.presentResponse->records = records;
+            apdu_res->u.presentResponse->numberOfRecordsReturned =
+                odr_intdup(odr, number_of_records_returned);
+        }
+        package.response() = apdu_res;
     }
     else
     {
