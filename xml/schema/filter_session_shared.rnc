@@ -9,7 +9,8 @@ filter_session_shared =
   element mp:resultset {
     attribute max { xsd:integer }?,
     attribute ttl { xsd:integer }?,
-    attribute optimizesearch { xsd:boolean }?
+    attribute optimizesearch { xsd:boolean }?,
+    attribute restart { xsd:boolean }?
   }?,
   element mp:session {
     attribute ttl { xsd:integer }?,

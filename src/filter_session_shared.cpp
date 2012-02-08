@@ -195,6 +195,7 @@ namespace metaproxy_1 {
             int m_resultset_max;
             int m_session_ttl;
             bool m_optimize_search;
+            bool m_restart;
             int m_session_max;
         };
     }
@@ -757,9 +758,10 @@ restart:
                 
             }
         }
-        if (!session_restarted &&
+        if (m_p->m_restart && !session_restarted &&
             condition == YAZ_BIB1_TEMPORARY_SYSTEM_ERROR)
         {
+            package.log("session_shared", YLOG_LOG, "restart");
             bc->remove_backend(found_backend);
             session_restarted = true;
             found_backend.reset();
@@ -791,8 +793,9 @@ restart:
             return; // search error 
         }
     }
-    if (!session_restarted && new_set->m_result_set_size < 0)
+    if (m_p->m_restart && !session_restarted && new_set->m_result_set_size < 0)
     {
+        package.log("session_shared", YLOG_LOG, "restart");
         bc->remove_backend(found_backend);
         session_restarted = true;
         found_backend.reset();
@@ -1066,6 +1069,7 @@ yf::SessionShared::Rep::Rep()
     m_resultset_max = 10;
     m_session_ttl = 90;
     m_optimize_search = true;
+    m_restart = true;
     m_session_max = 100;
 }
 
@@ -1227,6 +1231,10 @@ void yf::SessionShared::configure(const xmlNode *ptr, bool test_only,
                 {
                     m_p->m_optimize_search =
                         mp::xml::get_bool(attr->children, true);
+                }
+                else if (!strcmp((const char *) attr->name, "restart"))
+                {
+                    m_p->m_restart = mp::xml::get_bool(attr->children, true);
                 }
                 else
                     throw mp::filter::FilterException(
