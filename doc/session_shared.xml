@@ -91,6 +91,17 @@
       </para>
      </listitem>
     </varlistentry>
+    <varlistentry><term>Result-Set restart</term>
+     <listitem>
+      <para>
+       Boolean which specifies whether session_shared should to try to
+       recover a failed search. If a search results in diagnostic 2:
+       temporary system error, or a negative hit count, the search
+       will be performed once again on another or new Z39.50 session.
+       Default value is true (enabled).
+      </para>
+     </listitem>
+    </varlistentry>
    </variablelist>
   </para>
  </refsect1>
@@ -108,8 +119,8 @@
    Configuration:
    <screen><![CDATA[
     <filter type="session_shared">
-     <resultset ttl="10" max="3"/>
-     <session ttl="30"/>
+     <resultset ttl="10" max="3" restart="true"/>
+     <session ttl="30" max="100"/>
     </filter>
 ]]>
    </screen>
