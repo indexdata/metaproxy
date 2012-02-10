@@ -936,7 +936,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         sptr = it->second;
     else if (torus_url.length() > 0)
     {
-        std::string torus_query = "udb=" + torus_db;
+        std::string torus_query = "udb==" + torus_db;
         xmlDoc *doc = mp::get_searchable(package,torus_url, torus_db,
                                          torus_query,
                                          realm, m_p->proxy);
@@ -1259,21 +1259,26 @@ Z_Records *yf::Zoom::Frontend::get_explain_records(
     npl->records = (Z_NamePlusRecord **)
         odr_malloc(odr, number_to_present * sizeof(*npl->records));
     
-    for (i = start; i < start + number_to_present; i++)
+    for (i = 0; i < number_to_present; i++)
     {
-        const char *rec_buf = "<x/>";
-        int rec_len = strlen(rec_buf);
         int num = 0;
-        xmlNode *res = xml_node_search(ptr, &num, start + i);
+        xmlNode *res = xml_node_search(ptr, &num, start + i + 1);
         if (!res)
             break;
+        xmlBufferPtr xml_buf = xmlBufferCreate();
+        xmlNode *tmp_node = xmlCopyNode(res->children, 1);
+        xmlNodeDump(xml_buf, tmp_node->doc, tmp_node, 0, 0);
 
         Z_NamePlusRecord *npr =
             (Z_NamePlusRecord *) odr_malloc(odr, sizeof(*npr));
         npr->databaseName = odr_strdup(odr, b->m_frontend_database.c_str());
         npr->which = Z_NamePlusRecord_databaseRecord;
         npr->u.databaseRecord =
-            z_ext_record_xml(odr, rec_buf, rec_len);
+            z_ext_record_xml(odr,
+                             (const char *) xml_buf->content, xml_buf->use);
+        npl->records[i] = npr;
+        xmlFreeNode(tmp_node);
+        xmlBufferFree(xml_buf);
     }
     records = (Z_Records*) odr_malloc(odr, sizeof(*records));
     records->which = Z_Records_DBOSD;
@@ -1585,7 +1590,14 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
     Z_SearchRequest *sr = apdu_req->u.searchRequest;
     Z_Query *query = sr->query;
 
-    if (query->which == Z_Query_type_104 &&
+    if (!m_p->explain_xsp)
+    {
+        *error = YAZ_BIB1_UNSPECIFIED_ERROR;
+        *addinfo =
+            odr_strdup(odr, "IR-Explain---1 unsupported. torus explain_xsl not defined");
+        return m_backend;
+    }
+    else if (query->which == Z_Query_type_104 &&
         query->u.type_104->which == Z_External_CQL)
     {
         std::string torus_url = m_p->torus_searchable_url;
@@ -1603,17 +1615,11 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
         if (!doc)
         {
             *error = YAZ_BIB1_UNSPECIFIED_ERROR;
-            *addinfo = odr_strdup(odr, "Torus XML/Explain problem");
+            *addinfo = odr_strdup(odr, "IR-Explain--1 problem. " 
+                                  "Could not obtain Torus records for Explain");
         }
         else
         {
-#if 1
-            xmlChar *buf_out = 0;
-            int len_out;
-            xmlDocDumpMemory(doc, &buf_out, &len_out);
-            fwrite(buf_out, 1, len_out, yaz_log_file());
-            xmlFree(buf_out);
-#endif
             xmlNode *ptr = xmlDocGetRootElement(doc);
             int hits = 0;
             
@@ -1632,7 +1638,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
     else
     {
         *error = YAZ_BIB1_QUERY_TYPE_UNSUPP;
-        *addinfo = odr_strdup(odr, "RPN/CCL, IR-Explain---1");
+        *addinfo = odr_strdup(odr, "IR-Explain---1 only supports CQL");
         return m_backend;
     }
 }
