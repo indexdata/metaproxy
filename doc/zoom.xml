@@ -71,14 +71,23 @@
      <term>attribute <literal>url</literal></term>
      <listitem>
       <para>
-       URL of Web service to be used to fetch target profile
-       for a given database (udb) of type searchable. The special sequence
-       <literal>%db</literal> of the URL is replaced by the
-       actual database specified as part of Search.
+       URL of Web service to be used when fetch target profiles from
+       a remote service (Torus normally).
+      </para>
+      <para>
+       The sequence <literal>%query</literal> is replaced with a CQL
+       query for the Torus search.
       </para>
       <para>
        The special sequence <literal>%realm</literal> is replaced by value
        of attribute <literal>realm</literal> or by realm DATABASE argument.
+      </para>
+      <para>
+       The special sequence <literal>%db</literal> is replaced with
+       a single database while searching. Note that this sequence
+       is no longer needed, because the <literal>%query</literal> can already
+       query for a single database by using CQL query
+       <literal>udb==...</literal>.
       </para>
      </listitem>
     </varlistentry>
@@ -140,6 +149,16 @@
        target profile. Same actions as for element_transform, but without
        the XSL transform. Useful for debugging.
        The default value is "raw".
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>attribute <literal>explain_xsl</literal></term>
+     <listitem>
+      <para>
+       Specifies a stylesheet that converts one or more Torus records
+       to ZeeExplain records. The content of recordData is assumed to be
+       holding each Explain record.
       </para>
      </listitem>
     </varlistentry>
