@@ -1,3 +1,15 @@
+zoom: returns Explain records for database IR-Explain---1. The
+target profile records are converted to Explain records via XSLT.
+
+session_shared: make error recovery configurable. Whether a search
+is restarted on errors or not, is configurable by attribute "restart"
+in element "resultset" in configuration.
+
+session_shared: only relay init for first request. session_shared, for
+each backend class, now only relays first init request (rather than all).
+The module only needs to save init response info once. This avoids the
+need to check for session max.
+
 --- 1.3.22 2012/02/02
 
 zoom: fix memory leaks.
