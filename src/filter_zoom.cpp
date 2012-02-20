@@ -545,8 +545,11 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
                           "cclmap_", 7))
         {
             std::string value = mp::xml::get_text(ptr);
-            ccl_qual_fitem(s->ccl_bibset, value.c_str(),
-                           (const char *) ptr->name + 7);
+            if (value.length() > 0)
+            {
+                ccl_qual_fitem(s->ccl_bibset, value.c_str(),
+                               (const char *) ptr->name + 7);
+            }
         }
         else if (!strncmp((const char *) ptr->name,
                           "sortmap_", 8))
