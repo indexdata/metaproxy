@@ -205,7 +205,10 @@
         <message>F</message>
       </filter>
       <filter type="sru_z3950"/>
-      <filter type="session_shared"/>
+      <filter type="session_shared">
+        <session ttl="60" max="100"/>
+        <resultset ttl="1"/>
+      </filter>
       <filter type="log">
         <message>B</message>
 	<category apdu="true"/>
