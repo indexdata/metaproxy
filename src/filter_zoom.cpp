@@ -815,7 +815,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     int *proxy_step)
 {
     std::list<BackendPtr>::const_iterator map_it;
-    if (m_backend && m_backend->m_frontend_database == database)
+    if (m_backend && !m_backend->enable_explain && 
+        m_backend->m_frontend_database == database)
         return m_backend;
 
     std::string input_args;
