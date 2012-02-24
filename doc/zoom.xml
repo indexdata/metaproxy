@@ -56,9 +56,10 @@
  <refsect1>
   <title>CONFIGURATION</title>
   <para>
-   The configuration consists of five parts: <literal>torus</literal>,
+   The configuration consists of six parts: <literal>torus</literal>,
    <literal>fieldmap</literal>, <literal>cclmap</literal>,
-   <literal>contentProxy</literal> and <literal>log</literal>.
+   <literal>contentProxy</literal>, <literal>log</literal>
+   and <literal>zoom</literal>.
   </para>
   <refsect2>
    <title>torus</title>
@@ -263,6 +264,26 @@
     </varlistentry>
    </variablelist>
   </refsect2>
+
+  <refsect2>
+   <title>zoom</title>
+   <para>
+    The <literal>zoom</literal> element controls settings for the
+    ZOOM.
+   </para>
+   <variablelist>
+    <varlistentry>
+     <term>attribute <literal>timeout</literal></term>
+     <listitem>
+      <para>
+       Is an integer that specifies, in seconds, how long an operation
+       may take before ZOOM gives up. Default value is 40.
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+
  </refsect1>
  <refsect1>
   <title>QUERY HANDLING</title>
@@ -693,6 +714,7 @@
         </qual>
       </cclmap>
       <log apdu="true"/>
+      <zoom timeout="40"/>
     </filter>
 ]]>
    </screen>
