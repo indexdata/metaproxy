@@ -1851,12 +1851,16 @@ next_proxy:
             switch (cerror)
             {
             case CCL_ERR_UNKNOWN_QUAL:
-                error = YAZ_BIB1_UNSUPP_USE_ATTRIBUTE;
-                break;
             case CCL_ERR_TRUNC_NOT_LEFT: 
             case CCL_ERR_TRUNC_NOT_RIGHT:
             case CCL_ERR_TRUNC_NOT_BOTH:
-                error = YAZ_BIB1_UNSUPP_TRUNCATION_ATTRIBUTE;
+#ifdef CCL_ERR_TRUNC_NOT_EMBED
+            case CCL_ERR_TRUNC_NOT_EMBED:
+#endif
+#ifdef CCL_ERR_TRUNC_NOT_SINGLE
+            case CCL_ERR_TRUNC_NOT_SINGLE:
+#endif
+                error = YAZ_BIB1_UNSUPP_SEARCH;
                 break;
             }
             log_diagnostic(package, error, addinfo);
