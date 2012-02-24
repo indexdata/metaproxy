@@ -1598,7 +1598,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
     {
         *error = YAZ_BIB1_UNSPECIFIED_ERROR;
         *addinfo =
-            odr_strdup(odr, "IR-Explain---1 unsupported. torus explain_xsl not defined");
+            odr_strdup(odr, "IR-Explain---1 unsupported. "
+                       "Torus explain_xsl not defined");
         return m_backend;
     }
     else if (query->which == Z_Query_type_104 &&
@@ -1619,7 +1620,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
         if (!doc)
         {
             *error = YAZ_BIB1_UNSPECIFIED_ERROR;
-            *addinfo = odr_strdup(odr, "IR-Explain--1 problem. " 
+            *addinfo = odr_strdup(odr, "IR-Explain---1 problem. " 
                                   "Could not obtain Torus records for Explain");
         }
         else
