@@ -196,6 +196,7 @@
          tmp_file="/tmp/cf.XXXXXX.p"
       />
       <log apdu="true"/>
+      <zoom timeout="20"/>
     </filter>
   </filters>
   <routes>  

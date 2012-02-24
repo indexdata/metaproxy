@@ -207,6 +207,7 @@ namespace metaproxy_1 {
             std::string proxy;
             xsltStylesheetPtr explain_xsp;
             std::map<std::string,SearchablePtr> s_map;
+            std::string zoom_timeout;
         };
     }
 }
@@ -429,7 +430,8 @@ void yf::Zoom::Impl::release_frontend(mp::Package &package)
 }
 
 yf::Zoom::Impl::Impl() :
-    apdu_log(false), element_transform("pz2") , element_raw("raw")
+    apdu_log(false), element_transform("pz2") , element_raw("raw"),
+    zoom_timeout("40")
 {
     bibset = ccl_qual_mk();
 
@@ -706,6 +708,19 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
             {
                 if (!strcmp((const char *) attr->name, "apdu"))
                     apdu_log = mp::xml::get_bool(attr->children, false);
+                else
+                    throw mp::filter::FilterException(
+                        "Bad attribute " + std::string((const char *)
+                                                       attr->name));
+            }
+        }
+        else if (!strcmp((const char *) ptr->name, "zoom"))
+        {
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "timeout"))
+                    zoom_timeout = mp::xml::get_text(attr->children);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
@@ -1065,7 +1080,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (sptr->query_encoding.length())
         b->set_option("rpnCharset", sptr->query_encoding);
 
-    b->set_option("timeout", "40");
+    b->set_option("timeout", m_p->zoom_timeout.c_str());
     
     if (m_p->apdu_log) 
         b->set_option("apdulog", "1");

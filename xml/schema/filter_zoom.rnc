@@ -66,6 +66,9 @@ filter_zoom =
   }?,
   element mp:log {
     attribute apdu { xsd:boolean }?
+  }?,
+  element mp:zoom {
+    attribute timeout { xsd:integer }?
   }?
 
 
