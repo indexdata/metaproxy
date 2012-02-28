@@ -1550,12 +1550,6 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
                     xmlDoc *doc = xmlParseMemory(rec_buf, rec_len);
                     std::string res = 
                         mp::xml::url_recipe_handle(doc, b->sptr->urlRecipe);
-                    if (res.length() && *cproxy_host)
-                    {
-                        size_t off = res.find_first_of("://");
-                        if (off != std::string::npos)
-                            res.insert(off + 3, cproxy_host);
-                    }
                     if (res.length())
                     {
                         xmlNode *ptr = xmlDocGetRootElement(doc);
