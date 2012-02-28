@@ -1242,19 +1242,20 @@ void yf::Zoom::Frontend::prepare_elements(BackendPtr b,
     const char *syntax_name = 0;
     
     if (preferredRecordSyntax &&
-        !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml)
-        && element_set_name)
+        !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml))
     {
-        if (!strcmp(element_set_name, m_p->element_transform.c_str()))
+        if (element_set_name &&
+            !strcmp(element_set_name, m_p->element_transform.c_str()))
         {
             enable_pz2_retrieval = true;
             enable_pz2_transform = true;
         }
-        else if (!strcmp(element_set_name, m_p->element_raw.c_str()))
+        else if (element_set_name && 
+                 !strcmp(element_set_name, m_p->element_raw.c_str()))
         {
             enable_pz2_retrieval = true;
         }
-        else
+        else if (m_p->record_xsp)
         {
             enable_pz2_retrieval = true;
             enable_pz2_transform = true;
