@@ -136,6 +136,7 @@ namespace metaproxy_1 {
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
             bool m_hide_unavailable;
+            bool m_hide_errors;
             multi_merge_type m_merge_type;
         };
     }
@@ -144,6 +145,7 @@ namespace metaproxy_1 {
 yf::Multi::Rep::Rep()
 {
     m_hide_unavailable = false;
+    m_hide_errors = false;
     m_merge_type = round_robin;
 }
 
@@ -1286,6 +1288,10 @@ void mp::filter::Multi::configure(const xmlNode * ptr, bool test_only,
         else if (!strcmp((const char *) ptr->name, "hideunavailable"))
         {
             m_p->m_hide_unavailable = true;
+        }
+        else if (!strcmp((const char *) ptr->name, "hideerrors"))
+        {
+            m_p->m_hide_errors = true;
         }
         else if (!strcmp((const char *) ptr->name, "mergetype"))
         {
