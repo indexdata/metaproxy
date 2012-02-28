@@ -11,5 +11,6 @@ filter_multi =
     xsd:string
   }*,
   element mp:hideunavailable { empty }?,
+  element mp:hideerrors { empty }?,
   element mp:mergetype { xsd:string }?
 
