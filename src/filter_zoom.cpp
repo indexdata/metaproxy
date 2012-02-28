@@ -1506,9 +1506,30 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
                     }
                     else
                     { 
+                        // first stage XSLT - per target
                         xsltStylesheetPtr xsp = b->xsp;
                         xmlDoc *rec_res = xsltApplyStylesheet(xsp, rec_doc,
                                                               xsl_parms);
+                        // insert generated-url
+                        if (rec_res)
+                        {
+                            std::string res = 
+                                mp::xml::url_recipe_handle(rec_res,
+                                                           b->sptr->urlRecipe);
+                            if (res.length())
+                            {
+                                xmlNode *ptr = xmlDocGetRootElement(rec_res);
+                                while (ptr && ptr->type != XML_ELEMENT_NODE)
+                                    ptr = ptr->next;
+                                xmlNode *c = 
+                                    xmlNewChild(ptr, 0, BAD_CAST "metadata", 0);
+                                xmlNewProp(c, BAD_CAST "type", BAD_CAST
+                                           "generated-url");
+                                xmlNode * t = xmlNewText(BAD_CAST res.c_str());
+                                xmlAddChild(c, t);
+                            }
+                        }
+                        // second stage XSLT - common
                         if (rec_res && m_p->record_xsp &&
                             enable_record_transform)
                         {
@@ -1519,6 +1540,7 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
                                                           xsl_parms);
                             xmlFreeDoc(tmp_doc);
                         }
+                        // get result out of it
                         if (rec_res)
                         {
                             xsltSaveResultToString(&xmlrec_buf, &rec_len,
@@ -1545,31 +1567,6 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
                     }
                 }
 
-                if (rec_buf)
-                {
-                    xmlDoc *doc = xmlParseMemory(rec_buf, rec_len);
-                    std::string res = 
-                        mp::xml::url_recipe_handle(doc, b->sptr->urlRecipe);
-                    if (res.length())
-                    {
-                        xmlNode *ptr = xmlDocGetRootElement(doc);
-                        while (ptr && ptr->type != XML_ELEMENT_NODE)
-                            ptr = ptr->next;
-                        xmlNode *c = 
-                            xmlNewChild(ptr, 0, BAD_CAST "metadata", 0);
-                        xmlNewProp(c, BAD_CAST "type", BAD_CAST
-                                   "generated-url");
-                        xmlNode * t = xmlNewText(BAD_CAST res.c_str());
-                        xmlAddChild(c, t);
-
-                        if (xmlrec_buf)
-                            xmlFree(xmlrec_buf);
-
-                        xmlDocDumpMemory(doc, &xmlrec_buf, &rec_len);
-                        rec_buf = (const char *) xmlrec_buf;
-                    }
-                    xmlFreeDoc(doc);
-                }
                 if (!npr)
                 {
                     if (!rec_buf)
