@@ -164,6 +164,15 @@
      </listitem>
     </varlistentry>
     <varlistentry>
+     <term>attribute <literal>record_xsl</literal></term>
+     <listitem>
+      <para>
+       Specifies a stylesheet that converts retrieval records after
+       transform/literal operations.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
      <term>element <literal>records</literal></term>
      <listitem>
       <para>
@@ -698,7 +707,7 @@
    <screen><![CDATA[
     <filter type="zoom">
       <torus
-         url="http://torus.indexdata.com/src/records/?query=udb%3D%db"
+         url="http://torus.indexdata.com/src/records/?query=%query"
 	 proxy="localhost:3128"
          />
       <fieldmap cql="cql.anywhere"/>
