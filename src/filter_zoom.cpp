@@ -1002,7 +1002,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (!doc)
         {
             *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
-            *addinfo = odr_strdup(odr, database.c_str());
+            *addinfo = odr_strdup(odr, torus_db.c_str());
             BackendPtr b;
             return b;
         }
@@ -1035,7 +1035,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (!sptr)
     {
         *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
-        *addinfo = odr_strdup(odr, database.c_str());
+        *addinfo = odr_strdup(odr, torus_db.c_str());
         BackendPtr b;
         return b;
     }
