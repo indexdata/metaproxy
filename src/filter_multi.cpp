@@ -571,20 +571,24 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     mp::odr odr;
     Odr_int result_set_size = 0;
     Z_DiagRecs *z_diag = 0;
+    int no_successful = 0;
+    PackagePtr close_p;
+
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
         PackagePtr p = (*bit)->m_package;
         
-        if (p->session().is_closed()) // if any backend closes, close frontend
-            package.session().close();
-        
+        // save closing package for at least one target
+        if (p->session().is_closed()) 
+            close_p = p;
+
         Z_GDU *gdu = p->response().get();
         if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
             Z_APDU_searchResponse)
         {
             Z_APDU *b_apdu = gdu->u.z3950;
             Z_SearchResponse *b_resp = b_apdu->u.searchResponse;
-         
+            
             // see we get any errors (AKA diagnstics)
             if (b_resp->records)
             {
@@ -613,31 +617,39 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
                         b_resp->records->u.nonSurrogateDiagnostic;
                     z_diag->diagRecs[z_diag->num_diagRecs++] = nr;
                 }
-                if (b_resp->records->which == Z_Records_multipleNSD)
+                else if (b_resp->records->which == Z_Records_multipleNSD)
                 {
                     // we may set this multiple times (TOO BAD!)
                     z_diag = b_resp->records->u.multipleNonSurDiagnostics;
                 }
+                else
+                    no_successful++; // probably piggyback
             }
+            else
+                no_successful++;  // no records and no diagnostics
             BackendSet backendSet;
             backendSet.m_backend = *bit;
             backendSet.m_count = *b_resp->resultCount;
             result_set_size += *b_resp->resultCount;
             resultSet.m_backend_sets.push_back(backendSet);
         }
-        else
-        {
-            // if any target does not return search response - return that 
-            package.response() = p->response();
-            return;
-        }
     }
 
     Z_APDU *f_apdu = odr.create_searchResponse(apdu_req, 0, 0);
     Z_SearchResponse *f_resp = f_apdu->u.searchResponse;
 
+    yaz_log(YLOG_LOG, "no_successful=%d is_closed=%s hide_errors=%s",
+            no_successful,
+            close_p ? "true" : "false",
+            m_p->m_hide_errors ? "true" : "false");
     *f_resp->resultCount = result_set_size;
-    if (z_diag)
+    if (close_p && (no_successful == 0 || !m_p->m_hide_errors))
+    {
+        package.session().close();
+        package.response() = close_p->response();
+        return;
+    }
+    if (z_diag && (no_successful == 0 || !m_p->m_hide_errors))
     {
         f_resp->records = (Z_Records *)
             odr_malloc(odr, sizeof(*f_resp->records));
