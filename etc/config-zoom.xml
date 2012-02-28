@@ -14,6 +14,7 @@
             element_transform="pz2"
             element_raw="raw"
             explain_xsl="torus2zeerex.xsl"
+            record_xsl="pz22usi.xsl"
 	    >	
         <!-- these records are examples only -->
 	<records>

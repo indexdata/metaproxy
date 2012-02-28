@@ -15,6 +15,7 @@ filter_zoom =
     attribute element_raw { xsd:string }?,
     attribute proxy { xsd:string }?,
     attribute explain_xsl { xsd:string }?,
+    attribute record_xsl { xsd:string }?,
     element mp:records {
       element mp:record {
         element mp:authentication { xsd:string }?,

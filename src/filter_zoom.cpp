@@ -148,6 +148,7 @@ namespace metaproxy_1 {
                                   const char *element_set_name,
                                   bool &enable_pz2_retrieval,
                                   bool &enable_pz2_transform,
+                                  bool &enable_record_transform,
                                   bool &assume_marc8_charset);
 
             Z_Records *get_records(Package &package,
@@ -206,6 +207,7 @@ namespace metaproxy_1 {
             std::string element_raw;
             std::string proxy;
             xsltStylesheetPtr explain_xsp;
+            xsltStylesheetPtr record_xsp;
             std::map<std::string,SearchablePtr> s_map;
             std::string zoom_timeout;
         };
@@ -436,6 +438,7 @@ yf::Zoom::Impl::Impl() :
     bibset = ccl_qual_mk();
 
     explain_xsp = 0;
+    record_xsp = 0;
     srand((unsigned int) time(0));
 }
 
@@ -620,6 +623,7 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                                const char *path)
 {
     std::string explain_xslt_fname;
+    std::string record_xslt_fname;
 
     content_tmp_file = "/tmp/cf.XXXXXX.p";
     if (path && *path)
@@ -651,6 +655,8 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                     proxy = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "explain_xsl"))
                     explain_xslt_fname = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "record_xsl"))
+                    record_xslt_fname = mp::xml::get_text(attr->children);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
@@ -767,6 +773,41 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
             xmlFreeDoc(xsp_doc);
             throw mp::filter::FilterException
                 ("Cannot parse XSLT " + explain_xslt_fname);
+            
+        }
+    }
+
+    if (record_xslt_fname.length())
+    {
+        const char *path = 0;
+        
+        if (xsldir.length())
+            path = xsldir.c_str();
+        else
+            path = file_path.c_str();
+        
+        char fullpath[1024];
+        char *cp = yaz_filepath_resolve(record_xslt_fname.c_str(),
+                                        path, 0, fullpath);
+        if (!cp)
+        {
+            throw mp::filter::FilterException
+                ("Cannot read XSLT " + record_xslt_fname);
+        }
+
+        xmlDoc *xsp_doc = xmlParseFile(cp);
+        if (!xsp_doc)
+        {
+            throw mp::filter::FilterException
+                ("Cannot parse XSLT " + record_xslt_fname);
+        }
+
+        record_xsp = xsltParseStylesheetDoc(xsp_doc);
+        if (!record_xsp)
+        {
+            xmlFreeDoc(xsp_doc);
+            throw mp::filter::FilterException
+                ("Cannot parse XSLT " + record_xslt_fname);
             
         }
     }
@@ -1194,8 +1235,8 @@ void yf::Zoom::Frontend::prepare_elements(BackendPtr b,
                                           const char *element_set_name,
                                           bool &enable_pz2_retrieval,
                                           bool &enable_pz2_transform,
+                                          bool &enable_record_transform,
                                           bool &assume_marc8_charset)
-
 {
     char oid_name_str[OID_STR_MAX];
     const char *syntax_name = 0;
@@ -1212,6 +1253,12 @@ void yf::Zoom::Frontend::prepare_elements(BackendPtr b,
         else if (!strcmp(element_set_name, m_p->element_raw.c_str()))
         {
             enable_pz2_retrieval = true;
+        }
+        else
+        {
+            enable_pz2_retrieval = true;
+            enable_pz2_transform = true;
+            enable_record_transform = true;
         }
     }
     
@@ -1325,11 +1372,13 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
     bool enable_pz2_retrieval = false; // whether target profile is used
     bool enable_pz2_transform = false; // whether XSLT is used as well
     bool assume_marc8_charset = false;
+    bool enable_record_transform = false;
 
     prepare_elements(b, preferredRecordSyntax,
                      element_set_name,
                      enable_pz2_retrieval,
                      enable_pz2_transform,
+                     enable_record_transform,
                      assume_marc8_charset);
 
     package.log("zoom", YLOG_LOG, "pz2_retrieval: %s . pz2_transform: %s",
@@ -1356,6 +1405,32 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
     }
     if (i > 0)
     {  // only return records if no error and at least one record
+
+        const char *xsl_parms[3];
+        char cproxy_host[1024];
+
+        if (b->enable_cproxy && b->content_session_id.length())
+        {
+            sprintf(cproxy_host, "%s.%s/",
+                    b->content_session_id.c_str(),
+                    m_p->content_proxy_server.c_str());
+            
+            char *q_cproxy_host = (char *) 
+                odr_malloc(odr, strlen(cproxy_host) + 3);
+            strcpy(q_cproxy_host, "\"");
+            strcat(q_cproxy_host, cproxy_host);
+            strcat(q_cproxy_host, "\"");
+
+            xsl_parms[0] = "cproxyhost";
+            xsl_parms[1] = q_cproxy_host;
+            xsl_parms[2] = 0;
+        }
+        else
+        {
+            xsl_parms[0] = 0;
+            *cproxy_host = '\0';
+        }
+
         char *odr_database = odr_strdup(odr,
                                         b->m_frontend_database.c_str());
         Z_NamePlusRecordList *npl = (Z_NamePlusRecordList *)
@@ -1430,13 +1505,23 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
                     }
                     else
                     { 
-                        xmlDoc *rec_res = 
-                            xsltApplyStylesheet(b->xsp, rec_doc, 0);
+                        xsltStylesheetPtr xsp = b->xsp;
+                        xmlDoc *rec_res = xsltApplyStylesheet(xsp, rec_doc,
+                                                              xsl_parms);
+                        if (rec_res && m_p->record_xsp &&
+                            enable_record_transform)
+                        {
+                            xmlDoc *tmp_doc = rec_res;
 
+                            xsp = m_p->record_xsp;
+                            rec_res = xsltApplyStylesheet(xsp, tmp_doc,
+                                                          xsl_parms);
+                            xmlFreeDoc(tmp_doc);
+                        }
                         if (rec_res)
                         {
                             xsltSaveResultToString(&xmlrec_buf, &rec_len,
-                                                   rec_res, b->xsp);
+                                                   rec_res, xsp);
                             rec_buf = (const char *) xmlrec_buf;
                             package.log("zoom", YLOG_LOG, "xslt successful");
                             package.log_write(rec_buf, rec_len);
@@ -1459,22 +1544,16 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
                     }
                 }
 
-                if (rec_buf && b->enable_cproxy)
+                if (rec_buf)
                 {
                     xmlDoc *doc = xmlParseMemory(rec_buf, rec_len);
                     std::string res = 
                         mp::xml::url_recipe_handle(doc, b->sptr->urlRecipe);
-                    if (res.length() && b->content_session_id.length())
+                    if (res.length() && *cproxy_host)
                     {
                         size_t off = res.find_first_of("://");
                         if (off != std::string::npos)
-                        {
-                            char tmp[1024];
-                            sprintf(tmp, "%s.%s/",
-                                    b->content_session_id.c_str(),
-                                    m_p->content_proxy_server.c_str());
-                            res.insert(off + 3, tmp);
-                        }
+                            res.insert(off + 3, cproxy_host);
                     }
                     if (res.length())
                     {
@@ -1708,10 +1787,12 @@ next_proxy:
 
     bool enable_pz2_retrieval = false;
     bool enable_pz2_transform = false;
+    bool enable_record_transform = false;
     bool assume_marc8_charset = false;
     prepare_elements(b, sr->preferredRecordSyntax, 0 /*element_set_name */,
                      enable_pz2_retrieval,
                      enable_pz2_transform,
+                     enable_record_transform,
                      assume_marc8_charset);
 
     Odr_int hits = 0;
