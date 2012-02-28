@@ -1,3 +1,26 @@
+--- 1.3.25 2012/02/28
+
+zoom: Change scheme for dealing with content proxy URLs. The module
+now has its own common XSL transform that is enabled by record_xsl
+attribute in the configuration. This XSL gets parameter cproxyhost
+that holds the host for the content proxy session . The genearted-url
+is created only if urlRecipe is enabled. In previous version default
+value of urlRecipe was ${md-electronic-url}; it is now empty and
+disabled by default. Also generated-url no longer includes the content
+proxy host. Content proxying URLs is supposed to the handle in the record_xsl
+stylesheet.
+
+zoom: new setting timeout that specifies timeout for outgoing Z39.50/SRU
+connections. Default value is 40 (seconds).
+
+zoom: tune CCL to Z39.50 diagnostics mapping. Throw Bib-1: 108
+"Malformed query" for syntax errors and related ones; throw
+Bib-1: 3 "Unsupported search" for everything else. Details from
+the CCL parser is provided as additional-info.
+
+multi: new setting hideerrors that makes multi only relay diagnostics
+to a client if all backends fail.
+
 --- 1.3.24 2012/02/23
 
 zoom: empty ccl_map field-mappings disables CCL map.
