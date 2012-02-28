@@ -45,6 +45,15 @@
    but simply ignored (unless every one of the databases is
    unavailable).
   </para>
+  <para>
+   If an empty
+   <literal>&lt;hideerrors&gt;</literal>
+   element is placed inside the
+   <literal>multi</literal>
+   filter, then databases that reports diagnostics are not reported back 
+   to the client, but simply ignored (unless every one of the databases report
+   diagnostics).
+  </para>
  </refsect1>
  
  <refsect1><title>SCHEMA</title>
