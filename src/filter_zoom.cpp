@@ -368,7 +368,6 @@ yf::Zoom::Searchable::Searchable(CCL_bibset base)
     piggyback = true;
     use_turbomarc = true;
     sortStrategy = "embed";
-    urlRecipe = "${md-electronic-url}";
     ccl_bibset = ccl_qual_dup(base);
 }
 
