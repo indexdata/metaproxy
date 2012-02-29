@@ -1,4 +1,4 @@
---- 1.3.25 2012/02/28
+--- 1.3.25 2012/02/29
 
 zoom: Change scheme for dealing with content proxy URLs. The module
 now has its own common XSL transform that is enabled by record_xsl
