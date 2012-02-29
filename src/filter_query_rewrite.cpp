@@ -23,9 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/util.hpp>
 #include "filter_query_rewrite.hpp"
 
+#include <yaz/log.h>
 #include <yaz/zgdu.h>
 #include <yaz/xmlquery.h>
 #include <yaz/diagbib1.h>
+#include <yaz/query-charset.h>
 
 #include <libxslt/xsltutils.h>
 #include <libxslt/transform.h>
@@ -43,13 +45,14 @@ namespace metaproxy_1 {
             void configure(const xmlNode * ptr);
         private:
             xsltStylesheetPtr m_stylesheet;
-        };
+            std::string charset_from;
+            std::string charset_to;
+       };
     }
 }
 
-yf::QueryRewrite::Rep::Rep()
+yf::QueryRewrite::Rep::Rep() : m_stylesheet(0), charset_from("UTF-8")
 {
-    m_stylesheet = 0;
 }
 
 yf::QueryRewrite::Rep::~Rep()
@@ -91,17 +94,17 @@ void yf::QueryRewrite::Rep::process(mp::Package &package) const
             mp::odr odr;
             Z_SearchRequest *req = apdu_req->u.searchRequest;
             
-            xmlDocPtr doc_input = 0;
-            yaz_query2xml(req->query, &doc_input);
-            
-            if (!doc_input)
+            if (m_stylesheet)
             {
-                error_code = YAZ_BIB1_MALFORMED_QUERY;
-                addinfo = "converion from Query to XML failed";
-            }
-            else
-            {
-                if (m_stylesheet)
+                xmlDocPtr doc_input = 0;
+                yaz_query2xml(req->query, &doc_input);
+                
+                if (!doc_input)
+                {
+                    error_code = YAZ_BIB1_MALFORMED_QUERY;
+                    addinfo = "converion from Query to XML failed";
+                }
+                else
                 {
                     xmlDocPtr doc_res = xsltApplyStylesheet(m_stylesheet,
                                                             doc_input, 0);
@@ -117,10 +120,27 @@ void yf::QueryRewrite::Rep::process(mp::Package &package) const
                                       &error_code, &addinfo);
                         xmlFreeDoc(doc_res);
                     }
+                    xmlFreeDoc(doc_input);
                 }
-                xmlFreeDoc(doc_input);
             }
-            package.request() = gdu;
+            if (charset_to.length() && charset_from.length() &&
+                (req->query->which == Z_Query_type_1
+                 || req->query->which == Z_Query_type_101))
+            {
+                yaz_iconv_t cd = yaz_iconv_open(charset_to.c_str(),
+                                                charset_from.c_str());
+                if (cd)
+                {
+                    int r = yaz_query_charset_convert_rpnquery_check(
+                        req->query->u.type_1, odr, cd);
+                    yaz_iconv_close(cd);
+                    if (r)
+                    {  /* query could not be char converted */
+                        error_code = YAZ_BIB1_MALFORMED_QUERY;
+                        addinfo = "could not convert query to target charset";
+                    }
+                }
+            }
             if (error_code)
             {
                 Z_APDU *f_apdu = 
@@ -128,6 +148,7 @@ void yf::QueryRewrite::Rep::process(mp::Package &package) const
                 package.response() = f_apdu;
                 return;
             }
+            package.request() = gdu;
         } 
     }
     package.move();
@@ -140,7 +161,7 @@ void mp::filter::QueryRewrite::Rep::configure(const xmlNode *ptr)
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
 
-        if (mp::xml::check_element_mp(ptr, "xslt"))
+        if (mp::xml::is_element_mp(ptr, "xslt"))
         {
             if (m_stylesheet)
             {
@@ -171,6 +192,25 @@ void mp::filter::QueryRewrite::Rep::configure(const xmlNode *ptr)
                     ("Failed to read XSLT stylesheet '" 
                      + fname
                      + "' in query_rewrite filter");
+            }
+        }
+        else if (mp::xml::is_element_mp(ptr, "charset"))
+        {
+            for (struct _xmlAttr *attr = ptr->properties; 
+                 attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "from"))
+                {
+                    charset_from = mp::xml::get_text(attr);
+                }
+                else if (!strcmp((const char *) attr->name, "to"))
+                {
+                    charset_to = mp::xml::get_text(attr);
+                }
+                else
+                    throw mp::filter::FilterException
+                        ("Invalid attribute inside charset inside "
+                         "query_rewrite filter");
             }
         }
         else

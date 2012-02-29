@@ -13,15 +13,14 @@
       <filter type="log">
         <message>F</message>
 	<time-format>%Y%m%d-%H%M%S</time-format> 
-	<filename>my.log</filename>
       </filter>
       <filter type="query_rewrite">
        <xslt stylesheet="../etc/pqf2pqf.xsl"/>
+       <charset to="iso-8859-1"/>
       </filter>
       <filter type="log">
         <message>B</message>
 	<time-format>%Y%m%d-%H%M%S</time-format> 
-	<filename>my.log</filename> 
 	<category init-options="true" request-session="true" response-session="true"
 		  request-apdu="true" response-apdu="true"
 		  />

@@ -8,5 +8,8 @@ filter_query_rewrite =
   attribute name { xsd:NCName }?,
   element mp:xslt { 
         attribute stylesheet { xsd:string }
-  }
-
+  }?,
+  element mp:charset { 
+        attribute from { xsd:string }?,
+        attribute to { xsd:string }?
+  }?
