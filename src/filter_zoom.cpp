@@ -1933,7 +1933,7 @@ next_proxy:
         wrbuf_destroy(ccl_wrbuf);
         if (!cn)
         {
-            char *addinfo = odr_strdup(odr, ccl_err_msg(cerror));
+            char *addinfo = odr_strdup_null(odr, ccl_err_msg(cerror));
             error = YAZ_BIB1_MALFORMED_QUERY;
 
             switch (cerror)
