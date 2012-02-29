@@ -170,6 +170,10 @@
        Specifies a stylesheet that converts retrieval records after
        transform/literal operations.
       </para>
+      <para>
+       When Metaproxy creates a content proxy session, the XSL parameter
+       <literal>cproxyhost</literal> is passed to the transform. 
+      </para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -572,12 +576,6 @@
      given. For example: <literal>${md-title[\s+/+/g]}</literal> takes
      metadata element <literal>title</literal> and converts one or more
      spaces to a plus character.
-    </para>
-    <para>
-     If the <link linkend="zoom-torus-contentConnector">contentConnector</link>
-     setting also defined, the resulting value is
-     augmented with a session string as well as host name of the
-     content proxy server.
     </para>
    </listitem>
    </varlistentry>
