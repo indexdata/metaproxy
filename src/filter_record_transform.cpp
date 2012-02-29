@@ -136,7 +136,6 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
 
     // setting up variables for conversion state
     yaz_record_conv_t rc = 0;
-    int ret_code;
 
     const char *input_schema = 0;
     Odr_oid *input_syntax = 0;
@@ -157,7 +156,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     const char *backend_schema = 0;
     Odr_oid *backend_syntax = 0;
 
-    ret_code 
+    int ret_code 
         = yaz_retrieval_request(m_retrieval,
                                 input_schema, input_syntax,
                                 &match_schema, &match_syntax,
@@ -201,13 +200,11 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     }
 
     // now re-coding the z3950 backend present request
-     
     if (backend_syntax) 
         pr_req->preferredRecordSyntax = odr_oiddup(odr_en, backend_syntax);
     else
         pr_req->preferredRecordSyntax = 0;
     
-
     // z3950'fy record schema
     if (backend_schema)
     {
@@ -240,25 +237,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         return;
     }
     
-
-    // everything fine, continuing
-    // std::cout << "z3950_present_request OK\n";
-    // std::cout << "back z3950 " << *gdu_res << "\n";
-
     Z_PresentResponse * pr_res = gdu_res->u.z3950->u.presentResponse;
-
-    // let non surrogate dioagnostics in Z3950 present response package
-    // pass to frontend - just return
-    if (pr_res->records 
-        && pr_res->records->which == Z_Records_NSD
-        && pr_res->records->u.nonSurrogateDiagnostic)
-    {
-        // we might do more clever tricks to "reverse"
-        // these error(s).
-
-        //*pr_res->records->u.nonSurrogateDiagnostic->condition = 
-        // YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS;
-    }
 
     // record transformation must take place 
     if (rc && pr_res 
@@ -268,7 +247,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         && pr_res->records->which == Z_Records_DBOSD
         && pr_res->records->u.databaseOrSurDiagnostics->num_records)
     {
-         //transform all records
+         // transform all records
          for (int i = 0; 
               i < pr_res->records->u.databaseOrSurDiagnostics->num_records; 
               i++)
@@ -282,13 +261,9 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
                  int ret_trans = 0;
                  if (r->which == Z_External_OPAC)
                  {
-#if YAZ_VERSIONL >= 0x030011
                      ret_trans = 
                          yaz_record_conv_opac_record(rc, r->u.opac,
                                                      output_record);
-#else
-                     ;
-#endif
                  }
                  else if (r->which == Z_External_octet) 
                  {
