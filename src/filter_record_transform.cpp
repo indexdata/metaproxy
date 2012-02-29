@@ -105,7 +105,8 @@ void yf::RecordTransform::Impl::configure(const xmlNode *xml_node,
     }
 
     // read configuration
-    if ( 0 != yaz_retrieval_configure(m_retrieval, retrieval_node)){
+    if (0 != yaz_retrieval_configure(m_retrieval, retrieval_node))
+    {
         std::string msg("RecordTransform filter config: ");
         msg += yaz_retrieval_get_error(m_retrieval);
         throw mp::XMLError(msg);
@@ -140,11 +141,13 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     const char *input_schema = 0;
     Odr_oid *input_syntax = 0;
 
-    if(pr_req->recordComposition){
+    if (pr_req->recordComposition)
+    {
         input_schema 
             = mp_util::record_composition_to_esn(pr_req->recordComposition);
     }
-    if(pr_req->preferredRecordSyntax){
+    if (pr_req->preferredRecordSyntax)
+    {
         input_syntax = pr_req->preferredRecordSyntax;
     }
     
