@@ -68,10 +68,6 @@ void yf::RecordTransform::process(mp::Package &package) const
 }
 
 
-// define Implementation stuff
-
-
-
 yf::RecordTransform::Impl::Impl() 
 {
     m_retrieval = yaz_retrieval_create();
@@ -117,39 +113,70 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
 {
 
     Z_GDU *gdu_req = package.request().get();
-    
-    // only working on z3950 present packages
-    if (!gdu_req 
-        || !(gdu_req->which == Z_GDU_Z3950) 
-        || !(gdu_req->u.z3950->which == Z_APDU_presentRequest))
+    Z_PresentRequest *pr_req = 0;
+    Z_SearchRequest *sr_req = 0;
+
+    const char *input_schema = 0;
+    Odr_oid *input_syntax = 0;
+
+    if (gdu_req && gdu_req->which == Z_GDU_Z3950 &&
+        gdu_req->u.z3950->which == Z_APDU_presentRequest)
+    {
+        pr_req = gdu_req->u.z3950->u.presentRequest;
+
+        input_schema =
+            mp_util::record_composition_to_esn(pr_req->recordComposition);
+        input_syntax = pr_req->preferredRecordSyntax;
+    }
+    else if (gdu_req && gdu_req->which == Z_GDU_Z3950 &&
+             gdu_req->u.z3950->which == Z_APDU_searchRequest)
+    {
+        sr_req = gdu_req->u.z3950->u.searchRequest;
+
+        input_syntax = sr_req->preferredRecordSyntax;
+
+        // we don't know how many hits we're going to get and therefore
+        // the effective element set name.. Therefore we can only allow
+        // two cases.. Both equal or absent.. If not, we'll just have to
+        // disable the piggyback!
+        if (sr_req->smallSetElementSetNames 
+            &&
+            sr_req->mediumSetElementSetNames
+            &&
+            sr_req->smallSetElementSetNames->which == Z_ElementSetNames_generic
+            && 
+            sr_req->mediumSetElementSetNames->which == Z_ElementSetNames_generic
+            && 
+            !strcmp(sr_req->smallSetElementSetNames->u.generic,
+                    sr_req->mediumSetElementSetNames->u.generic))
+        {
+            input_schema = sr_req->smallSetElementSetNames->u.generic;
+        }
+        else if (!sr_req->smallSetElementSetNames && 
+                 !sr_req->mediumSetElementSetNames)
+            ; // input_schema is 0 already
+        else
+        {
+            // disable piggyback (perhaps it was disabled already)
+            *sr_req->smallSetUpperBound = 0;
+            *sr_req->largeSetLowerBound = 0;
+            *sr_req->mediumSetPresentNumber = 0;
+            package.move();
+            return;
+        }
+        // we can handle it in record_transform.
+    }
+    else
     {
         package.move();
         return;
     }
     
-    // getting original present request
-    Z_PresentRequest *pr_req = gdu_req->u.z3950->u.presentRequest;
-
-    // setting up ODR's for memory during encoding/decoding
-    //mp::odr odr_de(ODR_DECODE);  
     mp::odr odr_en(ODR_ENCODE);
 
     // setting up variables for conversion state
     yaz_record_conv_t rc = 0;
 
-    const char *input_schema = 0;
-    Odr_oid *input_syntax = 0;
-
-    if (pr_req->recordComposition)
-    {
-        input_schema 
-            = mp_util::record_composition_to_esn(pr_req->recordComposition);
-    }
-    if (pr_req->preferredRecordSyntax)
-    {
-        input_syntax = pr_req->preferredRecordSyntax;
-    }
-    
     const char *match_schema = 0;
     Odr_oid *match_syntax = 0;
 
@@ -162,141 +189,186 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
                                 &match_schema, &match_syntax,
                                 &rc,
                                 &backend_schema, &backend_syntax);
-
     // error handling
     if (ret_code != 0)
     {
-        // need to construct present error package and send back
-
-        Z_APDU *apdu = 0;
-
+        int error_code;
         const char *details = 0;
+
         if (ret_code == -1) /* error ? */
         {
-           details = yaz_retrieval_get_error(m_retrieval);
-           apdu = odr_en.create_presentResponse(
-               gdu_req->u.z3950,
-               YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS, details);
+            details = yaz_retrieval_get_error(m_retrieval);
+            error_code = YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS;
         }
         else if (ret_code == 1 || ret_code == 3)
         {
             details = input_schema;
-            apdu = odr_en.create_presentResponse(
-                gdu_req->u.z3950,
-                YAZ_BIB1_ELEMENT_SET_NAMES_UNSUPP, details);
+            error_code = YAZ_BIB1_ELEMENT_SET_NAMES_UNSUPP;
         }
         else if (ret_code == 2)
         {
             char oidbuf[OID_STR_MAX];
             oid_oid_to_dotstring(input_syntax, oidbuf);
             details = odr_strdup(odr_en, oidbuf);
-            
+            error_code = YAZ_BIB1_RECORD_SYNTAX_UNSUPP;
+        }
+        else
+        {
+            char *tmp = (char*) odr_malloc(odr_en, 80);
+            sprintf(tmp,
+                    "record_transform: yaz_retrieval_get_error returned %d",
+                    ret_code);
+            details = tmp;
+            error_code = YAZ_BIB1_UNSPECIFIED_ERROR;
+        }
+        Z_APDU *apdu;
+        if (sr_req)
+        {
+            apdu = odr_en.create_searchResponse(
+                gdu_req->u.z3950, error_code, details);
+        }
+        else
+        {
             apdu = odr_en.create_presentResponse(
-                gdu_req->u.z3950,
-                YAZ_BIB1_RECORD_SYNTAX_UNSUPP, details);
+                gdu_req->u.z3950, error_code, details);
         }
         package.response() = apdu;
         return;
     }
 
-    // now re-coding the z3950 backend present request
-    if (backend_syntax) 
-        pr_req->preferredRecordSyntax = odr_oiddup(odr_en, backend_syntax);
-    else
-        pr_req->preferredRecordSyntax = 0;
-    
-    // z3950'fy record schema
-    if (backend_schema)
+    if (sr_req)
     {
-        pr_req->recordComposition 
-            = (Z_RecordComposition *) 
-              odr_malloc(odr_en, sizeof(Z_RecordComposition));
-        pr_req->recordComposition->which 
-            = Z_RecordComp_simple;
-        pr_req->recordComposition->u.simple 
-            = (Z_ElementSetNames *)
-               odr_malloc(odr_en, sizeof(Z_ElementSetNames));
-        pr_req->recordComposition->u.simple->which = Z_ElementSetNames_generic;
-        pr_req->recordComposition->u.simple->u.generic 
-            = odr_strdup(odr_en, backend_schema);
+        if (backend_syntax) 
+            sr_req->preferredRecordSyntax = odr_oiddup(odr_en, backend_syntax);
+        else
+            sr_req->preferredRecordSyntax = 0;
+
+        if (backend_schema)
+        {
+            sr_req->smallSetElementSetNames
+                = (Z_ElementSetNames *)
+                odr_malloc(odr_en, sizeof(Z_ElementSetNames));
+            sr_req->smallSetElementSetNames->which = Z_ElementSetNames_generic;
+            sr_req->smallSetElementSetNames->u.generic 
+                = odr_strdup(odr_en, backend_schema);
+            sr_req->mediumSetElementSetNames = sr_req->smallSetElementSetNames;
+        }
+        else
+        {
+            sr_req->smallSetElementSetNames = 0;
+            sr_req->mediumSetElementSetNames = 0;
+        }
+    }
+    else if (pr_req)
+    {
+        if (backend_syntax) 
+            pr_req->preferredRecordSyntax = odr_oiddup(odr_en, backend_syntax);
+        else
+            pr_req->preferredRecordSyntax = 0;
+        
+        if (backend_schema)
+        {
+            pr_req->recordComposition 
+                = (Z_RecordComposition *) 
+                odr_malloc(odr_en, sizeof(Z_RecordComposition));
+            pr_req->recordComposition->which 
+                = Z_RecordComp_simple;
+            pr_req->recordComposition->u.simple 
+                = (Z_ElementSetNames *)
+                odr_malloc(odr_en, sizeof(Z_ElementSetNames));
+            pr_req->recordComposition->u.simple->which = Z_ElementSetNames_generic;
+            pr_req->recordComposition->u.simple->u.generic 
+                = odr_strdup(odr_en, backend_schema);
+        }
+        else
+            pr_req->recordComposition = 0;
     }
 
     // attaching Z3950 package to filter chain
     package.request() = gdu_req;
 
     package.move();
-
-   //check successful Z3950 present response
+    
     Z_GDU *gdu_res = package.response().get();
-    if (!gdu_res || gdu_res->which != Z_GDU_Z3950 
-        || gdu_res->u.z3950->which != Z_APDU_presentResponse
-        || !gdu_res->u.z3950->u.presentResponse)
 
+    // see if we have a records list to patch!
+    Z_NamePlusRecordList *records = 0;
+    if (gdu_res && gdu_res->which == Z_GDU_Z3950 &&
+        gdu_res->u.z3950->which == Z_APDU_presentResponse)
     {
-        package.session().close();
-        return;
+        Z_PresentResponse * pr_res = gdu_res->u.z3950->u.presentResponse;
+        
+        if (rc && pr_res 
+            && pr_res->numberOfRecordsReturned 
+            && *(pr_res->numberOfRecordsReturned) > 0
+            && pr_res->records
+            && pr_res->records->which == Z_Records_DBOSD)
+        {
+            records = pr_res->records->u.databaseOrSurDiagnostics;
+        }
+    }
+    if (gdu_res && gdu_res->which == Z_GDU_Z3950 &&
+        gdu_res->u.z3950->which == Z_APDU_searchResponse)
+    {
+        Z_SearchResponse *sr_res = gdu_res->u.z3950->u.searchResponse;
+        
+        if (rc && sr_res 
+            && sr_res->numberOfRecordsReturned 
+            && *(sr_res->numberOfRecordsReturned) > 0
+            && sr_res->records
+            && sr_res->records->which == Z_Records_DBOSD)
+        {
+            records = sr_res->records->u.databaseOrSurDiagnostics;
+        }
     }
     
-    Z_PresentResponse * pr_res = gdu_res->u.z3950->u.presentResponse;
-
-    // record transformation must take place 
-    if (rc && pr_res 
-        && pr_res->numberOfRecordsReturned 
-        && *(pr_res->numberOfRecordsReturned) > 0
-        && pr_res->records
-        && pr_res->records->which == Z_Records_DBOSD
-        && pr_res->records->u.databaseOrSurDiagnostics->num_records)
+    if (records)
     {
-         // transform all records
-         for (int i = 0; 
-              i < pr_res->records->u.databaseOrSurDiagnostics->num_records; 
-              i++)
-         {
-             Z_NamePlusRecord *npr 
-                 = pr_res->records->u.databaseOrSurDiagnostics->records[i];
-             if (npr->which == Z_NamePlusRecord_databaseRecord)
-             {
-                 WRBUF output_record = wrbuf_alloc();
-                 Z_External *r = npr->u.databaseRecord;
-                 int ret_trans = 0;
-                 if (r->which == Z_External_OPAC)
-                 {
-                     ret_trans = 
-                         yaz_record_conv_opac_record(rc, r->u.opac,
-                                                     output_record);
-                 }
-                 else if (r->which == Z_External_octet) 
-                 {
-                     ret_trans =
-                         yaz_record_conv_record(rc, (const char *)
-                                                r->u.octet_aligned->buf, 
-                                                r->u.octet_aligned->len,
-                                                output_record);
-                 }
-                 if (ret_trans == 0)
-                 {
-                     npr->u.databaseRecord =
-                         z_ext_record_oid(odr_en, match_syntax,
-                                          wrbuf_buf(output_record),
-                                          wrbuf_len(output_record));
-                 }
-                 else
-                 {
-                     pr_res->records->
-                         u.databaseOrSurDiagnostics->records[i] 
-                         =  zget_surrogateDiagRec(
-                             odr_en, npr->databaseName,
-                             YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
-                             yaz_record_conv_get_error(rc));
-                 }
-                 wrbuf_destroy(output_record);
-             }
-         }
+        int i;
+        for (i = 0; i < records->num_records; i++)
+        {
+            Z_NamePlusRecord *npr = records->records[i];
+            if (npr->which == Z_NamePlusRecord_databaseRecord)
+            {
+                WRBUF output_record = wrbuf_alloc();
+                Z_External *r = npr->u.databaseRecord;
+                int ret_trans = 0;
+                if (r->which == Z_External_OPAC)
+                {
+                    ret_trans =
+                        yaz_record_conv_opac_record(rc, r->u.opac,
+                                                    output_record);
+                }
+                else if (r->which == Z_External_octet) 
+                {
+                    ret_trans =
+                        yaz_record_conv_record(rc, (const char *)
+                                               r->u.octet_aligned->buf, 
+                                               r->u.octet_aligned->len,
+                                               output_record);
+                }
+                if (ret_trans == 0)
+                {
+                    npr->u.databaseRecord =
+                        z_ext_record_oid(odr_en, match_syntax,
+                                         wrbuf_buf(output_record),
+                                         wrbuf_len(output_record));
+                }
+                else
+                {
+                    records->records[i] =
+                        zget_surrogateDiagRec(
+                            odr_en, npr->databaseName,
+                            YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                            yaz_record_conv_get_error(rc));
+                }
+                wrbuf_destroy(output_record);
+            }
+        }
+        package.response() = gdu_res;
     }
-    package.response() = gdu_res;
     return;
 }
-
 
 static mp::filter::Base* filter_creator()
 {
