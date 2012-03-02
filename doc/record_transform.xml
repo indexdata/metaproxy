@@ -18,18 +18,18 @@
  
  <refnamediv>
   <refname>record_transform</refname>
-  <refpurpose>Metaproxy Module that performs Z39.50 presentResponse record transformations</refpurpose>
+  <refpurpose>Metaproxy Module that performs record transformations</refpurpose>
  </refnamediv>
 
  <refsect1><title>DESCRIPTION</title>
   <para>
-   This filter acts only on Z3950 present requests, and let all
-   other types of packages and requests pass untouched. It's use is
-   twofold: blocking Z3950 present requests, which the backend
-   server does not understand and can not honor, and transforming
-   the present syntax and elementset name according to the rules
-   specified, to fetch only existing record formats, and transform
-   them on the fly to requested record syntaxes.
+   This filter acts on Z39.50 present requests and Z39.50 search requests,
+   and let all other types of packages and requests pass untouched. Its
+   use is twofold: blocking Z39.50 present/search requests that the backend
+   server does not understand or can not honor, and transforming the present
+   syntax and elementset name according to the rules specified, to fetch
+   only existing record formats, and transform them on the fly to requested
+   record syntaxes.
   </para> 
   <para>
    The allowed record present syntax and 
@@ -41,7 +41,7 @@
    may be omitted, in which case any 
    element name is accepted. An additional
    <literal>identifier</literal> attribute can be added to explicitly
-   describe the Z3950 identifier string.
+   describe the Z39.50 identifier string.
   </para>
   <para>
     The <literal>&lt;retrieval&gt;</literal> element and the content
