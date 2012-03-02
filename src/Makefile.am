@@ -7,7 +7,7 @@ DISTCLEANFILES = metaproxy-config
 
 AM_CXXFLAGS = $(BOOST_CPPFLAGS)
 
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include $(USEMARCONINC)
 
 AM_LDFLAGS =
 
@@ -62,7 +62,8 @@ libmetaproxy_la_LIBADD = $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB) $(BOOST_
 
 # Rules for lib
 
-LDADD = libmetaproxy.la $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB) $(BOOST_REGEX_LIB)
+LDADD = libmetaproxy.la $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB) \
+	$(BOOST_REGEX_LIB) $(USEMARCONLALIB)
 
 bin_PROGRAMS = metaproxy
 noinst_PROGRAMS = ex_filter_frontend_net ex_router_flexml tstdl

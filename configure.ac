@@ -37,6 +37,8 @@ AC_CHECK_LIB([m],[main])
 
 AC_CHECK_FUNCS([localtime_r])
 
+USEMARCON_INIT
+
 ## YAZPP checks
 YAZPP_INIT([threads],[1.2.7])
 if test -z "$YAZPPLIB"; then

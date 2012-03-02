@@ -26,6 +26,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/zgdu.h>
 #include <yaz/retrieval.h>
 
+#if HAVE_USEMARCON
+#include <usemarconlib.h>
+#include <defines.h>
+#endif
+
 #include <iostream>
 
 namespace mp = metaproxy_1;
@@ -45,6 +50,118 @@ namespace metaproxy_1 {
         };
     }
 }
+
+#if HAVE_USEMARCON
+struct info_usemarcon {
+    char *stage1;
+    char *stage2;
+
+    Usemarcon *usemarcon1;
+    Usemarcon *usemarcon2;
+};
+
+static int convert_usemarcon(void *info, WRBUF record, WRBUF wr_error)
+{
+    struct info_usemarcon *p = (struct info_usemarcon *) info;
+
+    if (p->usemarcon1)
+    {
+        char *converted;
+        size_t convlen;
+        int res;
+
+        p->usemarcon1->SetMarcRecord(wrbuf_buf(record), wrbuf_len(record));
+        res = p->usemarcon1->Convert();
+        if (res != 0)
+        {
+            wrbuf_printf(wr_error, "usemarcon stage1 failed res=%d", res);
+            return -1;
+        }
+        p->usemarcon1->GetMarcRecord(converted, convlen);
+        
+        if (p->usemarcon2)
+        {
+            p->usemarcon2->SetMarcRecord(converted, convlen);
+            
+            res = p->usemarcon2->Convert();
+            free(converted);
+            if (res != 0)
+            {
+                wrbuf_printf(wr_error, "usemarcon stage2 failed res=%d",
+                             res);
+                return -1;
+            }
+            p->usemarcon2->GetMarcRecord(converted, convlen);
+        }
+        wrbuf_rewind(record);
+        wrbuf_write(record, converted, convlen);
+        free(converted);
+    }
+    return 0;
+}
+
+static void destroy_usemarcon(void *info)
+{
+    struct info_usemarcon *p = (struct info_usemarcon *) info;
+
+    delete p->usemarcon1;
+    delete p->usemarcon2;
+    xfree(p->stage1);
+    xfree(p->stage2);
+    xfree(p);
+}
+
+static void *construct_usemarcon(const xmlNode *ptr, const char *path,
+                                 WRBUF wr_error)
+{
+    struct _xmlAttr *attr;
+    if (strcmp((const char *) ptr->name, "usemarcon"))
+        return 0;
+
+    struct info_usemarcon *p = (struct info_usemarcon *) xmalloc(sizeof(*p));
+    p->stage1 = 0;
+    p->stage2 = 0;
+    p->usemarcon1 = 0;
+    p->usemarcon2 = 0;
+
+    for (attr = ptr->properties; attr; attr = attr->next)
+    {
+        if (!xmlStrcmp(attr->name, BAD_CAST "stage1") &&
+            attr->children && attr->children->type == XML_TEXT_NODE)
+            p->stage1 = xstrdup((const char *) attr->children->content);
+        else if (!xmlStrcmp(attr->name, BAD_CAST "stage2") &&
+            attr->children && attr->children->type == XML_TEXT_NODE)
+            p->stage2 = xstrdup((const char *) attr->children->content);
+        else
+        {
+            wrbuf_printf(wr_error, "Bad attribute '%s'"
+                         "Expected stage1 or stage2.", attr->name);
+            destroy_usemarcon(p);
+            return 0;
+        }
+    }
+
+    if (p->stage1)
+    {
+        p->usemarcon1 = new Usemarcon();
+        p->usemarcon1->SetIniFileName(p->stage1);
+    }
+    if (p->stage2)
+    {
+        p->usemarcon2 = new Usemarcon();
+        p->usemarcon2->SetIniFileName(p->stage2);
+    }
+    return p;
+}
+
+static void type_usemarcon(struct yaz_record_conv_type *t)
+{
+    t->next = 0;
+    t->construct = construct_usemarcon;
+    t->convert = convert_usemarcon;
+    t->destroy = destroy_usemarcon;
+}
+#endif
 
 // define Pimpl wrapper forwarding to Impl
  
@@ -100,8 +217,16 @@ void yf::RecordTransform::Impl::configure(const xmlNode *xml_node,
             break;
     }
 
+#if HAVE_USEMARCON
+    struct yaz_record_conv_type mt;
+    type_usemarcon(&mt);
+    struct yaz_record_conv_type *t = &mt;
+#else
+    struct yaz_record_conv_type *t = 0;
+#endif
+
     // read configuration
-    if (0 != yaz_retrieval_configure(m_retrieval, retrieval_node))
+    if (0 != yaz_retrieval_configure_t(m_retrieval, retrieval_node, t))
     {
         std::string msg("RecordTransform filter config: ");
         msg += yaz_retrieval_get_error(m_retrieval);
