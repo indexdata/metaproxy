@@ -18,13 +18,14 @@
  
  <refnamediv>
   <refname>sru_z3950</refname>
-  <refpurpose>Metaproxy Module transforming SRU web service requests to Z3950 Metaproxy packages</refpurpose>
+  <refpurpose>Metaproxy Module transforming SRU web service requests to
+  Z39.50 Metaproxy packages</refpurpose>
  </refnamediv>
  
  <refsect1><title>DESCRIPTION</title>
   <para>
    The <literal>sru_z3950</literal> Metaproxy filter transforms valid
-   SRU GET/POST/SOAP requests to Z3950 requests, and wraps the
+   SRU GET/POST/SOAP requests to Z39.50 requests, and wraps the
    received hit counts and XML records into suitable SRU response messages. 
   </para>
   <para>
@@ -51,7 +52,7 @@
   </para>
   <para>
    It supports the SRU <literal>searchRetrieve</literal> operation, which
-   is transformed into successive Z3950 <literal>init</literal>, 
+   is transformed into successive Z39.50 <literal>init</literal>, 
    <literal>search</literal> and <literal>present</literal> requests. 
   </para>
   <para>
