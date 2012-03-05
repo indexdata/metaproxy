@@ -322,7 +322,7 @@ void yf::Zoom::Backend::connect(std::string zurl,
                                 int *error, char **addinfo,
                                 ODR odr)
 {
-    ZOOM_connection_connect(m_connection, zurl.c_str(), 0);
+    ZOOM_connection_connect(m_connection, zurl.length() ? zurl.c_str() : 0, 0);
     get_zoom_error(error, addinfo, odr);
 }
 
@@ -872,7 +872,10 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     std::list<BackendPtr>::const_iterator map_it;
     if (m_backend && !m_backend->enable_explain && 
         m_backend->m_frontend_database == database)
+    {
+        m_backend->connect("", error, addinfo, odr);
         return m_backend;
+    }
 
     std::string input_args;
     std::string torus_db;
