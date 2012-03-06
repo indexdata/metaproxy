@@ -45,7 +45,7 @@ if test -z "$YAZPPLIB"; then
     AC_MSG_ERROR([YAZ++ development libraries missing])
 fi
 CPPFLAGS="$YAZPPINC $CPPFLAGS"
-AC_MSG_CHECKING([if YAZ is version 4.2.22 or later])
+AC_MSG_CHECKING([if YAZ is version 4.2.28 or later])
 AC_COMPILE_IFELSE(
         [AC_LANG_PROGRAM([[#include <yaz/yaz-version.h>]],
                          [[
