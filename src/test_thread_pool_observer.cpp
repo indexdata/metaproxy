@@ -39,7 +39,7 @@ class My_Timer_Thread;
 class My_Msg : public mp::IThreadPoolMsg {
 public:
     mp::IThreadPoolMsg *handle();
-    void result();
+    void result(const char *t_info);
     int m_val;
     My_Timer_Thread *m_timer;
 };
@@ -70,7 +70,7 @@ mp::IThreadPoolMsg *My_Msg::handle()
     return res;
 }
 
-void My_Msg::result()
+void My_Msg::result(const char *t_info)
 {
     m_timer->m_sum += m_val;
     m_timer->m_responses++;

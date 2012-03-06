@@ -5,6 +5,7 @@
     <filter id="frontend" type="frontend_net">
       <threads>10</threads>
       <port>@:9000</port>
+      <message>FN</message>
     </filter>
     <filter id="backend" type="zoom">
       <torus

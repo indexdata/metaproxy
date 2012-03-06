@@ -18,6 +18,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 
+#include <sstream>
+#include <iomanip>
 #include <metaproxy/util.hpp>
 #include "pipe.hpp"
 #include <metaproxy/filter.hpp>
@@ -28,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yazpp/pdu-assoc.h>
 #include <yazpp/socket-manager.h>
 #include <yazpp/limit-connect.h>
+#include <yaz/timing.h>
 #include <yaz/log.h>
 
 #include <iostream>
@@ -51,6 +54,7 @@ namespace metaproxy_1 {
             int m_listen_duration;
             int m_session_timeout;
             int m_connect_max;
+            std::string m_msg_config;
             yazpp_1::SocketManager mySocketManager;
             ZAssocServer **az;
         };
@@ -69,9 +73,10 @@ namespace metaproxy_1 {
     public:
         ~ZAssocChild();
         ZAssocChild(yazpp_1::IPDU_Observable *the_PDU_Observable,
-                          mp::ThreadPoolSocketObserver *m_thread_pool_observer,
+                    mp::ThreadPoolSocketObserver *m_thread_pool_observer,
                     const mp::Package *package,
-                    std::string route);
+                    std::string route,
+                    const char *msg_config);
         int m_no_requests;
         std::string m_route;
     private:
@@ -89,25 +94,28 @@ namespace metaproxy_1 {
         mp::Origin m_origin;
         bool m_delete_flag;
         const mp::Package *m_package;
+        const char *m_msg_config;
     };
     class ThreadPoolPackage : public mp::IThreadPoolMsg {
     public:
-        ThreadPoolPackage(mp::Package *package, mp::ZAssocChild *ses) :
-            m_assoc_child(ses), m_package(package) { };
+        ThreadPoolPackage(mp::Package *package, mp::ZAssocChild *ses,
+            const char *msg_config);
         ~ThreadPoolPackage();
         IThreadPoolMsg *handle();
-        void result();
+        void result(const char *t_info);
         
     private:
+        yaz_timing_t timer;
         mp::ZAssocChild *m_assoc_child;
         mp::Package *m_package;
-        
+        const char *m_msg_config;        
     };
     class ZAssocServer : public yazpp_1::Z_Assoc {
     public:
         ~ZAssocServer();
         ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable, int timeout,
-                     int connect_max, std::string route);
+                     int connect_max, std::string route,
+                     const char *msg_config);
         void set_package(const mp::Package *package);
         void set_thread_pool(ThreadPoolSocketObserver *m_thread_pool_observer);
     private:
@@ -126,15 +134,28 @@ namespace metaproxy_1 {
         int m_connect_max;
         yazpp_1::LimitConnect limit_connect;
         std::string m_route;
+        const char *m_msg_config;
     };
+}
+
+mp::ThreadPoolPackage::ThreadPoolPackage(mp::Package *package,
+                                         mp::ZAssocChild *ses,
+                                         const char *msg_config) :
+    m_assoc_child(ses), m_package(package), m_msg_config(msg_config)
+{
+    if (msg_config)
+        timer = yaz_timing_create();
+    else
+        timer = 0;
 }
 
 mp::ThreadPoolPackage::~ThreadPoolPackage()
 {
+    yaz_timing_destroy(&timer); // timer may be NULL
     delete m_package;
 }
 
-void mp::ThreadPoolPackage::result()
+void mp::ThreadPoolPackage::result(const char *t_info)
 {
     m_assoc_child->m_no_requests--;
 
@@ -179,6 +200,20 @@ void mp::ThreadPoolPackage::result()
     {
         m_assoc_child->close();
     }
+
+    if (m_msg_config)
+    {
+        yaz_timing_stop(timer);
+        double duration = yaz_timing_get_real(timer);
+
+        std::ostringstream os;
+        os  << m_msg_config << " "
+            << *m_package << " "
+            << std::fixed << std::setprecision (6) << duration;
+        
+        yaz_log(YLOG_LOG, "%s %s", os.str().c_str(), t_info);
+    }
+
     delete this;
 }
 
@@ -190,10 +225,11 @@ mp::IThreadPoolMsg *mp::ThreadPoolPackage::handle()
 
 
 mp::ZAssocChild::ZAssocChild(yazpp_1::IPDU_Observable *PDU_Observable,
-				     mp::ThreadPoolSocketObserver *my_thread_pool,
+                             mp::ThreadPoolSocketObserver *my_thread_pool,
                              const mp::Package *package,
-                             std::string route)
-    :  Z_Assoc(PDU_Observable)
+                             std::string route,
+                             const char *msg_config)
+    :  Z_Assoc(PDU_Observable), m_msg_config(msg_config)
 {
     m_thread_pool_observer = my_thread_pool;
     m_no_requests = 0;
@@ -223,7 +259,8 @@ void mp::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
 
     mp::Package *p = new mp::Package(m_session, m_origin);
 
-    mp::ThreadPoolPackage *tp = new mp::ThreadPoolPackage(p, this);
+    mp::ThreadPoolPackage *tp = new mp::ThreadPoolPackage(p, this,
+                                                          m_msg_config);
     p->copy_route(*m_package);
     p->request() = yazpp_1::GDU(z_pdu);
     m_thread_pool_observer->put(tp);  
@@ -244,7 +281,8 @@ void mp::ZAssocChild::failNotify()
 
     mp::Package *p = new mp::Package(m_session, m_origin);
 
-    mp::ThreadPoolPackage *tp = new mp::ThreadPoolPackage(p, this);
+    mp::ThreadPoolPackage *tp = new mp::ThreadPoolPackage(p, this,
+                                                          m_msg_config);
     p->copy_route(*m_package);
     m_thread_pool_observer->put(tp);  
 }
@@ -261,9 +299,9 @@ void mp::ZAssocChild::connectNotify()
 
 mp::ZAssocServer::ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable,
                                int timeout, int connect_max,
-                               std::string route)
+                               std::string route, const char *msg_config)
     :  Z_Assoc(PDU_Observable), m_session_timeout(timeout),
-       m_connect_max(connect_max), m_route(route)
+       m_connect_max(connect_max), m_route(route), m_msg_config(msg_config)
 {
     m_package = 0;
 }
@@ -294,7 +332,7 @@ yazpp_1::IPDU_Observer *mp::ZAssocServer::sessionNotify(yazpp_1::IPDU_Observable
     }
     mp::ZAssocChild *my =
 	new mp::ZAssocChild(the_PDU_Observable, m_thread_pool_observer,
-                            m_package, m_route);
+                            m_package, m_route, m_msg_config);
     my->timeout(m_session_timeout);
     return my;
 }
@@ -432,6 +470,10 @@ void mp::filter::FrontendNet::configure(const xmlNode * ptr, bool test_only,
         {
             m_p->m_connect_max = mp::xml::get_int(ptr, 0);
         }
+        else if (!strcmp((const char *) ptr->name, "message"))
+        {
+            m_p->m_msg_config = mp::xml::get_text(ptr);
+        }
         else
         {
             throw mp::filter::FilterException("Bad element " 
@@ -478,7 +520,9 @@ void mp::filter::FrontendNet::set_ports(std::vector<Port> &ports)
         m_p->az[i] = new mp::ZAssocServer(as, 
                                           m_p->m_session_timeout,
                                           m_p->m_connect_max,
-                                          m_p->m_ports[i].route);
+                                          m_p->m_ports[i].route,
+                                          m_p->m_msg_config.length() > 0 ?
+                                          m_p->m_msg_config.c_str() : 0);
         if (m_p->az[i]->server(m_p->m_ports[i].port.c_str()))
         {
             throw mp::filter::FilterException("Unable to bind to address " 

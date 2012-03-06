@@ -68,6 +68,7 @@ namespace metaproxy_1 {
         std::deque<IThreadPoolMsg *> m_output;
         bool m_stop_flag;
         unsigned m_no_threads;
+        unsigned m_no_threads_waiting;
     };
     const unsigned int queue_size_per_thread = 64;
 }
@@ -100,6 +101,7 @@ ThreadPoolSocketObserver::ThreadPoolSocketObserver(
 
     m_p->m_stop_flag = false;
     m_p->m_no_threads = no_threads;
+    m_p->m_no_threads_waiting = 0;
     int i;
     for (i = 0; i<no_threads; i++)
     {
@@ -145,8 +147,21 @@ void ThreadPoolSocketObserver::socketNotify(int event)
             out = m_p->m_output.front();
             m_p->m_output.pop_front();
         }
+
+
         if (out)
-            out->result();
+        {
+            std::ostringstream os;
+            {
+                boost::mutex::scoped_lock input_lock(m_p->m_mutex_input_data);
+                os  << "tbusy/total " <<
+                    m_p->m_no_threads - m_p->m_no_threads_waiting <<
+                    "/" << m_p->m_no_threads
+                    << " queue in/out " << m_p->m_input.size() << "/"
+                    << m_p->m_output.size();
+            }
+            out->result(os.str().c_str());
+        }
     }
 }
 
@@ -157,8 +172,10 @@ void ThreadPoolSocketObserver::run(void *p)
         IThreadPoolMsg *in = 0;
         {
             boost::mutex::scoped_lock input_lock(m_p->m_mutex_input_data);
+            m_p->m_no_threads_waiting++;
             while (!m_p->m_stop_flag && m_p->m_input.size() == 0)
                 m_p->m_cond_input_data.wait(input_lock);
+            m_p->m_no_threads_waiting--;
             if (m_p->m_stop_flag)
                 break;
             

@@ -28,7 +28,7 @@ namespace metaproxy_1 {
     class IThreadPoolMsg {
     public:
         virtual IThreadPoolMsg *handle() = 0;
-        virtual void result() = 0;
+        virtual void result(const char *info) = 0;
         virtual ~IThreadPoolMsg();
     };
 
