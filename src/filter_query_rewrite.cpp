@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/xmlquery.h>
 #include <yaz/diagbib1.h>
 #include <yaz/query-charset.h>
+#include <yaz/tpath.h>
 
 #include <libxslt/xsltutils.h>
 #include <libxslt/transform.h>
@@ -42,7 +43,8 @@ namespace metaproxy_1 {
             Rep();
             ~Rep();
             void process(mp::Package &package) const;
-            void configure(const xmlNode * ptr);
+            void configure(const xmlNode * ptr, bool test_only,
+                           const char *path);
         private:
             xsltStylesheetPtr m_stylesheet;
             std::string charset_from;
@@ -69,15 +71,15 @@ yf::QueryRewrite::~QueryRewrite()
 {  // must have a destructor because of boost::scoped_ptr
 }
 
-void yf::QueryRewrite::process(mp::Package &package) const
-{
-    m_p->process(package);
-}
-
 void mp::filter::QueryRewrite::configure(const xmlNode *ptr, bool test_only,
                                          const char *path)
 {
-    m_p->configure(ptr);
+    m_p->configure(ptr, test_only, path);
+}
+
+void yf::QueryRewrite::process(mp::Package &package) const
+{
+    m_p->process(package);
 }
 
 void yf::QueryRewrite::Rep::process(mp::Package &package) const
@@ -154,7 +156,8 @@ void yf::QueryRewrite::Rep::process(mp::Package &package) const
     package.move();
 }
 
-void mp::filter::QueryRewrite::Rep::configure(const xmlNode *ptr)
+void mp::filter::QueryRewrite::Rep::configure(const xmlNode *ptr,
+                                              bool test_only, const char *path)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
@@ -169,7 +172,7 @@ void mp::filter::QueryRewrite::Rep::configure(const xmlNode *ptr)
                     ("Only one xslt element allowed in query_rewrite filter");
             }
 
-            std::string fname;// = mp::xml::get_text(ptr);
+            std::string fname;
 
             for (struct _xmlAttr *attr = ptr->properties; 
                  attr; attr = attr->next)
@@ -184,8 +187,15 @@ void mp::filter::QueryRewrite::Rep::configure(const xmlNode *ptr)
                      + fname
                      + "\"> needs XSLT stylesheet path content"
                      + " in query_rewrite filter");
-            
-            m_stylesheet = xsltParseStylesheetFile(BAD_CAST fname.c_str());
+
+            char fullpath[1024];
+            char *cp = yaz_filepath_resolve(fname.c_str(), path, 0, fullpath);
+            if (!cp)
+            {
+                throw mp::filter::FilterException("Cannot read XSLT " + fname);
+            }
+
+            m_stylesheet = xsltParseStylesheetFile(BAD_CAST cp);
             if (!m_stylesheet)
             {
                 throw mp::filter::FilterException
