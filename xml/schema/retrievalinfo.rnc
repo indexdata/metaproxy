@@ -29,7 +29,9 @@ start |= retrievalinfo
 marc = element y:marc {
   attribute inputformat { xsd:string },
   attribute outputformat { xsd:string },
-  attribute inputcharset { xsd:string }
+  attribute inputcharset { xsd:string },
+  attribute outputcharset { xsd:string }?,
+  attribute leaderspec { xsd:string }?
 }
 
 xslt = element y:xslt {
