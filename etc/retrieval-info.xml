@@ -7,7 +7,7 @@
              identifier="info:srw/schema/1/marcxml-v1.1">
     <backend syntax="usmarc" name="F">
       <marc inputformat="marc" outputformat="marcxml"
-            inputcharset="marc-8"/>
+            inputcharset="marc-8" outputcharset="utf-8"/>
     </backend>
   </retrieval>
   <retrieval syntax="xml" name="danmarc">
