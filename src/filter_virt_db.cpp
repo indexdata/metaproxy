@@ -31,7 +31,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
 #include <yaz/match_glob.h>
-#include <yaz/query-charset.h>
 #include <yaz/log.h>
 
 #include <map>
@@ -59,15 +58,12 @@ namespace metaproxy_1 {
             std::string m_dbpattern;
             std::list<std::string> m_targets;
             std::string m_route;
-        public:
-            std::string query_encoding;
         };
         struct VirtualDB::Backend {
             mp::Session m_backend_session;
             std::list<std::string> m_frontend_databases;
             std::list<std::string> m_targets;
             std::string m_route;
-            std::string query_encoding;
             bool m_named_result_sets;
             int m_number_of_sets;
         };
@@ -187,14 +183,6 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::create_backend_from_databases
             return ptr;
         }
         b->m_route = map_it->m_route;
-        if (!first_route && b->query_encoding != map_it->query_encoding)
-        {
-            // we have a conflict. query encoding must be same for all
-            error_code =  YAZ_BIB1_COMBI_OF_SPECIFIED_DATABASES_UNSUPP;
-            BackendPtr ptr;
-            return ptr;
-        }
-        b->query_encoding = map_it->query_encoding;
         first_route = false;
     }
     return b;
@@ -361,20 +349,6 @@ void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
                                                 &req->databaseNames);
     }
 
-    if (b->query_encoding.length() && 
-        (req->query->which == Z_Query_type_1 ||
-         req->query->which == Z_Query_type_101))
-    {
-        yaz_iconv_t cd = yaz_iconv_open(b->query_encoding.c_str(), "UTF-8");
-        if (cd)
-        {
-            int r = yaz_query_charset_convert_rpnquery_check(
-                req->query->u.type_1, odr, cd);
-            yaz_iconv_close(cd);
-            if (r)
-                yaz_log(YLOG_LOG, "query could not be converted");
-        }
-    }
     *req->replaceIndicator = 1;
 
     search_package.request() = yazpp_1::GDU(apdu_req);
@@ -714,16 +688,6 @@ void yf::VirtualDB::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
                                                 &req->databaseNames);
     }
 
-    if (b->query_encoding.length())
-    {
-        yaz_iconv_t cd = yaz_iconv_open(b->query_encoding.c_str(), "UTF-8");
-        if (cd)
-        {
-            yaz_query_charset_convert_apt(req->termListAndStartPoint, odr, cd);
-            yaz_iconv_close(cd);
-        }
-    }
-
     scan_package.request() = yazpp_1::GDU(apdu_req);
     
     scan_package.move(b->m_route);
@@ -880,7 +844,6 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only,
         }
         else if (!strcmp((const char *) ptr->name, "virtual"))
         {
-            std::string query_encoding;
             std::string database;
             std::list<std::string> targets;
             xmlNode *v_node = ptr->children;
@@ -893,8 +856,6 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only,
                     database = mp::xml::get_text(v_node);
                 else if (mp::xml::is_element_mp(v_node, "target"))
                     targets.push_back(mp::xml::get_text(v_node));
-                else if (mp::xml::is_element_mp(v_node, "query-encoding"))
-                    targets.push_back(mp::xml::get_text(v_node));
                 else
                     throw mp::filter::FilterException
                         ("Bad element " 
@@ -906,7 +867,6 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only,
 
             VirtualDB::Map vmap(mp::util::database_name_normalize(database),
                                 targets, route);
-            vmap.query_encoding = query_encoding;
             m_p->m_maps.push_back(vmap);
         }
         else
