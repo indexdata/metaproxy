@@ -35,7 +35,11 @@ marc = element y:marc {
 }
 
 xslt = element y:xslt {
-  attribute stylesheet { xsd:string }
+  attribute stylesheet { xsd:string },
+  element y:param {
+  attribute name {xsd:string},
+  attribute value {xsd:string}
+  }*
 }
 
 usemarcon = element y:usemarcon {

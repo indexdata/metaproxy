@@ -21,7 +21,9 @@
     <backend syntax="usmarc" name="F">
       <marc inputformat="marc" outputformat="marcxml"
             inputcharset="marc-8"/>
-      <xslt stylesheet="../xml/xslt/MARC21slim2DC.xsl"/>
+      <xslt stylesheet="../xml/xslt/MARC21slim2DC.xsl">
+         <param name="myparameter" value="myvalue"/>
+      </xslt>
     </backend>
   </retrieval>
   <retrieval syntax="unimarc" name="F">
