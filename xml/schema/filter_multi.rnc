@@ -8,6 +8,7 @@ filter_multi =
   attribute name { xsd:NCName }?,
   element mp:target {
     attribute route { xsd:string },
+    attribute auth { xsd:string }?,
     xsd:string
   }*,
   element mp:hideunavailable { empty }?,

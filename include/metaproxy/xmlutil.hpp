@@ -42,6 +42,7 @@ namespace metaproxy_1 {
         bool check_element_mp(const xmlNode *ptr, 
                                const std::string &name);
         std::string get_route(const xmlNode *node);
+        std::string get_route(const xmlNode *node, std::string &auth);
 
         const xmlNode* jump_to(const xmlNode* node, int node_type);
 

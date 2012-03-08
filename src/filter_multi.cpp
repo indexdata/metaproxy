@@ -88,6 +88,7 @@ namespace metaproxy_1 {
             std::string m_backend_database;
             std::string m_vhost;
             std::string m_route;
+            std::string m_auth;
             void operator() (void);  // thread operation
         };
         struct Multi::Frontend {
@@ -111,13 +112,16 @@ namespace metaproxy_1 {
         class Multi::Map {
             std::string m_target_pattern;
             std::string m_route;
+            std::string m_auth;
         public:
-            Map(std::string pattern, std::string route) : 
-                m_target_pattern(pattern), m_route(route) {};
-            bool match(const std::string target, std::string *ret) const {
+            Map(std::string pattern, std::string route, std::string auth) : 
+                m_target_pattern(pattern), m_route(route), m_auth(auth) {};
+            bool match(const std::string target, std::string *ret,
+                       std::string *auth) const {
                 if (yaz_match_glob(m_target_pattern.c_str(), target.c_str()))
                 {
                     *ret = m_route;
+                    *auth = m_auth;
                     return true;
                 }
                 return false;
@@ -395,7 +399,7 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
         std::list<Multi::Map>::const_iterator it =
             m_p->m_route_patterns.begin();
         while (it != m_p->m_route_patterns.end()) {
-            if (it->match(*t_it, &b->m_route))
+            if (it->match(*t_it, &b->m_route, &b->m_auth))
                 break;
             it++;
         }
@@ -423,7 +427,16 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
 
         Z_InitRequest *breq = init_apdu->u.initRequest;
 
-        breq->idAuthentication = req->idAuthentication;
+        if (b->m_auth.length())
+        {
+            breq->idAuthentication =
+                (Z_IdAuthentication *)
+                odr_malloc(odr, sizeof(*breq->idAuthentication));
+            breq->idAuthentication->which = Z_IdAuthentication_open;
+            breq->idAuthentication->u.open = odr_strdup(odr, b->m_auth.c_str());
+        }
+        else
+            breq->idAuthentication = req->idAuthentication;
         
         *breq->preferredMessageSize = *req->preferredMessageSize;
         *breq->maximumRecordSize = *req->maximumRecordSize;
@@ -1293,11 +1306,12 @@ void mp::filter::Multi::configure(const xmlNode * ptr, bool test_only,
             continue;
         if (!strcmp((const char *) ptr->name, "target"))
         {
-            std::string route = mp::xml::get_route(ptr);
+            std::string auth;
+            std::string route = mp::xml::get_route(ptr, auth);
             std::string target = mp::xml::get_text(ptr);
             if (target.length() == 0)
                 target = route;
-            m_p->m_route_patterns.push_back(Multi::Map(target, route));
+            m_p->m_route_patterns.push_back(Multi::Map(target, route, auth));
         }
         else if (!strcmp((const char *) ptr->name, "hideunavailable"))
         {

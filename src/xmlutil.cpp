@@ -149,7 +149,7 @@ bool mp_xml::check_element_mp(const xmlNode *ptr,
     return true;
 }
 
-std::string mp_xml::get_route(const xmlNode *node)
+std::string mp_xml::get_route(const xmlNode *node, std::string &auth)
 {
     std::string route_value;
     if (node)
@@ -165,6 +165,8 @@ std::string mp_xml::get_route(const xmlNode *node)
             
             if (name == "route")
                 route_value = value;
+            else if (name == "auth")
+                auth = value;
             else
                 throw XMLError("Only attribute route allowed"
                                " in " + std::string((const char *)node->name)
@@ -174,6 +176,11 @@ std::string mp_xml::get_route(const xmlNode *node)
     return route_value;
 }
 
+std::string mp_xml::get_route(const xmlNode *node)
+{
+    std::string auth;
+    return get_route(node, auth);
+}
 
 const xmlNode* mp_xml::jump_to_children(const xmlNode* node,
                                           int xml_node_type)
