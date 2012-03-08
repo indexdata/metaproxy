@@ -26,6 +26,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/zgdu.h>
 #include <yaz/retrieval.h>
 
+#include <boost/thread/mutex.hpp>
+
 #if HAVE_USEMARCON
 #include <usemarconlib.h>
 #include <defines.h>
@@ -53,6 +55,8 @@ namespace metaproxy_1 {
 
 #if HAVE_USEMARCON
 struct info_usemarcon {
+    boost::mutex m_mutex;
+
     char *stage1;
     char *stage2;
 
@@ -63,6 +67,8 @@ struct info_usemarcon {
 static int convert_usemarcon(void *info, WRBUF record, WRBUF wr_error)
 {
     struct info_usemarcon *p = (struct info_usemarcon *) info;
+
+    boost::mutex::scoped_lock lock(p->m_mutex);
 
     if (p->usemarcon1)
     {
@@ -108,7 +114,7 @@ static void destroy_usemarcon(void *info)
     delete p->usemarcon2;
     xfree(p->stage1);
     xfree(p->stage2);
-    xfree(p);
+    delete p;
 }
 
 static void *construct_usemarcon(const xmlNode *ptr, const char *path,
@@ -118,7 +124,7 @@ static void *construct_usemarcon(const xmlNode *ptr, const char *path,
     if (strcmp((const char *) ptr->name, "usemarcon"))
         return 0;
 
-    struct info_usemarcon *p = (struct info_usemarcon *) xmalloc(sizeof(*p));
+    struct info_usemarcon *p = new(struct info_usemarcon);
     p->stage1 = 0;
     p->stage2 = 0;
     p->usemarcon1 = 0;
