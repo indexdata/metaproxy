@@ -49,7 +49,7 @@ AC_MSG_CHECKING([if YAZ is version 4.2.28 or later])
 AC_COMPILE_IFELSE(
         [AC_LANG_PROGRAM([[#include <yaz/yaz-version.h>]],
                          [[
-#if YAZ_VERSIONL < 0x40216
+#if YAZ_VERSIONL < 0x4021c
 #error too old
 #endif
 ]])],
