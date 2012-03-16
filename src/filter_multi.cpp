@@ -555,7 +555,7 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     // they are altered now - to disable piggyback
     *req->smallSetUpperBound = 0;
     *req->largeSetLowerBound = 1;
-    *req->mediumSetPresentNumber = 1;
+    *req->mediumSetPresentNumber = 0;
 
     int default_num_db = req->num_databaseNames;
     char **default_db = req->databaseNames;
