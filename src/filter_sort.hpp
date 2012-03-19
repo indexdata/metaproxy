@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define FILTER_SORT_HPP
 
 #include <boost/scoped_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include <metaproxy/filter.hpp>
 
@@ -27,6 +28,14 @@ namespace metaproxy_1 {
     namespace filter {
         class Sort : public Base {
             class Impl;
+            class Frontend;
+            class ResultSet;
+            class RecordList;
+            class Record;
+            typedef boost::shared_ptr<Frontend> FrontendPtr;
+            typedef boost::shared_ptr<ResultSet> ResultSetPtr;
+            typedef boost::shared_ptr<RecordList> RecordListPtr;
+
             boost::scoped_ptr<Impl> m_p;
         public:
             Sort();
