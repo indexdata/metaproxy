@@ -78,8 +78,10 @@ namespace metaproxy_1 {
             std::string namespaces;
             std::string xpath_expr;
         public:
+            bool cmp(Odr_oid *syntax);
             void add(Z_NamePlusRecord *s);
-            Z_NamePlusRecord *get(int i);
+            int size();
+            Z_NamePlusRecord *get(int i, bool ascending);
             void sort();
             RecordList(Odr_oid *, std::string namespaces,
                        std::string xpath_expr);
@@ -302,21 +304,39 @@ yf::Sort::RecordList::~RecordList()
     
 }
  
+bool yf::Sort::RecordList::cmp(Odr_oid *syntax)
+{
+    if ((!this->syntax && !syntax)
+        ||
+        (this->syntax && syntax && !oid_oidcmp(this->syntax, syntax)))
+        return true;
+    return false;
+}
+
+int yf::Sort::RecordList::size()
+{
+    return npr_list.size();
+}
+
 void yf::Sort::RecordList::add(Z_NamePlusRecord *s)
 {
     ODR oi = m_odr;
-    Record record(yaz_clone_z_NamePlusRecord(s, oi->mem),
-                  namespaces.c_str(),
-                  xpath_expr.c_str());
+    Z_NamePlusRecord *npr = yaz_clone_z_NamePlusRecord(s, oi->mem);
+    Record record(npr, namespaces.c_str(), xpath_expr.c_str());
     npr_list.push_back(record);
 }
 
-Z_NamePlusRecord *yf::Sort::RecordList::get(int i)
+Z_NamePlusRecord *yf::Sort::RecordList::get(int pos, bool ascending)
 {
     std::list<Record>::const_iterator it = npr_list.begin();
+    int i = pos;
+    if (!ascending)
+        i = npr_list.size() - pos - 1;
     for (; it != npr_list.end(); it++, --i)
         if (i <= 0)
+        {
             return it->npr;
+        }
     return 0;
 }
 
@@ -483,6 +503,12 @@ void yf::Sort::Frontend::handle_records(mp::Package &package,
 {
     if (records && records->which == Z_Records_DBOSD && start_pos == 1)
     {
+        std::list<RecordListPtr>::const_iterator it = s->record_lists.begin();
+
+        for (; it != s->record_lists.end(); it++)
+            if ((*it)->cmp(syntax))
+                return;
+
         Z_NamePlusRecordList *nprl = records->u.databaseOrSurDiagnostics;
         int i;    // i is number of records fetched in last response
 
@@ -534,10 +560,7 @@ void yf::Sort::Frontend::handle_records(mp::Package &package,
         rlp->sort();
 
         for (i = 0; i < nprl->num_records; i++)
-            if (m_p->m_ascending)
-                nprl->records[i] = rlp->get(i);
-            else
-                nprl->records[nprl->num_records - i - 1] = rlp->get(i);
+            nprl->records[i] = rlp->get(i, m_p->m_ascending);
     }
 }
 
@@ -578,6 +601,7 @@ void yf::Sort::Frontend::handle_search(mp::Package &package, Z_APDU *apdu_req)
         s->hit_count = *res->resultCount;
         handle_records(b_package, apdu_req, res->records, 1, s,
                        req->preferredRecordSyntax, resultSetId.c_str());
+        package.response() = gdu_res;
     }
 }
 
@@ -600,6 +624,41 @@ void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
         package.response() = apdu;
         return;
     }
+    ResultSetPtr rset = sets_it->second;
+    std::list<RecordListPtr>::const_iterator it = rset->record_lists.begin();
+    for (; it != rset->record_lists.end(); it++)
+        if ((*it)->cmp(req->preferredRecordSyntax))
+        {
+            if (*req->resultSetStartPoint - 1 + *req->numberOfRecordsRequested 
+                <= (*it)->size())
+            {
+                int i;
+                Z_APDU *p_apdu = zget_APDU(odr, Z_APDU_presentResponse);
+                Z_PresentResponse *p_res = p_apdu->u.presentResponse;
+
+                *p_res->nextResultSetPosition = *req->resultSetStartPoint +
+                    *req->numberOfRecordsRequested;
+                *p_res->numberOfRecordsReturned = 
+                    *req->numberOfRecordsRequested;
+                p_res->records = (Z_Records *) 
+                    odr_malloc(odr, sizeof(*p_res->records));
+                p_res->records->which = Z_Records_DBOSD;
+                Z_NamePlusRecordList *nprl =  (Z_NamePlusRecordList *)
+                    odr_malloc(odr, sizeof(*nprl));
+                p_res->records->u.databaseOrSurDiagnostics = nprl;
+                nprl->num_records = *req->numberOfRecordsRequested;
+                nprl->records = (Z_NamePlusRecord **)
+                    odr_malloc(odr, nprl->num_records * sizeof(*nprl->records));
+                for (i = 0; i < nprl->num_records; i++)
+                {
+                    int pos = i + *req->resultSetStartPoint - 1;
+                    nprl->records[i] = (*it)->get(pos, m_p->m_ascending);
+                }
+                package.response() = p_apdu;
+                return;
+            }
+            break;
+        }
     package.move();
     Z_GDU *gdu_res = package.response().get();
     if (gdu_res && gdu_res->which == Z_GDU_Z3950 && gdu_res->u.z3950->which ==
@@ -607,8 +666,9 @@ void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
     {
         Z_PresentResponse *res = gdu_res->u.z3950->u.presentResponse;
         handle_records(b_package, apdu_req, res->records, 
-                       *req->resultSetStartPoint, sets_it->second,
+                       *req->resultSetStartPoint, rset,
                        req->preferredRecordSyntax, resultSetId.c_str());
+        package.response() = gdu_res;
     }
 }
 
