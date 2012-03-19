@@ -43,6 +43,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_query_rewrite.hpp"
 #include "filter_record_transform.hpp"
 #include "filter_session_shared.hpp"
+#include "filter_sort.hpp"
 #include "filter_sru_to_z3950.hpp"
 #include "filter_template.hpp"
 #include "filter_virt_db.hpp"
@@ -71,6 +72,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_query_rewrite,
         &metaproxy_1_filter_record_transform,
         &metaproxy_1_filter_session_shared,
+        &metaproxy_1_filter_sort,
         &metaproxy_1_filter_sru_to_z3950,
         &metaproxy_1_filter_template,
         &metaproxy_1_filter_virt_db,

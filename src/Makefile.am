@@ -36,6 +36,7 @@ libmetaproxy_la_SOURCES = \
 	filter_query_rewrite.cpp filter_query_rewrite.hpp \
 	filter_record_transform.cpp filter_record_transform.hpp \
 	filter_session_shared.cpp filter_session_shared.hpp \
+	filter_sort.cpp filter_sort.hpp \
         filter_sru_to_z3950.cpp  filter_sru_to_z3950.hpp \
 	filter_template.cpp filter_template.hpp \
 	filter_virt_db.cpp filter_virt_db.hpp \

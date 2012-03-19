@@ -228,6 +228,7 @@ PROJECT_DLL_OBJS = \
 	$(OBJDIR)\filter_query_rewrite.obj \
         $(OBJDIR)\filter_record_transform.obj \
         $(OBJDIR)\filter_session_shared.obj \
+        $(OBJDIR)\filter_sort.obj \
         $(OBJDIR)\filter_sru_to_z3950.obj \
         $(OBJDIR)\filter_template.obj \
         $(OBJDIR)\filter_virt_db.obj \
