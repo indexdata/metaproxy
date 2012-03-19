@@ -35,7 +35,8 @@ namespace metaproxy_1 {
             Impl();
             ~Impl();
             void process(metaproxy_1::Package & package) const;
-            void configure(const xmlNode * ptr);
+            void configure(const xmlNode * ptr, bool test_only,
+                           const char *path);
         private:
             int m_dummy;
         };
@@ -55,7 +56,7 @@ yf::Template::~Template()
 void yf::Template::configure(const xmlNode *xmlnode, bool test_only,
                              const char *path)
 {
-    m_p->configure(xmlnode);
+    m_p->configure(xmlnode, test_only, path);
 }
 
 void yf::Template::process(mp::Package &package) const
@@ -77,7 +78,8 @@ yf::Template::Impl::~Impl()
 { 
 }
 
-void yf::Template::Impl::configure(const xmlNode *xmlnode)
+void yf::Template::Impl::configure(const xmlNode *xmlnode, bool test_only,
+                                   const char *path)
 {
 }
 
