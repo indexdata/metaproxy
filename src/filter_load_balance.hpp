@@ -16,7 +16,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// Filter that does nothing. Use as load_balance for new filters 
 #ifndef FILTER_LOAD_BALANCE_HPP
 #define FILTER_LOAD_BALANCE_HPP
 
