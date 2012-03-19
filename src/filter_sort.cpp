@@ -50,6 +50,7 @@ namespace metaproxy_1 {
             int m_prefetch;
             std::string m_xpath_expr;
             std::string m_namespaces;
+            bool m_ascending;
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
@@ -220,8 +221,30 @@ void yf::Sort::Record::get_xpath(xmlDoc *doc, const char *namespaces,
             xmlXPathEvalExpression((const xmlChar *) expr, xpathCtx);
         if (xpathObj)
         {
-            print_xpath_nodes(xpathObj->nodesetval, stdout);
-
+            xmlNodeSetPtr nodes = xpathObj->nodesetval;
+            if (nodes)
+            {
+                int i;
+                for (i = 0; i < nodes->nodeNr; i++)
+                {
+                    std::string content;
+                    xmlNode *ptr = nodes->nodeTab[i];
+                    if (ptr->type == XML_ELEMENT_NODE ||
+                        ptr->type == XML_ATTRIBUTE_NODE)
+                    {
+                        content = mp::xml::get_text(ptr->children);
+                    }
+                    else if (ptr->type == XML_TEXT_NODE)
+                    {
+                        content = mp::xml::get_text(ptr);
+                    }
+                    if (content.c_str())
+                    {
+                        score = content;
+                        break;
+                    }
+                }
+            }
             xmlXPathFreeObject(xpathObj);
         }
         xmlXPathFreeContext(xpathCtx);
@@ -257,28 +280,9 @@ yf::Sort::Record::~Record()
 
 bool yf::Sort::Record::operator < (const Record &rhs)
 {
-    int l_score = 0;
-    const char *l_database = this->npr->databaseName;
-    if (l_database)
-    {
-        const char *cp = strstr(l_database, ";score=");
-        if (cp)
-            l_score = atoi(cp + 7);
-    }
-
-    int r_score = 0;
-    const char *r_database = rhs.npr->databaseName;
-    if (r_database)
-    {
-        const char *cp = strstr(r_database, ";score=");
-        if (cp)
-            r_score = atoi(cp + 7);
-    }
-    
-    if (l_score < r_score)
+    if (strcmp(this->score.c_str(), rhs.score.c_str()) < 0)
         return true;
-    else
-        return false;
+    return false;
 }
 
 yf::Sort::RecordList::RecordList(Odr_oid *syntax,
@@ -301,7 +305,6 @@ yf::Sort::RecordList::~RecordList()
 void yf::Sort::RecordList::add(Z_NamePlusRecord *s)
 {
     ODR oi = m_odr;
-    yaz_log(YLOG_LOG, "Adding to recordList %p", this);
     Record record(yaz_clone_z_NamePlusRecord(s, oi->mem),
                   namespaces.c_str(),
                   xpath_expr.c_str());
@@ -352,7 +355,7 @@ yf::Sort::Frontend::~Frontend()
 }
 
 
-yf::Sort::Impl::Impl() : m_prefetch(20)
+yf::Sort::Impl::Impl() : m_prefetch(20), m_ascending(true)
 {
 }
 
@@ -434,6 +437,19 @@ void yf::Sort::Impl::configure(const xmlNode *ptr, bool test_only,
                 else if (!strcmp((const char *) attr->name, "namespaces"))
                 {
                     m_namespaces = mp::xml::get_text(attr->children);
+                }
+                else if (!strcmp((const char *) attr->name, "sortorder"))
+                {
+                    std::string t = mp::xml::get_text(attr->children);
+                    if (t == "ascending")
+                        m_ascending = true;
+                    else if (t == "descending")
+                        m_ascending = false;
+                    else
+                        throw mp::filter::FilterException(
+                            "Bad attribute value " + t + " for attribute " +
+                            std::string((const char *) attr->name));
+
                 }
                 else
                     throw mp::filter::FilterException(
@@ -518,7 +534,10 @@ void yf::Sort::Frontend::handle_records(mp::Package &package,
         rlp->sort();
 
         for (i = 0; i < nprl->num_records; i++)
-            nprl->records[i] = rlp->get(i);
+            if (m_p->m_ascending)
+                nprl->records[i] = rlp->get(i);
+            else
+                nprl->records[nprl->num_records - i - 1] = rlp->get(i);
     }
 }
 
