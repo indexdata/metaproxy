@@ -1,3 +1,40 @@
+New filter, sort, that allows sorting of XML records via Z39.50
+retrieval.
+
+Filter record_transform: USEMarcon support. For example:
+  <retrieval syntax="usmarc">
+     <backend syntax="unimarc" name="F">
+       <usemarcon stage1="/etc/usemarcon/uni2us/uni2us.ini"/>
+     </backend>
+  </retrieval>
+
+Filter multi: empty route pattern uses route as default.
+  That is
+   <target route="z3950.indexdata.com">z3950.indexdata.com</route>
+  may use the shorter notation
+   <target route="z3950.indexdata.com"/>
+
+Filter query_rewrite: use config path to locate XSLT.
+
+Filter frontend_net:  log statistics.
+If a custom message element in frontend_net configuration it makes
+the frontend_net filter produce a log entry whenever an operation
+is completed. The log is always written using yaz_log with the
+custom message given, the package ID (session ID) , the time
+the operation has been active (end-to-end) , the threads currently
+active/total and the size of the request input/output queues.
+
+query_rewrite: charset conversion of query terms.
+This is an optional feature. Enabled by element <charset> in
+configuration with attribute 'from' and 'to' that specifies
+from/to encodings. The default 'from' encoding is UTF-8.
+
+Filter record_transform: honor piggyback searches.
+
+Filter zoom: re-connect when database is reused.
+Re-connect is necessary if a connection is lost or a timeout occurs.
+If not, we'll be seeing zero hits, when we shouldn't.
+
 --- 1.3.25 2012/02/29
 
 zoom: Change scheme for dealing with content proxy URLs. The module
