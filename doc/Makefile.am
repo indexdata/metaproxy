@@ -23,6 +23,7 @@ XMLMAN = metaproxy.xml \
 	query_rewrite.xml \
         record_transform.xml\
 	session_shared.xml \
+	sort.xml \
         sru_z3950.xml\
 	template.xml \
 	virt_db.xml \
@@ -44,6 +45,7 @@ MANFILES = metaproxy.1 \
 	multi.3mp query_rewrite.3mp \
         record_transform.3mp\
 	session_shared.3mp \
+	sort.3mp \
         sru_z3950.3mp \
 	template.3mp \
 	virt_db.3mp \

@@ -1,0 +1,125 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN" 
+    "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
+ <!ENTITY copyright SYSTEM "copyright.xml">
+ <!ENTITY % idcommon SYSTEM "common/common.ent">
+     %idcommon;
+]>
+<refentry id="ref-sort">
+ <refentryinfo>
+  <productname>Metaproxy</productname>
+  <info><orgname>Index Data</orgname></info>
+ </refentryinfo>
+
+ <refmeta>
+  <refentrytitle>sort</refentrytitle>
+  <manvolnum>3mp</manvolnum>
+  <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
+ </refmeta>
+ 
+ <refnamediv>
+  <refname>sort</refname>
+  <refpurpose>Metaproxy Z39.50 Sort Module</refpurpose>
+ </refnamediv>
+ 
+ <refsect1><title>DESCRIPTION</title>
+  <para>
+   This filter performs sorting of Z39.50 result sets.
+   The sorting criteria is selected via an X-Path expression. Only
+   XML records are supported. The sorting is done only for the first
+   present request following a search. The number of records to prefetch
+   can is configurable. For example, if a client asks initially for 10
+   records this module may extend that and fetch more records and only
+   return the results in the 10 record window - after sorting.
+  </para>
+  <para>
+   The configuration is given as attribute inside element
+   <literal>sort</literal>. This element must occur exactly once. Future
+   versions of the sort module may include multiple sort elements.
+   The attributes within sort are:
+   <variablelist>
+    <varlistentry><term>xpath</term>
+     <listitem>
+      <para>
+       Specifies the X-Path expression that picks the sorting data from
+       the record.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>namespaces</term>
+     <listitem>
+      <para>
+       Allows one or more namespaces to be declared with a user-defined
+       prefix. Each prefix may be referred to within the xpath expression.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>prefetch</term>
+     <listitem>
+      <para>
+       Number of records to prefetch.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>ascending</term>
+     <listitem>
+      <para>
+       Is a boolean value (false, true). If true, the sort module will
+       sort ascending. If false, the sort module will sort descending.
+       If omitted, the sort order will be ascending.
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </para>
+ </refsect1>
+ 
+ <refsect1><title>SCHEMA</title>
+   <literallayout><xi:include
+		     xi:href="../xml/schema/filter_sort.rnc"
+		     xi:parse="text"  
+		     xmlns:xi="http://www.w3.org/2001/XInclude" />
+   </literallayout>
+ </refsect1>
+ 
+ <refsect1><title>EXAMPLES</title>
+  <para>
+   For example, to sort MARCXML records on title, one could use:
+   <screen><![CDATA[
+<filter type="sort">
+  <sort 
+    xpath="/marc:record/marc:datafield[@tag='245']/marc:subfield[@code='a']"
+    namespaces="marc=http://www.loc.gov/MARC21/slim"
+    prefetch="5"
+    ascending="true"
+    debug="true"
+   />
+</filter>
+]]>
+   </screen>
+  </para>
+ </refsect1> 
+ 
+ <refsect1><title>SEE ALSO</title>
+  <para>
+   <citerefentry>
+    <refentrytitle>metaproxy</refentrytitle>
+    <manvolnum>1</manvolnum>
+   </citerefentry>
+  </para>
+  <para>
+   <citerefentry>
+    <refentrytitle>record_transform</refentrytitle>
+    <manvolnum>3mp</manvolnum>
+   </citerefentry>
+  </para>
+ </refsect1>
+ 
+ &copyright;
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: nxml
+nxml-child-indent: 1
+End:
+-->

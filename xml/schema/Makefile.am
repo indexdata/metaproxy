@@ -18,6 +18,7 @@ filter_multi.rnc \
 filter_query_rewrite.rnc \
 filter_record_transform.rnc \
 filter_session_shared.rnc \
+filter_sort.rnc \
 filter_sru_z3950.rnc \
 filter_virt_db.rnc \
 filter_z3950_client.rnc \

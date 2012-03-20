@@ -1,0 +1,19 @@
+# Metaproxy XML config file schema
+
+namespace mp = "http://indexdata.com/metaproxy"
+
+filter_sort =
+  attribute type { "sort" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element mp:sort {
+    attribute prefetch { xsd:integer }?,
+    attribute xpath { xsd:string },
+    attribute namespaces { xsd:string }?,
+    attribute ascending { xsd:boolean }?,
+    attribute debug { xsd:boolean }?
+  }
+
+
+
+

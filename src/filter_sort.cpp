@@ -51,6 +51,7 @@ namespace metaproxy_1 {
             std::string m_xpath_expr;
             std::string m_namespaces;
             bool m_ascending;
+            bool m_debug;
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
@@ -62,12 +63,12 @@ namespace metaproxy_1 {
             Z_NamePlusRecord *npr;
             std::string score;
             void get_xpath(xmlDoc *doc, const char *namespaces,
-                           const char *expr);
+                           const char *expr, bool debug);
             bool register_namespaces(xmlXPathContextPtr xpathCtx,
                                      const char *nsList);
         public:
             Record(Z_NamePlusRecord *n, const char *namespaces,
-                   const char *expr);
+                   const char *expr, bool debug);
             ~Record();
             bool operator < (const Record &rhs);
         };
@@ -77,6 +78,7 @@ namespace metaproxy_1 {
             mp::odr m_odr;
             std::string namespaces;
             std::string xpath_expr;
+            bool debug;
         public:
             bool cmp(Odr_oid *syntax);
             void add(Z_NamePlusRecord *s);
@@ -84,7 +86,7 @@ namespace metaproxy_1 {
             Z_NamePlusRecord *get(int i, bool ascending);
             void sort();
             RecordList(Odr_oid *, std::string namespaces,
-                       std::string xpath_expr);
+                       std::string xpath_expr, bool debug);
             ~RecordList();
         };
         class Sort::ResultSet : boost::noncopyable {
@@ -213,7 +215,7 @@ bool yf::Sort::Record::register_namespaces(xmlXPathContextPtr xpathCtx,
 
 
 void yf::Sort::Record::get_xpath(xmlDoc *doc, const char *namespaces,
-                                 const char *expr)
+                                 const char *expr, bool debug)
 {
     xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
     if (xpathCtx)
@@ -224,6 +226,8 @@ void yf::Sort::Record::get_xpath(xmlDoc *doc, const char *namespaces,
         if (xpathObj)
         {
             xmlNodeSetPtr nodes = xpathObj->nodesetval;
+            if (debug)
+                print_xpath_nodes(nodes, yaz_log_file());
             if (nodes)
             {
                 int i;
@@ -240,7 +244,7 @@ void yf::Sort::Record::get_xpath(xmlDoc *doc, const char *namespaces,
                     {
                         content = mp::xml::get_text(ptr);
                     }
-                    if (content.c_str())
+                    if (content.length())
                     {
                         score = content;
                         break;
@@ -255,7 +259,8 @@ void yf::Sort::Record::get_xpath(xmlDoc *doc, const char *namespaces,
 
 yf::Sort::Record::Record(Z_NamePlusRecord *n,
                          const char *namespaces,
-                         const char *expr) : npr(n) 
+                         const char *expr,
+                         bool debug) : npr(n) 
 {
     if (npr->which == Z_NamePlusRecord_databaseRecord)
     {
@@ -269,7 +274,7 @@ yf::Sort::Record::Record(Z_NamePlusRecord *n,
                 ext->u.octet_aligned->len);
             if (doc)
             {
-                get_xpath(doc, namespaces, expr);
+                get_xpath(doc, namespaces, expr, debug);
                 xmlFreeDoc(doc);
             }
         }
@@ -289,8 +294,9 @@ bool yf::Sort::Record::operator < (const Record &rhs)
 
 yf::Sort::RecordList::RecordList(Odr_oid *syntax,
                                  std::string a_namespaces,
-                                 std::string a_xpath_expr)
-    : namespaces(a_namespaces), xpath_expr(a_xpath_expr)
+                                 std::string a_xpath_expr,
+                                 bool a_debug)
+    : namespaces(a_namespaces), xpath_expr(a_xpath_expr), debug(a_debug)
 
 {
     if (syntax)
@@ -322,7 +328,7 @@ void yf::Sort::RecordList::add(Z_NamePlusRecord *s)
 {
     ODR oi = m_odr;
     Z_NamePlusRecord *npr = yaz_clone_z_NamePlusRecord(s, oi->mem);
-    Record record(npr, namespaces.c_str(), xpath_expr.c_str());
+    Record record(npr, namespaces.c_str(), xpath_expr.c_str(), debug);
     npr_list.push_back(record);
 }
 
@@ -375,7 +381,7 @@ yf::Sort::Frontend::~Frontend()
 }
 
 
-yf::Sort::Impl::Impl() : m_prefetch(20), m_ascending(true)
+yf::Sort::Impl::Impl() : m_prefetch(20), m_ascending(true), m_debug(false)
 {
 }
 
@@ -435,7 +441,7 @@ void yf::Sort::Impl::configure(const xmlNode *ptr, bool test_only,
     {
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
-        if (!strcmp((const char *) ptr->name, "config"))
+        if (!strcmp((const char *) ptr->name, "sort"))
         {            
             const struct _xmlAttr *attr;
             for (attr = ptr->properties; attr; attr = attr->next)
@@ -458,18 +464,13 @@ void yf::Sort::Impl::configure(const xmlNode *ptr, bool test_only,
                 {
                     m_namespaces = mp::xml::get_text(attr->children);
                 }
-                else if (!strcmp((const char *) attr->name, "sortorder"))
+                else if (!strcmp((const char *) attr->name, "ascending"))
                 {
-                    std::string t = mp::xml::get_text(attr->children);
-                    if (t == "ascending")
-                        m_ascending = true;
-                    else if (t == "descending")
-                        m_ascending = false;
-                    else
-                        throw mp::filter::FilterException(
-                            "Bad attribute value " + t + " for attribute " +
-                            std::string((const char *) attr->name));
-
+                    m_ascending = mp::xml::get_bool(attr->children, true);
+                }
+                else if (!strcmp((const char *) attr->name, "debug"))
+                {
+                    m_debug = mp::xml::get_bool(attr->children, false);
                 }
                 else
                     throw mp::filter::FilterException(
@@ -515,7 +516,8 @@ void yf::Sort::Frontend::handle_records(mp::Package &package,
         int pos = 1;
         RecordListPtr rlp(new RecordList(syntax,
                                          m_p->m_namespaces.c_str(),
-                                         m_p->m_xpath_expr.c_str()));
+                                         m_p->m_xpath_expr.c_str(),
+                                         m_p->m_debug));
         for (i = 0; i < nprl->num_records; i++, pos++)
             rlp->add(nprl->records[i]);
 
@@ -570,6 +572,10 @@ void yf::Sort::Frontend::handle_search(mp::Package &package, Z_APDU *apdu_req)
     std::string resultSetId = req->resultSetName;
     Package b_package(package.session(), package.origin());
     mp::odr odr;
+    Odr_oid *syntax = 0;
+
+    if (req->preferredRecordSyntax)
+        syntax = odr_oiddup(odr, req->preferredRecordSyntax);
 
     b_package.copy_filter(package);
     Sets_it sets_it = m_sets.find(req->resultSetName);
@@ -600,7 +606,7 @@ void yf::Sort::Frontend::handle_search(mp::Package &package, Z_APDU *apdu_req)
         Z_SearchResponse *res = gdu_res->u.z3950->u.searchResponse;
         s->hit_count = *res->resultCount;
         handle_records(b_package, apdu_req, res->records, 1, s,
-                       req->preferredRecordSyntax, resultSetId.c_str());
+                       syntax, resultSetId.c_str());
         package.response() = gdu_res;
     }
 }
@@ -611,6 +617,11 @@ void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
     std::string resultSetId = req->resultSetId;
     Package b_package(package.session(), package.origin());
     mp::odr odr;
+    Odr_oid *syntax = 0;
+    Odr_int start = *req->resultSetStartPoint;
+
+    if (req->preferredRecordSyntax)
+        syntax = odr_oiddup(odr, req->preferredRecordSyntax);
 
     b_package.copy_filter(package);
     Sets_it sets_it = m_sets.find(resultSetId);
@@ -666,8 +677,7 @@ void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
     {
         Z_PresentResponse *res = gdu_res->u.z3950->u.presentResponse;
         handle_records(b_package, apdu_req, res->records, 
-                       *req->resultSetStartPoint, rset,
-                       req->preferredRecordSyntax, resultSetId.c_str());
+                       start, rset, syntax, resultSetId.c_str());
         package.response() = gdu_res;
     }
 }
