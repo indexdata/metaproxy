@@ -6,6 +6,8 @@
     <filter id="frontend" type="frontend_net">
       <threads>50</threads>
       <port>@:9000</port>
+      <!-- Uncomment the message below to get queue/thread usage logging -->
+      <!-- <message>FN</message> -->
     </filter>
   </filters>
   <routes>  
