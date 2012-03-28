@@ -1,4 +1,10 @@
 # Defaults for metaproxy
-OPTIONS="-u nobody -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"
+# User and HOME of metaproxy daemon
+SERVER_HOME=/var/metaproxy
+SERVER_USER=metaproxy
+SERVER_GROUP=metaproxy
+SERVER_NAME="Metaproxy user"
+#
+OPTIONS="-u $SERVER_USER -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"
 # The following options should noe be set, because since init.d script
 # already sets them: -p, -D, -t

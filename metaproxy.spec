@@ -107,6 +107,36 @@ rm -fr ${RPM_BUILD_ROOT}
 %config(noreplace) /etc/sysconfig/metaproxy
 
 %post
+[ -f /etc/sysconfig/metaproxy ] && . /etc/sysconfig/metaproxy
+[ -z "$SERVER_HOME" ] && SERVER_HOME=/var/metaproxy
+[ -z "$SERVER_USER" ] && SERVER_USER=metaproxy
+[ -z "$SERVER_NAME" ] && SERVER_NAME="Metaproxy user"
+[ -z "$SERVER_GROUP" ] && SERVER_GROUP=metaproxy
+
+ # 1. create group if not existing
+if ! getent group | grep -q "^$SERVER_GROUP:" ; then
+        echo -n "Adding group $SERVER_GROUP.."
+        groupadd -r $SERVER_GROUP 2>/dev/null ||true
+        echo "..done"
+fi
+# 2. create user if not existing
+if ! getent passwd | grep -q "^$SERVER_USER:"; then
+        echo -n "Adding system user $SERVER_USER.."
+        useradd \
+            -r \
+	    -s /sbin/nologin \
+            -c "$SERVER_NAME" \
+	    -d $SERVER_HOME \
+            -g $SERVER_GROUP \
+            $SERVER_USER 2>/dev/null || true
+        echo "..done"
+fi
+
+if test ! -d $SERVER_HOME; then
+	mkdir $SERVER_HOME
+	chown $SERVER_USER:$SERVER_GROUP $SERVER_HOME
+fi
+
 if [ $1 = 1 ]; then
         /sbin/chkconfig --add metaproxy
         /sbin/service metaproxy start > /dev/null 2>&1
@@ -115,7 +145,19 @@ else
 fi
 %preun
 if [ $1 = 0 ]; then
-        /sbin/service metaproxy stop > /dev/null 2>&1
-        /sbin/chkconfig --del metaproxy
+	if test -f /etc/init.d/metaproxy; then
+        	/sbin/service metaproxy stop > /dev/null 2>&1
+        	/sbin/chkconfig --del metaproxy
+	fi
 fi
+%postun
+[ -f /etc/sysconfig/metaproxy ] && . /etc/sysconfig/metaproxy
+[ -z "$SERVER_HOME" ] && SERVER_HOME=/var/metaproxy
+[ -z "$SERVER_USER" ] && SERVER_USER=metaproxy
+[ -z "$SERVER_NAME" ] && SERVER_NAME="Metaproxy user"
+[ -z "$SERVER_GROUP" ] && SERVER_GROUP=metaproxy
 
+if [ $1 = 0 ]; then
+	test -d $SERVER_HOME && rm -fr $SERVER_HOME
+	userdel $SERVER_USER
+fi
