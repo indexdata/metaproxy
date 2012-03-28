@@ -6,5 +6,11 @@
 # This is a POSIX shell fragment
 #
 
+# User and HOME of metaproxy daemon
+SERVER_HOME=/var/metaproxy
+SERVER_USER=metaproxy
+SERVER_GROUP=metaproxy
+SERVER_NAME="Metaproxy user"
+
 # Additional options that are passed to the Daemon.
-DAEMON_OPTS="-D -u nobody -p /var/run/metaproxy.pid -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"
+DAEMON_OPTS="-D -u ${SERVER_USER} -p /var/run/metaproxy.pid -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"

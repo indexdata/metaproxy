@@ -1,0 +1,3 @@
+if [ -x "/etc/init.d/metaproxy" ]; then
+	invoke-rc.d metaproxy stop || exit $?
+fi
