@@ -67,6 +67,7 @@ mkdir -p ${RPM_BUILD_ROOT}/etc/logrotate.d
 mkdir -p ${RPM_BUILD_ROOT}/etc/init.d
 mkdir -p ${RPM_BUILD_ROOT}/etc/sysconfig
 install -m 644 rpm/metaproxy.xml ${RPM_BUILD_ROOT}/etc/metaproxy/metaproxy.xml
+install -m 644 rpm/metaproxy.user ${RPM_BUILD_ROOT}/etc/metaproxy/metaproxy.user
 install -m 755 rpm/metaproxy.init ${RPM_BUILD_ROOT}/etc/init.d/metaproxy
 install -m 644 rpm/metaproxy.sysconfig ${RPM_BUILD_ROOT}/etc/sysconfig/metaproxy
 install -m 644 rpm/metaproxy.logrotate  ${RPM_BUILD_ROOT}/etc/logrotate.d/metaproxy
@@ -101,17 +102,14 @@ rm -fr ${RPM_BUILD_ROOT}
 %{_mandir}/man?/*
 %config /etc/init.d/metaproxy
 %config(noreplace) /etc/metaproxy/metaproxy.xml
+%config /etc/metaproxy/metaproxy.user
 %dir /etc/metaproxy/filters-available
 %dir /etc/metaproxy/filters-enabled
 %config(noreplace) /etc/logrotate.d/metaproxy
 %config(noreplace) /etc/sysconfig/metaproxy
 
 %post
-[ -f /etc/sysconfig/metaproxy ] && . /etc/sysconfig/metaproxy
-[ -z "$SERVER_HOME" ] && SERVER_HOME=/var/metaproxy
-[ -z "$SERVER_USER" ] && SERVER_USER=metaproxy
-[ -z "$SERVER_NAME" ] && SERVER_NAME="Metaproxy user"
-[ -z "$SERVER_GROUP" ] && SERVER_GROUP=metaproxy
+. /etc/metaproxy/metaproxy.user
 
  # 1. create group if not existing
 if ! getent group | grep -q "^$SERVER_GROUP:" ; then
@@ -149,15 +147,7 @@ if [ $1 = 0 ]; then
         	/sbin/service metaproxy stop > /dev/null 2>&1
         	/sbin/chkconfig --del metaproxy
 	fi
-fi
-%postun
-[ -f /etc/sysconfig/metaproxy ] && . /etc/sysconfig/metaproxy
-[ -z "$SERVER_HOME" ] && SERVER_HOME=/var/metaproxy
-[ -z "$SERVER_USER" ] && SERVER_USER=metaproxy
-[ -z "$SERVER_NAME" ] && SERVER_NAME="Metaproxy user"
-[ -z "$SERVER_GROUP" ] && SERVER_GROUP=metaproxy
-
-if [ $1 = 0 ]; then
+	. /etc/metaproxy/metaproxy.user
 	test -d $SERVER_HOME && rm -fr $SERVER_HOME
 	userdel $SERVER_USER
 fi

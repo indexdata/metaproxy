@@ -1,0 +1,5 @@
+# Metaproxy user information
+SERVER_HOME=/var/metaproxy
+SERVER_USER=metaproxy
+SERVER_NAME="Metaproxy user"
+SERVER_GROUP=metaproxy

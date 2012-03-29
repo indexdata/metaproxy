@@ -96,7 +96,9 @@ else
 fi
 # end of compatibility layer for RedHat/SuSE
 
-OPTIONS="-u nobody -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"
+. /etc/metaproxy/metaproxy.user
+
+OPTIONS="-u $SERVER_USER -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"
 
 if [ -f /etc/sysconfig/metaproxy ]; then
         . /etc/sysconfig/metaproxy

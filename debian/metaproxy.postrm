@@ -6,12 +6,11 @@ case "$1" in
     purge)
 	update-rc.d metaproxy remove >/dev/null
 
-	[ -f /etc/default/metaproxy ] && . /etc/default/metaproxy
-	
-	[ -z "$SERVER_HOME" ] && SERVER_HOME=/var/metaproxy
-	[ -z "$SERVER_USER" ] && SERVER_USER=metaproxy
-	[ -z "$SERVER_NAME" ] && SERVER_NAME="Metaproxy user"
-	[ -z "$SERVER_GROUP" ] && SERVER_GROUP=metaproxy
+	# copy of metaproxy.user, which is gone at this point
+	SERVER_HOME=/var/metaproxy
+	SERVER_USER=metaproxy
+	SERVER_NAME="Metaproxy user"
+	SERVER_GROUP=metaproxy
 
         # find first and last SYSTEM_UID numbers
         for LINE in `grep SYSTEM_UID /etc/adduser.conf | grep -v "^#"`; do
