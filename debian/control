@@ -16,6 +16,7 @@ Package: metaproxy
 Section: net
 Architecture: any
 Depends: ${shlibs:Depends}, libmetaproxy4 (= ${Source-Version})
+Conflicts: cf-engine (<= 2.12.5)
 Description: Z39.50/SRU router (main executable)
  This is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets
