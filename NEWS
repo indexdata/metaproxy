@@ -1,3 +1,7 @@
+--- 1.3.28 2012/04/04
+
+New class, wrbuf, that wraps YAZ' WRBUF.
+
 --- 1.3.27 2012/03/30
 
 Metaproxy daemon is now running as user "metaproxy". This user is
