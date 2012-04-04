@@ -1545,7 +1545,6 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
                             xsltSaveResultToString(&xmlrec_buf, &rec_len,
                                                    rec_res, xsp);
                             rec_buf = (const char *) xmlrec_buf;
-                            package.log("zoom", YLOG_LOG, "xslt successful");
                             package.log_write(rec_buf, rec_len);
 
                             xmlFreeDoc(rec_res);
