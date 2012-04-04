@@ -262,22 +262,19 @@ std::string mp_util::zQueryToString(Z_Query *query)
 {
     std::string query_str = "";
 
-    if (query && query->which == Z_Query_type_1){
+    if (query && query->which == Z_Query_type_1)
+    {
         Z_RPNQuery *rpn = query->u.type_1;
         
-        if (rpn){
-            
-            // allocate wrbuf (strings in YAZ!)
-            WRBUF w = wrbuf_alloc();
+        if (rpn)
+        {
+            mp::wrbuf w;
             
             // put query in w
             yaz_rpnquery_to_wrbuf(w, rpn);
             
             // from w to std::string
-            query_str = std::string(wrbuf_buf(w), wrbuf_len(w));
-            
-            // destroy wrbuf
-            wrbuf_destroy(w);
+            query_str = std::string(w.buf(), w.len());
         }
     }
 
@@ -702,6 +699,31 @@ std::string mp_util::uri_decode(std::string s)
     std::string result(x);
     xfree(x);
     return result;
+}
+
+mp::wrbuf::wrbuf()
+{
+    m_wrbuf = wrbuf_alloc();
+}
+
+mp::wrbuf::~wrbuf()
+{
+    wrbuf_destroy(m_wrbuf);
+}
+
+mp::wrbuf::operator WRBUF() const
+{
+    return m_wrbuf;
+}
+
+size_t mp::wrbuf::len()
+{
+    return wrbuf_len(m_wrbuf);
+}
+
+const char *mp::wrbuf::buf()
+{
+    return wrbuf_buf(m_wrbuf);
 }
 
 

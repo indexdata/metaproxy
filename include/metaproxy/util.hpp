@@ -152,6 +152,18 @@ namespace metaproxy_1 {
         ODR m_odr;
     };
 
+    class wrbuf : public boost::noncopyable
+    {
+    public:
+        wrbuf();
+        ~wrbuf();
+        operator WRBUF() const;
+        size_t len();
+        const char *buf();
+    private:
+        WRBUF m_wrbuf;
+    };
+    
     class PlainFile {
         class Rep;
         boost::scoped_ptr<Rep> m_p;

@@ -303,16 +303,15 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
         package.log_reset(l);
         if (l.length())
         {
-            WRBUF w = wrbuf_alloc();
+            mp::wrbuf w;
             
             wrbuf_puts(w, "<log>\n");
             wrbuf_xmlputs(w, l.c_str());
             wrbuf_puts(w, "</log>");
             
-            sru_pdu_res->extraResponseData_len = wrbuf_len(w);
+            sru_pdu_res->extraResponseData_len = w.len();
             sru_pdu_res->extraResponseData_buf =
                 odr_strdup(odr_en, wrbuf_cstr(w));
-            wrbuf_destroy(w);
         }
     }
     

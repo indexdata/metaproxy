@@ -226,10 +226,9 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 os << "-";
 
             os << " ";
-            WRBUF wr = wrbuf_alloc();
+            mp::wrbuf wr;
             yaz_query_to_wrbuf(wr, sr->query);
             os << wrbuf_cstr(wr);
-            wrbuf_destroy(wr);
         }
         break;
     case Z_APDU_searchResponse:
@@ -360,11 +359,10 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 os << " ";
                 if (sr->termListAndStartPoint)
                 {
-                    WRBUF wr = wrbuf_alloc();
+                    mp::wrbuf wr;
                     yaz_scan_to_wrbuf(wr, sr->termListAndStartPoint, 
                                       sr->attributeSet);
                     os << wrbuf_cstr(wr);
-                    wrbuf_destroy(wr);
                 }
                 else
                     os << "-";

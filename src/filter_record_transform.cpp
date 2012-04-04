@@ -461,7 +461,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
             Z_NamePlusRecord *npr = records->records[i];
             if (npr->which == Z_NamePlusRecord_databaseRecord)
             {
-                WRBUF output_record = wrbuf_alloc();
+                mp::wrbuf output_record;
                 Z_External *r = npr->u.databaseRecord;
                 int ret_trans = 0;
                 if (r->which == Z_External_OPAC)
@@ -482,8 +482,8 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
                 {
                     npr->u.databaseRecord =
                         z_ext_record_oid(odr_en, match_syntax,
-                                         wrbuf_buf(output_record),
-                                         wrbuf_len(output_record));
+                                         output_record.buf(),
+                                         output_record.len());
                 }
                 else
                 {
@@ -493,7 +493,6 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
                             YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
                             yaz_record_conv_get_error(rc));
                 }
-                wrbuf_destroy(output_record);
             }
         }
         package.response() = gdu_res;

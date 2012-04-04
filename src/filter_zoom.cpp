@@ -85,7 +85,7 @@ namespace metaproxy_1 {
             friend class Impl;
             friend class Frontend;
             std::string zurl;
-            WRBUF m_apdu_wrbuf;
+            mp::wrbuf m_apdu_wrbuf;
             ZOOM_connection m_connection;
             ZOOM_resultset m_resultset;
             std::string m_frontend_database;
@@ -263,7 +263,6 @@ void yf::Zoom::process(mp::Package &package) const
 
 yf::Zoom::Backend::Backend()
 {
-    m_apdu_wrbuf = wrbuf_alloc();
     m_connection = ZOOM_connection_create(0);
     ZOOM_connection_save_apdu_wrbuf(m_connection, m_apdu_wrbuf);
     m_resultset = 0;
@@ -281,7 +280,6 @@ yf::Zoom::Backend::~Backend()
         xmlFreeDoc(explain_doc);
     ZOOM_connection_destroy(m_connection);
     ZOOM_resultset_destroy(m_resultset);
-    wrbuf_destroy(m_apdu_wrbuf);
 }
 
 
@@ -845,7 +843,7 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
             return false;
         }
         b->content_session_id.assign(xx, 6);
-        WRBUF w = wrbuf_alloc();
+        mp::wrbuf w;
         wrbuf_puts(w, "#content_proxy\n");
         wrbuf_printf(w, "connector: %s\n", b->sptr->contentConnector.c_str());
         if (authentication.length())
@@ -855,11 +853,10 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
         if (realm.length())
             wrbuf_printf(w, "realm: %s\n", realm.c_str());
 
-        fwrite(wrbuf_buf(w), 1, wrbuf_len(w), file);
+        fwrite(w.buf(), 1, w.len(), file);
         fclose(file);
         package.log("zoom", YLOG_LOG, "content file: %s", fname);
         xfree(fname);
-        wrbuf_destroy(w);
     }
     return true;
 }
@@ -1791,20 +1788,18 @@ next_proxy:
 
     Odr_int hits = 0;
     Z_Query *query = sr->query;
-    WRBUF ccl_wrbuf = 0;
-    WRBUF pqf_wrbuf = 0;
+    mp::wrbuf ccl_wrbuf;
+    mp::wrbuf pqf_wrbuf;
     std::string sortkeys;
 
     if (query->which == Z_Query_type_1 || query->which == Z_Query_type_101)
     {
         // RPN
-        pqf_wrbuf = wrbuf_alloc();
         yaz_rpnquery_to_wrbuf(pqf_wrbuf, query->u.type_1);
     }
     else if (query->which == Z_Query_type_2)
     {
         // CCL
-        ccl_wrbuf = wrbuf_alloc();
         wrbuf_write(ccl_wrbuf, (const char *) query->u.type_2->buf,
                     query->u.type_2->len);
     }
@@ -1857,7 +1852,7 @@ next_proxy:
             return;
         }
 
-        WRBUF sru_sortkeys_wrbuf = wrbuf_alloc();
+        mp::wrbuf sru_sortkeys_wrbuf;
         if (cql_sortby_to_sortkeys(cn, wrbuf_vp_puts, sru_sortkeys_wrbuf))
         {
             error = YAZ_BIB1_ILLEGAL_SORT_RELATION;
@@ -1866,16 +1861,12 @@ next_proxy:
             log_diagnostic(package, error, addinfo);
             apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
             package.response() = apdu_res;
-            wrbuf_destroy(sru_sortkeys_wrbuf);
             cql_parser_destroy(cp);
             return;
         }
-        WRBUF sort_spec_wrbuf = wrbuf_alloc();
+        mp::wrbuf sort_spec_wrbuf;
         yaz_srw_sortkeys_to_sort_spec(wrbuf_cstr(sru_sortkeys_wrbuf),
                                       sort_spec_wrbuf);
-        wrbuf_destroy(sru_sortkeys_wrbuf);
-
-        ccl_wrbuf = wrbuf_alloc();
         wrbuf_puts(ccl_wrbuf, ccl_buf);
         
         yaz_tok_cfg_t tc = yaz_tok_cfg_create();
@@ -1910,8 +1901,6 @@ next_proxy:
             }
         }
         yaz_tok_parse_destroy(tp);
-        wrbuf_destroy(sort_spec_wrbuf);
-
         cql_parser_destroy(cp);
     }
     else
@@ -1924,16 +1913,15 @@ next_proxy:
         return;
     }
 
-    if (ccl_wrbuf)
+    if (ccl_wrbuf.len())
     {
         // CCL to PQF
-        assert(pqf_wrbuf == 0);
+        assert(pqf_wrbuf.len() == 0);
         int cerror, cpos;
         struct ccl_rpn_node *cn;
         package.log("zoom", YLOG_LOG, "CCL: %s", wrbuf_cstr(ccl_wrbuf));
         cn = ccl_find_str(b->sptr->ccl_bibset, wrbuf_cstr(ccl_wrbuf),
                           &cerror, &cpos);
-        wrbuf_destroy(ccl_wrbuf);
         if (!cn)
         {
             char *addinfo = odr_strdup_null(odr, ccl_err_msg(cerror));
@@ -1959,13 +1947,12 @@ next_proxy:
             package.response() = apdu_res;
             return;
         }
-        pqf_wrbuf = wrbuf_alloc();
         ccl_pquery(pqf_wrbuf, cn);
         package.log("zoom", YLOG_LOG, "RPN: %s", wrbuf_cstr(pqf_wrbuf));
         ccl_rpn_delete(cn);
     }
     
-    assert(pqf_wrbuf);
+    assert(pqf_wrbuf.len());
 
     ZOOM_query q = ZOOM_query_create();
     ZOOM_query_sortby2(q, b->sptr->sortStrategy.c_str(), sortkeys.c_str());
@@ -1975,7 +1962,7 @@ next_proxy:
         int status = 0;
         Z_RPNQuery *zquery;
         zquery = p_query_rpn(odr, wrbuf_cstr(pqf_wrbuf));
-        WRBUF wrb = wrbuf_alloc();
+        mp::wrbuf wrb;
             
         if (!strcmp(b->get_option("sru"), "solr"))
         {
@@ -2001,8 +1988,6 @@ next_proxy:
         }
         ZOOM_query_destroy(q);
         
-        wrbuf_destroy(wrb);
-        wrbuf_destroy(pqf_wrbuf);
         if (status)
         {
             error = YAZ_BIB1_MALFORMED_QUERY;
@@ -2019,7 +2004,6 @@ next_proxy:
         package.log("zoom", YLOG_LOG, "search PQF: %s", wrbuf_cstr(pqf_wrbuf));
         b->search(q, &hits, &error, &addinfo, odr);
         ZOOM_query_destroy(q);
-        wrbuf_destroy(pqf_wrbuf);
     }
 
     if (error && proxy_step)

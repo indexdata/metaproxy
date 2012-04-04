@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <metaproxy/filter.hpp>
 #include <metaproxy/package.hpp>
+#include <metaproxy/util.hpp>
 #include "router_flexml.hpp"
 #include "factory_static.hpp"
 
@@ -190,7 +191,7 @@ static int sc_main(
         yaz_log(YLOG_FATAL, "XInclude processing failed");
         return 1;
     }
-    WRBUF base_path = wrbuf_alloc();
+    mp::wrbuf base_path;
     const char *last_p = strrchr(fname,
 #ifdef WIN32
                                  '\\'
@@ -228,7 +229,6 @@ static int sc_main(
         yaz_log(YLOG_FATAL, "Unknown Exception");
         ret = 1;
     }
-    wrbuf_destroy(base_path);
     xmlFreeDoc(doc);
     return ret;
 }
