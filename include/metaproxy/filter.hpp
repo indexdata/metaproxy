@@ -41,6 +41,8 @@ namespace metaproxy_1 {
                                    const char *path) = 0;
 
             virtual void start() const;
+
+            virtual void stop() const;
         };
 
         class FilterException : public std::runtime_error {

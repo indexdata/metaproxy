@@ -38,6 +38,7 @@ namespace metaproxy_1 {
             void process(metaproxy_1::Package & package) const;
             void configure(const xmlNode * ptr, bool test_only,
                            const char *path);
+            void stop() const;
         public:
             /// set ports
             void set_ports(std::vector<Port> &ports);

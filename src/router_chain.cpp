@@ -58,6 +58,14 @@ void mp::RouterChain::start()
         (*it)->start();
 }
 
+void mp::RouterChain::stop()
+{
+    std::list<const filter::Base *>::const_iterator it;
+
+    for (it = m_p->m_filter_list.begin(); it != m_p->m_filter_list.end(); it++)
+        (*it)->stop();
+}
+
 const mp::filter::Base *mp::RouterChain::Pos::move(const char *route)
 {
     if (it == m_p->m_filter_list.end())
@@ -82,7 +90,6 @@ mp::RoutePos *mp::RouterChain::Pos::clone()
     p->m_p = m_p;
     return p;
 }
-
 
 mp::RouterChain::Pos::~Pos()
 {

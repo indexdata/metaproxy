@@ -43,6 +43,7 @@ namespace metaproxy_1
 
         virtual RoutePos *createpos() const = 0;
         virtual void start() = 0;
+        virtual void stop() = 0;
     };
 
     class RoutePos : boost::noncopyable {

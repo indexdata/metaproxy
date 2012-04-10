@@ -375,6 +375,17 @@ mp::filter::FrontendNet::~FrontendNet()
             delete m_p->az[i];
         delete [] m_p->az;
     }
+    m_p->az = 0;
+}
+
+void mp::filter::FrontendNet::stop() const
+{
+    if (m_p->az)
+    {
+        size_t i;
+        for (i = 0; i<m_p->m_ports.size(); i++)
+            m_p->az[i]->server("");
+    }
 }
 
 bool mp::My_Timer_Thread::timeout()

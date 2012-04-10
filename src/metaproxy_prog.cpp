@@ -52,8 +52,11 @@ static pid_t process_group = 0;
 
 static void sig_term_handler(int s)
 {
+    routerp->stop();
+#if 0
     kill(-process_group, SIGTERM); /* kill all children processes as well */
     _exit(0);
+#endif
 }
 #endif
 
@@ -69,6 +72,7 @@ static void handler_debug(void *data)
 
     mp::Package pack;
     pack.router(*routerp).move(); /* should never exit */
+    _exit(0);
 }
     
 static void handler_normal(void *data)

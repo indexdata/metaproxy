@@ -27,6 +27,10 @@ void mp::filter::Base::start() const
 {
 }
 
+void mp::filter::Base::stop() const
+{
+}
+
 /*
  * Local variables:
  * c-basic-offset: 4
