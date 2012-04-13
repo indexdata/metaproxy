@@ -16,7 +16,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// Filter that does nothing. Use as sru_to_z3950 for new filters 
 #ifndef FILTER_SRU_TO_Z3950_HPP
 #define FILTER_SRU_TO_Z3950_HPP
 

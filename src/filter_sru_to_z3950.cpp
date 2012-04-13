@@ -242,8 +242,6 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
     if (sru_pdu_req->which == Z_SRW_explain_request)
     {
         Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
-        //mp_util::build_simple_explain(package, odr_en, sru_pdu_res, 
-        //                           sruinfo, er_req);
         mp_util::build_sru_explain(package, odr_en, sru_pdu_res, 
                                    sruinfo, explainnode, er_req);
     }
@@ -450,26 +448,13 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
     return false;
 }
 
-bool 
-yf::SRUtoZ3950::Impl::z3950_close_request(mp::Package &package) const
+bool yf::SRUtoZ3950::Impl::z3950_close_request(mp::Package &package) const
 {
-    // prepare and close Z3950 package 
     Package z3950_package(package.session(), package.origin());
     z3950_package.copy_filter(package);
     z3950_package.session().close();
 
-    // set close APDU
-    //mp::odr odr_en(ODR_ENCODE);
-    //Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_close);
-    //z3950_package.request() = apdu;
-
     z3950_package.move();
-
-    // check successful close response
-    //Z_GDU *z3950_gdu = z3950_package.response().get();
-    //if (z3950_gdu && z3950_gdu->which == Z_GDU_Z3950 
-    //    && z3950_gdu->u.z3950->which == Z_APDU_close)
-    //    return true;
 
     if (z3950_package.session().is_closed())
     {
@@ -491,7 +476,6 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
     Package z3950_package(package.session(), package.origin());
     z3950_package.copy_filter(package);
 
-    //add stuff in z3950 apdu
     Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_searchRequest);
     Z_SearchRequest *z_searchRequest = apdu->u.searchRequest;
 
@@ -515,7 +499,6 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
                 = odr_strdup(odr_en, "Default");
     }
 
-    // z3950'fy query
     Z_Query *z_query = (Z_Query *) odr_malloc(odr_en, sizeof(Z_Query));
     z_searchRequest->query = z_query;
  
@@ -532,16 +515,9 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
 
     z3950_package.request() = apdu;
         
-    // send Z39.50 package off to backend
     z3950_package.move();
 
-
     Z_GDU *z3950_gdu = z3950_package.response().get();
-
-    //TODO: check success condition
-    //int yaz_diag_bib1_to_srw (int bib1_code);
-    //int yaz_diag_srw_to_bib1(int srw_code);
-    //Se kode i src/seshigh.c (srw_bend_search, srw_bend_init).
 
     if (!z3950_gdu || z3950_gdu->which != Z_GDU_Z3950 
         || z3950_gdu->u.z3950->which != Z_APDU_searchResponse
@@ -555,30 +531,20 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
         return false;
     }
     
-    // everything fine, continuing
     Z_SearchResponse *sr = z3950_gdu->u.z3950->u.searchResponse;
 
-    // checking non surrogate diagnostics in Z3950 search response package
     if (!z3950_to_srw_diagnostics_ok(odr_en, sru_pdu_res->u.response, 
                                      sr->records))
     {
         return false;
     }
 
-    // Finally, roll on and srw'fy number of records
-    sru_pdu_res->u.response->numberOfRecords 
+    sru_pdu_res->u.response->numberOfRecords
         = odr_intdup(odr_en, *sr->resultCount);
-    
-    // srw'fy nextRecordPosition
-    //sru_pdu_res->u.response->nextRecordPosition 
-    //    = (int *) odr_malloc(odr_en, sizeof(int *));
-    //*(sru_pdu_res->u.response->nextRecordPosition) = 1;
-
     return true;
 }
 
-bool 
-yf::SRUtoZ3950::Impl::z3950_present_request(
+bool yf::SRUtoZ3950::Impl::z3950_present_request(
     mp::Package &package, 
     mp::odr &odr_en,
     Z_SRW_PDU *sru_pdu_res,
@@ -780,8 +746,9 @@ yf::SRUtoZ3950::Impl::z3950_present_request(
     return true;
 }
 
-int yf::SRUtoZ3950::Impl::z3950_build_query(mp::odr &odr_en, Z_Query *z_query, 
-                                            const Z_SRW_searchRetrieveRequest *req
+int yf::SRUtoZ3950::Impl::z3950_build_query(
+    mp::odr &odr_en, Z_Query *z_query, 
+    const Z_SRW_searchRetrieveRequest *req
     ) const
 {        
     if (req->query_type == Z_SRW_query_type_cql)
@@ -822,12 +789,11 @@ int yf::SRUtoZ3950::Impl::z3950_build_query(mp::odr &odr_en, Z_Query *z_query,
     return YAZ_SRW_MANDATORY_PARAMETER_NOT_SUPPLIED;
 }
 
-
-bool 
-yf::SRUtoZ3950::Impl::z3950_to_srw_diagnostics_ok(mp::odr &odr_en, 
-                                                  Z_SRW_searchRetrieveResponse 
-                                                  *sru_res,
-                                                  Z_Records *records) const
+bool yf::SRUtoZ3950::Impl::z3950_to_srw_diagnostics_ok(
+    mp::odr &odr_en, 
+    Z_SRW_searchRetrieveResponse 
+    *sru_res,
+    Z_Records *records) const
 {
     // checking non surrogate diagnostics in Z3950 present response package
     if (records 
@@ -841,11 +807,10 @@ yf::SRUtoZ3950::Impl::z3950_to_srw_diagnostics_ok(mp::odr &odr_en,
     return true;
 }
 
-
-int 
-yf::SRUtoZ3950::Impl::z3950_to_srw_diag(mp::odr &odr_en, 
-                                        Z_SRW_searchRetrieveResponse *sru_res,
-                                        Z_DefaultDiagFormat *ddf) const
+int yf::SRUtoZ3950::Impl::z3950_to_srw_diag(
+    mp::odr &odr_en, 
+    Z_SRW_searchRetrieveResponse *sru_res,
+    Z_DefaultDiagFormat *ddf) const
 {
     int bib1_code = *ddf->condition;
     sru_res->num_diagnostics = 1;
@@ -856,8 +821,6 @@ yf::SRUtoZ3950::Impl::z3950_to_srw_diag(mp::odr &odr_en,
                           ddf->u.v2Addinfo);
     return 0;
 }
-
-
 
 static mp::filter::Base* filter_creator()
 {
