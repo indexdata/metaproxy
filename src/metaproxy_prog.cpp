@@ -50,22 +50,25 @@ mp::RouterFleXML *routerp = 0;
 #if HAVE_UNISTD_H
 static pid_t process_group = 0;
 
-static void sig_term_handler(int s)
+static void sig_usr1_handler(int s)
 {
     routerp->stop();
-#if 0
+}
+
+static void sig_term_handler(int s)
+{
     kill(-process_group, SIGTERM); /* kill all children processes as well */
     _exit(0);
-#endif
 }
 #endif
 
-static void handler_debug(void *data)
+static void work_common(void *data)
 {
 #if HAVE_UNISTD_H
     process_group = getpgid(0); // save process group ID
     
     signal(SIGTERM, sig_term_handler);
+    signal(SIGUSR1, sig_usr1_handler);
 #endif
     routerp = (mp::RouterFleXML*) data;
     routerp->start();
@@ -74,14 +77,19 @@ static void handler_debug(void *data)
     pack.router(*routerp).move(); /* should never exit */
     _exit(0);
 }
+
+static void work_debug(void *data)
+{
+    work_common(data);
+}
     
-static void handler_normal(void *data)
+static void work_normal(void *data)
 {
 #if HAVE_UNISTD_H
     /* make the current working process group leader */
     setpgid(0, 0);
 #endif
-    handler_debug(data);
+    work_common(data);
 }
 
 static int sc_main(
@@ -218,7 +226,7 @@ static int sc_main(
             yaz_sc_running(s);
             
             yaz_daemon("metaproxy", mode, mode == YAZ_DAEMON_DEBUG ?
-                       handler_debug : handler_normal, router, pidfile, uid);
+                       work_debug : work_normal, router, pidfile, uid);
         }
     }
     catch (std::logic_error &e) {
