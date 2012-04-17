@@ -1407,28 +1407,20 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
     {  // only return records if no error and at least one record
 
         const char *xsl_parms[3];
-        char cproxy_host[1024];
-
+        mp::wrbuf cproxy_host;
+        
         if (b->enable_cproxy && b->content_session_id.length())
         {
-            sprintf(cproxy_host, "%s.%s/",
-                    b->content_session_id.c_str(),
-                    m_p->content_proxy_server.c_str());
-            
-            char *q_cproxy_host = (char *) 
-                odr_malloc(odr, strlen(cproxy_host) + 3);
-            strcpy(q_cproxy_host, "\"");
-            strcat(q_cproxy_host, cproxy_host);
-            strcat(q_cproxy_host, "\"");
-
+            wrbuf_printf(cproxy_host, "\"%s.%s/\"",
+                         b->content_session_id.c_str(),
+                         m_p->content_proxy_server.c_str());
             xsl_parms[0] = "cproxyhost";
-            xsl_parms[1] = q_cproxy_host;
+            xsl_parms[1] = wrbuf_cstr(cproxy_host);
             xsl_parms[2] = 0;
         }
         else
         {
             xsl_parms[0] = 0;
-            *cproxy_host = '\0';
         }
 
         char *odr_database = odr_strdup(odr,

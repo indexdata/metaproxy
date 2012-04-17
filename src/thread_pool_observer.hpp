@@ -30,6 +30,7 @@ namespace metaproxy_1 {
         virtual IThreadPoolMsg *handle() = 0;
         virtual void result(const char *info) = 0;
         virtual ~IThreadPoolMsg();
+        virtual bool cleanup(void *info) = 0;
     };
 
     class ThreadPoolSocketObserver : public yazpp_1::ISocketObserver {
@@ -40,6 +41,7 @@ namespace metaproxy_1 {
                                  int no_threads);
         virtual ~ThreadPoolSocketObserver();
         void put(IThreadPoolMsg *m);
+        void cleanup(IThreadPoolMsg *m, void *info);
         IThreadPoolMsg *get();
         void run(void *p);
     private:
