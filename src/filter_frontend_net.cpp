@@ -103,7 +103,7 @@ namespace metaproxy_1 {
         ~ThreadPoolPackage();
         IThreadPoolMsg *handle();
         void result(const char *t_info);
-        
+        bool cleanup(void *info);
     private:
         yaz_timing_t timer;
         mp::ZAssocChild *m_assoc_child;
@@ -153,6 +153,13 @@ mp::ThreadPoolPackage::~ThreadPoolPackage()
 {
     yaz_timing_destroy(&timer); // timer may be NULL
     delete m_package;
+}
+
+bool mp::ThreadPoolPackage::cleanup(void *info)
+{
+    mp::Session *ses = (mp::Session *) info;
+
+    return *ses == m_package->session();
 }
 
 void mp::ThreadPoolPackage::result(const char *t_info)
@@ -284,7 +291,8 @@ void mp::ZAssocChild::failNotify()
     mp::ThreadPoolPackage *tp = new mp::ThreadPoolPackage(p, this,
                                                           m_msg_config);
     p->copy_route(*m_package);
-    m_thread_pool_observer->put(tp);  
+    m_thread_pool_observer->cleanup(tp, &m_session);
+    m_thread_pool_observer->put(tp);
 }
 
 void mp::ZAssocChild::timeoutNotify()

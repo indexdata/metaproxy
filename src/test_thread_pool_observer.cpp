@@ -40,6 +40,7 @@ class My_Msg : public mp::IThreadPoolMsg {
 public:
     mp::IThreadPoolMsg *handle();
     void result(const char *t_info);
+    bool cleanup(void *info);
     int m_val;
     My_Timer_Thread *m_timer;
 };
@@ -68,6 +69,11 @@ mp::IThreadPoolMsg *My_Msg::handle()
     res->m_val = m_val;
     res->m_timer = m_timer;
     return res;
+}
+
+bool My_Msg::cleanup(void *info)
+{
+    return false;
 }
 
 void My_Msg::result(const char *t_info)
