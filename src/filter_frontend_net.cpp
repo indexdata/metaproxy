@@ -126,7 +126,7 @@ namespace metaproxy_1 {
         
         void failNotify();
         void timeoutNotify();
-    void connectNotify();
+        void connectNotify();
     private:
         mp::ThreadPoolSocketObserver *m_thread_pool_observer;
         const mp::Package *m_package;
@@ -436,6 +436,8 @@ void mp::filter::FrontendNet::process(Package &package) const
     }
     while (m_p->mySocketManager.processEvent() > 0)
     {
+        if (m_p->mySocketManager.getNumberOfObservers() <= 1)
+            break;
 	if (tt && tt->timeout())
 	    break;
     }
