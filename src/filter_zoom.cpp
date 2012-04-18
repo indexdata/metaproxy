@@ -91,7 +91,7 @@ namespace metaproxy_1 {
             std::string m_frontend_database;
             SearchablePtr sptr;
             xsltStylesheetPtr xsp;
-            std::string content_session_id;
+            std::string cproxy_host;
             bool enable_cproxy;
             bool enable_explain;
             xmlDoc *explain_doc;
@@ -201,6 +201,7 @@ namespace metaproxy_1 {
             std::string file_path;
             std::string content_proxy_server;
             std::string content_tmp_file;
+            std::string content_config_file;
             bool apdu_log;
             CCL_bibset bibset;
             std::string element_transform;
@@ -622,7 +623,6 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
     std::string explain_xslt_fname;
     std::string record_xslt_fname;
 
-    content_tmp_file = "/tmp/cf.XXXXXX.p";
     if (path && *path)
     {
         file_path = path;
@@ -695,9 +695,19 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
             for (attr = ptr->properties; attr; attr = attr->next)
             {
                 if (!strcmp((const char *) attr->name, "server"))
+                {
+                    yaz_log(YLOG_WARN,
+                            "contentProxy's server attribute is deprecated");
+                    yaz_log(YLOG_LOG, 
+                            "Specify config_file instead. For example:");
+                    yaz_log(YLOG_LOG, 
+                            " content_file=\"/etc/cf-proxy/cproxy.cfg\"");
                     content_proxy_server = mp::xml::get_text(attr->children);
+                }
                 else if (!strcmp((const char *) attr->name, "tmp_file"))
                     content_tmp_file = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "config_file"))
+                    content_config_file = mp::xml::get_text(attr->children);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
@@ -820,16 +830,98 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
 {
     if (b->sptr->contentConnector.length())
     {
-        char *fname = (char *) xmalloc(m_p->content_tmp_file.length() + 8);
-        strcpy(fname, m_p->content_tmp_file.c_str());
+        std::string proxyhostname;
+        std::string tmp_file;
+        bool legacy_format = false;
+
+        if (m_p->content_proxy_server.length())
+        {
+            proxyhostname = m_p->content_proxy_server;
+            legacy_format = true;
+        }
+            
+        if (m_p->content_tmp_file.length())
+            tmp_file = m_p->content_tmp_file;
+
+        if (m_p->content_config_file.length())
+        {
+            FILE *inf = fopen(m_p->content_config_file.c_str(), "r");
+            if (inf)
+            {
+                char buf[1024];
+                while (fgets(buf, sizeof(buf)-1, inf))
+                {
+                    char *cp;
+                    cp = strchr(buf, '#');
+                    if (cp)
+                        *cp = '\0';
+                    cp = strchr(buf, '\n');
+                    if (cp)
+                        *cp = '\0';
+                    cp = strchr(buf, ':');
+                    if (cp)
+                    {
+                        char *cp1 = cp;
+                        while (cp1 != buf && cp1[-1] == ' ')
+                            cp1--;
+                        *cp1 = '\0';
+                        cp++;
+                        while (*cp == ' ')
+                            cp++;
+                        if (!strcmp(buf, "proxyhostname"))
+                            proxyhostname = cp; 
+                        if (!strcmp(buf, "sessiondir") && *cp)
+                        {
+                            if (cp[strlen(cp)-1] == '/')
+                                cp[strlen(cp)-1] = '\0';
+                            tmp_file = std::string(cp) + std::string("/cf.XXXXXX.p");
+                        }
+                    }
+                }
+                fclose(inf);
+            }
+            else
+            {
+                package.log("zoom", YLOG_WARN|YLOG_ERRNO,
+                            "unable to open content config %s",
+                            m_p->content_config_file.c_str());
+                *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+                *addinfo = (char *)  odr_malloc(odr, 60 + tmp_file.length());
+                sprintf(*addinfo, "unable to open content config %s",
+                        m_p->content_config_file.c_str());
+                return false;
+            }
+        }
+
+        if (proxyhostname.length() == 0)
+        {
+            package.log("zoom", YLOG_WARN, "no proxyhostname");
+            return true;
+        }
+        if (tmp_file.length() == 0)
+        {
+            package.log("zoom", YLOG_WARN, "no tmp_file");
+            return true;
+        }
+
+        char *fname = xstrdup(tmp_file.c_str());
         char *xx = strstr(fname, "XXXXXX");
         if (!xx)
         {
-            xx = fname + strlen(fname);
-            strcat(fname, "XXXXXX");
+            package.log("zoom", YLOG_WARN, "bad tmp_file %s", tmp_file.c_str());
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            *addinfo = (char *)  odr_malloc(odr, 60 + tmp_file.length());
+            sprintf(*addinfo, "bad format of content tmp_file: %s",
+                    tmp_file.c_str());
+            xfree(fname);
+            return false;
         }
         char tmp_char = xx[6];
         sprintf(xx, "%06d", ((unsigned) rand()) % 1000000);
+        if (legacy_format)
+            b->cproxy_host = std::string(xx) + "." + proxyhostname;
+        else
+            b->cproxy_host = proxyhostname + "/" + xx;
         xx[6] = tmp_char;
 
         FILE *file = fopen(fname, "w");
@@ -842,7 +934,6 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
             xfree(fname);
             return false;
         }
-        b->content_session_id.assign(xx, 6);
         mp::wrbuf w;
         wrbuf_puts(w, "#content_proxy\n");
         wrbuf_printf(w, "connector: %s\n", b->sptr->contentConnector.c_str());
@@ -1409,26 +1500,12 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
         const char *xsl_parms[3];
         mp::wrbuf cproxy_host;
         
-        if (b->enable_cproxy && b->content_session_id.length())
+        if (b->enable_cproxy && b->cproxy_host.length())
         {
-            const char *proxy_server_cstr = m_p->content_proxy_server.c_str();
-            const char *session_sub = strstr(proxy_server_cstr, "%s");
-            
-            if (session_sub)
-            {
-                wrbuf_puts(cproxy_host, "\"");
-                wrbuf_write(cproxy_host, proxy_server_cstr, 
-                            session_sub - proxy_server_cstr);
-                wrbuf_puts(cproxy_host, b->content_session_id.c_str());
-                wrbuf_puts(cproxy_host, session_sub + 2);
-                wrbuf_puts(cproxy_host, "/\"");
-            }
-            else
-            {
-                wrbuf_printf(cproxy_host, "\"%s.%s/\"",
-                             b->content_session_id.c_str(),
-                             proxy_server_cstr);
-            }
+            wrbuf_puts(cproxy_host, "\"");
+            wrbuf_puts(cproxy_host, b->cproxy_host.c_str());
+            wrbuf_puts(cproxy_host, "/\"");
+
             xsl_parms[0] = "cproxyhost";
             xsl_parms[1] = wrbuf_cstr(cproxy_host);
             xsl_parms[2] = 0;

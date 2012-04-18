@@ -194,8 +194,7 @@
         </qual>
       </cclmap>
       <contentProxy
-         server="hpxy.indexdata.com/%s"
-         tmp_file="/tmp/cf.XXXXXX.p"
+         config_file="/etc/cf-proxy/cproxy.cfg"
       />
       <log apdu="true"/>
       <zoom timeout="20"/>

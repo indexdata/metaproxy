@@ -62,6 +62,7 @@ filter_zoom =
     }*
   }?,
   element mp:contentProxy {
+    attribute config_file { xsd:string }?,
     attribute server { xsd:string }?,
     attribute tmp_file { xsd:string }?
   }?,
