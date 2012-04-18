@@ -1,3 +1,16 @@
+zoom: may read cf-proxy's config settings.
+This reduces manual configuration of the content proxy server host.
+The ZOOM module will use the old style session.proxyhost if "server"
+is given (deprecated) and use the new style proxyhost/session if
+"config_file" is in use.
+
+frontend_net: remove incoming requests that can not be handled
+Requests in queue for filter frontend_net are removed if client
+closes connection for the session and request is not yet handled.
+
+sru_z3950: serialize requests. This is to ensure that pipelined
+HTTP requests are handled properly.
+
 --- 1.3.28 2012/04/04
 
 New class, wrbuf, that wraps YAZ' WRBUF.
