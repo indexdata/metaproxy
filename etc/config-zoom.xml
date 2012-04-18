@@ -29,8 +29,8 @@
 	    <cclmap_ti>1=4 s=pw t=l,r</cclmap_ti>
 	    <requestSyntax>usmarc</requestSyntax>
 	    <transform>tmarc.xsl</transform>
-	    <urlRecipe>http://sever.com?title=${md-title[\s+/+/g]}</urlRecipe>
-	    <zurl>localhost:9998/db01</zurl>
+	    <urlRecipe>http://sever.com?title=${md-title[\s+/+/g]}&amp;parm=1</urlRecipe>
+	    <zurl>localhost:9998/Default?search-delay=2&amp;present-delay=2</zurl>
 	    <contentConnector>heikki/content1</contentConnector>
 	  </record>
 	  <record>
@@ -194,8 +194,7 @@
         </qual>
       </cclmap>
       <contentProxy
-         server="hpxy.indexdata.com"
-         tmp_file="/tmp/cf.XXXXXX.p"
+         config_file="/etc/cf-proxy/cproxy.cfg"
       />
       <log apdu="true"/>
       <zoom timeout="20"/>
@@ -206,15 +205,16 @@
       <filter refid="frontend"/>
       <filter type="log">
         <message>F</message>
+	<category apdu="false" session="true"/>
       </filter>
       <filter type="sru_z3950"/>
       <filter type="session_shared">
-        <resultset ttl="1"/>
+        <resultset ttl="0" restart="false"/>
         <session ttl="60" max="100"/>
       </filter>
       <filter type="log">
         <message>B</message>
-	<category apdu="true"/>
+	<category apdu="false" session="true"/>
       </filter>
       <filter refid="backend"/>
       <filter type="bounce"/>

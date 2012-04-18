@@ -233,6 +233,17 @@
    </para>
    <variablelist>
     <varlistentry>
+     <term>attribute <literal>config_file</literal></term>
+     <listitem>
+      <para>
+       Specifies the file that configures the cf-proxy system. Metaproxy
+       uses setting <literal>sessiondir</literal> and
+       <literal>proxyhostname</literal> from that file to configure
+       name of proxy host and directory of parameter files for the cf-proxy.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
      <term>attribute <literal>server</literal></term>
      <listitem>
       <para>
@@ -240,6 +251,12 @@
        host[:port]. That is without a method (such as HTTP) and optional
        port number.
       </para>
+      <note>
+       <para>
+	This setting is deprecated. Use the config_file (above)
+	to inform about the proxy server.
+       </para>
+      </note>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -252,6 +269,12 @@
        using the mkstemp(3) system call. The default value of this
        setting is <literal>/tmp/cf.XXXXXX.p</literal>.
       </para>
+      <note>
+       <para>
+	This setting is deprecated. Use the config_file (above)
+	to inform about the session file area.
+       </para>
+      </note>
      </listitem>
     </varlistentry>
    </variablelist>
