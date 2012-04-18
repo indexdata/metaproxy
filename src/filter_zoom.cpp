@@ -1411,9 +1411,24 @@ Z_Records *yf::Zoom::Frontend::get_records(Package &package,
         
         if (b->enable_cproxy && b->content_session_id.length())
         {
-            wrbuf_printf(cproxy_host, "\"%s.%s/\"",
-                         b->content_session_id.c_str(),
-                         m_p->content_proxy_server.c_str());
+            const char *proxy_server_cstr = m_p->content_proxy_server.c_str();
+            const char *session_sub = strstr(proxy_server_cstr, "%s");
+            
+            if (session_sub)
+            {
+                wrbuf_puts(cproxy_host, "\"");
+                wrbuf_write(cproxy_host, proxy_server_cstr, 
+                            session_sub - proxy_server_cstr);
+                wrbuf_puts(cproxy_host, b->content_session_id.c_str());
+                wrbuf_puts(cproxy_host, session_sub + 2);
+                wrbuf_puts(cproxy_host, "/\"");
+            }
+            else
+            {
+                wrbuf_printf(cproxy_host, "\"%s.%s/\"",
+                             b->content_session_id.c_str(),
+                             proxy_server_cstr);
+            }
             xsl_parms[0] = "cproxyhost";
             xsl_parms[1] = wrbuf_cstr(cproxy_host);
             xsl_parms[2] = 0;
