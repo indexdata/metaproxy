@@ -1069,7 +1069,7 @@ yf::SessionShared::Rep::Rep()
     m_resultset_max = 10;
     m_session_ttl = 90;
     m_optimize_search = true;
-    m_restart = true;
+    m_restart = false;
     m_session_max = 100;
 }
 
