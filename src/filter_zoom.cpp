@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
 #include <metaproxy/xmlutil.hpp>
+#include <yaz/comstack.h>
+#include <yaz/poll.h>
 #include "torus.hpp"
 
 #include <libxslt/xsltutils.h>
@@ -132,7 +134,8 @@ namespace metaproxy_1 {
                                                   int *error,
                                                   char **addinfo,
                                                   mp::odr &odr,
-                                                  int *proxy_step);
+                                                  int *proxy_step,
+                                                  std::string &proxy);
 
             bool create_content_session(mp::Package &package,
                                         BackendPtr b,
@@ -186,6 +189,7 @@ namespace metaproxy_1 {
                            const char *path);
         private:
             void configure_local_records(const xmlNode * ptr, bool test_only);
+            bool check_proxy(const char *proxy);
             FrontendPtr get_frontend(mp::Package &package);
             void release_frontend(mp::Package &package);
             SearchablePtr parse_torus_record(const xmlNode *ptr);
@@ -211,6 +215,7 @@ namespace metaproxy_1 {
             xsltStylesheetPtr record_xsp;
             std::map<std::string,SearchablePtr> s_map;
             std::string zoom_timeout;
+            int proxy_timeout;
         };
     }
 }
@@ -446,7 +451,7 @@ void yf::Zoom::Impl::release_frontend(mp::Package &package)
 
 yf::Zoom::Impl::Impl() :
     apdu_log(false), element_transform("pz2") , element_raw("raw"),
-    zoom_timeout("40")
+    zoom_timeout("40"), proxy_timeout(1)
 {
     bibset = ccl_qual_mk();
 
@@ -749,6 +754,8 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
             {
                 if (!strcmp((const char *) attr->name, "timeout"))
                     zoom_timeout = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "proxy_timeout"))
+                    proxy_timeout = mp::xml::get_int(attr->children, 1);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
@@ -970,8 +977,9 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
 yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     mp::Package &package,
     std::string &database, int *error, char **addinfo, mp::odr &odr,
-    int *proxy_step)
+    int *proxy_step, std::string &proxy)
 {
+    proxy.clear();
     std::list<BackendPtr>::const_iterator map_it;
     if (m_backend && !m_backend->enable_explain && 
         m_backend->m_frontend_database == database)
@@ -993,7 +1001,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     std::string authentication;
     std::string content_authentication;
-    std::string proxy;
     std::string content_proxy;
     std::string realm = m_p->default_realm;
 
@@ -1831,6 +1838,60 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
     }
 }
 
+static bool wait_conn(COMSTACK cs, int secs)
+{
+    struct yaz_poll_fd pfd;
+
+    yaz_poll_add(pfd.input_mask, yaz_poll_except);
+    if (cs->io_pending && CS_WANT_WRITE)
+        yaz_poll_add(pfd.input_mask, yaz_poll_write);
+    else if (cs->io_pending & CS_WANT_READ)
+        yaz_poll_add(pfd.input_mask, yaz_poll_read);
+
+    pfd.fd = cs_fileno(cs);
+    pfd.client_data = 0;
+    
+    int ret = yaz_poll(&pfd, 1, secs, 0);
+    return ret > 0;
+}
+
+bool yf::Zoom::Impl::check_proxy(const char *proxy)
+{
+    COMSTACK conn = 0;
+    const char *uri = "http://localhost/";
+    void *add;
+    mp::odr odr;
+    bool outcome = false;
+    conn = cs_create_host_proxy(uri, 0, &add, proxy);
+
+    if (!conn)
+        return false;
+
+    Z_GDU *gdu = z_get_HTTP_Request_uri(odr, uri, 0, 1);
+    gdu->u.HTTP_Request->method = odr_strdup(odr, "GET");
+    
+    if (z_GDU(odr, &gdu, 0, 0))
+    {
+        int len;
+        char *buf = odr_getbuf(odr, &len, 0);
+        
+        int ret = cs_connect(conn, add);
+        if (ret > 0 || (ret == 0 && wait_conn(conn, 1)))
+        {
+            while (1)
+            {
+                ret = cs_put(conn, buf, len);
+                if (ret != 1)
+                    break;
+                if (!wait_conn(conn, proxy_timeout))
+                    break;
+            }
+        }
+    }
+    cs_close(conn);
+    return outcome;
+}
+
 void yf::Zoom::Frontend::handle_search(mp::Package &package)
 {
     Z_GDU *gdu = package.request().get();
@@ -1847,20 +1908,38 @@ void yf::Zoom::Frontend::handle_search(mp::Package &package)
         return;
     }
     int proxy_step = 0;
+    int same_retries = 0;
+    int proxy_retries = 0;
 
 next_proxy:
 
     int error = 0;
     char *addinfo = 0;
     std::string db(sr->databaseNames[0]);
+    std::string proxy;
 
     BackendPtr b = get_backend_from_databases(package, db, &error,
-                                              &addinfo, odr, &proxy_step);
-    if (error && proxy_step)
+                                              &addinfo, odr, &proxy_step,
+                                              proxy);
+    if (error && same_retries == 0)
     {
-        package.log("zoom", YLOG_WARN,
-                    "create backend failed: trying next proxy");
-        goto next_proxy;
+        if (proxy.length() && proxy_step && !m_p->check_proxy(proxy.c_str()))
+        {   // we have a failover and the current one seems bad
+            proxy_retries++;
+            package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
+            m_backend.reset();
+            goto next_proxy;
+        }
+        else if (proxy_retries == 0)
+        {
+            // only perform retry for same proxy if we've had no other
+            // retries at all
+            same_retries++;
+            package.log("zoom", YLOG_WARN, "search failed: trying same proxy");
+            m_backend.reset();
+            proxy_step = 0;
+            goto next_proxy;
+        }
     }
     if (error)
     {
@@ -2104,12 +2183,25 @@ next_proxy:
         ZOOM_query_destroy(q);
     }
 
-    if (error && proxy_step)
+    if (error && same_retries == 0)
     {
-        // reset below prevent reuse in get_backend_from_databases
-        m_backend.reset();
-        package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
-        goto next_proxy;
+        if (proxy.length() && proxy_step && !m_p->check_proxy(proxy.c_str()))
+        {   // we have a failover and the current one seems bad
+            proxy_retries++;
+            package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
+            m_backend.reset();
+            goto next_proxy;
+        }
+        else if (proxy_retries == 0)
+        {
+            // only perform retry for same proxy if we've had no other
+            // retries at all
+            same_retries++;
+            package.log("zoom", YLOG_WARN, "search failed: trying same proxy");
+            m_backend.reset();
+            proxy_step = 0;
+            goto next_proxy;
+        }
     }
 
     const char *element_set_name = 0;
