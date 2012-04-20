@@ -303,10 +303,18 @@ void yf::Zoom::Backend::get_zoom_error(int *error, char **addinfo,
             *error = error0;
         else if (!strcmp(dset, "ZOOM"))
         {
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;                
             if (error0 == ZOOM_ERROR_INIT)
                 *error = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
-            else
-                *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;                
+            else if (error0 == ZOOM_ERROR_DECODE)
+            {
+                if (zoom_addinfo)
+                {
+                    if (strstr(zoom_addinfo, "Authentication") ||
+                        strstr(zoom_addinfo, "authentication"))
+                        *error = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
+                }
+            }
         }
         else
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
