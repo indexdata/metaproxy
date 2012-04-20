@@ -301,6 +301,13 @@ void yf::Zoom::Backend::get_zoom_error(int *error, char **addinfo,
             *error = yaz_diag_srw_to_bib1(error0);
         else if (!strcmp(dset, "Bib-1"))
             *error = error0;
+        else if (!strcmp(dset, "ZOOM"))
+        {
+            if (error0 == ZOOM_ERROR_INIT)
+                *error = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
+            else
+                *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;                
+        }
         else
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
         
