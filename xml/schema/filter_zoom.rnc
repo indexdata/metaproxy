@@ -70,7 +70,8 @@ filter_zoom =
     attribute apdu { xsd:boolean }?
   }?,
   element mp:zoom {
-    attribute timeout { xsd:integer }?
+    attribute timeout { xsd:integer }?,
+    attribute proxy_timeout { xsd:integer }?
   }?
 
 
