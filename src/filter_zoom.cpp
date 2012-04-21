@@ -1921,21 +1921,25 @@ next_proxy:
     BackendPtr b = get_backend_from_databases(package, db, &error,
                                               &addinfo, odr, &proxy_step,
                                               proxy);
-    if (error && same_retries == 0)
+
+    if (error)
     {
-        if (proxy.length() && proxy_step && !m_p->check_proxy(proxy.c_str()))
-        {   // we have a failover and the current one seems bad
-            proxy_retries++;
-            package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
-            m_backend.reset();
-            goto next_proxy;
-        }
-        else if (proxy_retries == 0)
+        if (proxy.length() && !m_p->check_proxy(proxy.c_str()))
         {
-            // only perform retry for same proxy if we've had no other
-            // retries at all
+            if (proxy_step) // there is a failover
+            {
+                proxy_retries++;
+                package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
+                m_backend.reset();
+                goto next_proxy;
+            }
+            error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            addinfo = odr_strdup(odr, "proxy failure");
+        }
+        else if (same_retries == 0 && proxy_retries == 0)
+        {
             same_retries++;
-            package.log("zoom", YLOG_WARN, "search failed: trying same proxy");
+            package.log("zoom", YLOG_WARN, "search failed: trying first proxy");
             m_backend.reset();
             proxy_step = 0;
             goto next_proxy;
@@ -2183,21 +2187,24 @@ next_proxy:
         ZOOM_query_destroy(q);
     }
 
-    if (error && same_retries == 0)
+    if (error)
     {
-        if (proxy.length() && proxy_step && !m_p->check_proxy(proxy.c_str()))
-        {   // we have a failover and the current one seems bad
-            proxy_retries++;
-            package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
-            m_backend.reset();
-            goto next_proxy;
-        }
-        else if (proxy_retries == 0)
+        if (proxy.length() && !m_p->check_proxy(proxy.c_str()))
         {
-            // only perform retry for same proxy if we've had no other
-            // retries at all
+            if (proxy_step) // there is a failover
+            {
+                proxy_retries++;
+                package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
+                m_backend.reset();
+                goto next_proxy;
+            }
+            error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            addinfo = odr_strdup(odr, "proxy failure");
+        }
+        else if (same_retries == 0 && proxy_retries == 0)
+        {
             same_retries++;
-            package.log("zoom", YLOG_WARN, "search failed: trying same proxy");
+            package.log("zoom", YLOG_WARN, "search failed: trying first proxy");
             m_backend.reset();
             proxy_step = 0;
             goto next_proxy;
