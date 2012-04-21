@@ -1933,7 +1933,7 @@ next_proxy:
                 m_backend.reset();
                 goto next_proxy;
             }
-            error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            error = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
             addinfo = odr_strdup(odr, "proxy failure");
         }
         else if (same_retries == 0 && proxy_retries == 0)
@@ -2198,7 +2198,7 @@ next_proxy:
                 m_backend.reset();
                 goto next_proxy;
             }
-            error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            error = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
             addinfo = odr_strdup(odr, "proxy failure");
         }
         else if (same_retries == 0 && proxy_retries == 0)
