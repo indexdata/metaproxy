@@ -50,7 +50,9 @@ namespace metaproxy_1 {
     namespace filter {
         class SRUtoZ3950::Frontend : boost::noncopyable {
             friend class Impl;
-            bool m_in_use;
+            int m_level;
+            bool m_is_closed;
+            boost::condition m_cond_session_ready;
         public:
             Frontend();
             ~Frontend();
@@ -60,8 +62,8 @@ namespace metaproxy_1 {
             void configure(const xmlNode *xmlnode);
             void process(metaproxy_1::Package &package);
         private:
-            FrontendPtr get_frontend(mp::Package &package);
-            void release_frontend(mp::Package &package);
+            FrontendPtr get_frontend(mp::Package &package, int &level);
+            void release_frontend(FrontendPtr f, int &level);
             std::map<std::string, const xmlNode *> m_database_explain;
 
             typedef std::map<std::string, int> ActiveUrlMap;
@@ -72,7 +74,6 @@ namespace metaproxy_1 {
 
 
             boost::mutex m_mutex_session;
-            boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;            
         private:
             void sru(metaproxy_1::Package &package, Z_GDU *zgdu_req);
@@ -333,7 +334,7 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
 }
 
 
-yf::SRUtoZ3950::Frontend::Frontend() :  m_in_use(true)
+yf::SRUtoZ3950::Frontend::Frontend() :  m_level(1), m_is_closed(false)
 {
 }
 
@@ -343,57 +344,50 @@ yf::SRUtoZ3950::Frontend::~Frontend()
 
 
 yf::SRUtoZ3950::FrontendPtr yf::SRUtoZ3950::Impl::get_frontend(
-    mp::Package &package)
+    mp::Package &package, int &level)
 {
     boost::mutex::scoped_lock lock(m_mutex_session);
 
     std::map<mp::Session,yf::SRUtoZ3950::FrontendPtr>::iterator it;
     
-    while (true)
-    {
-        it = m_clients.find(package.session());
-        if (it == m_clients.end())
-            break;
-        
-        if (!it->second->m_in_use)
-        {
-            it->second->m_in_use = true;
-            return it->second;
-        }
-        m_cond_session_ready.wait(lock);
-    }
-    FrontendPtr f(new Frontend);
-    m_clients[package.session()] = f;
-    f->m_in_use = true;
-    return f;
-}
-
-void yf::SRUtoZ3950::Impl::release_frontend(mp::Package &package)
-{
-    boost::mutex::scoped_lock lock(m_mutex_session);
-    std::map<mp::Session,FrontendPtr>::iterator it;
-    
     it = m_clients.find(package.session());
     if (it != m_clients.end())
     {
+        level = ++it->second->m_level;
         if (package.session().is_closed())
-        {
-            m_clients.erase(it);
-        }
-        else
-        {
-            it->second->m_in_use = false;
-        }
-        m_cond_session_ready.notify_all();
+            it->second->m_is_closed = true;
+        return it->second;
     }
+    FrontendPtr f(new Frontend);
+    m_clients[package.session()] = f;
+    level = f->m_level;
+    if (package.session().is_closed())
+        f->m_is_closed = true;
+    return f;
+}
+
+
+void yf::SRUtoZ3950::Impl::release_frontend(FrontendPtr f, int &level)
+{
+    boost::mutex::scoped_lock lock(m_mutex_session);
+
+    while (level != f->m_level)
+        f->m_cond_session_ready.wait(lock);
+    f->m_level--;
+    f->m_cond_session_ready.notify_all();
 }
 
 void yf::SRUtoZ3950::Impl::process(mp::Package &package)
 {
-    FrontendPtr f = get_frontend(package);
+    int level;
+    FrontendPtr f = get_frontend(package, level);
 
+    if (!f)
+    {
+        package.move();
+        return;
+    }
     Z_GDU *zgdu_req = package.request().get();
-
     if (zgdu_req && zgdu_req->which == Z_GDU_HTTP_Request)
     {
         if (zgdu_req->u.HTTP_Request->content_len == 0)
@@ -424,7 +418,7 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
             m_cond_url_ready.notify_all();
         }
     }
-    release_frontend(package);
+    release_frontend(f, level);
 }
 
 bool 
