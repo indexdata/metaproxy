@@ -97,6 +97,7 @@ namespace metaproxy_1 {
             bool enable_cproxy;
             bool enable_explain;
             xmlDoc *explain_doc;
+            std::string m_proxy;
         public:
             Backend();
             ~Backend();
@@ -134,8 +135,7 @@ namespace metaproxy_1 {
                                                   int *error,
                                                   char **addinfo,
                                                   mp::odr &odr,
-                                                  int *proxy_step,
-                                                  std::string &proxy);
+                                                  int *proxy_step);
 
             bool create_content_session(mp::Package &package,
                                         BackendPtr b,
@@ -977,15 +977,17 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
 yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     mp::Package &package,
     std::string &database, int *error, char **addinfo, mp::odr &odr,
-    int *proxy_step, std::string &proxy)
+    int *proxy_step)
 {
-    proxy.clear();
+    bool connection_reuse = false;
+    std::string proxy;
+
     std::list<BackendPtr>::const_iterator map_it;
     if (m_backend && !m_backend->enable_explain && 
         m_backend->m_frontend_database == database)
     {
-        m_backend->connect("", error, addinfo, odr);
-        return m_backend;
+        connection_reuse = true;
+        proxy = m_backend->m_proxy;
     }
 
     std::string input_args;
@@ -1049,15 +1051,31 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             char **dstr;
             int dnum = 0;
             nmem_strsplit(((ODR) odr)->mem, ",", value, &dstr, &dnum);
-            if (*proxy_step >= dnum)
-                *proxy_step = 0;
+            if (connection_reuse)
+            {
+                // find the step after our current proxy
+                int i;
+                for (i = 0; i < dnum; i++)
+                    if (!strcmp(proxy.c_str(), dstr[i]))
+                        break;
+                if (i >= dnum - 1)
+                    *proxy_step = 0;
+                else
+                    *proxy_step = i + 1;
+            }
             else
             {
-                proxy = dstr[*proxy_step];
-                
-                (*proxy_step)++;
-                if (*proxy_step == dnum)
+                // step is known.. Guess our proxy from it
+                if (*proxy_step >= dnum)
                     *proxy_step = 0;
+                else
+                {
+                    proxy = dstr[*proxy_step];
+                    
+                    (*proxy_step)++;
+                    if (*proxy_step == dnum)
+                        *proxy_step = 0;
+                }
             }
         }
         else if (!strcmp(name, "cproxysession"))
@@ -1082,7 +1100,16 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             *addinfo = msg;
             return notfound;
         }
+    }    
+    if (proxy.length())
+        package.log("zoom", YLOG_LOG, "proxy: %s", proxy.c_str());
+
+    if (connection_reuse)
+    {
+        m_backend->connect("", error, addinfo, odr);
+        return m_backend;
     }
+
     if (param_user)
     {
         authentication = std::string(param_user);
@@ -1225,6 +1252,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     BackendPtr b(new Backend);
 
+    b->m_proxy = proxy;
     b->sptr = sptr;
     b->xsp = xsp;
     b->m_frontend_database = database;
@@ -1304,9 +1332,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (proxy.length())
             b->set_option("proxy", proxy);
     }
-    if (proxy.length())
-        package.log("zoom", YLOG_LOG, "proxy: %s", proxy.c_str());
-                
     std::string url;
     if (sptr->sru.length())
     {
@@ -1916,21 +1941,20 @@ next_proxy:
     int error = 0;
     char *addinfo = 0;
     std::string db(sr->databaseNames[0]);
-    std::string proxy;
 
     BackendPtr b = get_backend_from_databases(package, db, &error,
-                                              &addinfo, odr, &proxy_step,
-                                              proxy);
-
+                                              &addinfo, odr, &proxy_step);
     if (error)
     {
-        if (proxy.length() && !m_p->check_proxy(proxy.c_str()))
+        if (b && b->m_proxy.length() && !m_p->check_proxy(b->m_proxy.c_str()))
         {
+            log_diagnostic(package, error, addinfo);
+            package.log("zoom", YLOG_LOG, "proxy %s fails", b->m_proxy.c_str());
+            m_backend.reset();
             if (proxy_step) // there is a failover
             {
                 proxy_retries++;
                 package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
-                m_backend.reset();
                 goto next_proxy;
             }
             error = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
@@ -1938,8 +1962,9 @@ next_proxy:
         }
         else if (same_retries == 0 && proxy_retries == 0)
         {
+            log_diagnostic(package, error, addinfo);
             same_retries++;
-            package.log("zoom", YLOG_WARN, "search failed: trying first proxy");
+            package.log("zoom", YLOG_WARN, "search failed: retry");
             m_backend.reset();
             proxy_step = 0;
             goto next_proxy;
@@ -2189,22 +2214,25 @@ next_proxy:
 
     if (error)
     {
-        if (proxy.length() && !m_p->check_proxy(proxy.c_str()))
+        if (b->m_proxy.length() && !m_p->check_proxy(b->m_proxy.c_str()))
         {
+            log_diagnostic(package, error, addinfo);
+            package.log("zoom", YLOG_LOG, "proxy %s fails", b->m_proxy.c_str());
+            m_backend.reset();
             if (proxy_step) // there is a failover
             {
                 proxy_retries++;
                 package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
-                m_backend.reset();
                 goto next_proxy;
             }
             error = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
             addinfo = odr_strdup(odr, "proxy failure");
         }
         else if (same_retries == 0 && proxy_retries == 0)
-        {
+        { 
+            log_diagnostic(package, error, addinfo);
             same_retries++;
-            package.log("zoom", YLOG_WARN, "search failed: trying first proxy");
+            package.log("zoom", YLOG_WARN, "search failed: retry");
             m_backend.reset();
             proxy_step = 0;
             goto next_proxy;
