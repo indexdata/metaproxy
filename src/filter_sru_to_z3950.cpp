@@ -424,6 +424,10 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
             m_cond_url_ready.notify_all();
         }
     }
+    else
+    {
+        package.move();
+    }
     release_frontend(package);
 }
 
