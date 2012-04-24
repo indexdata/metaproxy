@@ -1,3 +1,8 @@
+--- 1.3.32 2012/04/24
+
+sru_z3950 filter passes through incoming Z39.50 requests again. Was
+not handled by mistake in Metaproxy versions 1.3.29, 1.3.30 and 1.3.31.
+
 --- 1.3.31 2012/04/24
 
 zoom: fixes for retry/proxy failover logic. More logging.
