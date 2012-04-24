@@ -172,7 +172,12 @@ namespace metaproxy_1 {
                                            ODR odr, BackendPtr b,
                                            Odr_oid *preferredRecordSyntax,
                                            const char *element_set_name);
-
+            bool retry(mp::Package &package,
+                       mp::odr &odr,
+                       BackendPtr b, 
+                       int &error, char **addinfo,
+                       int &proxy_step, int &same_retries,
+                       int &proxy_retries);
             void log_diagnostic(mp::Package &package,
                                 int error, const char *addinfo);
         public:
@@ -190,6 +195,9 @@ namespace metaproxy_1 {
         private:
             void configure_local_records(const xmlNode * ptr, bool test_only);
             bool check_proxy(const char *proxy);
+
+
+
             FrontendPtr get_frontend(mp::Package &package);
             void release_frontend(mp::Package &package);
             SearchablePtr parse_torus_record(const xmlNode *ptr);
@@ -1917,6 +1925,39 @@ bool yf::Zoom::Impl::check_proxy(const char *proxy)
     return outcome;
 }
 
+bool yf::Zoom::Frontend::retry(mp::Package &package,
+                               mp::odr &odr,
+                               BackendPtr b, 
+                               int &error, char **addinfo,
+                               int &proxy_step, int &same_retries,
+                               int &proxy_retries)
+{
+    if (b && b->m_proxy.length() && !m_p->check_proxy(b->m_proxy.c_str()))
+    {
+        log_diagnostic(package, error, *addinfo);
+        package.log("zoom", YLOG_LOG, "proxy %s fails", b->m_proxy.c_str());
+        m_backend.reset();
+        if (proxy_step) // there is a failover
+        {
+            proxy_retries++;
+            package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
+            return true;
+        }
+        error = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
+        *addinfo = odr_strdup(odr, "proxy failure");
+    }
+    else if (same_retries == 0 && proxy_retries == 0)
+    {
+        log_diagnostic(package, error, *addinfo);
+        same_retries++;
+        package.log("zoom", YLOG_WARN, "search failed: retry");
+        m_backend.reset();
+        proxy_step = 0;
+        return true;
+    }
+    return false;
+}
+
 void yf::Zoom::Frontend::handle_search(mp::Package &package)
 {
     Z_GDU *gdu = package.request().get();
@@ -1946,29 +1987,9 @@ next_proxy:
                                               &addinfo, odr, &proxy_step);
     if (error)
     {
-        if (b && b->m_proxy.length() && !m_p->check_proxy(b->m_proxy.c_str()))
-        {
-            log_diagnostic(package, error, addinfo);
-            package.log("zoom", YLOG_LOG, "proxy %s fails", b->m_proxy.c_str());
-            m_backend.reset();
-            if (proxy_step) // there is a failover
-            {
-                proxy_retries++;
-                package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
-                goto next_proxy;
-            }
-            error = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
-            addinfo = odr_strdup(odr, "proxy failure");
-        }
-        else if (same_retries == 0 && proxy_retries == 0)
-        {
-            log_diagnostic(package, error, addinfo);
-            same_retries++;
-            package.log("zoom", YLOG_WARN, "search failed: retry");
-            m_backend.reset();
-            proxy_step = 0;
+        if (retry(package, odr, b, error, &addinfo, proxy_step,
+                  same_retries, proxy_retries))
             goto next_proxy;
-        }
     }
     if (error)
     {
@@ -2214,29 +2235,9 @@ next_proxy:
 
     if (error)
     {
-        if (b->m_proxy.length() && !m_p->check_proxy(b->m_proxy.c_str()))
-        {
-            log_diagnostic(package, error, addinfo);
-            package.log("zoom", YLOG_LOG, "proxy %s fails", b->m_proxy.c_str());
-            m_backend.reset();
-            if (proxy_step) // there is a failover
-            {
-                proxy_retries++;
-                package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
-                goto next_proxy;
-            }
-            error = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
-            addinfo = odr_strdup(odr, "proxy failure");
-        }
-        else if (same_retries == 0 && proxy_retries == 0)
-        { 
-            log_diagnostic(package, error, addinfo);
-            same_retries++;
-            package.log("zoom", YLOG_WARN, "search failed: retry");
-            m_backend.reset();
-            proxy_step = 0;
+        if (retry(package, odr, b, error, &addinfo, proxy_step,
+                  same_retries, proxy_retries))
             goto next_proxy;
-        }
     }
 
     const char *element_set_name = 0;
