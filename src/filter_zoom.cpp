@@ -97,6 +97,7 @@ namespace metaproxy_1 {
             bool enable_cproxy;
             bool enable_explain;
             xmlDoc *explain_doc;
+            std::string m_proxy;
         public:
             Backend();
             ~Backend();
@@ -134,8 +135,7 @@ namespace metaproxy_1 {
                                                   int *error,
                                                   char **addinfo,
                                                   mp::odr &odr,
-                                                  int *proxy_step,
-                                                  std::string &proxy);
+                                                  int *proxy_step);
 
             bool create_content_session(mp::Package &package,
                                         BackendPtr b,
@@ -172,7 +172,12 @@ namespace metaproxy_1 {
                                            ODR odr, BackendPtr b,
                                            Odr_oid *preferredRecordSyntax,
                                            const char *element_set_name);
-
+            bool retry(mp::Package &package,
+                       mp::odr &odr,
+                       BackendPtr b, 
+                       int &error, char **addinfo,
+                       int &proxy_step, int &same_retries,
+                       int &proxy_retries);
             void log_diagnostic(mp::Package &package,
                                 int error, const char *addinfo);
         public:
@@ -190,6 +195,9 @@ namespace metaproxy_1 {
         private:
             void configure_local_records(const xmlNode * ptr, bool test_only);
             bool check_proxy(const char *proxy);
+
+
+
             FrontendPtr get_frontend(mp::Package &package);
             void release_frontend(mp::Package &package);
             SearchablePtr parse_torus_record(const xmlNode *ptr);
@@ -977,15 +985,17 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
 yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     mp::Package &package,
     std::string &database, int *error, char **addinfo, mp::odr &odr,
-    int *proxy_step, std::string &proxy)
+    int *proxy_step)
 {
-    proxy.clear();
+    bool connection_reuse = false;
+    std::string proxy;
+
     std::list<BackendPtr>::const_iterator map_it;
     if (m_backend && !m_backend->enable_explain && 
         m_backend->m_frontend_database == database)
     {
-        m_backend->connect("", error, addinfo, odr);
-        return m_backend;
+        connection_reuse = true;
+        proxy = m_backend->m_proxy;
     }
 
     std::string input_args;
@@ -1049,15 +1059,31 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             char **dstr;
             int dnum = 0;
             nmem_strsplit(((ODR) odr)->mem, ",", value, &dstr, &dnum);
-            if (*proxy_step >= dnum)
-                *proxy_step = 0;
+            if (connection_reuse)
+            {
+                // find the step after our current proxy
+                int i;
+                for (i = 0; i < dnum; i++)
+                    if (!strcmp(proxy.c_str(), dstr[i]))
+                        break;
+                if (i >= dnum - 1)
+                    *proxy_step = 0;
+                else
+                    *proxy_step = i + 1;
+            }
             else
             {
-                proxy = dstr[*proxy_step];
-                
-                (*proxy_step)++;
-                if (*proxy_step == dnum)
+                // step is known.. Guess our proxy from it
+                if (*proxy_step >= dnum)
                     *proxy_step = 0;
+                else
+                {
+                    proxy = dstr[*proxy_step];
+                    
+                    (*proxy_step)++;
+                    if (*proxy_step == dnum)
+                        *proxy_step = 0;
+                }
             }
         }
         else if (!strcmp(name, "cproxysession"))
@@ -1082,7 +1108,16 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             *addinfo = msg;
             return notfound;
         }
+    }    
+    if (proxy.length())
+        package.log("zoom", YLOG_LOG, "proxy: %s", proxy.c_str());
+
+    if (connection_reuse)
+    {
+        m_backend->connect("", error, addinfo, odr);
+        return m_backend;
     }
+
     if (param_user)
     {
         authentication = std::string(param_user);
@@ -1225,6 +1260,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     BackendPtr b(new Backend);
 
+    b->m_proxy = proxy;
     b->sptr = sptr;
     b->xsp = xsp;
     b->m_frontend_database = database;
@@ -1304,9 +1340,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (proxy.length())
             b->set_option("proxy", proxy);
     }
-    if (proxy.length())
-        package.log("zoom", YLOG_LOG, "proxy: %s", proxy.c_str());
-                
     std::string url;
     if (sptr->sru.length())
     {
@@ -1892,6 +1925,39 @@ bool yf::Zoom::Impl::check_proxy(const char *proxy)
     return outcome;
 }
 
+bool yf::Zoom::Frontend::retry(mp::Package &package,
+                               mp::odr &odr,
+                               BackendPtr b, 
+                               int &error, char **addinfo,
+                               int &proxy_step, int &same_retries,
+                               int &proxy_retries)
+{
+    if (b && b->m_proxy.length() && !m_p->check_proxy(b->m_proxy.c_str()))
+    {
+        log_diagnostic(package, error, *addinfo);
+        package.log("zoom", YLOG_LOG, "proxy %s fails", b->m_proxy.c_str());
+        m_backend.reset();
+        if (proxy_step) // there is a failover
+        {
+            proxy_retries++;
+            package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
+            return true;
+        }
+        error = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
+        *addinfo = odr_strdup(odr, "proxy failure");
+    }
+    else if (same_retries == 0 && proxy_retries == 0)
+    {
+        log_diagnostic(package, error, *addinfo);
+        same_retries++;
+        package.log("zoom", YLOG_WARN, "search failed: retry");
+        m_backend.reset();
+        proxy_step = 0;
+        return true;
+    }
+    return false;
+}
+
 void yf::Zoom::Frontend::handle_search(mp::Package &package)
 {
     Z_GDU *gdu = package.request().get();
@@ -1916,30 +1982,14 @@ next_proxy:
     int error = 0;
     char *addinfo = 0;
     std::string db(sr->databaseNames[0]);
-    std::string proxy;
 
     BackendPtr b = get_backend_from_databases(package, db, &error,
-                                              &addinfo, odr, &proxy_step,
-                                              proxy);
-    if (error && same_retries == 0)
+                                              &addinfo, odr, &proxy_step);
+    if (error)
     {
-        if (proxy.length() && proxy_step && !m_p->check_proxy(proxy.c_str()))
-        {   // we have a failover and the current one seems bad
-            proxy_retries++;
-            package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
-            m_backend.reset();
+        if (retry(package, odr, b, error, &addinfo, proxy_step,
+                  same_retries, proxy_retries))
             goto next_proxy;
-        }
-        else if (proxy_retries == 0)
-        {
-            // only perform retry for same proxy if we've had no other
-            // retries at all
-            same_retries++;
-            package.log("zoom", YLOG_WARN, "search failed: trying same proxy");
-            m_backend.reset();
-            proxy_step = 0;
-            goto next_proxy;
-        }
     }
     if (error)
     {
@@ -2183,25 +2233,11 @@ next_proxy:
         ZOOM_query_destroy(q);
     }
 
-    if (error && same_retries == 0)
+    if (error)
     {
-        if (proxy.length() && proxy_step && !m_p->check_proxy(proxy.c_str()))
-        {   // we have a failover and the current one seems bad
-            proxy_retries++;
-            package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
-            m_backend.reset();
+        if (retry(package, odr, b, error, &addinfo, proxy_step,
+                  same_retries, proxy_retries))
             goto next_proxy;
-        }
-        else if (proxy_retries == 0)
-        {
-            // only perform retry for same proxy if we've had no other
-            // retries at all
-            same_retries++;
-            package.log("zoom", YLOG_WARN, "search failed: trying same proxy");
-            m_backend.reset();
-            proxy_step = 0;
-            goto next_proxy;
-        }
     }
 
     const char *element_set_name = 0;

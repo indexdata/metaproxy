@@ -1,3 +1,24 @@
+--- 1.3.31 2012/04/24
+
+zoom: fixes for retry/proxy failover logic. More logging.
+
+--- 1.3.30 2012/04/23
+
+zoom: return addinfo="proxy failure" for proxy failures. This also
+changes the scheme for dealing with proxies a bit.  zoom now always
+do proxy check, even if there's no failover. Fortunately, that's not
+very expensive.
+
+zoom: Init rejected wo diagnostics maps to Bib-1:1014.
+Bib-1 1014, "Init/AC: Authentication System error", seems pretty
+generic. We don't know why the init would fail; IP, user, block IP, etc.
+sru_z3950 filter maps this to SRU diagnostic 3: "Authentication error".
+
+zoom: guess if invalid SRU response was an auth failure
+
+session_shared: disable session retry by default . Can be enabled by
+restart="true" in resultset section.
+
 --- 1.3.29 2012/04/18
 
 zoom: may read cf-proxy's config settings.
