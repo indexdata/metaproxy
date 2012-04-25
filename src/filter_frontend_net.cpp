@@ -436,7 +436,8 @@ void mp::filter::FrontendNet::process(Package &package) const
     }
     while (m_p->mySocketManager.processEvent() > 0)
     {
-        if (m_p->mySocketManager.getNumberOfObservers() <= 1)
+        int no = m_p->mySocketManager.getNumberOfObservers();
+        if (no <= 1)
             break;
 	if (tt && tt->timeout())
 	    break;
