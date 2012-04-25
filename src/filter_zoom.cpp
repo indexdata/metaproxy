@@ -1149,8 +1149,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                                          realm, m_p->proxy);
         if (!doc)
         {
-            *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
-            *addinfo = odr_strdup(odr, torus_db.c_str());
+            *error = YAZ_BIB1_UNSPECIFIED_ERROR;
+            *addinfo = odr_strdup(odr, "Torus server unavailable or "
+                                  "incorrectly configured");
             BackendPtr b;
             return b;
         }
@@ -1843,8 +1844,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
         if (!doc)
         {
             *error = YAZ_BIB1_UNSPECIFIED_ERROR;
-            *addinfo = odr_strdup(odr, "IR-Explain---1 problem. " 
-                                  "Could not obtain Torus records for Explain");
+            *addinfo = odr_strdup(odr, "Torus server unavailable or "
+                                  "incorrectly configured");
         }
         else
         {
