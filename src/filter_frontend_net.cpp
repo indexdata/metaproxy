@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yazpp/limit-connect.h>
 #include <yaz/timing.h>
 #include <yaz/log.h>
+#include "gduutil.hpp"
 
 #include <iostream>
 
@@ -212,11 +213,17 @@ void mp::ThreadPoolPackage::result(const char *t_info)
     {
         yaz_timing_stop(timer);
         double duration = yaz_timing_get_real(timer);
+        Z_GDU *z_gdu = gdu->get();
 
         std::ostringstream os;
         os  << m_msg_config << " "
             << *m_package << " "
-            << std::fixed << std::setprecision (6) << duration;
+            << std::fixed << std::setprecision (6) << duration << " ";
+
+        if (z_gdu) 
+            os << *z_gdu;
+        else
+            os << "-";
         
         yaz_log(YLOG_LOG, "%s %s", os.str().c_str(), t_info);
     }
@@ -270,6 +277,19 @@ void mp::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
                                                           m_msg_config);
     p->copy_route(*m_package);
     p->request() = yazpp_1::GDU(z_pdu);
+
+    if (m_msg_config)
+    {
+        if (z_pdu)          
+        {
+            std::ostringstream os;
+            os  << m_msg_config << " "
+                << *p << " "
+                << "0.000000" << " " 
+                << *z_pdu;
+            yaz_log(YLOG_LOG, "%s", os.str().c_str());
+        }
+    }
     m_thread_pool_observer->put(tp);  
 }
 
