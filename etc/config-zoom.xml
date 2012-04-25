@@ -196,17 +196,13 @@
       <contentProxy
          config_file="/etc/cf-proxy/cproxy.cfg"
       />
-      <log apdu="true"/>
+      <log apdu="false"/>
       <zoom timeout="20" proxy_timeout="1"/>
     </filter>
   </filters>
   <routes>  
     <route id="start">
       <filter refid="frontend"/>
-      <filter type="log">
-        <message>F</message>
-	<category apdu="false" session="true"/>
-      </filter>
       <filter type="sru_z3950"/>
       <filter type="session_shared">
         <resultset ttl="0" restart="false"/>
