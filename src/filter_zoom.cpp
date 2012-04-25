@@ -1945,8 +1945,8 @@ bool yf::Zoom::Frontend::retry(mp::Package &package,
             package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
             return true;
         }
-        error = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
-        *addinfo = odr_strdup(odr, "proxy failure");
+        error = YAZ_BIB1_PROXY_FAILURE;
+        *addinfo = odr_strdup(odr, b->m_proxy.c_str());
     }
     else if (same_retries == 0 && proxy_retries == 0)
     {
