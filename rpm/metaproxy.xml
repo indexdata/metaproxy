@@ -7,15 +7,12 @@
       <threads>50</threads>
       <port>@:9000</port>
       <!-- Uncomment the message below to get queue/thread usage logging -->
-      <!-- <message>FN</message> -->
+      <message>FN</message>
     </filter>
   </filters>
   <routes>  
     <route id="start">
       <filter refid="frontend"/>
-      <filter type="log">
-        <message>log</message>
-      </filter>
       <include src="filters-enabled/*.xml"/>
       <filter type="bounce"/>
     </route>
