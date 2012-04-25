@@ -6,6 +6,7 @@
   <filters>
     <filter id="frontend" type="frontend_net">
       <port>@:9000</port>
+      <message>FN</message>
     </filter>
   </filters>
   <routes>  
