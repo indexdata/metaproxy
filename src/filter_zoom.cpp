@@ -1260,7 +1260,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     BackendPtr b(new Backend);
 
-    b->m_proxy = proxy;
     b->sptr = sptr;
     b->xsp = xsp;
     b->m_frontend_database = database;
@@ -1284,6 +1283,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     if (proxy.length() == 0)
         proxy = sptr->cfProxy;
+    b->m_proxy = proxy;
     
     if (sptr->cfAuth.length())
     {
