@@ -52,11 +52,14 @@ static pid_t process_group = 0;
 
 static void sig_usr1_handler(int s)
 {
+    yaz_log(YLOG_LOG, "metaproxy received SIGUSR1");
     routerp->stop();
 }
 
 static void sig_term_handler(int s)
 {
+    yaz_log(YLOG_LOG, "metaproxy received SIGTERM");
+    yaz_log(YLOG_LOG, "metaproxy stop");
     kill(-process_group, SIGTERM); /* kill all children processes as well */
     _exit(0);
 }
@@ -74,7 +77,8 @@ static void work_common(void *data)
     routerp->start();
 
     mp::Package pack;
-    pack.router(*routerp).move(); /* should never exit */
+    pack.router(*routerp).move();
+    yaz_log(YLOG_LOG, "metaproxy stop");
     _exit(0);
 }
 
