@@ -1878,7 +1878,7 @@ static bool wait_conn(COMSTACK cs, int secs)
     yaz_poll_add(pfd.input_mask, yaz_poll_except);
     if (cs->io_pending && CS_WANT_WRITE)
         yaz_poll_add(pfd.input_mask, yaz_poll_write);
-    else if (cs->io_pending & CS_WANT_READ)
+    if (cs->io_pending & CS_WANT_READ)
         yaz_poll_add(pfd.input_mask, yaz_poll_read);
 
     pfd.fd = cs_fileno(cs);
@@ -1919,6 +1919,8 @@ bool yf::Zoom::Impl::check_proxy(const char *proxy)
                 if (!wait_conn(conn, proxy_timeout))
                     break;
             }
+            if (ret == 0)
+                outcome = true;
         }
     }
     cs_close(conn);
