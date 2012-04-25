@@ -1878,7 +1878,7 @@ static bool wait_conn(COMSTACK cs, int secs)
     yaz_poll_add(pfd.input_mask, yaz_poll_except);
     if (cs->io_pending && CS_WANT_WRITE)
         yaz_poll_add(pfd.input_mask, yaz_poll_write);
-    else if (cs->io_pending & CS_WANT_READ)
+    if (cs->io_pending & CS_WANT_READ)
         yaz_poll_add(pfd.input_mask, yaz_poll_read);
 
     pfd.fd = cs_fileno(cs);
@@ -1919,6 +1919,8 @@ bool yf::Zoom::Impl::check_proxy(const char *proxy)
                 if (!wait_conn(conn, proxy_timeout))
                     break;
             }
+            if (ret == 0)
+                outcome = true;
         }
     }
     cs_close(conn);
@@ -1943,8 +1945,8 @@ bool yf::Zoom::Frontend::retry(mp::Package &package,
             package.log("zoom", YLOG_WARN, "search failed: trying next proxy");
             return true;
         }
-        error = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
-        *addinfo = odr_strdup(odr, "proxy failure");
+        error = YAZ_BIB1_PROXY_FAILURE;
+        *addinfo = odr_strdup(odr, b->m_proxy.c_str());
     }
     else if (same_retries == 0 && proxy_retries == 0)
     {
