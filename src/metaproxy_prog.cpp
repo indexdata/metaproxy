@@ -184,7 +184,7 @@ static int sc_main(
         return 1;
     }
     
-    yaz_log(YLOG_LOG, "Metaproxy start " VERSION
+    yaz_log(YLOG_LOG, "metaproxy start " VERSION
 #ifdef VERSION_SHA1
             " " VERSION_SHA1
 #endif
