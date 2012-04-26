@@ -317,6 +317,15 @@
       </para>
      </listitem>
     </varlistentry>
+    <varlistentry>
+     <term>attribute <literal>proxy_timeout</literal></term>
+     <listitem>
+      <para>
+       Is an integer that specifies, in seconds, how long an operation
+       a proxy check will wait before giving up. Default value is 1.
+      </para>
+     </listitem>
+    </varlistentry>
    </variablelist>
   </refsect2>
 
