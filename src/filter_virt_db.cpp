@@ -233,7 +233,7 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::init_backend(
 
     Z_GDU *gdu = init_package.response().get();
     // we hope to get an init response
-    error_code = YAZ_BIB1_DATABASE_UNAVAILABLE;
+    error_code = 0;
     if (gdu && gdu->which == Z_GDU_Z3950
         && gdu->u.z3950->which == Z_APDU_initResponse)
     {
@@ -248,6 +248,13 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::init_backend(
             return b;
         }
         mp::util::get_init_diagnostics(res, error_code, addinfo);
+    }
+    if (error_code == 0)
+    {
+        std::list<std::string>::const_iterator db_it = databases.begin();
+        error_code = YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED;
+        if (db_it != databases.end())
+            addinfo = *db_it;
     }
     if (!init_package.session().is_closed())
     {
