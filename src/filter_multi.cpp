@@ -514,7 +514,12 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
                     maximumRecordSize = *b_resp->maximumRecordSize;
             }
             else
+            {
+                if (!f_resp->userInformationField 
+                    && b_resp->userInformationField)
+                    f_resp->userInformationField = b_resp->userInformationField;
                 no_failed++;
+            }
         }
         else
             no_failed++;

@@ -56,6 +56,7 @@ namespace metaproxy_1 {
             void timeoutNotify();
             void recv_GDU(Z_GDU *gdu, int len);
             void fixup_nsd(ODR odr, Z_Records *records);
+            void fixup_init(ODR odr, Z_InitResponse *initrs);
             yazpp_1::IPDU_Observer* sessionNotify(
                 yazpp_1::IPDU_Observable *the_PDU_Observable,
                 int fd);
@@ -178,16 +179,63 @@ void yf::Z3950Client::Assoc::fixup_nsd(ODR odr, Z_Records *records)
         
         // should really check for nsd->which.. But union has two members
         // containing almost same data
-        //  char *v2Addinfo;
+        const char *v2Addinfo = nsd->u.v2Addinfo;
 	//  Z_InternationalString *v3Addinfo;
 
-        if (nsd->u.v2Addinfo)
+        if (v2Addinfo && *v2Addinfo)
         {
             addinfo.assign(nsd->u.v2Addinfo);
             addinfo += " ";
         }
         addinfo += "(backend=" + m_host + ")";
         nsd->u.v2Addinfo = odr_strdup(odr, addinfo.c_str());
+    }
+}
+
+void yf::Z3950Client::Assoc::fixup_init(ODR odr, Z_InitResponse *initrs)
+{
+    Z_External *uif = initrs->userInformationField;
+
+    if (uif && uif->which == Z_External_userInfo1)
+    {
+        Z_OtherInformation *ui = uif->u.userInfo1;
+        int i;
+        for (i = 0; i < ui->num_elements; i++)
+        {
+            Z_OtherInformationUnit *unit = ui->list[i];
+            if (unit->which == Z_OtherInfo_externallyDefinedInfo &&
+                unit->information.externallyDefinedInfo &&
+                unit->information.externallyDefinedInfo->which ==
+                Z_External_diag1) 
+            {
+                Z_DiagnosticFormat *diag =
+                    unit->information.externallyDefinedInfo->u.diag1;
+                int j;
+                for (j = 0; j < diag->num; j++)
+                {
+                    Z_DiagnosticFormat_s *ds = diag->elements[j];
+                    if (ds->which == Z_DiagnosticFormat_s_defaultDiagRec)
+                    {
+                        Z_DefaultDiagFormat *r = ds->u.defaultDiagRec;
+                        char *oaddinfo = r->u.v2Addinfo;
+                        char *naddinfo = (char *) odr_malloc(
+                            odr,
+                            (oaddinfo ? strlen(oaddinfo) : 0) + 20 +
+                            m_host.length());
+                        if (oaddinfo && *oaddinfo)
+                        {
+                            strcpy(naddinfo, oaddinfo);
+                            strcat(naddinfo, " ");
+                        }
+                        strcat(naddinfo, "(backend=");
+                        strcat(naddinfo, m_host.c_str());
+                        strcat(naddinfo, ")");
+
+                        r->u.v2Addinfo = naddinfo;
+                    }
+                }
+            } 
+        }
     }
 }
 
@@ -208,6 +256,9 @@ void yf::Z3950Client::Assoc::recv_GDU(Z_GDU *gdu, int len)
                 break;
             case Z_APDU_presentResponse:
                 fixup_nsd(odr, apdu->u.presentResponse->records);
+                break;
+            case Z_APDU_initResponse:
+                fixup_init(odr, apdu->u.initResponse);
                 break;
             }
         }
