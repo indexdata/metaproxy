@@ -78,7 +78,9 @@ static void work_common(void *data)
 
     mp::Package pack;
     pack.router(*routerp).move();
+    /* this only exits if graceful stop is received (sig_usr1_handler) */
     yaz_log(YLOG_LOG, "metaproxy stop");
+    kill(-process_group, SIGTERM); /* kill all children processes as well */
     _exit(0);
 }
 
