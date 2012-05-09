@@ -1,3 +1,26 @@
+
+Fixes for windows compilation.
+
+Metaproxy daemon reacts to SIGUSR1 in which case it will leave
+existing sessions running but terminate the monitor process that is
+used in keepalive mode.
+
+Change start log message to 'metaproxy start'. Was 'Metaproxy start'
+before. Consistent with 'metaproxy stop' message.
+
+zoom: document zoom's proxy_timeout
+
+z3950_client: fixup addinfo for init response
+
+virt_db: return other diagnostic if init is rejected. Diagnostic 236:
+"Access to specified database denied" is returned, but only if init
+response from backend does not carry diagnostics already.
+
+multi: relays user info for first rejected target. The other-information
+field for init response for first rejected target is in common init
+response. This ensures that some backend init diagnostics are returned to
+the frontend.
+
 --- 1.3.34 2012/04/25
 
 frontend_log: extend logging (when message is given in config).
