@@ -1,5 +1,6 @@
+--- 1.3.35 2012/05/09
 
-Fixes for windows compilation.
+Fixes for Windows compilation.
 
 Metaproxy daemon reacts to SIGUSR1 in which case it will leave
 existing sessions running but terminate the monitor process that is
