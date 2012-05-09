@@ -80,7 +80,9 @@ static void work_common(void *data)
     pack.router(*routerp).move();
     /* this only exits if graceful stop is received (sig_usr1_handler) */
     yaz_log(YLOG_LOG, "metaproxy stop");
+#if HAVE_UNISTD_H
     kill(-process_group, SIGTERM); /* kill all children processes as well */
+#endif
     _exit(0);
 }
 
