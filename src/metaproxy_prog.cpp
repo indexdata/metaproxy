@@ -54,6 +54,7 @@ static void sig_usr1_handler(int s)
 {
     yaz_log(YLOG_LOG, "metaproxy received SIGUSR1");
     routerp->stop();
+    yaz_daemon_stop();
 }
 
 static void sig_term_handler(int s)
@@ -69,7 +70,7 @@ static void work_common(void *data)
 {
 #if HAVE_UNISTD_H
     process_group = getpgid(0); // save process group ID
-    
+
     signal(SIGTERM, sig_term_handler);
     signal(SIGUSR1, sig_usr1_handler);
 #endif
@@ -78,9 +79,7 @@ static void work_common(void *data)
 
     mp::Package pack;
     pack.router(*routerp).move();
-    /* this only exits if graceful stop is received (sig_usr1_handler) */
-    yaz_log(YLOG_LOG, "metaproxy stop");
-    kill(-process_group, SIGTERM); /* kill all children processes as well */
+    yaz_log(YLOG_LOG, "metaproxy stop"); /* only for graceful stop */
     _exit(0);
 }
 
