@@ -1444,7 +1444,7 @@ void yf::Zoom::Frontend::prepare_elements(BackendPtr b,
 }
 
 Z_Records *yf::Zoom::Frontend::get_explain_records(
-    Package &package,
+    mp::Package &package,
     Odr_int start,
     Odr_int number_to_present,
     int *error,
@@ -1503,7 +1503,7 @@ Z_Records *yf::Zoom::Frontend::get_explain_records(
 }
 
 
-Z_Records *yf::Zoom::Frontend::get_records(Package &package,
+Z_Records *yf::Zoom::Frontend::get_records(mp::Package &package,
                                            Odr_int start,
                                            Odr_int number_to_present,
                                            int *error,
