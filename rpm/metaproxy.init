@@ -126,9 +126,25 @@ stop() {
 	RETVAL=$?
 	[ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
 }
+
 reload() {
-	stop
-	start
+	echo -n $"Reloading $prog: "
+	$DAEMON $OPTIONS -t >/dev/null 2>&1
+	RETVAL=$?
+        if [ $RETVAL = 0 ]; then
+		killproc -p ${pidfile} -d 10 $DAEMON -USR1
+		RETVAL=$?
+	else
+		rc_status -v
+		echo $"not reloading due to configuration syntax error"
+	fi
+        if [ $RETVAL = 0 ]; then
+        	daemon --pidfile ${pidfile} $DAEMON $OPTIONS -D -p ${pidfile}
+		rc_status -v
+        	RETVAL=$?
+        	[ $RETVAL = 0 ] && touch ${lockfile}
+	fi
+       	return $RETVAL
 }
 
 # See how we were called.
@@ -154,7 +170,9 @@ case "$1" in
 		fi
 		;;
 	reload)
-		reload
+		if [ -f ${pidfile} ] ; then
+			reload
+		fi
 		;;
 	configtest)
 		$DAEMON $OPTIONS -t
