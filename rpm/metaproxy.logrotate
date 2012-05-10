@@ -7,7 +7,7 @@
 	notifempty
 	postrotate
 		if [ -f /var/run/metaproxy.pid ]; then
-			/sbin/service metaproxy restart > /dev/null
+			/sbin/service metaproxy reload > /dev/null
 		fi
 	endscript
 }
