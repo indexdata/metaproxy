@@ -199,7 +199,7 @@ static int sc_main(
     
     if (!doc)
     {
-        yaz_log (YLOG_FATAL,"XML parsing failed");
+        yaz_log(YLOG_FATAL,"XML parsing failed");
         return 1;
     }
     // and perform Xinclude then
@@ -236,7 +236,7 @@ static int sc_main(
         }
     }
     catch (std::logic_error &e) {
-        yaz_log (YLOG_FATAL,"std::logic error: %s" , e.what() );
+        yaz_log(YLOG_FATAL,"std::logic error: %s" , e.what() );
         ret = 1;
     }
     catch (std::runtime_error &e) {
@@ -266,8 +266,6 @@ int main(int argc, char **argv)
     yaz_sc_destroy(&s);
     exit(ret);
 }
-
-
 
 /*
  * Local variables:
