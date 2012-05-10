@@ -191,6 +191,7 @@ static int sc_main(
 #endif
         );
     
+    yaz_log_xml_errors(0, YLOG_LOG);
     xmlDocPtr doc = xmlReadFile(fname,
                                 NULL, 
                                 XML_PARSE_XINCLUDE + XML_PARSE_NOBLANKS
