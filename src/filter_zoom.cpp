@@ -2068,8 +2068,7 @@ next_proxy:
             cql_parser_destroy(cp);
             return;
         }
-        char ccl_buf[1024];
-        r = cql_to_ccl_buf(cn, ccl_buf, sizeof(ccl_buf));
+        r = cql_to_ccl(cn, wrbuf_vp_puts,  ccl_wrbuf);
         if (r)
         {
             error = YAZ_BIB1_MALFORMED_QUERY;
@@ -2097,8 +2096,6 @@ next_proxy:
         mp::wrbuf sort_spec_wrbuf;
         yaz_srw_sortkeys_to_sort_spec(wrbuf_cstr(sru_sortkeys_wrbuf),
                                       sort_spec_wrbuf);
-        wrbuf_puts(ccl_wrbuf, ccl_buf);
-        
         yaz_tok_cfg_t tc = yaz_tok_cfg_create();
         yaz_tok_parse_t tp =
             yaz_tok_parse_buf(tc, wrbuf_cstr(sort_spec_wrbuf));
