@@ -134,6 +134,7 @@ reload() {
         if [ $RETVAL = 0 ]; then
 		killproc -p ${pidfile} -d 10 $DAEMON -USR1
 		RETVAL=$?
+		rm -f ${pidfile}
 	else
 		rc_status -v
 		echo $"not reloading due to configuration syntax error"
