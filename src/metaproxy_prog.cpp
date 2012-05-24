@@ -185,12 +185,13 @@ static int sc_main(
         return 1;
     }
     
-    yaz_log(YLOG_LOG, "metaproxy start " VERSION
+    if (!test_config)
+        yaz_log(YLOG_LOG, "metaproxy start " VERSION
 #ifdef VERSION_SHA1
-            " " VERSION_SHA1
+                " " VERSION_SHA1
 #endif
-        );
-    
+            );
+
     yaz_log_xml_errors(0, YLOG_LOG);
     xmlDocPtr doc = xmlReadFile(fname,
                                 NULL, 
