@@ -13,5 +13,7 @@ filter_frontend_net =
   }+,
   element mp:timeout { xsd:integer }?,
   element mp:connect-max { xsd:integer }?,
-  element mp:message { xsd:string }?
+  element mp:message { xsd:string }?,
+  element mp:stat-req { xsd:string }?
+
 

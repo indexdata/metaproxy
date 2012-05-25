@@ -7,6 +7,7 @@
     <filter id="frontend" type="frontend_net">
       <port>@:9000</port>
       <message>FN</message>
+      <stat-req>/fn_stat</stat-req>
     </filter>
   </filters>
   <routes>  

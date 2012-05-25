@@ -49,14 +49,21 @@ namespace metaproxy_1 {
         };
         class FrontendNet::Rep {
             friend class FrontendNet;
+
             int m_no_threads;
             std::vector<Port> m_ports;
             int m_listen_duration;
             int m_session_timeout;
             int m_connect_max;
             std::string m_msg_config;
+            std::string m_stat_req;
             yazpp_1::SocketManager mySocketManager;
             ZAssocServer **az;
+            int m_duration_freq[22];
+            double m_duration_lim[22];
+        public:
+            Rep();
+            ~Rep();
         };
         class FrontendNet::My_Timer_Thread : public yazpp_1::ISocketObserver {
         private:
@@ -168,6 +175,31 @@ void yf::FrontendNet::ThreadPoolPackage::result(const char *t_info)
     {
 	int len;
 	m_assoc_child->send_GDU(gdu->get(), &len);
+
+        yaz_timing_stop(timer);
+        double duration = yaz_timing_get_real(timer);
+        
+        size_t ent = 0;
+        while (m_p->m_duration_lim[ent] != 0.0 && duration > m_p->m_duration_lim[ent])
+            ent++;
+        m_p->m_duration_freq[ent]++;
+        
+        if (m_p->m_msg_config.length())
+        {
+            Z_GDU *z_gdu = gdu->get();
+            
+            std::ostringstream os;
+            os  << m_p->m_msg_config << " "
+                << *m_package << " "
+                << std::fixed << std::setprecision (6) << duration << " ";
+            
+            if (z_gdu) 
+                os << *z_gdu;
+            else
+                os << "-";
+            
+            yaz_log(YLOG_LOG, "%s %s", os.str().c_str(), t_info);
+        }
     }
     else if (!m_package->session().is_closed())
     {
@@ -203,25 +235,7 @@ void yf::FrontendNet::ThreadPoolPackage::result(const char *t_info)
     {
         m_assoc_child->close();
     }
-
-    if (m_p->m_msg_config.length())
-    {
-        yaz_timing_stop(timer);
-        double duration = yaz_timing_get_real(timer);
-        Z_GDU *z_gdu = gdu->get();
-
-        std::ostringstream os;
-        os  << m_p->m_msg_config << " "
-            << *m_package << " "
-            << std::fixed << std::setprecision (6) << duration << " ";
-
-        if (z_gdu) 
-            os << *z_gdu;
-        else
-            os << "-";
-        
-        yaz_log(YLOG_LOG, "%s %s", os.str().c_str(), t_info);
-    }
+    
 
     delete this;
 }
@@ -266,6 +280,56 @@ void yf::FrontendNet::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
     m_no_requests++;
 
     mp::Package *p = new mp::Package(m_session, m_origin);
+
+    if (z_pdu && z_pdu->which == Z_GDU_HTTP_Request)
+    {
+        Z_HTTP_Request *hreq = z_pdu->u.HTTP_Request;
+
+        if (m_p->m_stat_req.length()
+            && !strcmp(hreq->path, m_p->m_stat_req.c_str()))
+        {
+            mp::odr o;
+
+            Z_GDU *gdu_res = o.create_HTTP_Response(m_session, hreq, 200);
+            
+            Z_HTTP_Response *hres = gdu_res->u.HTTP_Response;
+
+            mp::wrbuf w;
+            size_t i;
+            int number_total = 0;
+
+            for (i = 0; m_p->m_duration_lim[i] != 0.0; i++)
+                number_total += m_p->m_duration_freq[i];
+            number_total += m_p->m_duration_freq[i];
+
+            wrbuf_puts(w, "<?xml version=\"1.0\">\n");
+            wrbuf_puts(w, "<frontend_net>\n");
+            wrbuf_printf(w, "  <responses frequency=\"%d\">\n", number_total);
+            for (i = 0; m_p->m_duration_lim[i] != 0.0; i++)
+            {
+                if (m_p->m_duration_freq[i] > 0)
+                    wrbuf_printf(
+                        w, "    <response mintime=\"%f\" "
+                        "maxtime=\"%f\" frequency=\"%d\"/>\n",
+                        i > 0 ? m_p->m_duration_lim[i - 1] : 0.0,
+                        m_p->m_duration_lim[i], m_p->m_duration_freq[i]);
+            }
+            
+            if (m_p->m_duration_freq[i] > 0)
+                wrbuf_printf(
+                    w, "    <response mintime=\"%f\" frequency=\"%d\"/>\n",
+                    m_p->m_duration_lim[i - 1], m_p->m_duration_freq[i]);
+            wrbuf_puts(w, " </responses>\n");
+            wrbuf_puts(w, "</frontend_net>\n");
+
+            hres->content_len = w.len();
+            hres->content_buf = (char *) w.buf();
+            
+            int len;
+            send_GDU(gdu_res, &len);
+            return;
+        }
+    }
 
     ThreadPoolPackage *tp = new ThreadPoolPackage(p, this, m_p);
     p->copy_route(*m_package);
@@ -380,23 +444,57 @@ void yf::FrontendNet::ZAssocServer::connectNotify()
 
 yf::FrontendNet::FrontendNet() : m_p(new Rep)
 {
-    m_p->m_no_threads = 5;
-    m_p->m_listen_duration = 0;
-    m_p->m_session_timeout = 300; // 5 minutes
-    m_p->m_connect_max = 0;
-    m_p->az = 0;
 }
 
-yf::FrontendNet::~FrontendNet()
+yf::FrontendNet::Rep::Rep()
 {
-    if (m_p->az)
+    m_no_threads = 5;
+    m_listen_duration = 0;
+    m_session_timeout = 300; // 5 minutes
+    m_connect_max = 0;
+    az = 0;
+    size_t i;
+    for (i = 0; i < 22; i++)
+        m_duration_freq[i] = 0;
+    m_duration_lim[0] = 0.000001;
+    m_duration_lim[1] = 0.00001;
+    m_duration_lim[2] = 0.0001;
+    m_duration_lim[3] = 0.001;
+    m_duration_lim[4] = 0.01;
+    m_duration_lim[5] = 0.1;
+    m_duration_lim[6] = 0.2;
+    m_duration_lim[7] = 0.3;
+    m_duration_lim[8] = 0.5;
+    m_duration_lim[9] = 1.0;
+    m_duration_lim[10] = 1.5;
+    m_duration_lim[11] = 2.0;
+    m_duration_lim[12] = 3.0;
+    m_duration_lim[13] = 4.0;
+    m_duration_lim[14] = 5.0;
+    m_duration_lim[15] = 6.0;
+    m_duration_lim[16] = 8.0;
+    m_duration_lim[17] = 10.0;
+    m_duration_lim[18] = 15.0;
+    m_duration_lim[19] = 20.0;
+    m_duration_lim[20] = 30.0;
+    m_duration_lim[21] = 0;
+}
+
+
+yf::FrontendNet::Rep::~Rep()
+{
+    if (az)
     {
         size_t i;
-        for (i = 0; i<m_p->m_ports.size(); i++)
-            delete m_p->az[i];
-        delete [] m_p->az;
+        for (i = 0; i < m_ports.size(); i++)
+            delete az[i];
+        delete [] az;
     }
-    m_p->az = 0;
+    az = 0;
+}
+    
+yf::FrontendNet::~FrontendNet()
+{
 }
 
 void yf::FrontendNet::stop() const
@@ -404,7 +502,7 @@ void yf::FrontendNet::stop() const
     if (m_p->az)
     {
         size_t i;
-        for (i = 0; i<m_p->m_ports.size(); i++)
+        for (i = 0; i < m_p->m_ports.size(); i++)
             m_p->az[i]->server("");
     }
 }
@@ -509,6 +607,10 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
         else if (!strcmp((const char *) ptr->name, "message"))
         {
             m_p->m_msg_config = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name, "stat-req"))
+        {
+            m_p->m_stat_req = mp::xml::get_text(ptr);
         }
         else
         {
