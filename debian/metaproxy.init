@@ -91,8 +91,12 @@ do_reload() {
 	#
 	start-stop-daemon --stop --signal USR1 --quiet --pidfile $PIDFILE --name $NAME
 	RETVAL="$?"
+	# Return if daemon could not be stopped
+	[ "$RETVAL" = 2 ] && return 2
+	# daemon not running or stopped
+	rm -f $PIDFILE
+	# Return if it was not running, in which case we don't start it
 	[ "$RETVAL" = 1 ] && return 0
-	[ "$RETVAL" != 0 ] && return $RETVAL
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
 		$DAEMON_OPTS \
 		|| return 2
