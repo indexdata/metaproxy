@@ -31,6 +31,11 @@ namespace metaproxy_1 {
         class FrontendNet : public Base {
             class Rep;
             class Port;
+            class ZAssocServer;
+            class ZAssocChild;
+            class ThreadPoolPackage;
+            class My_Timer_Thread;
+            class ThreadPoolPackage;
             boost::scoped_ptr<Rep> m_p;
         public:
             FrontendNet();
