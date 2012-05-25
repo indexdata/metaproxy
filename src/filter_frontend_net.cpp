@@ -90,7 +90,7 @@ namespace metaproxy_1 {
                 yazpp_1::IPDU_Observable *the_PDU_Observable,
                 int fd);
             void recv_GDU(Z_GDU *apdu, int len);
-            
+            void report(Z_HTTP_Request *hreq);
             void failNotify();
             void timeoutNotify();
             void connectNotify();
@@ -275,6 +275,49 @@ yf::FrontendNet::ZAssocChild::~ZAssocChild()
 {
 }
 
+void yf::FrontendNet::ZAssocChild::report(Z_HTTP_Request *hreq)
+{
+    mp::odr o;
+    
+    Z_GDU *gdu_res = o.create_HTTP_Response(m_session, hreq, 200);
+    
+    Z_HTTP_Response *hres = gdu_res->u.HTTP_Response;
+    
+    mp::wrbuf w;
+    size_t i;
+    int number_total = 0;
+    
+    for (i = 0; m_p->m_duration_lim[i] != 0.0; i++)
+        number_total += m_p->m_duration_freq[i];
+    number_total += m_p->m_duration_freq[i];
+    
+    wrbuf_puts(w, "<?xml version=\"1.0\">\n");
+    wrbuf_puts(w, "<frontend_net>\n");
+    wrbuf_printf(w, "  <responses frequency=\"%d\">\n", number_total);
+    for (i = 0; m_p->m_duration_lim[i] != 0.0; i++)
+    {
+        if (m_p->m_duration_freq[i] > 0)
+            wrbuf_printf(
+                w, "    <response mintime=\"%f\" "
+                "maxtime=\"%f\" frequency=\"%d\"/>\n",
+                i > 0 ? m_p->m_duration_lim[i - 1] : 0.0,
+                m_p->m_duration_lim[i], m_p->m_duration_freq[i]);
+    }
+    
+    if (m_p->m_duration_freq[i] > 0)
+        wrbuf_printf(
+            w, "    <response mintime=\"%f\" frequency=\"%d\"/>\n",
+            m_p->m_duration_lim[i - 1], m_p->m_duration_freq[i]);
+    wrbuf_puts(w, " </responses>\n");
+    wrbuf_puts(w, "</frontend_net>\n");
+    
+    hres->content_len = w.len();
+    hres->content_buf = (char *) w.buf();
+    
+    int len;
+    send_GDU(gdu_res, &len);
+}
+
 void yf::FrontendNet::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
 {
     m_no_requests++;
@@ -288,45 +331,7 @@ void yf::FrontendNet::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
         if (m_p->m_stat_req.length()
             && !strcmp(hreq->path, m_p->m_stat_req.c_str()))
         {
-            mp::odr o;
-
-            Z_GDU *gdu_res = o.create_HTTP_Response(m_session, hreq, 200);
-            
-            Z_HTTP_Response *hres = gdu_res->u.HTTP_Response;
-
-            mp::wrbuf w;
-            size_t i;
-            int number_total = 0;
-
-            for (i = 0; m_p->m_duration_lim[i] != 0.0; i++)
-                number_total += m_p->m_duration_freq[i];
-            number_total += m_p->m_duration_freq[i];
-
-            wrbuf_puts(w, "<?xml version=\"1.0\">\n");
-            wrbuf_puts(w, "<frontend_net>\n");
-            wrbuf_printf(w, "  <responses frequency=\"%d\">\n", number_total);
-            for (i = 0; m_p->m_duration_lim[i] != 0.0; i++)
-            {
-                if (m_p->m_duration_freq[i] > 0)
-                    wrbuf_printf(
-                        w, "    <response mintime=\"%f\" "
-                        "maxtime=\"%f\" frequency=\"%d\"/>\n",
-                        i > 0 ? m_p->m_duration_lim[i - 1] : 0.0,
-                        m_p->m_duration_lim[i], m_p->m_duration_freq[i]);
-            }
-            
-            if (m_p->m_duration_freq[i] > 0)
-                wrbuf_printf(
-                    w, "    <response mintime=\"%f\" frequency=\"%d\"/>\n",
-                    m_p->m_duration_lim[i - 1], m_p->m_duration_freq[i]);
-            wrbuf_puts(w, " </responses>\n");
-            wrbuf_puts(w, "</frontend_net>\n");
-
-            hres->content_len = w.len();
-            hres->content_buf = (char *) w.buf();
-            
-            int len;
-            send_GDU(gdu_res, &len);
+            report(hreq);
             return;
         }
     }
@@ -480,7 +485,6 @@ yf::FrontendNet::Rep::Rep()
     m_duration_lim[21] = 0;
 }
 
-
 yf::FrontendNet::Rep::~Rep()
 {
     if (az)
@@ -492,7 +496,7 @@ yf::FrontendNet::Rep::~Rep()
     }
     az = 0;
 }
-    
+
 yf::FrontendNet::~FrontendNet()
 {
 }
