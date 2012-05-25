@@ -75,7 +75,7 @@ namespace metaproxy_1 {
                         mp::ThreadPoolSocketObserver *m_thread_pool_observer,
                         const mp::Package *package,
                         std::string route,
-                        const char *msg_config);
+                        Rep *rep);
             int m_no_requests;
             std::string m_route;
         private:
@@ -93,13 +93,13 @@ namespace metaproxy_1 {
             mp::Origin m_origin;
             bool m_delete_flag;
             const mp::Package *m_package;
-            const char *m_msg_config;
+            Rep *m_p;
         };
         class FrontendNet::ThreadPoolPackage : public mp::IThreadPoolMsg {
         public:
             ThreadPoolPackage(mp::Package *package,
                               yf::FrontendNet::ZAssocChild *ses,
-                              const char *msg_config);
+                              Rep *rep);
             ~ThreadPoolPackage();
             IThreadPoolMsg *handle();
             void result(const char *t_info);
@@ -108,16 +108,16 @@ namespace metaproxy_1 {
             yaz_timing_t timer;
             ZAssocChild *m_assoc_child;
             mp::Package *m_package;
-            const char *m_msg_config;        
+            Rep *m_p;
         }; 
         class FrontendNet::ZAssocServer : public yazpp_1::Z_Assoc {
         public:
             ~ZAssocServer();
-            ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable, int timeout,
-                         int connect_max, std::string route,
-                         const char *msg_config);
+            ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable,
+                         std::string route,
+                         Rep *rep);
             void set_package(const mp::Package *package);
-            void set_thread_pool(ThreadPoolSocketObserver *m_thread_pool_observer);
+            void set_thread_pool(ThreadPoolSocketObserver *observer);
         private:
             yazpp_1::IPDU_Observer* sessionNotify(
                 yazpp_1::IPDU_Observable *the_PDU_Observable,
@@ -130,24 +130,19 @@ namespace metaproxy_1 {
         private:
             mp::ThreadPoolSocketObserver *m_thread_pool_observer;
             const mp::Package *m_package;
-            int m_session_timeout;
-            int m_connect_max;
             yazpp_1::LimitConnect limit_connect;
             std::string m_route;
-            const char *m_msg_config;
+            Rep *m_p;
         };
     }
 }
 
 yf::FrontendNet::ThreadPoolPackage::ThreadPoolPackage(mp::Package *package,
                                                       ZAssocChild *ses,
-                                                      const char *msg_config) :
-    m_assoc_child(ses), m_package(package), m_msg_config(msg_config)
+                                                      Rep *rep) :
+    m_assoc_child(ses), m_package(package), m_p(rep)
 {
-    if (msg_config)
-        timer = yaz_timing_create();
-    else
-        timer = 0;
+    timer = yaz_timing_create();
 }
 
 yf::FrontendNet::ThreadPoolPackage::~ThreadPoolPackage()
@@ -209,14 +204,14 @@ void yf::FrontendNet::ThreadPoolPackage::result(const char *t_info)
         m_assoc_child->close();
     }
 
-    if (m_msg_config)
+    if (m_p->m_msg_config.length())
     {
         yaz_timing_stop(timer);
         double duration = yaz_timing_get_real(timer);
         Z_GDU *z_gdu = gdu->get();
 
         std::ostringstream os;
-        os  << m_msg_config << " "
+        os  << m_p->m_msg_config << " "
             << *m_package << " "
             << std::fixed << std::setprecision (6) << duration << " ";
 
@@ -237,14 +232,12 @@ mp::IThreadPoolMsg *yf::FrontendNet::ThreadPoolPackage::handle()
     return this;
 }
 
-
 yf::FrontendNet::ZAssocChild::ZAssocChild(
     yazpp_1::IPDU_Observable *PDU_Observable,
     mp::ThreadPoolSocketObserver *my_thread_pool,
     const mp::Package *package,
-    std::string route,
-    const char *msg_config)
-    :  Z_Assoc(PDU_Observable), m_msg_config(msg_config)
+    std::string route, Rep *rep)
+    :  Z_Assoc(PDU_Observable), m_p(rep)
 {
     m_thread_pool_observer = my_thread_pool;
     m_no_requests = 0;
@@ -255,12 +248,11 @@ yf::FrontendNet::ZAssocChild::ZAssocChild(
     if (!peername)
         peername = "unknown";
     m_origin.set_tcpip_address(std::string(peername), m_session.id());
+    timeout(m_p->m_session_timeout);
 }
 
-
 yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocChild::sessionNotify(
-    yazpp_1::IPDU_Observable
-    *the_PDU_Observable, int fd)
+    yazpp_1::IPDU_Observable *the_PDU_Observable, int fd)
 {
     return 0;
 }
@@ -275,16 +267,16 @@ void yf::FrontendNet::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
 
     mp::Package *p = new mp::Package(m_session, m_origin);
 
-    ThreadPoolPackage *tp = new ThreadPoolPackage(p, this, m_msg_config);
+    ThreadPoolPackage *tp = new ThreadPoolPackage(p, this, m_p);
     p->copy_route(*m_package);
     p->request() = yazpp_1::GDU(z_pdu);
 
-    if (m_msg_config)
+    if (m_p->m_msg_config.length())
     {
         if (z_pdu)          
         {
             std::ostringstream os;
-            os  << m_msg_config << " "
+            os  << m_p->m_msg_config << " "
                 << *p << " "
                 << "0.000000" << " " 
                 << *z_pdu;
@@ -309,7 +301,7 @@ void yf::FrontendNet::ZAssocChild::failNotify()
 
     mp::Package *p = new mp::Package(m_session, m_origin);
 
-    ThreadPoolPackage *tp = new ThreadPoolPackage(p, this, m_msg_config);
+    ThreadPoolPackage *tp = new ThreadPoolPackage(p, this, m_p);
     p->copy_route(*m_package);
     m_thread_pool_observer->cleanup(tp, &m_session);
     m_thread_pool_observer->put(tp);
@@ -327,11 +319,10 @@ void yf::FrontendNet::ZAssocChild::connectNotify()
 
 yf::FrontendNet::ZAssocServer::ZAssocServer(
     yazpp_1::IPDU_Observable *PDU_Observable,
-    int timeout, int connect_max,
-    std::string route, const char *msg_config)
+    std::string route,
+    Rep *rep)
     : 
-    Z_Assoc(PDU_Observable), m_session_timeout(timeout),
-    m_connect_max(connect_max), m_route(route), m_msg_config(msg_config)
+    Z_Assoc(PDU_Observable), m_route(route), m_p(rep)
 {
     m_package = 0;
 }
@@ -342,13 +333,14 @@ void yf::FrontendNet::ZAssocServer::set_package(const mp::Package *package)
     m_package = package;
 }
 
-void yf::FrontendNet::ZAssocServer::set_thread_pool(ThreadPoolSocketObserver *observer)
+void yf::FrontendNet::ZAssocServer::set_thread_pool(
+    ThreadPoolSocketObserver *observer)
 {
     m_thread_pool_observer = observer;
 }
 
-yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocServer::sessionNotify(yazpp_1::IPDU_Observable
-						 *the_PDU_Observable, int fd)
+yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocServer::sessionNotify(
+    yazpp_1::IPDU_Observable *the_PDU_Observable, int fd)
 {
 
     const char *peername = the_PDU_Observable->getpeername();
@@ -357,13 +349,12 @@ yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocServer::sessionNotify(yazpp_1::IP
         limit_connect.add_connect(peername);
         limit_connect.cleanup(false);
         int con_sz = limit_connect.get_total(peername);
-        if (m_connect_max && con_sz > m_connect_max)
+        if (m_p->m_connect_max && con_sz > m_p->m_connect_max)
             return 0;
     }
     ZAssocChild *my = new ZAssocChild(the_PDU_Observable,
                                       m_thread_pool_observer,
-                                      m_package, m_route, m_msg_config);
-    my->timeout(m_session_timeout);
+                                      m_package, m_route, m_p);
     return my;
 }
 
@@ -562,12 +553,8 @@ void yf::FrontendNet::set_ports(std::vector<Port> &ports)
         yazpp_1::PDU_Assoc *as = new yazpp_1::PDU_Assoc(&m_p->mySocketManager);
         
         // create ZAssoc with PDU Assoc
-        m_p->az[i] = new yf::FrontendNet::ZAssocServer(as, 
-                                          m_p->m_session_timeout,
-                                          m_p->m_connect_max,
-                                          m_p->m_ports[i].route,
-                                          m_p->m_msg_config.length() > 0 ?
-                                          m_p->m_msg_config.c_str() : 0);
+        m_p->az[i] = new yf::FrontendNet::ZAssocServer(
+            as, m_p->m_ports[i].route, m_p.get());
         if (m_p->az[i]->server(m_p->m_ports[i].port.c_str()))
         {
             throw yf::FilterException("Unable to bind to address " 
