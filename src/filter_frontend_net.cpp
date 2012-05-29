@@ -61,6 +61,9 @@ namespace metaproxy_1 {
             ZAssocServer **az;
             int m_duration_freq[22];
             double m_duration_lim[22];
+            double m_duration_max;
+            double m_duration_min;
+            double m_duration_total;
         public:
             Rep();
             ~Rep();
@@ -183,7 +186,15 @@ void yf::FrontendNet::ThreadPoolPackage::result(const char *t_info)
         while (m_p->m_duration_lim[ent] != 0.0 && duration > m_p->m_duration_lim[ent])
             ent++;
         m_p->m_duration_freq[ent]++;
-        
+
+        m_p->m_duration_total += duration;
+
+        if (m_p->m_duration_max < duration)
+            m_p->m_duration_max = duration;
+          
+        if (m_p->m_duration_min == 0.0 || m_p->m_duration_min > duration)
+            m_p->m_duration_min = duration;
+            
         if (m_p->m_msg_config.length())
         {
             Z_GDU *z_gdu = gdu->get();
@@ -298,16 +309,30 @@ void yf::FrontendNet::ZAssocChild::report(Z_HTTP_Request *hreq)
     {
         if (m_p->m_duration_freq[i] > 0)
             wrbuf_printf(
-                w, "    <response mintime=\"%f\" "
-                "maxtime=\"%f\" frequency=\"%d\"/>\n",
+                w, "    <response duration_start=\"%f\" "
+                "duration_end=\"%f\" frequency=\"%d\"/>\n",
                 i > 0 ? m_p->m_duration_lim[i - 1] : 0.0,
                 m_p->m_duration_lim[i], m_p->m_duration_freq[i]);
     }
     
     if (m_p->m_duration_freq[i] > 0)
         wrbuf_printf(
-            w, "    <response mintime=\"%f\" frequency=\"%d\"/>\n",
+            w, "    <response duration_start=\"%f\" frequency=\"%d\"/>\n",
             m_p->m_duration_lim[i - 1], m_p->m_duration_freq[i]);
+
+    if (m_p->m_duration_max != 0.0)
+        wrbuf_printf(
+            w, "    <response duration_max=\"%f\"/>\n",
+            m_p->m_duration_max);
+    if (m_p->m_duration_min != 0.0)
+        wrbuf_printf(
+            w, "    <response duration_min=\"%f\"/>\n",
+            m_p->m_duration_min);
+    if (m_p->m_duration_total != 0.0)
+        wrbuf_printf(
+            w, "    <response duration_average=\"%f\"/>\n",
+            m_p->m_duration_total / number_total);
+       
     wrbuf_puts(w, " </responses>\n");
     wrbuf_puts(w, "</frontend_net>\n");
     
@@ -482,7 +507,10 @@ yf::FrontendNet::Rep::Rep()
     m_duration_lim[18] = 15.0;
     m_duration_lim[19] = 20.0;
     m_duration_lim[20] = 30.0;
-    m_duration_lim[21] = 0;
+    m_duration_lim[21] = 0.0;
+    m_duration_max = 0.0;
+    m_duration_min = 0.0;
+    m_duration_total = 0.0;
 }
 
 yf::FrontendNet::Rep::~Rep()
