@@ -296,7 +296,7 @@
    </para>
    <screen>
     apt-get install libxslt1-dev
-    apt-get install libyazpp2-dev
+    apt-get install libyazpp4-dev
     apt-get install libboost-dev
     apt-get install libboost-thread-dev
     apt-get install libboost-test-dev
