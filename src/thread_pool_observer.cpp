@@ -166,6 +166,12 @@ void ThreadPoolSocketObserver::socketNotify(int event)
     }
 }
 
+void ThreadPoolSocketObserver::get_thread_info(int &tbusy, int &total)
+{
+    tbusy = m_p->m_no_threads - m_p->m_no_threads_waiting;
+    total = m_p->m_no_threads;
+}
+
 void ThreadPoolSocketObserver::run(void *p)
 {
     while(1)

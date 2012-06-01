@@ -44,6 +44,7 @@ namespace metaproxy_1 {
         void cleanup(IThreadPoolMsg *m, void *info);
         IThreadPoolMsg *get();
         void run(void *p);
+        void get_thread_info(int &tbusy, int &total);
     private:
         void socketNotify(int event);
         boost::scoped_ptr<Rep> m_p;
