@@ -302,7 +302,7 @@ void yf::FrontendNet::ZAssocChild::report(Z_HTTP_Request *hreq)
         number_total += m_p->m_duration_freq[i];
     number_total += m_p->m_duration_freq[i];
     
-    wrbuf_puts(w, "<?xml version=\"1.0\">\n");
+    wrbuf_puts(w, "<?xml version=\"1.0\"?>\n");
     wrbuf_puts(w, "<frontend_net>\n");
     wrbuf_printf(w, "  <responses frequency=\"%d\">\n", number_total);
     for (i = 0; m_p->m_duration_lim[i] != 0.0; i++)
@@ -334,6 +334,14 @@ void yf::FrontendNet::ZAssocChild::report(Z_HTTP_Request *hreq)
             m_p->m_duration_total / number_total);
        
     wrbuf_puts(w, " </responses>\n");
+ 
+    int thread_busy;
+    int thread_total;
+    m_thread_pool_observer->get_thread_info(thread_busy, thread_total);
+    
+    wrbuf_printf(w, " <thread_info busy=\"%d\" total=\"%d\"/>\n",
+                 thread_busy, thread_total);
+    
     wrbuf_puts(w, "</frontend_net>\n");
     
     hres->content_len = w.len();
