@@ -1,3 +1,4 @@
+--- 1.3.37 2012/06/01
 
 frontend_net: add facility to report live statistics about response
 times and current thread usage. The report is an XML document
@@ -5,10 +6,13 @@ and is triggered for a specific URL path. This is set by <stat-req>
 in the configuration of frontend_net. By default this report is
 disabled (same as empty value for <stat-req>).
 
-RPM/Debian: remove PID file in '/etc/init.d/metaproxy reload' to
-ensure that "new" metaproxy is properly started. This is because
-previous instance of metaproxy is still running - serving remaining
-requests for a session (on purpose).
+Fix reload problem in init.d script for RPM/Debian. 
+The '/etc/init.d/metaproxy reload' in some cases would stop but not
+start metaproxy - effectively stopping the service.
+
+Don't display start log message when config testing (-t).
+
+zoom: avoid CCL message limit of 1K in ZOOM filter.
 
 --- 1.3.36 2012/05/10
 
