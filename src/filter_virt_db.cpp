@@ -269,7 +269,8 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::init_backend(
 
 void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
 {
-    Z_SearchRequest *req = apdu_req->u.searchRequest;
+    yazpp_1::GDU ngdu(apdu_req);
+    Z_SearchRequest *req = ngdu.get()->u.z3950->u.searchRequest;
     std::string vhost;
     std::string resultSetId = req->resultSetName;
     mp::odr odr;
@@ -358,8 +359,8 @@ void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
 
     *req->replaceIndicator = 1;
 
-    search_package.request() = yazpp_1::GDU(apdu_req);
-    
+    search_package.request() = ngdu;
+
     search_package.move(b->m_route);
 
     if (search_package.session().is_closed())
@@ -578,7 +579,8 @@ void yf::VirtualDB::Frontend::fixup_package(mp::Package &p, BackendPtr b)
 
 void yf::VirtualDB::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
 {
-    Z_PresentRequest *req = apdu_req->u.presentRequest;
+    yazpp_1::GDU ngdu(apdu_req);
+    Z_PresentRequest *req = ngdu.get()->u.z3950->u.presentRequest;
     std::string resultSetId = req->resultSetId;
     mp::odr odr;
 
@@ -602,7 +604,7 @@ void yf::VirtualDB::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
 
     req->resultSetId = odr_strdup(odr, sets_it->second.m_setname.c_str());
     
-    present_package.request() = yazpp_1::GDU(apdu_req);
+    present_package.request() = ngdu;
 
     present_package.move(sets_it->second.m_backend->m_route);
 
@@ -644,7 +646,8 @@ int yf::VirtualDB::Frontend::relay_apdu(mp::Package &package, Z_APDU *apdu_req)
 
 void yf::VirtualDB::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
 {
-    Z_ScanRequest *req = apdu_req->u.scanRequest;
+    yazpp_1::GDU ngdu(apdu_req);
+    Z_ScanRequest *req = ngdu.get()->u.z3950->u.scanRequest;
     std::string vhost;
     mp::odr odr;
 
@@ -695,7 +698,7 @@ void yf::VirtualDB::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
                                                 &req->databaseNames);
     }
 
-    scan_package.request() = yazpp_1::GDU(apdu_req);
+    scan_package.request() = ngdu;
     
     scan_package.move(b->m_route);
 
