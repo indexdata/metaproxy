@@ -61,6 +61,7 @@ namespace metaproxy_1 {
             static void option_write(const char *name, void *handle);
         private:
             std::string m_msg_config;
+            bool m_1line;
             bool m_access;
             bool m_user_access;
             bool m_req_apdu;
@@ -127,6 +128,7 @@ std::list<yf::Log::Impl::LFilePtr> yf::Log::Impl::filter_log_files;
 
 yf::Log::Impl::Impl(const std::string &x)
     : m_msg_config(x),
+      m_1line(false),
       m_access(true),
       m_user_access(false),
       m_req_apdu(false),
@@ -144,6 +146,120 @@ yf::Log::Impl::~Impl()
 {
 }
 
+static void log_DefaultDiagFormat(WRBUF w, Z_DefaultDiagFormat *e)
+{
+    if (e->condition)
+        wrbuf_printf(w, ODR_INT_PRINTF " ",*e->condition);
+    else
+        wrbuf_puts(w, "?? ");
+    if (e->which == Z_DefaultDiagFormat_v2Addinfo && e->u.v2Addinfo)
+        wrbuf_puts(w, e->u.v2Addinfo);
+    else if (e->which == Z_DefaultDiagFormat_v3Addinfo && e->u.v3Addinfo)
+        wrbuf_puts(w, e->u.v3Addinfo);
+}
+
+static void log_DiagRecs(WRBUF w, int num_diagRecs, Z_DiagRec **diags)
+{
+    if (diags[0]->which != Z_DiagRec_defaultFormat)
+        wrbuf_puts(w ,"(diag not in default format?)");
+    else
+    {
+        Z_DefaultDiagFormat *e = diags[0]->u.defaultFormat;
+        log_DefaultDiagFormat(w, e);
+    }
+}
+
+static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
+{
+    switch (z_req->which)
+    {
+    case Z_APDU_searchRequest:
+        if (z_res->which == Z_APDU_searchResponse)
+        {
+            Z_SearchRequest *req = z_req->u.searchRequest;
+            Z_SearchResponse *res = z_res->u.searchResponse;
+            int i;
+            wrbuf_puts(w, "Search ");
+            for (i = 0 ; i < req->num_databaseNames; i++)
+            {
+                if (i)
+                    wrbuf_printf(w, "+");
+                wrbuf_puts(w, req->databaseNames[i]);
+            }
+            wrbuf_printf(w, " ");
+            if (!res->records)
+            {
+                wrbuf_printf(w, "OK " ODR_INT_PRINTF " %s", *res->resultCount,
+                             req->resultSetName);
+            }
+            else if (res->records->which == Z_Records_DBOSD)
+            {
+                wrbuf_printf(w, "OK " ODR_INT_PRINTF " %s", *res->resultCount,
+                             req->resultSetName);
+            }
+            else if (res->records->which == Z_Records_NSD)
+            {
+                wrbuf_puts(w, "ERROR ");
+                log_DefaultDiagFormat(w,
+                                      res->records->u.nonSurrogateDiagnostic);
+            }
+            else if (res->records->which == Z_Records_multipleNSD)
+            {
+                wrbuf_puts(w, "ERROR ");
+                log_DiagRecs(
+                    w, 
+                    res->records->u.multipleNonSurDiagnostics->num_diagRecs,
+                    res->records->u.multipleNonSurDiagnostics->diagRecs);
+            }
+            wrbuf_printf(w, " 1+");
+            if (res->numberOfRecordsReturned)
+                wrbuf_printf(w, ODR_INT_PRINTF " ", *res->numberOfRecordsReturned);
+            else
+                wrbuf_puts(w, "0 ");
+            
+            yaz_query_to_wrbuf(w, req->query);
+        }
+        break;
+    case Z_APDU_presentRequest:
+        if (z_res->which == Z_APDU_presentResponse)
+        {
+            Z_PresentRequest *req = z_req->u.presentRequest;
+            Z_PresentResponse *res = z_res->u.presentResponse;
+
+            wrbuf_printf(w, "Present ");
+
+
+            if (!res->records)
+            {
+                wrbuf_printf(w, "OK");
+            }
+            else if (res->records->which == Z_Records_DBOSD)
+            {
+                wrbuf_printf(w, "OK");
+            }
+            else if (res->records->which == Z_Records_NSD)
+            {
+                wrbuf_puts(w, "ERROR ");
+                log_DefaultDiagFormat(w,
+                                      res->records->u.nonSurrogateDiagnostic);
+            }
+            else if (res->records->which == Z_Records_multipleNSD)
+            {
+                wrbuf_puts(w, "ERROR ");
+                log_DiagRecs(
+                    w, 
+                    res->records->u.multipleNonSurDiagnostics->num_diagRecs,
+                    res->records->u.multipleNonSurDiagnostics->diagRecs);
+            }
+            wrbuf_printf(w, " %s " ODR_INT_PRINTF "+" ODR_INT_PRINTF " ",
+                req->resultSetId, *req->resultSetStartPoint,
+                         *req->numberOfRecordsRequested);
+        }
+        break;
+    default:
+        wrbuf_printf(w, "REQ=%d RES=%d", z_req->which, z_res->which);
+    }
+}
 
 void yf::Log::Impl::configure(const xmlNode *ptr)
 {
@@ -167,7 +283,9 @@ void yf::Log::Impl::configure(const xmlNode *ptr)
             const struct _xmlAttr *attr;
             for (attr = ptr->properties; attr; attr = attr->next)
             {
-                if (!strcmp((const char *) attr->name,  "access"))
+                if (!strcmp((const char *) attr->name,  "line"))
+                    m_1line = mp::xml::get_bool(attr->children, true);
+                else if (!strcmp((const char *) attr->name,  "access"))
                     m_access = mp::xml::get_bool(attr->children, true);
                 else if (!strcmp((const char *) attr->name, "user-access"))
                     m_user_access = mp::xml::get_bool(attr->children, true);
@@ -220,7 +338,7 @@ void yf::Log::Impl::configure(const xmlNode *ptr)
 
 void yf::Log::Impl::process(mp::Package &package)
 {
-    Z_GDU *gdu = package.request().get();
+    Z_GDU *gdu_req = package.request().get();
     std::string user("-");
 
     yaz_timing_t timer = yaz_timing_create();
@@ -229,9 +347,9 @@ void yf::Log::Impl::process(mp::Package &package)
     {
         boost::mutex::scoped_lock scoped_lock(m_session_mutex);
         
-        if (gdu && gdu->which == Z_GDU_Z3950)
+        if (gdu_req && gdu_req->which == Z_GDU_Z3950)
         {
-            Z_APDU *apdu_req = gdu->u.z3950;
+            Z_APDU *apdu_req = gdu_req->u.z3950;
             if (apdu_req->which == Z_APDU_initRequest)
             {
                 Z_InitRequest *req = apdu_req->u.initRequest;
@@ -261,26 +379,26 @@ void yf::Log::Impl::process(mp::Package &package)
  
         if (m_access)
         {
-            if (gdu)          
+            if (gdu_req)          
             {
                 std::ostringstream os;
                 os  << m_msg_config << " "
                     << package << " "
                     << "0.000000" << " " 
-                    << *gdu;
+                    << *gdu_req;
                 m_file->log(m_time_format, os);
             }
         }
 
         if (m_user_access)
         {
-            if (gdu)          
+            if (gdu_req)          
             {
                 std::ostringstream os;
                 os  << m_msg_config << " " << user << " "
                     << package << " "
                     << "0.000000" << " " 
-                    << *gdu;
+                    << *gdu_req;
                 m_file->log(m_time_format, os);
             }
         }
@@ -297,12 +415,12 @@ void yf::Log::Impl::process(mp::Package &package)
 
         if (m_init_options)
         {
-            if (gdu && gdu->which == Z_GDU_Z3950 &&
-                gdu->u.z3950->which == Z_APDU_initRequest)
+            if (gdu_req && gdu_req->which == Z_GDU_Z3950 &&
+                gdu_req->u.z3950->which == Z_APDU_initRequest)
             {
                 std::ostringstream os;
                 os << m_msg_config << " init options:";
-                yaz_init_opt_decode(gdu->u.z3950->u.initRequest->options,
+                yaz_init_opt_decode(gdu_req->u.z3950->u.initRequest->options,
                                     option_write, &os);
                 m_file->log(m_time_format, os);
             }
@@ -310,11 +428,11 @@ void yf::Log::Impl::process(mp::Package &package)
         
         if (m_req_apdu)
         {
-            if (gdu)
+            if (gdu_req)
             {
                 mp::odr odr(ODR_PRINT);
                 odr_set_stream(odr, m_file->fhandle, stream_write, 0);
-                z_GDU(odr, &gdu, 0, 0);
+                z_GDU(odr, &gdu_req, 0, 0);
             }
         }
     }
@@ -322,7 +440,7 @@ void yf::Log::Impl::process(mp::Package &package)
     // unlocked during move
     package.move();
 
-    gdu = package.response().get();
+    Z_GDU *gdu_res = package.response().get();
 
     yaz_timing_stop(timer);
     double duration = yaz_timing_get_real(timer);
@@ -330,29 +448,49 @@ void yf::Log::Impl::process(mp::Package &package)
     // scope for locking Ostream 
     { 
         boost::mutex::scoped_lock scoped_lock(m_file->m_mutex);
+        
+        if (m_1line)
+        {
+            if (gdu_req && gdu_res && gdu_req->which == Z_GDU_Z3950
+                && gdu_res->which == Z_GDU_Z3950)
+            {
+                mp::wrbuf w;
+
+                log_1_line(gdu_req->u.z3950, gdu_res->u.z3950, w);
+                const char *message = wrbuf_cstr(w);
+
+                std::ostringstream os;
+                os  << m_msg_config << " "
+                    << package << " "
+                    << std::fixed << std::setprecision (6) << duration
+                    << " "
+                    << message;
+                m_file->log(m_time_format, os);
+            }
+        }
 
         if (m_access)
         {
-            if (gdu)
+            if (gdu_res)
             {
                 std::ostringstream os;
                 os  << m_msg_config << " "
                     << package << " "
                     << std::fixed << std::setprecision (6) << duration
                     << " "
-                    << *gdu;
+                    << *gdu_res;
                 m_file->log(m_time_format, os);
             }
         }
         if (m_user_access)
         {
-            if (gdu)
+            if (gdu_res)
             {
                 std::ostringstream os;
                 os  << m_msg_config << " " << user << " "
                     << package << " "
                     << std::fixed << std::setprecision (6) << duration << " "
-                    << *gdu;
+                    << *gdu_res;
                 m_file->log(m_time_format, os);
             }   
         }
@@ -371,13 +509,13 @@ void yf::Log::Impl::process(mp::Package &package)
 
         if (m_init_options)
         {
-            if (gdu && gdu->which == Z_GDU_Z3950 &&
-                gdu->u.z3950->which == Z_APDU_initResponse)
+            if (gdu_res && gdu_res->which == Z_GDU_Z3950 &&
+                gdu_res->u.z3950->which == Z_APDU_initResponse)
             {
                 std::ostringstream os;
                 os << m_msg_config;
                 os << " init options:";
-                yaz_init_opt_decode(gdu->u.z3950->u.initResponse->options,
+                yaz_init_opt_decode(gdu_res->u.z3950->u.initResponse->options,
                                     option_write, &os);
                 m_file->log(m_time_format, os);
             }
@@ -385,11 +523,11 @@ void yf::Log::Impl::process(mp::Package &package)
         
         if (m_res_apdu)
         {
-            if (gdu)
+            if (gdu_res)
             {
                 mp::odr odr(ODR_PRINT);
                 odr_set_stream(odr, m_file->fhandle, stream_write, 0);
-                z_GDU(odr, &gdu, 0, 0);
+                z_GDU(odr, &gdu_res, 0, 0);
             }
         }
     }
