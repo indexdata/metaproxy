@@ -64,6 +64,7 @@ namespace metaproxy_1 {
             double m_duration_max;
             double m_duration_min;
             double m_duration_total;
+            bool m_stop;
         public:
             Rep();
             ~Rep();
@@ -519,6 +520,7 @@ yf::FrontendNet::Rep::Rep()
     m_duration_max = 0.0;
     m_duration_min = 0.0;
     m_duration_total = 0.0;
+    m_stop = false;
 }
 
 yf::FrontendNet::Rep::~Rep()
@@ -539,12 +541,7 @@ yf::FrontendNet::~FrontendNet()
 
 void yf::FrontendNet::stop() const
 {
-    if (m_p->az)
-    {
-        size_t i;
-        for (i = 0; i < m_p->m_ports.size(); i++)
-            m_p->az[i]->server("");
-    }
+    m_p->m_stop = true;
 }
 
 bool yf::FrontendNet::My_Timer_Thread::timeout()
@@ -588,6 +585,16 @@ void yf::FrontendNet::process(Package &package) const
     }
     while (m_p->mySocketManager.processEvent() > 0)
     {
+        if (m_p->m_stop)
+        {
+            m_p->m_stop = false;
+            if (m_p->az)
+            {
+                size_t i;
+                for (i = 0; i < m_p->m_ports.size(); i++)
+                    m_p->az[i]->server("");
+            }
+        }
         int no = m_p->mySocketManager.getNumberOfObservers();
         if (no <= 1)
             break;
