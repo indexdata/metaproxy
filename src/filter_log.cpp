@@ -173,6 +173,58 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
 {
     switch (z_req->which)
     {
+    case Z_APDU_initRequest:
+        if (z_res->which == Z_APDU_initResponse)
+        {
+            Z_InitRequest *req = z_req->u.initRequest;
+            Z_InitResponse *res = z_res->u.initResponse;
+            wrbuf_printf(w, "Init ");
+            if (res->result && *res->result)
+                wrbuf_printf(w, "OK -");
+            else
+            {
+                Z_External *uif = res->userInformationField;
+                bool got_code = false;
+                wrbuf_printf(w, "ERROR ");
+                if (uif && uif->which == Z_External_userInfo1)
+                {
+                    Z_OtherInformation *ui = uif->u.userInfo1;
+                    if (ui->num_elements >= 1)
+                    {
+                        Z_OtherInformationUnit *unit = ui->list[0];
+                        if (unit->which == Z_OtherInfo_externallyDefinedInfo &&
+                            unit->information.externallyDefinedInfo &&
+                            unit->information.externallyDefinedInfo->which ==
+                            Z_External_diag1)
+                        {
+                            Z_DiagnosticFormat *diag =
+                                unit->information.externallyDefinedInfo->
+                                u.diag1;
+                            if (diag->num >= 1)
+                            {
+                                Z_DiagnosticFormat_s *ds = diag->elements[0];
+                                if (ds->which ==
+                                    Z_DiagnosticFormat_s_defaultDiagRec)
+                                {
+                                    log_DefaultDiagFormat(w,
+                                                          ds->u.defaultDiagRec);
+                                    got_code = true;
+                                }
+                            }
+
+                        }
+                    }
+                }
+                if (!got_code)
+                    wrbuf_puts(w, "-");
+            }
+            wrbuf_printf(w, " ID:%s Name:%s Version:%s",
+                         req->implementationId ? req->implementationId :"-", 
+                         req->implementationName ?req->implementationName : "-",
+                         req->implementationVersion ?
+                         req->implementationVersion : "-");
+        }
+        break;
     case Z_APDU_searchRequest:
         if (z_res->which == Z_APDU_searchResponse)
         {
@@ -211,12 +263,9 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
                     res->records->u.multipleNonSurDiagnostics->num_diagRecs,
                     res->records->u.multipleNonSurDiagnostics->diagRecs);
             }
-            wrbuf_printf(w, " 1+");
-            if (res->numberOfRecordsReturned)
-                wrbuf_printf(w, ODR_INT_PRINTF " ", *res->numberOfRecordsReturned);
-            else
-                wrbuf_puts(w, "0 ");
-            
+            wrbuf_printf(w, " 1+" ODR_INT_PRINTF " ",
+                         res->numberOfRecordsReturned
+                         ? *res->numberOfRecordsReturned : 0);
             yaz_query_to_wrbuf(w, req->query);
         }
         break;
@@ -227,7 +276,6 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
             Z_PresentResponse *res = z_res->u.presentResponse;
 
             wrbuf_printf(w, "Present ");
-
 
             if (!res->records)
             {
@@ -254,6 +302,40 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
             wrbuf_printf(w, " %s " ODR_INT_PRINTF "+" ODR_INT_PRINTF " ",
                 req->resultSetId, *req->resultSetStartPoint,
                          *req->numberOfRecordsRequested);
+        }
+        break;
+    case Z_APDU_scanRequest:
+        if (z_res->which == Z_APDU_scanResponse)
+        {
+            Z_ScanRequest *req = z_req->u.scanRequest;
+            Z_ScanResponse *res = z_res->u.scanResponse;
+            int i;
+            wrbuf_printf(w, "Scan ");
+            for (i = 0 ; i < req->num_databaseNames; i++)
+            {
+                if (i)
+                    wrbuf_printf(w, "+");
+                wrbuf_puts(w, req->databaseNames[i]);
+            }
+            wrbuf_puts(w, " ");
+            if (!res->scanStatus || *res->scanStatus == 0)
+                wrbuf_puts(w, "OK");
+            else if (*res->scanStatus == 6)
+                wrbuf_puts(w, "FAIL");
+            else
+                wrbuf_printf(w, "PARTIAL" ODR_INT_PRINTF, *res->scanStatus);
+            
+            wrbuf_printf(w, " " ODR_INT_PRINTF " " ODR_INT_PRINTF "+" 
+                         ODR_INT_PRINTF "+" ODR_INT_PRINTF " ",
+                         res->numberOfEntriesReturned ?
+                         *res->numberOfEntriesReturned : 0,
+                         req->preferredPositionInResponse ?
+                          *req->preferredPositionInResponse : 1,
+                         *req->numberOfTermsRequested,
+                         res->stepSize ? *res->stepSize : 1);
+            
+            yaz_scan_to_wrbuf(w, req->termListAndStartPoint, 
+                              req->attributeSet);
         }
         break;
     default:
