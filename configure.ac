@@ -40,7 +40,7 @@ AC_CHECK_FUNCS([localtime_r])
 USEMARCON_INIT
 
 ## YAZPP checks
-YAZPP_INIT([threads],[1.3.0])
+YAZPP_INIT([threads],[1.3.1])
 if test -z "$YAZPPLIB"; then
     AC_MSG_ERROR([YAZ++ development libraries missing])
 fi
