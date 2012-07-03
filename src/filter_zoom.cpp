@@ -76,6 +76,7 @@ namespace metaproxy_1 {
             std::string urlRecipe;
             std::string contentConnector;
             std::string sortStrategy;
+            std::string rpn2cql_fname;
             bool use_turbomarc;
             bool piggyback;
             CCL_bibset ccl_bibset;
@@ -98,6 +99,7 @@ namespace metaproxy_1 {
             bool enable_explain;
             xmlDoc *explain_doc;
             std::string m_proxy;
+            cql_transform_t cqlt;
         public:
             Backend();
             ~Backend();
@@ -292,6 +294,7 @@ yf::Zoom::Backend::~Backend()
         xsltFreeStylesheet(xsp);
     if (explain_doc)
         xmlFreeDoc(explain_doc);
+    cql_transform_close(cqlt);
     ZOOM_connection_destroy(m_connection);
     ZOOM_resultset_destroy(m_resultset);
 }
@@ -593,6 +596,8 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
         {
             s->sortStrategy = mp::xml::get_text(ptr);
         }
+        else if (!strcmp((const char *) ptr->name, "rpn2cql"))
+            s->rpn2cql_fname = mp::xml::get_text(ptr);
     }
     return s;
 }
@@ -1257,10 +1262,26 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         }
     }
 
+    cql_transform_t cqlt;
+    if (sptr->rpn2cql_fname.length())
+        cqlt = cql_transform_open_fname(sptr->rpn2cql_fname.c_str());
+    else
+        cqlt = cql_transform_create();
+
+    if (!cqlt)
+    {
+        *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+        *addinfo = odr_strdup(odr, "Missing/invalid cql2rpn file");
+        BackendPtr b;
+        xsltFreeStylesheet(xsp);
+        return b;
+    }
+
     m_backend.reset();
 
     BackendPtr b(new Backend);
 
+    b->cqlt = cqlt;
     b->sptr = sptr;
     b->xsp = xsp;
     b->m_frontend_database = database;
@@ -2201,11 +2222,7 @@ next_proxy:
         }
         else
         {
-            cql_transform_t cqlt = cql_transform_create();
-            
-            status = cql_transform_rpn2cql_wrbuf(cqlt, wrb, zquery);
-            
-            cql_transform_close(cqlt);
+            status = cql_transform_rpn2cql_wrbuf(b->cqlt, wrb, zquery);
         }
         if (status == 0)
         {
