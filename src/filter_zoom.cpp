@@ -1262,9 +1262,15 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         }
     }
 
-    cql_transform_t cqlt;
+    cql_transform_t cqlt = 0;
     if (sptr->rpn2cql_fname.length())
-        cqlt = cql_transform_open_fname(sptr->rpn2cql_fname.c_str());
+    {
+        char fullpath[1024];
+        char *cp = yaz_filepath_resolve(sptr->rpn2cql_fname.c_str(),
+                                        m_p->file_path.c_str(), 0, fullpath);
+        if (cp)
+            cqlt = cql_transform_open_fname(fullpath);
+    }
     else
         cqlt = cql_transform_create();
 
