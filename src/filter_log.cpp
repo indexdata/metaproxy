@@ -174,11 +174,13 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
     switch (z_req->which)
     {
     case Z_APDU_initRequest:
-        if (z_res->which == Z_APDU_initResponse)
+        wrbuf_puts(w, "Init ");
+        if (z_res->which != Z_APDU_initResponse)
+            wrbuf_printf(w, "? response=%d", z_res->which);
+        else
         {
             Z_InitRequest *req = z_req->u.initRequest;
             Z_InitResponse *res = z_res->u.initResponse;
-            wrbuf_printf(w, "Init ");
             if (res->result && *res->result)
                 wrbuf_printf(w, "OK -");
             else
@@ -226,12 +228,14 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
         }
         break;
     case Z_APDU_searchRequest:
-        if (z_res->which == Z_APDU_searchResponse)
+        wrbuf_puts(w, "Search ");
+        if (z_res->which != Z_APDU_searchResponse)
+            wrbuf_printf(w, "? response=%d", z_res->which);
+        else
         {
             Z_SearchRequest *req = z_req->u.searchRequest;
             Z_SearchResponse *res = z_res->u.searchResponse;
             int i;
-            wrbuf_puts(w, "Search ");
             for (i = 0 ; i < req->num_databaseNames; i++)
             {
                 if (i)
@@ -270,12 +274,13 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
         }
         break;
     case Z_APDU_presentRequest:
-        if (z_res->which == Z_APDU_presentResponse)
+        wrbuf_puts(w, "Present ");
+        if (z_res->which != Z_APDU_presentResponse)
+            wrbuf_printf(w, "? response=%d", z_res->which);
+        else
         {
             Z_PresentRequest *req = z_req->u.presentRequest;
             Z_PresentResponse *res = z_res->u.presentResponse;
-
-            wrbuf_printf(w, "Present ");
 
             if (!res->records)
             {
@@ -304,13 +309,30 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
                          *req->numberOfRecordsRequested);
         }
         break;
+    case Z_APDU_deleteResultSetRequest:
+        wrbuf_puts(w, "deleteResultSet ");
+        break;
+    case Z_APDU_accessControlRequest:
+        wrbuf_puts(w, "accessControl ");
+        break;
+    case Z_APDU_resourceControlRequest:
+        wrbuf_puts(w, "resourceControl ");
+        break;
+    case Z_APDU_triggerResourceControlRequest:
+        wrbuf_puts(w, "triggerResourceControlRequest");
+        break;
+    case Z_APDU_resourceReportRequest:
+        wrbuf_puts(w, "resourceReport ");
+        break;
     case Z_APDU_scanRequest:
-        if (z_res->which == Z_APDU_scanResponse)
+        wrbuf_puts(w, "Scan ");
+        if (z_res->which != Z_APDU_scanResponse)
+            wrbuf_printf(w, "? response=%d", z_res->which);
+        else
         {
             Z_ScanRequest *req = z_req->u.scanRequest;
             Z_ScanResponse *res = z_res->u.scanResponse;
             int i;
-            wrbuf_printf(w, "Scan ");
             for (i = 0 ; i < req->num_databaseNames; i++)
             {
                 if (i)
@@ -321,7 +343,7 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
             if (!res->scanStatus || *res->scanStatus == 0)
                 wrbuf_puts(w, "OK");
             else if (*res->scanStatus == 6)
-                wrbuf_puts(w, "FAIL");
+                wrbuf_puts(w, "ERROR");
             else
                 wrbuf_printf(w, "PARTIAL" ODR_INT_PRINTF, *res->scanStatus);
             
@@ -336,6 +358,92 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
             
             yaz_scan_to_wrbuf(w, req->termListAndStartPoint, 
                               req->attributeSet);
+        }
+        break;
+    case Z_APDU_sortRequest:
+        wrbuf_puts(w, "sort ");
+        if (z_res->which != Z_APDU_sortResponse)
+            wrbuf_printf(w, "? response=%d", z_res->which);
+        else
+        {
+            Z_SortResponse *res = z_res->u.sortResponse;
+            Z_SortRequest *req = z_res->u.sortRequest;
+            int i;
+
+            if (*res->sortStatus == Z_SortResponse_success)
+                wrbuf_puts(w, "OK");
+            else if (*res->sortStatus == Z_SortResponse_partial_1) 
+                wrbuf_puts(w, "PARTIAL");
+            else if (*res->sortStatus == Z_SortResponse_failure)
+                wrbuf_puts(w, "ERROR");
+
+            wrbuf_puts(w, " ");
+            if (res->diagnostics && res->num_diagnostics >= 1)
+                log_DiagRecs(w, res->num_diagnostics,res->diagnostics);
+            else
+                wrbuf_puts(w, "-");
+
+            wrbuf_puts(w, " (");
+            for (i = 0; i < req->num_inputResultSetNames; i++)
+            {
+                if (i)
+                    wrbuf_puts(w, "+");
+                wrbuf_puts(w, req->inputResultSetNames[i]);
+            }
+            wrbuf_printf(w, ")->%s ",req->sortedResultSetName);
+
+        }
+        break;
+    case Z_APDU_segmentRequest:
+        wrbuf_puts(w, "segmentRequest");
+        break;
+    case Z_APDU_extendedServicesRequest:
+        wrbuf_puts(w, "extendedServices");
+        if (z_res->which != Z_APDU_extendedServicesResponse)
+            wrbuf_printf(w, "? response=%d", z_res->which);
+        else
+        {
+            Z_ExtendedServicesResponse *res =
+                z_res->u.extendedServicesResponse;
+            switch (*res->operationStatus)
+            {
+            case Z_ExtendedServicesResponse_done:
+                wrbuf_puts(w, "DONE"); break;
+            case Z_ExtendedServicesResponse_accepted:
+                wrbuf_puts(w, "ACCEPTED"); break;
+            case Z_ExtendedServicesResponse_failure:
+                wrbuf_puts(w, "ERROR"); break;
+            default:
+                wrbuf_printf(w, ODR_INT_PRINTF, *res->operationStatus);
+            }
+            wrbuf_puts(w, " ");
+            if (res->diagnostics && res->num_diagnostics >= 1)
+                log_DiagRecs(w, res->num_diagnostics,res->diagnostics);
+            else
+                wrbuf_puts(w, "-");      
+        }
+        break;
+    case Z_APDU_close:
+        wrbuf_puts(w, "close");
+        break;
+    case Z_APDU_duplicateDetectionRequest:
+        wrbuf_puts(w, "duplicateDetention ");
+        if (z_res->which != Z_APDU_duplicateDetectionResponse)
+            wrbuf_printf(w, "? response=%d", z_res->which);
+        else
+        {
+            Z_DuplicateDetectionResponse *res =
+                z_res->u.duplicateDetectionResponse;
+            if (*res->status)
+                wrbuf_puts(w, "OK");
+            else
+                wrbuf_puts(w, "ERROR");
+
+            wrbuf_puts(w, " ");
+            if (res->diagnostics && res->num_diagnostics >= 1)
+                log_DiagRecs(w, res->num_diagnostics, res->diagnostics);
+            else
+                wrbuf_puts(w, "-");
         }
         break;
     default:
