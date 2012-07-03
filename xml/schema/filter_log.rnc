@@ -36,6 +36,7 @@ filter_log =
     attribute session { xsd:boolean }?,
     attribute apdu { xsd:boolean }?,
     attribute request-apdu { xsd:boolean }?,
-    attribute response-apdu { xsd:boolean }?
+    attribute response-apdu { xsd:boolean }?,
+    attribute line { xsd:boolean }?
   }?
 
