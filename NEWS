@@ -1,3 +1,11 @@
+Fixes for 'metaproxy reload' for RPM/Debian packages. 
+
+zoom: Allow rpn2cql conversion to be augmented with a properties file.
+Element rpn2cql can be specified per-target for the zoom filter.
+
+log: New category "line" which is a single-line log message with
+most important parts of a HTTP/Z39.50 request/response.
+
 --- 1.3.37 2012/06/01
 
 frontend_net: add facility to report live statistics about response
