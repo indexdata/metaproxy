@@ -54,7 +54,6 @@ static void sig_usr1_handler(int s)
 {
     yaz_log(YLOG_LOG, "metaproxy received SIGUSR1");
     routerp->stop();
-    yaz_daemon_stop();
 }
 
 static void sig_term_handler(int s)
@@ -80,6 +79,7 @@ static void work_common(void *data)
     mp::Package pack;
     pack.router(*routerp).move();
     yaz_log(YLOG_LOG, "metaproxy stop"); /* only for graceful stop */
+    yaz_daemon_stop();
     _exit(0);
 }
 
