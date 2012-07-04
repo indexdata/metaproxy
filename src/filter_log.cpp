@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/util.hpp>
 #include <metaproxy/xmlutil.hpp>
 
+#include <yaz/oid_db.h>
 #include <yaz/zgdu.h>
 #include <yaz/wrbuf.h>
 #include <yaz/log.h>
@@ -149,13 +150,23 @@ yf::Log::Impl::~Impl()
 static void log_DefaultDiagFormat(WRBUF w, Z_DefaultDiagFormat *e)
 {
     if (e->condition)
-        wrbuf_printf(w, ODR_INT_PRINTF " ",*e->condition);
+        wrbuf_printf(w, ODR_INT_PRINTF " ", *e->condition);
     else
         wrbuf_puts(w, "?? ");
     if (e->which == Z_DefaultDiagFormat_v2Addinfo && e->u.v2Addinfo)
+    {
+        wrbuf_puts(w, "\"");
         wrbuf_puts(w, e->u.v2Addinfo);
+        wrbuf_puts(w, "\"");
+    }
     else if (e->which == Z_DefaultDiagFormat_v3Addinfo && e->u.v3Addinfo)
+    {
+        wrbuf_puts(w, "\"");
         wrbuf_puts(w, e->u.v3Addinfo);
+        wrbuf_puts(w, "\"");
+    }
+    else
+        wrbuf_puts(w, "-");
 }
 
 static void log_DiagRecs(WRBUF w, int num_diagRecs, Z_DiagRec **diags)
@@ -167,6 +178,17 @@ static void log_DiagRecs(WRBUF w, int num_diagRecs, Z_DiagRec **diags)
         Z_DefaultDiagFormat *e = diags[0]->u.defaultFormat;
         log_DefaultDiagFormat(w, e);
     }
+}
+
+static void log_syntax(WRBUF w, const Odr_oid *syntax)
+{
+    if (syntax)
+    {
+        char oid_name[OID_STR_MAX+1];
+        wrbuf_puts(w, yaz_oid_to_string_buf(syntax, 0, oid_name));
+    }
+    else
+        wrbuf_puts(w, "-");
 }
 
 static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
@@ -267,6 +289,8 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
                     res->records->u.multipleNonSurDiagnostics->num_diagRecs,
                     res->records->u.multipleNonSurDiagnostics->diagRecs);
             }
+            wrbuf_puts(w, " ");
+            log_syntax(w, req->preferredRecordSyntax);
             wrbuf_printf(w, " 1+" ODR_INT_PRINTF " ",
                          res->numberOfRecordsReturned
                          ? *res->numberOfRecordsReturned : 0);
@@ -304,6 +328,10 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
                     res->records->u.multipleNonSurDiagnostics->num_diagRecs,
                     res->records->u.multipleNonSurDiagnostics->diagRecs);
             }
+            wrbuf_puts(w, " ");
+            assert(req->preferredRecordSyntax);
+            log_syntax(w, req->preferredRecordSyntax);
+                       
             wrbuf_printf(w, " %s " ODR_INT_PRINTF "+" ODR_INT_PRINTF " ",
                 req->resultSetId, *req->resultSetStartPoint,
                          *req->numberOfRecordsRequested);
