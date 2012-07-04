@@ -191,13 +191,15 @@ static void log_syntax(WRBUF w, const Odr_oid *syntax)
         wrbuf_puts(w, "-");
 }
 
-static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
+static void log_1line_Z_APDU(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
 {
     switch (z_req->which)
     {
     case Z_APDU_initRequest:
         wrbuf_puts(w, "Init ");
-        if (z_res->which != Z_APDU_initResponse)
+        if (!z_res)
+            wrbuf_puts(w, "?");
+        else if (z_res->which != Z_APDU_initResponse)
             wrbuf_printf(w, "? response=%d", z_res->which);
         else
         {
@@ -251,7 +253,9 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
         break;
     case Z_APDU_searchRequest:
         wrbuf_puts(w, "Search ");
-        if (z_res->which != Z_APDU_searchResponse)
+        if (!z_res)
+            wrbuf_puts(w, "?");
+        else if (z_res->which != Z_APDU_searchResponse)
             wrbuf_printf(w, "? response=%d", z_res->which);
         else
         {
@@ -299,7 +303,9 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
         break;
     case Z_APDU_presentRequest:
         wrbuf_puts(w, "Present ");
-        if (z_res->which != Z_APDU_presentResponse)
+        if (!z_res)
+            wrbuf_puts(w, "?");
+        else if (z_res->which != Z_APDU_presentResponse)
             wrbuf_printf(w, "? response=%d", z_res->which);
         else
         {
@@ -354,7 +360,9 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
         break;
     case Z_APDU_scanRequest:
         wrbuf_puts(w, "Scan ");
-        if (z_res->which != Z_APDU_scanResponse)
+        if (!z_res)
+            wrbuf_puts(w, "?");
+        else if (z_res->which != Z_APDU_scanResponse)
             wrbuf_printf(w, "? response=%d", z_res->which);
         else
         {
@@ -390,7 +398,9 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
         break;
     case Z_APDU_sortRequest:
         wrbuf_puts(w, "sort ");
-        if (z_res->which != Z_APDU_sortResponse)
+        if (!z_res)
+            wrbuf_puts(w, "?");
+        else if (z_res->which != Z_APDU_sortResponse)
             wrbuf_printf(w, "? response=%d", z_res->which);
         else
         {
@@ -426,8 +436,10 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
         wrbuf_puts(w, "segmentRequest");
         break;
     case Z_APDU_extendedServicesRequest:
-        wrbuf_puts(w, "extendedServices");
-        if (z_res->which != Z_APDU_extendedServicesResponse)
+        wrbuf_puts(w, "extendedServices ");
+        if (!z_res)
+            wrbuf_puts(w, "?");
+        else if (z_res->which != Z_APDU_extendedServicesResponse)
             wrbuf_printf(w, "? response=%d", z_res->which);
         else
         {
@@ -456,7 +468,9 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
         break;
     case Z_APDU_duplicateDetectionRequest:
         wrbuf_puts(w, "duplicateDetention ");
-        if (z_res->which != Z_APDU_duplicateDetectionResponse)
+        if (!z_res)
+            wrbuf_puts(w, "?");
+        else if (z_res->which != Z_APDU_duplicateDetectionResponse)
             wrbuf_printf(w, "? response=%d", z_res->which);
         else
         {
@@ -476,6 +490,32 @@ static void log_1_line(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
         break;
     default:
         wrbuf_printf(w, "REQ=%d RES=%d", z_req->which, z_res->which);
+    }
+}
+
+
+static void log_1line_Z_HTTP(Z_HTTP_Request *req, Z_HTTP_Response *res, WRBUF w)
+{
+    wrbuf_printf(w, "%s %s HTTP/%s", req->method, req->path, req->version);
+    if (res)
+        wrbuf_printf(w, " %d %d", res->code, res->content_len);
+    else
+        wrbuf_printf(w, " ?");
+}
+
+static void log_1line_Z_GDU(Z_GDU *gdu_req, Z_GDU *gdu_res, WRBUF w)
+{
+    if (gdu_req && gdu_req->which == Z_GDU_Z3950)
+    {
+        log_1line_Z_APDU(gdu_req->u.z3950, 
+                         (gdu_res && gdu_res->which == Z_GDU_Z3950) ?
+                         gdu_res->u.z3950 : 0, w);
+    }
+    else if (gdu_req && gdu_req->which == Z_GDU_HTTP_Request)
+    {
+        log_1line_Z_HTTP(gdu_req->u.HTTP_Request,
+                         (gdu_res && gdu_res->which == Z_GDU_HTTP_Response) ?
+                         gdu_res->u.HTTP_Response : 0, w);
     }
 }
 
@@ -669,14 +709,12 @@ void yf::Log::Impl::process(mp::Package &package)
         
         if (m_1line)
         {
-            if (gdu_req && gdu_res && gdu_req->which == Z_GDU_Z3950
-                && gdu_res->which == Z_GDU_Z3950)
+            mp::wrbuf w;
+            
+            log_1line_Z_GDU(gdu_req, gdu_res, w);
+            if (w.len() > 0)
             {
-                mp::wrbuf w;
-
-                log_1_line(gdu_req->u.z3950, gdu_res->u.z3950, w);
                 const char *message = wrbuf_cstr(w);
-
                 std::ostringstream os;
                 os  << m_msg_config << " "
                     << package << " "
