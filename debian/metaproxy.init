@@ -89,7 +89,7 @@ do_reload() {
 	# restarting (for example, when it is sent a SIGHUP),
 	# then implement that here.
 	#
-	start-stop-daemon --stop --signal USR1 --quiet --pidfile $PIDFILE --name $NAME
+	start-stop-daemon --stop --signal USR1 --quiet --retry=5 --pidfile $PIDFILE --name $NAME
 	RETVAL="$?"
 	# Return if daemon could not be stopped
 	[ "$RETVAL" = 2 ] && return 2
