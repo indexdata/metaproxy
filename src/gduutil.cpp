@@ -116,13 +116,17 @@ std::ostream& std::operator<<(std::ostream& os, Z_DefaultDiagFormat& ddf)
     switch (ddf.which)
     {
     case Z_DefaultDiagFormat_v2Addinfo:
+        os << "\"";
         os << ddf.u.v2Addinfo;
+        os << "\"";
         break;
     case Z_DefaultDiagFormat_v3Addinfo:
+        os << "\"";
         os << ddf.u.v3Addinfo;
+        os << "\"";
         break;
     default:
-        os << "Z_DefaultDiagFormat" ;
+        os << "-";
     }
     
     return os;
@@ -137,13 +141,18 @@ static void dump_opt_string(std::ostream& os, const char *s)
         os << "-";
 }
 
-static void dump_opt_int(std::ostream& os, const Odr_int *i)
+static void dump_opt_int_l(std::ostream& os, const Odr_int *i, const char *lead)
 {
-    os << " ";
+    os << lead;
     if (i)
         os << *i;
     else
         os << "-";
+}
+
+static void dump_opt_int(std::ostream& os, const Odr_int *i)
+{
+    dump_opt_int_l(os, i, " ");
 }
 
 std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
@@ -217,10 +226,8 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
             if (sr->preferredRecordSyntax)
             {
                 char oid_name_str[OID_STR_MAX];
-                const char *oid_name = yaz_oid_to_string_buf(
+                os << yaz_oid_to_string_buf(
                     sr->preferredRecordSyntax, 0, oid_name_str);
-                
-                os << oid_name;
             }
             else
                 os << "-";
@@ -248,7 +255,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
             else
             {
                 dump_opt_int(os, sr->resultCount);
-                dump_opt_int(os, sr->numberOfRecordsReturned);
+                dump_opt_int_l(os, sr->numberOfRecordsReturned, " 1+");
                 dump_opt_int(os, sr->nextResultSetPosition);
             }
         }
@@ -259,7 +266,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
             Z_PresentRequest *pr = zapdu.u.presentRequest;
             dump_opt_string(os, pr->resultSetId);
             dump_opt_int(os, pr->resultSetStartPoint);
-            dump_opt_int(os, pr->numberOfRecordsRequested);
+            dump_opt_int_l(os, pr->numberOfRecordsRequested, "+");
             if (pr->preferredRecordSyntax)
             {
                 char oid_name_str[OID_STR_MAX];
