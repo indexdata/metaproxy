@@ -42,15 +42,6 @@ xmlDoc *mp::get_searchable(mp::Package &package,
     found = url_template.find("%query");
     if (found != std::string::npos)
         url_template.replace(found, 6, mp::util::uri_encode(query));
-    else
-    {
-        if (db.length() == 0)
-        {
-            package.log("zoom", YLOG_WARN,
-                        "%query not defined in <torus url=\"..\"");
-            return 0;
-        }
-    }
 
     found = url_template.find("%db");
     if (found != std::string::npos)

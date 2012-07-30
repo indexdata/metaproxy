@@ -129,6 +129,7 @@ namespace metaproxy_1 {
                                       int *error,
                                       char **addinfo,
                                       mp::odr &odr,
+                                      std::string torus_url,
                                       std::string &torus_db,
                                       std::string &realm);
             void handle_present(mp::Package &package);
@@ -1099,6 +1100,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         }
         else if (!strcmp(name, "realm"))
             realm = value;
+        else if (!strcmp(name, "torus_url"))
+            torus_url = value;
         else if (name[0] == 'x' && name[1] == '-')
         {
             out_names[no_out_args] = name;
@@ -1137,8 +1140,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     }
 
     if (torus_db.compare("IR-Explain---1") == 0)
-        return explain_search(package, database, error, addinfo, odr, torus_db,
-            realm);
+        return explain_search(package, database, error, addinfo, odr, torus_url,
+                              torus_db, realm);
     
     SearchablePtr sptr;
 
@@ -1830,6 +1833,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
                                                         int *error,
                                                         char **addinfo,
                                                         mp::odr &odr,
+                                                        std::string torus_url,
                                                         std::string &torus_db,
                                                         std::string &realm)
 {
@@ -1856,7 +1860,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
     else if (query->which == Z_Query_type_104 &&
         query->u.type_104->which == Z_External_CQL)
     {
-        std::string torus_url = m_p->torus_searchable_url;
         std::string torus_query(query->u.type_104->u.cql);
         xmlDoc *doc = mp::get_searchable(package, torus_url, "",
                                          torus_query,
