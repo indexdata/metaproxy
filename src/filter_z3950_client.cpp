@@ -297,8 +297,6 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     if (max_sockets == 0)
         max_sockets = m_max_sockets;
     
-    std::string host;
-
     it = m_clients.find(package.session());
     if (it != m_clients.end())
     {
@@ -384,14 +382,6 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         }
     }
     
-    std::list<std::string> dblist;
-    mp::util::split_zurl(target, host, dblist);
-    
-    if (dblist.size())
-    {
-        ; // z3950_client: Databases in vhost ignored
-    }
-    
     // see if we have reached max number of clients (max-sockets)
 
     while (max_sockets)
@@ -402,7 +392,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         for (; it != m_clients.end(); it++)
         {
             yf::Z3950Client::Assoc *as = it->second;
-            if (!strcmp(as->m_host.c_str(), host.c_str()))
+            if (!strcmp(as->m_host.c_str(), target.c_str()))
             {
                 number++;
                 if (!as->m_in_use)
@@ -410,7 +400,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
             }
         }
         yaz_log(YLOG_LOG, "Found %d/%d connections for %s", number, max_sockets,
-                host.c_str());
+                target.c_str());
         if (number < max_sockets)
             break;
         if (no_not_in_use == 0) // all in use..
@@ -440,7 +430,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     yazpp_1::SocketManager *sm = new yazpp_1::SocketManager;
     yazpp_1::PDU_Assoc *pdu_as = new yazpp_1::PDU_Assoc(sm);
     yf::Z3950Client::Assoc *as = new yf::Z3950Client::Assoc(sm, pdu_as,
-                                                            host.c_str(),
+                                                            target.c_str(),
                                                             m_timeout_sec);
     m_clients[package.session()] = as;
     return as;
