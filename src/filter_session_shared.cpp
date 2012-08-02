@@ -74,7 +74,7 @@ namespace metaproxy_1 {
         public:
             std::string m_result_set_id;
             Databases m_databases;
-            int m_result_set_size;
+            Odr_int m_result_set_size;
             yazpp_1::Yaz_Z_Query m_query;
             time_t m_time_last_use;
             void timestamp();
