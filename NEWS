@@ -1,3 +1,13 @@
+z3950_client: Don't tamper with / in zurl - fixes problems
+using Unix sockets for backends.
+
+session_shared: fix integer overflow problem with hit count.
+
+session_shared: avoid long usage of cached queries.
+
+zoom: New database argument , torus_url to set URL of Torus
+record to be fetched.
+
 --- 1.3.38 2012/07/04
 
 Fixes for 'metaproxy reload' for RPM/Debian packages. 
