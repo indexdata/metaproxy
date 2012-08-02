@@ -667,7 +667,6 @@ restart:
                             found_set = *set_it;
                             found_backend = *it;
                             bc->use_backend(found_backend);
-                            found_set->timestamp();
                             // found matching set. No need to search again
                             return;
                         }
