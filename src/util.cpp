@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/util.hpp>
 
 #include <yaz/odr.h>
+#include <yaz/comstack.h>
 #include <yaz/pquery.h>
 #include <yaz/otherinfo.h>
 #include <yaz/querytowrbuf.h>
@@ -406,14 +407,15 @@ void mp_util::split_zurl(std::string zurl, std::string &host,
                          std::list<std::string> &db)
 {
     const char *zurl_cstr = zurl.c_str();
-    const char *sep = strchr(zurl_cstr, '/');
-    
-    if (sep)
-    {
-        host = std::string(zurl_cstr, sep - zurl_cstr);
+    const char *args = 0;
+    cs_get_host_args(zurl_cstr, &args);
 
-        const char *cp1 = sep+1;
-        while(1)
+    if (args && *args)
+    { 
+        host = std::string(zurl_cstr, args - zurl_cstr);
+
+        const char *cp1 = args + 1;
+        while (1)
         {
             const char *cp2 = strchr(cp1, '+');
             if (cp2)
@@ -427,9 +429,7 @@ void mp_util::split_zurl(std::string zurl, std::string &host,
         }
     }
     else
-    {
         host = zurl;
-    }
 }
 
 bool mp_util::set_databases_from_zurl(
