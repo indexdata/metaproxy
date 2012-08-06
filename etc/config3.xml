@@ -28,6 +28,10 @@
           <target>bagel.indexdata.dk:80</target>
         </virtual>
         <virtual>
+          <database>db4</database>
+          <target>unix:/tmp/socket</target>
+        </virtual>
+        <virtual>
           <database>cf</database>
           <target>connect.indexdata.com</target>
         </virtual>
