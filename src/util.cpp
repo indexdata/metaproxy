@@ -414,7 +414,7 @@ void mp_util::split_zurl(std::string zurl, std::string &host,
     { 
         host = std::string(zurl_cstr, args - zurl_cstr);
 
-        const char *cp1 = args + 1;
+        const char *cp1 = args;
         while (1)
         {
             const char *cp2 = strchr(cp1, '+');
