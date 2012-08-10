@@ -264,7 +264,8 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
     {   // searchRetrieve
         Z_SRW_searchRetrieveRequest *sr_req = sru_pdu_req->u.request;   
         
-        sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_searchRetrieve_response);
+        sru_pdu_res = yaz_srw_get_pdu(odr_en, Z_SRW_searchRetrieve_response,
+                                      sru_pdu_req->srw_version);
 
         // checking that we have a query
         ok = mp_util::check_sru_query_exists(package, odr_en, 
@@ -291,7 +292,8 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
     else if (sru_pdu_req->which == Z_SRW_scan_request
              && sru_pdu_req->u.scan_request)
     {
-        sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_scan_response);
+        sru_pdu_res = yaz_srw_get_pdu(odr_en, Z_SRW_scan_response,
+                                      sru_pdu_req->srw_version);
         
         // we do not do scan at the moment, therefore issuing a diagnostic
         yaz_add_srw_diagnostic(odr_en,
