@@ -119,10 +119,14 @@ namespace metaproxy_1 {
             Impl *m_p;
             bool m_is_virtual;
             bool m_in_use;
+            std::string session_realm;
             yazpp_1::GDU m_init_gdu;
             BackendPtr m_backend;
             void handle_package(mp::Package &package);
             void handle_search(mp::Package &package);
+
+            void auth(mp::Package &package, Z_InitRequest *req,
+                      int *error, char **addinfo, ODR odr);
 
             BackendPtr explain_search(mp::Package &package,
                                       std::string &database,
@@ -210,6 +214,7 @@ namespace metaproxy_1 {
             boost::condition m_cond_session_ready;
             std::string torus_searchable_url;
             std::string torus_content_url;
+            std::string torus_auth_url;
             std::string default_realm;
             std::map<std::string,std::string> fieldmap;
             std::string xsldir;
@@ -674,6 +679,8 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                     torus_searchable_url = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "content_url"))
                     torus_content_url = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "auth_url"))
+                    torus_auth_url = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "realm"))
                     default_realm = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "xsldir"))
@@ -1018,7 +1025,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     std::string authentication;
     std::string content_authentication;
     std::string content_proxy;
-    std::string realm = m_p->default_realm;
+    std::string realm = session_realm;
+    if (realm.length() == 0)
+        realm = m_p->default_realm;
 
     const char *param_user = 0;
     const char *param_password = 0;
@@ -1098,9 +1107,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             out_values[no_out_args++] = value;
             torus_url = m_p->torus_content_url;
         }
-        else if (!strcmp(name, "realm"))
+        else if (!strcmp(name, "realm") && session_realm.length() == 0)
             realm = value;
-        else if (!strcmp(name, "torus_url"))
+        else if (!strcmp(name, "torus_url") && session_realm.length() == 0)
             torus_url = value;
         else if (name[0] == 'x' && name[1] == '-')
         {
@@ -2421,6 +2430,97 @@ void yf::Zoom::Frontend::handle_package(mp::Package &package)
     }
 }
 
+void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
+                              int *error, char **addinfo, ODR odr)
+{
+    if (m_p->torus_auth_url.length() == 0)
+        return;
+
+    std::string user;
+    std::string password;
+    if (req->idAuthentication)
+    {
+        Z_IdAuthentication *auth = req->idAuthentication;
+        switch (auth->which)
+        {
+        case Z_IdAuthentication_open:
+            if (auth->u.open)
+            {
+                const char *cp = strchr(auth->u.open, '/');
+                if (cp)
+                {
+                    user.assign(auth->u.open, cp - auth->u.open);
+                    password.assign(cp + 1);
+                }
+            }
+            break;
+        case Z_IdAuthentication_idPass:
+            if (auth->u.idPass->userId)
+                user.assign(auth->u.idPass->userId);
+            if (auth->u.idPass->password)
+                password.assign(auth->u.idPass->password);
+            break;
+        }
+    }
+    // need to dig out IP!!
+
+    if (user.length() == 0 || password.length() == 0)
+    {
+        *error = YAZ_BIB1_INIT_AC_BAD_USERID_AND_OR_PASSWORD;
+        *addinfo = odr_strdup(odr, "User and password required");
+        return;
+    }
+
+    std::string dummy_db;
+    std::string dummy_realm;
+    std::string torus_query = "userName==" + user + 
+        " and password==" + password;
+    xmlDoc *doc = mp::get_searchable(package, m_p->torus_auth_url, dummy_db,
+                                     torus_query, dummy_realm, m_p->proxy);
+    if (!doc)
+    {
+        *error = YAZ_BIB1_UNSPECIFIED_ERROR;
+        *addinfo = odr_strdup(odr, "Torus server unavailable or "
+                              "incorrectly configured");
+        return;
+    }
+    const xmlNode *ptr = xmlDocGetRootElement(doc);
+    if (ptr && ptr->type == XML_ELEMENT_NODE)
+    {
+        if (strcmp((const char *) ptr->name, "records") == 0)
+        {
+            ptr = ptr->children;
+            while (ptr && ptr->type != XML_ELEMENT_NODE)
+                ptr = ptr->next;
+        }
+        if (ptr && strcmp((const char *) ptr->name, "record") == 0)
+        {
+            ptr = ptr->children;
+            while (ptr && ptr->type != XML_ELEMENT_NODE)
+                ptr = ptr->next;
+        }
+        if (ptr && strcmp((const char *) ptr->name, "layer") == 0)
+        {
+            ptr = ptr->children;
+            while (ptr && ptr->type != XML_ELEMENT_NODE)
+                ptr = ptr->next;
+        }
+        while (ptr)
+        {
+            if (ptr && ptr->type == XML_ELEMENT_NODE &&
+                !strcmp((const char *) ptr->name, "identityId"))
+                break;
+            ptr = ptr->next;
+        }            
+    }
+    if (!ptr)
+    {
+        *error = YAZ_BIB1_INIT_AC_BAD_USERID_AND_OR_PASSWORD;
+        return;
+    }
+    session_realm = mp::xml::get_text(ptr);
+}
+
 void yf::Zoom::Impl::process(mp::Package &package)
 {
     FrontendPtr f = get_frontend(package);
@@ -2464,9 +2564,20 @@ void yf::Zoom::Impl::process(mp::Package &package)
         
         *resp->preferredMessageSize = *req->preferredMessageSize;
         *resp->maximumRecordSize = *req->maximumRecordSize;
-        
+
+        int error = 0;
+        char *addinfo = 0;
+        f->auth(package, req, &error, &addinfo, odr);
+        if (error)
+        {
+            resp->userInformationField =
+                zget_init_diagnostics(odr, error, addinfo);
+            *resp->result = 0;
+            package.session().close();
+        }
+        else
+            f->m_is_virtual = true;
         package.response() = apdu;
-        f->m_is_virtual = true;
     }
     else
         package.move();

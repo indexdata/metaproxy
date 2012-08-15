@@ -9,7 +9,8 @@
     </filter>
     <filter id="backend" type="zoom">
       <torus
-	  url="http://usi.indexdata.com/torus2/searchable.%realm/records/?query=%query"
+	    auth_url="http://usi.indexdata.com/torus2/admin.admin/records/?query=%query"
+	    url="http://usi.indexdata.com/torus2/searchable.%realm/records/?query=%query"
             realm="production"
             xsldir="."
             element_transform="pz2"
@@ -17,6 +18,12 @@
             explain_xsl="torus2zeerex.xsl"
             record_xsl="pz22usi.xsl"
 	    >	
+
+	<!--
+	http://usi.indexdata.com/torus2/admin.admin/records/?query=userName==test+and+password==test 
+	-->
+	
+
         <!-- these records are examples only -->
 	<records>
 
@@ -205,10 +212,12 @@
     <route id="start">
       <filter refid="frontend"/>
       <filter type="sru_z3950"/>
+<!--
       <filter type="session_shared">
         <resultset ttl="0" restart="false"/>
         <session ttl="60" max="100"/>
       </filter>
+-->
       <filter type="log">
         <message>B</message>
 	<category apdu="false" session="true"/>
