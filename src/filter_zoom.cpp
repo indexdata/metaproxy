@@ -2462,19 +2462,30 @@ void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
             break;
         }
     }
-    // need to dig out IP!!
 
-    if (user.length() == 0 || password.length() == 0)
+    std::string ip = package.origin().get_address();
+    yaz_log(YLOG_LOG, "IP=%s", ip.c_str());
+
+    std::string torus_query;
+
+    if (user.length() && password.length())
     {
-        *error = YAZ_BIB1_INIT_AC_BAD_USERID_AND_OR_PASSWORD;
-        *addinfo = odr_strdup(odr, "User and password required");
-        return;
+        torus_query = "userName==" + user + " and password==" + password;
+    }
+    else
+    {  
+        const char *ip_cstr = ip.c_str();
+        const char *cp = strchr(ip_cstr, ':');
+        if (cp)
+            ip_cstr = cp + 1;
+
+        torus_query = "ip encloses/net.ipaddress \"";
+        torus_query += ip_cstr;
+        torus_query += "\"";
     }
 
     std::string dummy_db;
     std::string dummy_realm;
-    std::string torus_query = "userName==" + user + 
-        " and password==" + password;
     xmlDoc *doc = mp::get_searchable(package, m_p->torus_auth_url, dummy_db,
                                      torus_query, dummy_realm, m_p->proxy);
     if (!doc)
