@@ -362,6 +362,10 @@ void yf::FrontendNet::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
     {
         Z_HTTP_Request *hreq = z_pdu->u.HTTP_Request;
 
+        const char *f = z_HTTP_header_lookup(hreq->headers, "X-Forwarded-For");
+        if (f)
+            p->origin().set_tcpip_address(std::string(f), m_session.id());
+
         if (m_p->m_stat_req.length()
             && !strcmp(hreq->path, m_p->m_stat_req.c_str()))
         {
