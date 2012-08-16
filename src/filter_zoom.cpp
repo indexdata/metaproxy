@@ -2430,6 +2430,20 @@ void yf::Zoom::Frontend::handle_package(mp::Package &package)
     }
 }
 
+std::string escape_cql_term(std::string inp)
+{
+    std::string res;
+    size_t l = inp.length();
+    size_t i;
+    for (i = 0; i < l; i++)
+    {
+        if (strchr("*?^\"", inp[i]))
+            res += "\\";
+        res += inp[i];
+    }
+    return res;
+}
+
 void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
                               int *error, char **addinfo, ODR odr)
 {
@@ -2470,7 +2484,8 @@ void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
 
     if (user.length() && password.length())
     {
-        torus_query = "userName==" + user + " and password==" + password;
+        torus_query = "userName==\"" + escape_cql_term(user) +
+            "\" and password==\"" + escape_cql_term(password) + "\"";
     }
     else
     {  
@@ -2480,7 +2495,7 @@ void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
             ip_cstr = cp + 1;
 
         torus_query = "ip encloses/net.ipaddress \"";
-        torus_query += ip_cstr;
+        torus_query += escape_cql_term(std::string(ip_cstr));
         torus_query += "\"";
     }
 
