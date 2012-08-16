@@ -2481,11 +2481,13 @@ void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
     yaz_log(YLOG_LOG, "IP=%s", ip.c_str());
 
     std::string torus_query;
+    int failure_code;
 
     if (user.length() && password.length())
     {
         torus_query = "userName==\"" + escape_cql_term(user) +
             "\" and password==\"" + escape_cql_term(password) + "\"";
+        failure_code = YAZ_BIB1_INIT_AC_BAD_USERID_AND_OR_PASSWORD;
     }
     else
     {  
@@ -2497,6 +2499,7 @@ void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
         torus_query = "ip encloses/net.ipaddress \"";
         torus_query += escape_cql_term(std::string(ip_cstr));
         torus_query += "\"";
+        failure_code = YAZ_BIB1_INIT_AC_BLOCKED_NETWORK_ADDRESS;
     }
 
     std::string dummy_db;
@@ -2505,7 +2508,8 @@ void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
                                      torus_query, dummy_realm, m_p->proxy);
     if (!doc)
     {
-        *error = YAZ_BIB1_UNSPECIFIED_ERROR;
+        // something fundamental broken in lookup.
+        *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
         *addinfo = odr_strdup(odr, "Torus server unavailable or "
                               "incorrectly configured");
         return;
@@ -2541,7 +2545,7 @@ void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
     }
     if (!ptr)
     {
-        *error = YAZ_BIB1_INIT_AC_BAD_USERID_AND_OR_PASSWORD;
+        *error = failure_code;
         return;
     }
     session_realm = mp::xml::get_text(ptr);
