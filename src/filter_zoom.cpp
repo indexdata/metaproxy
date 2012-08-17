@@ -292,6 +292,7 @@ yf::Zoom::Backend::Backend()
     enable_cproxy = true;
     enable_explain = false;
     explain_doc = 0;
+    cqlt = 0;
 }
 
 yf::Zoom::Backend::~Backend()
