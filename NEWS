@@ -8,7 +8,7 @@ and may be used in filters as usual.
 zoom: authentication via Torus lookup
 Enabled by new configuration setting: auth_url . If this is defined,
 the zoom module will contact Torus for auth/IP lookup and that will
-define realm to be used in sessio
+define realm to be used in session.
 
 --- 1.3.41 2012/08/10
 
