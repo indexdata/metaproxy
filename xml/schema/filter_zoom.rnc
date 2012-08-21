@@ -7,7 +7,7 @@ filter_zoom =
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
   element mp:torus {
-    attribute auth_url { xsd:string },
+    attribute auth_url { xsd:string }?,
     attribute url { xsd:string },
     attribute content_url { xsd:string }?,
     attribute realm { xsd:string },
