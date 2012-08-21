@@ -9,14 +9,13 @@
     </filter>
     <filter id="backend" type="zoom">
       <torus
-	    auth_url="http://usi.indexdata.com/torus2/admin.admin/records/?query=%query"
 	    url="http://usi.indexdata.com/torus2/searchable.%realm/records/?query=%query"
             realm="production"
             xsldir="."
             element_transform="pz2"
             element_raw="raw"
             explain_xsl="torus2zeerex.xsl"
-            record_xsl="pz22usi.xsl"
+            record_xsl="pz2dc.xsl"
 	    >	
 
 	<!--
@@ -37,8 +36,7 @@
 	    <requestSyntax>usmarc</requestSyntax>
 	    <transform>tmarc.xsl</transform>
 	    <urlRecipe>http://sever.com?title=${md-title[\s+/+/g]}&amp;parm=1</urlRecipe>
-	    <zurl>localhost:9998/Default?search-delay=2&amp;present-delay=2</zurl>
-	    <contentConnector>heikki/content1</contentConnector>
+	    <zurl>localhost:9998/Default</zurl>
 	  </record>
 	  <record>
 	    <udb>heikki/content1</udb>
