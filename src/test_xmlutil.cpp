@@ -63,38 +63,40 @@ BOOST_AUTO_TEST_CASE( url_recipe )
             BOOST_CHECK(!res.compare("abc"));
 
             res = mp_xml::url_recipe_handle(doc, "${has-fulltext[no/yes]}");
-            std::cout << "res=" << res << std::endl;
             BOOST_CHECK(!res.compare("yes"));
 
+            res = mp_xml::url_recipe_handle(doc, "<${has-fulltext[no/yes]}>");
+            BOOST_CHECK(!res.compare("<yes>"));
+
             res = mp_xml::url_recipe_handle(doc, "${has-fulltext[no]}");
-            std::cout << "res=" << res << std::endl;
             BOOST_CHECK(!res.compare(""));
 
             res = mp_xml::url_recipe_handle(doc, "${has-fulltext[no/]}");
-            std::cout << "res=" << res << std::endl;
             BOOST_CHECK(!res.compare(""));
 
             res = mp_xml::url_recipe_handle(doc, "${has-fulltext[n/]}");
-            std::cout << "res=" << res << std::endl;
             BOOST_CHECK(!res.compare("o"));
 
             res = mp_xml::url_recipe_handle(doc, "${has-fulltext}");
-            std::cout << "res=" << res << std::endl;
+            BOOST_CHECK(!res.compare("no"));
+
+            res = mp_xml::url_recipe_handle(doc, "%{has-fulltext}");
             BOOST_CHECK(!res.compare("no"));
 
             res = mp_xml::url_recipe_handle(
                 doc, "http://sever.com?title=${md-title[\\s+/+/g]}");
-            std::cout << "res=" << res << std::endl;
             BOOST_CHECK(!res.compare("http://sever.com?title=How+to+program+a+computer"));
 
+            res = mp_xml::url_recipe_handle(
+                doc, "http://sever.com?title=%{md-title}");
+            BOOST_CHECK(!res.compare("http://sever.com?title=How%20to%20program%20a%20computer"));
+
+
             res = mp_xml::url_recipe_handle(doc, "${md-id[2/1]}");
-            std::cout << "res=" << res << std::endl;
             BOOST_CHECK(!res.compare("   11124466 "));
 
             res = mp_xml::url_recipe_handle(doc, "${md-id[2/1/g]}");
-            std::cout << "res=" << res << std::endl;
             BOOST_CHECK(!res.compare("   11114466 "));
-
 
             xmlFreeDoc(doc);
         }
