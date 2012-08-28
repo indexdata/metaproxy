@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 
+#include <yaz/srw.h>
 #include <boost/regex.hpp>
 #include <metaproxy/xmlutil.hpp>
 
@@ -38,17 +39,28 @@ std::string mp_xml::url_recipe_handle(xmlDoc *doc, std::string recipe)
         ptr1 = ptr1->children;
 
     size_t p0 = 0;
-    for (;;)
+    while (p0 < recipe.length())
     {
-        size_t p1 = recipe.find_first_of("${", p0);
-        if (p1 == std::string::npos)
+        bool uri_encode = false;
+        if (p0 < recipe.length() -1 && recipe[p0] == '%'
+            && recipe[p0 + 1] == '{')
         {
-            result += recipe.substr(p0);
-            break;
+            p0++;
+            p0++;
+            uri_encode = true;
         }
-        result += recipe.substr(p0, p1 - p0);
-        p0 = p1+2;
-
+        else if (p0 < recipe.length() -1 && recipe[p0] == '$'
+            && recipe[p0 + 1] == '{')
+        {
+            p0++;
+            p0++;
+        }
+        else
+        {
+            result += recipe[p0];
+            p0++;
+            continue;
+        }
         int step = 0;  // 0=variable, 1=pattern, 2=replacement, 3=mode
         std::string variable;
         std::string pattern;
@@ -117,9 +129,7 @@ std::string mp_xml::url_recipe_handle(xmlDoc *doc, std::string recipe)
                             break;
                         }
                 }
-            if (pattern.length() == 0)
-                result += text;
-            else
+            if (pattern.length() > 0)
             {
                 boost::regex::flag_type b_mode = boost::regex::perl;
                 if (mode.find_first_of('i') != std::string::npos)
@@ -128,7 +138,22 @@ std::string mp_xml::url_recipe_handle(xmlDoc *doc, std::string recipe)
                 boost::match_flag_type match_mode = boost::format_first_only;
                 if (mode.find_first_of('g') != std::string::npos)
                     match_mode = boost::format_all;
-                result += regex_replace(text, e, replacement, match_mode);
+                text = regex_replace(text, e, replacement, match_mode);
+            }
+            if (!uri_encode)
+                result += text;
+            else
+            {
+                char src[2];
+                char dst[4];
+                size_t i;
+                for (i = 0; i < text.length(); i++)
+                {
+                    src[0] = text[i];
+                    src[1] = '\0';
+                    yaz_encode_uri_component(dst, src);
+                    result += dst;
+                }
             }
         }
     }
