@@ -1112,7 +1112,7 @@ void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
                                 entries_before.begin();
                             while (it != entries_before.end() && my <*it)
                                 it++;
-                            if (my == *it)
+                            if (it != entries_before.end() && my == *it)
                             {
                                 it->m_count += my.m_count;
                             }
@@ -1153,7 +1153,7 @@ void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
                                 entries_after.begin();
                             while (it != entries_after.end() && *it < my)
                                 it++;
-                            if (my == *it)
+                            if (it != entries_after.end() && my == *it)
                             {
                                 it->m_count += my.m_count;
                             }
