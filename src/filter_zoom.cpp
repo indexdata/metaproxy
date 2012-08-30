@@ -76,6 +76,7 @@ namespace metaproxy_1 {
             std::string urlRecipe;
             std::string contentConnector;
             std::string sortStrategy;
+            std::string extraArgs;
             std::string rpn2cql_fname;
             bool use_turbomarc;
             bool piggyback;
@@ -359,8 +360,12 @@ void yf::Zoom::Backend::connect(std::string zurl,
                                 int *error, char **addinfo,
                                 ODR odr)
 {
+    size_t h = zurl.find_first_of('#');
+    if (h != std::string::npos)
+        zurl.erase(h);
     ZOOM_connection_connect(m_connection, zurl.length() ? zurl.c_str() : 0, 0);
     get_zoom_error(error, addinfo, odr);
+    
 }
 
 void yf::Zoom::Backend::search(ZOOM_query q, Odr_int *hits,
@@ -602,6 +607,11 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
                           "sortStrategy"))
         {
             s->sortStrategy = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name,
+                          "extraArgs"))
+        {
+            s->extraArgs = mp::xml::get_text(ptr);
         }
         else if (!strcmp((const char *) ptr->name, "rpn2cql"))
             s->rpn2cql_fname = mp::xml::get_text(ptr);
@@ -1325,6 +1335,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
 
     if (sptr->query_encoding.length())
         b->set_option("rpnCharset", sptr->query_encoding);
+
+    if (sptr->extraArgs.length())
+        b->set_option("extraArgs", sptr->extraArgs);
 
     b->set_option("timeout", m_p->zoom_timeout.c_str());
     
