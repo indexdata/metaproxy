@@ -119,6 +119,8 @@ void mp::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
                 id_value = value;
             else if (name == "type")
                 type_value = value;
+            else if (name == "base")
+                ;// Ignore XInclude base attribute.
             else
                 throw mp::XMLError("Only attribute id or type allowed"
                                     " in filter element. Got " + name);
@@ -175,6 +177,8 @@ void mp::RouterFleXML::Rep::parse_xml_filters1(xmlDocPtr doc,
                     refid_value = value;
                 else if (name == "type")
                     type_value = value;
+                else if (name == "base")
+                    ;// Ignore XInclude base attribute.
                 else
                     throw mp::XMLError("Only attribute 'refid' or 'type'"
                                        " allowed for element 'filter'."
@@ -237,6 +241,8 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
 
             if (name == "id")
                 id_value = value;
+            else if (name == "base")
+                ;// Ignore XInclude base attribute.
             else
                 throw mp::XMLError("Only attribute 'id' allowed for"
                                     " element 'route'."
@@ -247,6 +253,9 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
 
         // process <filter> / <filters> nodes in third level
         const xmlNode* node3 = mp::xml::jump_to_children(node, XML_ELEMENT_NODE);
+
+
+
         parse_xml_filters1(doc, node3, test_only, file_include_path, route);
 
         std::map<std::string,RouterFleXML::Route>::iterator it;
@@ -343,6 +352,8 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
 
             if (name == "route")
                 m_start_route = value;
+            else if (name == "base")
+                ;// Ignore XInclude base attribute.
             else
                 throw mp::XMLError("Only attribute route allowed"
                                     " in element 'start'. Got " + name);
