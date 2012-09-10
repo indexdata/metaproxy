@@ -5,7 +5,7 @@
   <start route="start"/>
   <filters>
     <filter id="frontend" type="frontend_net">
-      <port>@:9000</port>
+      <port>@:9070</port>
       <message>FN</message>
       <stat-req>/fn_stat</stat-req>
     </filter>

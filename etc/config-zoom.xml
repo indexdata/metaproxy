@@ -38,6 +38,22 @@
 	    <urlRecipe>http://sever.com?title=${md-title[\s+/+/g]}&amp;parm=1</urlRecipe>
 	    <zurl>localhost:9998/Default</zurl>
 	  </record>
+          <record>
+ 
+<udb>solr</udb>
+<useThumbnails>1</useThumbnails>
+<cclmap_au>1=author</cclmap_au>
+<cclmap_isbn>1=isbn</cclmap_isbn>
+<cclmap_issn>1=issn</cclmap_issn>
+<cclmap_jt>1=journal-title</cclmap_jt>
+<cclmap_su>1=subject</cclmap_su>
+<cclmap_term>1=text</cclmap_term>
+<cclmap_ti>1=title</cclmap_ti>
+<extraArgs>fq=database:4502</extraArgs>
+<displayName>ARTstor</displayName>
+<sru>solr</sru>
+<zurl>lui.indexdata.com/solr#4502</zurl>
+          </record>
 	  <record>
 	    <udb>heikki/content1</udb>
 	    <zurl>localhost:9999/heikki/content1</zurl>
