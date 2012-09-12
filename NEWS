@@ -1,3 +1,7 @@
+--- 1.3.45 2012/09/12
+
+sru_z3950: relay surrogate diagnostics.
+
 --- 1.3.44 2012/09/10
 
 zoom: Honor extraArgs, strip # in zurl.
