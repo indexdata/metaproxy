@@ -780,7 +780,26 @@ bool yf::SRUtoZ3950::Impl::z3950_present_request(
                 
                 sru_res->records[i + num].recordPacking = record_packing;
                 
-                if (npr->which == Z_NamePlusRecord_databaseRecord &&
+                if (npr->which == Z_NamePlusRecord_surrogateDiagnostic)
+                {
+                    Z_DiagRec *p = npr->u.surrogateDiagnostic;
+                    if (p->which == Z_DiagRec_defaultFormat)
+                    {
+                        Z_DefaultDiagFormat *df = p->u.defaultFormat;
+                        int c = yaz_diag_bib1_to_srw(*df->condition);
+
+                        yaz_mk_sru_surrogate(
+                            odr_en, sru_res->records + i + num, position,
+                            c, df->u.v2Addinfo);
+                    }
+                    else
+                    {
+                        yaz_mk_sru_surrogate(
+                            odr_en, sru_res->records + i + num, position,
+                            YAZ_SRW_RECORD_TEMPORARILY_UNAVAILABLE, 0);
+                    }
+                }
+                else if (npr->which == Z_NamePlusRecord_databaseRecord &&
                     npr->u.databaseRecord->direct_reference 
                     && !oid_oidcmp(npr->u.databaseRecord->direct_reference,
                                    yaz_oid_recsyn_xml))
