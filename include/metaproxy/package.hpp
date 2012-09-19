@@ -34,7 +34,7 @@ namespace metaproxy_1 {
 }
 
 
-namespace std 
+namespace std
 {
     std::ostream& operator<<(std::ostream& os, const metaproxy_1::Package& p);
 }
@@ -46,8 +46,8 @@ namespace metaproxy_1 {
         Package();
 
         ~Package();
-        
-        Package(metaproxy_1::Session &session, 
+
+        Package(metaproxy_1::Session &session,
                 const metaproxy_1::Origin &origin);
 
         /// copy constructor which copies route pos + logger
@@ -61,23 +61,23 @@ namespace metaproxy_1 {
 
         /// send Package to other route
         void move(std::string route);
-        
+
         /// access session - left val in assignment
         metaproxy_1::Session & session();
-        
+
         /// get function - right val in assignment
         Origin origin() const;
-       
+
         /// set function - left val in assignment
         Origin & origin();
-        
+
         /// set function - can be chained
         Package & router(const Router &router);
 
         yazpp_1::GDU &request();
 
         yazpp_1::GDU &response();
-                
+
         /// get function - right val in assignment
         Session session() const;
 
@@ -96,7 +96,7 @@ namespace metaproxy_1 {
         RoutePos *m_route_pos;
 
         PackageLoggerPtr p_logger;
-        
+
         yazpp_1::GDU m_request_gdu;
         yazpp_1::GDU m_response_gdu;
     };

@@ -25,10 +25,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <iosfwd>
 
-namespace std 
+namespace std
 {
     std::ostream& operator<<(std::ostream& os, Z_GDU& zgdu);
-    std::ostream& operator<<(std::ostream& os, Z_APDU& zapdu); 
+    std::ostream& operator<<(std::ostream& os, Z_APDU& zapdu);
     std::ostream& operator<<(std::ostream& os, Z_HTTP_Request& httpreq);
     std::ostream& operator<<(std::ostream& os, Z_HTTP_Response& httpres);
     std::ostream& operator<<(std::ostream& os, Z_Records & rs);
@@ -41,7 +41,7 @@ namespace metaproxy_1 {
     namespace gdu  {
 
 
-    }    
+    }
 }
 
 #endif

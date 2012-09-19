@@ -102,7 +102,7 @@ yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
                               std::string host, int timeout_sec)
     :  Z_Assoc(PDU_Observable),
        m_socket_manager(socket_manager), m_PDU_Observable(PDU_Observable),
-       m_package(0), m_in_use(true), m_waiting(false), 
+       m_package(0), m_in_use(true), m_waiting(false),
        m_destroyed(false), m_connected(false), m_has_closed(false),
        m_queue_len(1),
        m_time_elapsed(0), m_time_max(timeout_sec),  m_time_connect_max(10),
@@ -135,7 +135,7 @@ void yf::Z3950Client::Assoc::failNotify()
         Z_APDU *apdu = 0;
         if (gdu && gdu->which == Z_GDU_Z3950)
             apdu = gdu->u.z3950;
-        
+
         m_package->response() = odr.create_close(apdu, Z_Close_peerAbort, 0);
         m_package->session().close();
     }
@@ -150,21 +150,21 @@ void yf::Z3950Client::Assoc::timeoutNotify()
         m_waiting = false;
 
         mp::odr odr;
-        
+
         if (m_package)
         {
             Z_GDU *gdu = m_package->request().get();
             Z_APDU *apdu = 0;
             if (gdu && gdu->which == Z_GDU_Z3950)
                 apdu = gdu->u.z3950;
-        
+
             if (m_connected)
                 m_package->response() =
                     odr.create_close(apdu, Z_Close_lackOfActivity, 0);
             else
-                m_package->response() = 
+                m_package->response() =
                     odr.create_close(apdu, Z_Close_peerAbort, 0);
-                
+
             m_package->session().close();
         }
     }
@@ -176,7 +176,7 @@ void yf::Z3950Client::Assoc::fixup_nsd(ODR odr, Z_Records *records)
     {
         Z_DefaultDiagFormat *nsd = records->u.nonSurrogateDiagnostic;
 	std::string addinfo;
-        
+
         // should really check for nsd->which.. But union has two members
         // containing almost same data
         const char *v2Addinfo = nsd->u.v2Addinfo;
@@ -206,7 +206,7 @@ void yf::Z3950Client::Assoc::fixup_init(ODR odr, Z_InitResponse *initrs)
             if (unit->which == Z_OtherInfo_externallyDefinedInfo &&
                 unit->information.externallyDefinedInfo &&
                 unit->information.externallyDefinedInfo->which ==
-                Z_External_diag1) 
+                Z_External_diag1)
             {
                 Z_DiagnosticFormat *diag =
                     unit->information.externallyDefinedInfo->u.diag1;
@@ -234,7 +234,7 @@ void yf::Z3950Client::Assoc::fixup_init(ODR odr, Z_InitResponse *initrs)
                         r->u.v2Addinfo = naddinfo;
                     }
                 }
-            } 
+            }
         }
     }
 }
@@ -244,7 +244,7 @@ void yf::Z3950Client::Assoc::recv_GDU(Z_GDU *gdu, int len)
     m_waiting = false;
 
     if (m_package)
-    { 
+    {
         mp::odr odr; // must be in scope for response() = assignment
         if (gdu && gdu->which == Z_GDU_Z3950)
         {
@@ -284,19 +284,19 @@ yf::Z3950Client::Z3950Client() :  m_p(new yf::Z3950Client::Rep)
 yf::Z3950Client::~Z3950Client() {
 }
 
-yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package) 
+yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
 {
     // only one thread messes with the clients list at a time
     boost::mutex::scoped_lock lock(m_mutex);
 
     std::map<mp::Session,yf::Z3950Client::Assoc *>::iterator it;
-    
+
     Z_GDU *gdu = package.request().get();
-    
+
     int max_sockets = package.origin().get_max_sockets();
     if (max_sockets == 0)
         max_sockets = m_max_sockets;
-    
+
     it = m_clients.find(package.session());
     if (it != m_clients.end())
     {
@@ -334,7 +334,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     if (apdu->which != Z_APDU_initRequest)
     {
         mp::odr odr;
-        
+
         package.response() = odr.create_close(apdu,
                                               Z_Close_protocolError,
                                               "First PDU was not an "
@@ -365,7 +365,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
                     apdu,
                     YAZ_BIB1_INIT_NEGOTIATION_OPTION_REQUIRED,
                     "z3950_client: No vhost given");
-                
+
                 package.session().close();
                 return 0;
             }
@@ -381,7 +381,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
             return 0;
         }
     }
-    
+
     // see if we have reached max number of clients (max-sockets)
 
     while (max_sockets)
@@ -406,7 +406,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         if (no_not_in_use == 0) // all in use..
         {
             mp::odr odr;
-            
+
             package.response() = odr.create_initResponse(
                 apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, "max sessions");
             package.session().close();
@@ -414,12 +414,12 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         }
         boost::xtime xt;
         xtime_get(&xt, boost::TIME_UTC);
-        
+
         xt.sec += 15;
         if (!m_cond_session_ready.timed_wait(lock, xt))
         {
             mp::odr odr;
-            
+
             package.response() = odr.create_initResponse(
                 apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, "max sessions");
             package.session().close();
@@ -448,7 +448,7 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
         && m_force_close)
     {
         mp::odr odr;
-            
+
         package.request() = odr.create_close(
             0, Z_Close_finished, "z3950_client");
         c->m_package = 0; // don't inspect response
@@ -475,9 +475,9 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
             return;
         }
         c->timeout(1);  // so timeoutNotify gets called once per second
-        
 
-        while (!c->m_destroyed && c->m_waiting 
+
+        while (!c->m_destroyed && c->m_waiting
                && c->m_socket_manager->processEvent() > 0)
             ;
     }
@@ -489,7 +489,7 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
     // prepare response
     c->m_time_elapsed = 0;
     c->m_waiting = true;
-    
+
     // relay the package  ..
     int len;
     c->send_GDU(gdu, &len);
@@ -512,7 +512,7 @@ void yf::Z3950Client::Rep::release_assoc(Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
     std::map<mp::Session,yf::Z3950Client::Assoc *>::iterator it;
-    
+
     it = m_clients.find(package.session());
     if (it != m_clients.end())
     {
@@ -574,7 +574,7 @@ void yf::Z3950Client::configure(const xmlNode *ptr, bool test_only,
         }
         else
         {
-            throw mp::filter::FilterException("Bad element " 
+            throw mp::filter::FilterException("Bad element "
                                                + std::string((const char *)
                                                              ptr->name));
         }

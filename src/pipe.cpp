@@ -123,7 +123,7 @@ Pipe::Pipe(int port_to_use) : m_p(new Rep)
             throw Pipe::Error("could not create socket");
 #ifndef WIN32
         unsigned long one = 1;
-        if (setsockopt(m_p->m_socket, SOL_SOCKET, SO_REUSEADDR, (char*) 
+        if (setsockopt(m_p->m_socket, SOL_SOCKET, SO_REUSEADDR, (char*)
                        &one, sizeof(one)) < 0)
             throw Pipe::Error("setsockopt error");
 #endif
@@ -133,10 +133,10 @@ Pipe::Pipe(int port_to_use) : m_p(new Rep)
         add.sin_port = htons(port_to_use);
         add.sin_addr.s_addr = INADDR_ANY;
         struct sockaddr *addr = ( struct sockaddr *) &add;
-      
+
         if (bind(m_p->m_socket, addr, sizeof(struct sockaddr_in)))
             throw Pipe::Error("could not bind on socket");
-        
+
         if (listen(m_p->m_socket, 3) < 0)
             throw Pipe::Error("could not listen on socket");
 
@@ -147,11 +147,11 @@ Pipe::Pipe(int port_to_use) : m_p(new Rep)
             memcpy(&add.sin_addr.s_addr, &tmpadd, sizeof(struct in_addr));
         else
             throw Pipe::Error("inet_addr failed");
-            
+
         m_p->m_fd[1] = socket(AF_INET, SOCK_STREAM, 0);
         if (m_p->m_fd[1] < 0)
             throw Pipe::Error("could not create socket");
-        
+
         m_p->nonblock(m_p->m_fd[1]);
 
         if (connect(m_p->m_fd[1], addr, sizeof(*addr)) < 0)

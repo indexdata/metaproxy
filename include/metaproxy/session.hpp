@@ -24,12 +24,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <boost/thread/mutex.hpp>
 
 namespace metaproxy_1 {
-    
+
     class Session
     {
         //typedef unsigned long type;
     public:
-        
+
         /// create new session with new unique id
         Session() {
             boost::mutex::scoped_lock scoped_lock(m_mutex);
@@ -37,11 +37,11 @@ namespace metaproxy_1 {
             m_id =  m_global_id;
             m_close = false;
         }
-        
+
         /// copy session including old id
         Session(const Session &s) : m_id(s.m_id), m_close(s.m_close) {};
-        
-        Session& operator=(const Session &s) { 
+
+        Session& operator=(const Session &s) {
             if (this != &s)
             {
                 m_id = s.m_id;
@@ -53,15 +53,15 @@ namespace metaproxy_1 {
         bool operator<(const Session &s) const {
             return m_id < s.m_id ? true : false;
         }
-        
+
         unsigned long id() const {
             return m_id;
         }
-        
+
         bool is_closed() const {
             return m_close;
         }
-        
+
         /// mark session closed, can not be unset
         void close() {
             m_close = true;
@@ -70,23 +70,23 @@ namespace metaproxy_1 {
         bool operator == (Session &ses) const {
             return ses.m_id == m_id;
         }
-        
+
     private:
-        
+
         unsigned long int m_id;
         bool m_close;
-        
+
         /// static mutex to lock static m_id
         static boost::mutex m_mutex;
-        
+
         /// static m_id to make sure that there is only one id counter
         static unsigned long int m_global_id;
-        
+
     };
 
     template <class T> class session_map {
     public:
-        void create(T &t, const metaproxy_1::Session &s) { 
+        void create(T &t, const metaproxy_1::Session &s) {
             boost::mutex::scoped_lock lock(m_map_mutex);
             m_map[s] = SessionItem(t);
         };
@@ -133,7 +133,7 @@ namespace metaproxy_1 {
         boost::mutex m_map_mutex;
         std::map<metaproxy_1::Session,SessionItem>m_map;
     };
-    
+
 }
 
 #endif

@@ -32,11 +32,11 @@ namespace metaproxy_1 {
         class Base {
         public:
             virtual ~Base(){};
-            
+
             ///sends Package off to next Filter, returns altered Package
             virtual void process(Package & package) const = 0;
 
-            /// configuration during filter load 
+            /// configuration during filter load
             virtual void configure(const xmlNode * ptr, bool test_only,
                                    const char *path) = 0;
 

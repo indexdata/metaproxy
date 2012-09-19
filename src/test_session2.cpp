@@ -34,17 +34,17 @@ namespace mp = metaproxy_1;
 
 boost::mutex io_mutex;
 
-class Worker 
+class Worker
 {
     public:
-        Worker(int nr = 0) 
+        Worker(int nr = 0)
             :  m_nr(nr), m_id(0) {};
-        
+
         void operator() (void) {
             for (int i=0; i < 100; ++i)
             {
                 mp::Session session;
-                m_id = session.id();   
+                m_id = session.id();
                 //print();
             }
         }
@@ -52,26 +52,26 @@ class Worker
         void print()
         {
             boost::mutex::scoped_lock scoped_lock(io_mutex);
-            std::cout << "Worker " << m_nr 
+            std::cout << "Worker " << m_nr
                       << " session.id() " << m_id << std::endl;
         }
-        
-    private: 
+
+    private:
         int m_nr;
         int m_id;
 };
 
 
 
-BOOST_AUTO_TEST_CASE( testsession2 ) 
+BOOST_AUTO_TEST_CASE( testsession2 )
 {
 
-    // test session 
+    // test session
     try {
 
         const int num_threads = 100;
         boost::thread_group thrds;
-        
+
 
         for (int i=0; i < num_threads; ++i)
         {
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE( testsession2 )
 
         mp::Session session;
         BOOST_CHECK (session.id() == 10001);
-        
+
     }
     catch (std::exception &e) {
         std::cout << e.what() << "\n";

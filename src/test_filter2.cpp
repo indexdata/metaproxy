@@ -56,9 +56,9 @@ void FilterConstant::configure(const xmlNode* ptr, bool test_only,
 
     BOOST_CHECK_EQUAL (ptr->type, XML_ELEMENT_NODE);
     BOOST_CHECK_EQUAL(std::string((const char *) ptr->name), "filter");
-    
+
     const struct _xmlAttr *attr;
-    
+
     for (attr = ptr->properties; attr; attr = attr->next)
     {
         BOOST_CHECK_EQUAL( std::string((const char *)attr->name), "type");
@@ -71,15 +71,15 @@ void FilterConstant::configure(const xmlNode* ptr, bool test_only,
     {
         if (p->type != XML_ELEMENT_NODE)
             continue;
-        
+
         BOOST_CHECK_EQUAL (p->type, XML_ELEMENT_NODE);
         BOOST_CHECK_EQUAL(std::string((const char *) p->name), "value");
-        
+
         const xmlNode *val = p->children;
         BOOST_CHECK(val);
         if (!val)
             continue;
-        
+
         BOOST_CHECK_EQUAL(val->type, XML_TEXT_NODE);
         BOOST_CHECK_EQUAL(std::string((const char *)val->content), "2");
 
@@ -88,7 +88,7 @@ void FilterConstant::configure(const xmlNode* ptr, bool test_only,
 }
 
 // This filter dose not have a configure function
-    
+
 class FilterDouble: public mp::filter::Base {
 public:
     void process(mp::Package & package) const {
@@ -99,7 +99,7 @@ public:
 };
 
 
-BOOST_AUTO_TEST_CASE( testfilter2_1 ) 
+BOOST_AUTO_TEST_CASE( testfilter2_1 )
 {
     try {
 	FilterConstant fc;
@@ -107,36 +107,36 @@ BOOST_AUTO_TEST_CASE( testfilter2_1 )
 
 	{
 	    mp::RouterChain router1;
-	    
+
 	    // test filter set/get/exception
 	    router1.append(fc);
-	    
+
 	    router1.append(fd);
 
             mp::Session session;
             mp::Origin origin;
 	    mp::Package pack(session, origin);
-	    
-	    pack.router(router1).move(); 
-	    
+
+	    pack.router(router1).move();
+
             //BOOST_CHECK_EQUAL(pack.data(), 2468);
-            
+
         }
-        
+
         {
 	    mp::RouterChain router2;
-	    
+
 	    router2.append(fd);
 	    router2.append(fc);
-	    
+
             mp::Session session;
             mp::Origin origin;
 	    mp::Package pack(session, origin);
-	 
+
             pack.router(router2).move();
-     
+
             //BOOST_CHECK_EQUAL(pack.data(), 1234);
-            
+
 	}
 
     }
@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE( testfilter2_1 )
 
 }
 
-BOOST_AUTO_TEST_CASE( testfilter2_2 ) 
+BOOST_AUTO_TEST_CASE( testfilter2_2 )
 {
     try {
 	FilterConstant fc;
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE( testfilter2_2 )
             "<filter type=\"constant\">\n"
             " <value>2</value>\n"
             "</filter>";
-        
+
         // std::cout << some_xml  << std::endl;
 
         xmlDocPtr doc = xmlParseMemory(some_xml.c_str(), some_xml.size());
@@ -172,9 +172,9 @@ BOOST_AUTO_TEST_CASE( testfilter2_2 )
         if (doc)
         {
             xmlNodePtr root_element = xmlDocGetRootElement(doc);
-            
+
             base->configure(root_element, true, 0);
-            
+
             xmlFreeDoc(doc);
         }
 

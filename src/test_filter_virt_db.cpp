@@ -41,7 +41,7 @@ namespace mp = metaproxy_1;
 
 BOOST_AUTO_TEST_CASE( test_filter_virt_db_1 )
 {
-    try 
+    try
     {
         mp::filter::VirtualDB vdb;
     }
@@ -52,34 +52,34 @@ BOOST_AUTO_TEST_CASE( test_filter_virt_db_1 )
 
 BOOST_AUTO_TEST_CASE( test_filter_virt_db_2 )
 {
-    try 
+    try
     {
         mp::RouterChain router;
-        
+
         mp::filter::VirtualDB vdb;
-        
+
         router.append(vdb);
-        
+
         // Create package with Z39.50 init request in it
         // Since there is not vhost given, the virt will make its
         // own init response (regardless of backend)
         mp::Package pack;
-        
+
         mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
-        
+
         BOOST_CHECK(apdu);
-        
+
         pack.request() = apdu;
-        
+
         // Put it in router
-        pack.router(router).move(); 
-        
+        pack.router(router).move();
+
         // Inspect that we got Z39.50 init Response OK.
         yazpp_1::GDU *gdu = &pack.response();
-        
-        BOOST_CHECK(!pack.session().is_closed()); 
-        
+
+        BOOST_CHECK(!pack.session().is_closed());
+
         Z_GDU *z_gdu = gdu->get();
         BOOST_CHECK(z_gdu);
         if (z_gdu) {
@@ -98,21 +98,21 @@ static void init(mp::Package &pack, mp::Router &router)
     // Create package with Z39.50 init request in it
     mp::odr odr;
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
-    
+
     BOOST_CHECK(apdu);
     if (!apdu)
         return;
-    
+
     pack.request() = apdu;
-    
+
     // Put it in router
-    pack.router(router).move(); 
-    
+    pack.router(router).move();
+
     // Inspect that we got Z39.50 init response
     yazpp_1::GDU *gdu = &pack.response();
-    
-    BOOST_CHECK(!pack.session().is_closed()); 
-    
+
+    BOOST_CHECK(!pack.session().is_closed());
+
     Z_GDU *z_gdu = gdu->get();
     BOOST_CHECK(z_gdu);
     if (!z_gdu)
@@ -120,42 +120,42 @@ static void init(mp::Package &pack, mp::Router &router)
     BOOST_CHECK_EQUAL(z_gdu->which, Z_GDU_Z3950);
     BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_initResponse);
 }
-                 
+
 static void search(mp::Package &pack, mp::Router &router,
                    const std::string &query, const char *db,
                    const char *setname)
 {
     // Create package with Z39.50 search request in it
-            
+
     mp::odr odr;
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchRequest);
 
     mp::util::pqf(odr, apdu, query);
 
     apdu->u.searchRequest->resultSetName = odr_strdup(odr, setname);
-    
+
     apdu->u.searchRequest->num_databaseNames = 1;
     apdu->u.searchRequest->databaseNames = (char**)
         odr_malloc(odr, sizeof(char *));
     apdu->u.searchRequest->databaseNames[0] = odr_strdup(odr, db);
-    
+
     BOOST_CHECK(apdu);
     if (!apdu)
         return;
-    
+
     pack.request() = apdu;
-    
+
     Z_GDU *gdu_test = pack.request().get();
     BOOST_CHECK(gdu_test);
-    
+
     // Put it in router
-    pack.router(router).move(); 
-    
+    pack.router(router).move();
+
     // Inspect that we got Z39.50 search response
     yazpp_1::GDU *gdu = &pack.response();
-    
-    BOOST_CHECK(!pack.session().is_closed()); 
-    
+
+    BOOST_CHECK(!pack.session().is_closed());
+
     Z_GDU *z_gdu = gdu->get();
     BOOST_CHECK(z_gdu);
     if (!z_gdu)
@@ -169,10 +169,10 @@ static void present(mp::Package &pack, mp::Router &router,
                     const char *setname)
 {
     // Create package with Z39.50 present request in it
-            
+
     mp::odr odr;
     Z_APDU *apdu = zget_APDU(odr, Z_APDU_presentRequest);
-    
+
     apdu->u.presentRequest->resultSetId  = odr_strdup(odr, setname);
     *apdu->u.presentRequest->resultSetStartPoint = start;
     *apdu->u.presentRequest->numberOfRecordsRequested = number;
@@ -180,20 +180,20 @@ static void present(mp::Package &pack, mp::Router &router,
     BOOST_CHECK(apdu);
     if (!apdu)
         return;
-    
+
     pack.request() = apdu;
-    
+
     Z_GDU *gdu_test = pack.request().get();
     BOOST_CHECK(gdu_test);
-    
+
     // Put it in router
-    pack.router(router).move(); 
-    
+    pack.router(router).move();
+
     // Inspect that we got Z39.50 present response
     yazpp_1::GDU *gdu = &pack.response();
-    
-    BOOST_CHECK(!pack.session().is_closed()); 
-    
+
+    BOOST_CHECK(!pack.session().is_closed());
+
     Z_GDU *z_gdu = gdu->get();
     BOOST_CHECK(z_gdu);
     if (!z_gdu)
@@ -204,7 +204,7 @@ static void present(mp::Package &pack, mp::Router &router,
 
 BOOST_AUTO_TEST_CASE( test_filter_virt_db_3 )
 {
-    try 
+    try
     {
         mp::RouterChain router;
 
@@ -212,8 +212,8 @@ BOOST_AUTO_TEST_CASE( test_filter_virt_db_3 )
 #if 0
         router.append(filter_log1);
 #endif
-   
-        mp::filter::VirtualDB vdb;        
+
+        mp::filter::VirtualDB vdb;
         router.append(vdb);
         vdb.add_map_db2target("Default", "localhost:210", "");
         mp::filter::Log filter_log2("BACK");
@@ -225,7 +225,7 @@ BOOST_AUTO_TEST_CASE( test_filter_virt_db_3 )
 
         mp::Session session1;
         mp::Origin origin1;
-        
+
         {
             mp::Package pack(session1, origin1);
             init(pack, router);

@@ -16,7 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// Filter that constructs valid ZeeRex Explain SRU responses 
+// Filter that constructs valid ZeeRex Explain SRU responses
 #ifndef FILTER_ZEEREX_EXPLAIN_HPP
 #define FILTER_ZEEREX_EXPLAIN_HPP
 

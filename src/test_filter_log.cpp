@@ -35,12 +35,12 @@ namespace mp = metaproxy_1;
 class FilterBounceInit: public mp::filter::Base {
 public:
     void process(mp::Package & package) const {
-        
+
         if (package.session().is_closed())
         {
             // std::cout << "Got Close.\n";
         }
-       
+
         Z_GDU *gdu = package.request().get();
         if (gdu && gdu->which == Z_GDU_Z3950)
         {
@@ -57,7 +57,7 @@ public:
 
 BOOST_AUTO_TEST_CASE( test_filter_log_1 )
 {
-    try 
+    try
     {
         mp::filter::Log lf;
     }
@@ -68,31 +68,31 @@ BOOST_AUTO_TEST_CASE( test_filter_log_1 )
 
 BOOST_AUTO_TEST_CASE( test_filter_log_2 )
 {
-    try 
+    try
     {
         mp::RouterChain router;
-        
+
         mp::filter::Log lf;
         FilterBounceInit bf;
-        
+
         router.append(lf);
         router.append(bf);
-        
+
         // Create package with Z39.50 init request in it
         mp::Package pack;
-        
+
         mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
-        
+
         pack.request() = apdu;
-        // Done creating query. 
-        
+        // Done creating query.
+
         // Put it in router
-        pack.router(router).move(); 
-        
+        pack.router(router).move();
+
         // Inspect that we got Z39.50 init response
         yazpp_1::GDU *gdu = &pack.response();
-        
+
         Z_GDU *z_gdu = gdu->get();
         BOOST_CHECK(z_gdu);
         if (z_gdu) {

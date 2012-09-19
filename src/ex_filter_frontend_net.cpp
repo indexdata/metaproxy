@@ -42,21 +42,21 @@ public:
         {
             // std::cout << "Got Close.\n";
         }
-        
+
         Z_GDU *gdu = package.request().get();
         if (gdu && gdu->which == Z_GDU_HTTP_Request)
         {
             mp::odr odr;
             Z_GDU *gdu = z_get_HTTP_Response(odr, 200);
             Z_HTTP_Response *http_res = gdu->u.HTTP_Response;
-            
+
             z_HTTP_header_add(odr, &http_res->headers,
                               "Content-Type", "text/plain");
-            
-            http_res->content_buf = 
+
+            http_res->content_buf =
                 odr_strdup(odr, "Welcome to Metaproxy");
             http_res->content_len = strlen(http_res->content_buf);
-            
+
             package.response() = gdu;
         }
         return package.move();
@@ -67,14 +67,14 @@ public:
 
 int main(int argc, char **argv)
 {
-    try 
+    try
     {
         std::vector<std::string> ports;
         int duration = -1;
         int ret;
         char *arg;
 
-        while ((ret = options("h{help}d{duration}:p{port}:", 
+        while ((ret = options("h{help}d{duration}:p{port}:",
                               argv, argc, &arg)) != -2)
         {
             switch(ret)
@@ -142,8 +142,8 @@ int main(int argc, char **argv)
             mp::Session session;
             mp::Origin origin;
 	    mp::Package pack(session, origin);
-	    
-	    pack.router(router).move(); 
+
+	    pack.router(router).move();
         }
     }
     catch ( ... ) {

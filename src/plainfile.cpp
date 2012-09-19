@@ -89,7 +89,7 @@ bool mp::PlainFile::getline(std::vector<std::string> &args)
             m_p->close();   // might as well close it now
             return false;
         }
-        
+
         m_p->lineno++;
         m_p->fh->getline(line_cstr, PLAINFILE_MAX_LINE-1);
         char first = line_cstr[0];

@@ -53,7 +53,7 @@ xmlDoc *mp::get_searchable(mp::Package &package,
 
     Z_HTTP_Header *http_headers = 0;
     mp::odr odr;
-    
+
     z_HTTP_header_add(odr, &http_headers, "Accept","application/xml");
 
     yaz_url_t url_p = yaz_url_create();
@@ -67,13 +67,13 @@ xmlDoc *mp::get_searchable(mp::Package &package,
                                                   0, /* content buf */
                                                   0  /* content_len */
         );
-    if (http_response && http_response->code == 200 && 
+    if (http_response && http_response->code == 200 &&
         http_response->content_buf)
     {
         package.log("zoom", YLOG_LOG, "Torus: %s OK", url_template.c_str());
         doc = xmlParseMemory(http_response->content_buf,
                              http_response->content_len);
-        
+
     }
     else
     {

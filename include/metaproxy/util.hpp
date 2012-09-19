@@ -35,26 +35,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace metaproxy_1 {
     namespace util  {
 
-        
-        template<typename T> 
+
+        template<typename T>
         std::string to_string(const T& t)
         {
             std::ostringstream o;
             if(o << t)
-                return o.str();    
+                return o.str();
             return std::string();
         };
 
-        const char * 
+        const char *
         record_composition_to_esn(Z_RecordComposition *comp);
 
-        std::string http_header_value(const Z_HTTP_Header* header, 
+        std::string http_header_value(const Z_HTTP_Header* header,
                                                const std::string name);
 
-        std::string http_headers_debug(const Z_HTTP_Request &http_req);        
+        std::string http_headers_debug(const Z_HTTP_Request &http_req);
 
-        void http_response(metaproxy_1::Package &package, 
-                           const std::string &content, 
+        void http_response(metaproxy_1::Package &package,
+                           const std::string &content,
                            int http_code = 200);
 
 
@@ -77,16 +77,16 @@ namespace metaproxy_1 {
 
         void split_zurl(std::string zurl, std::string &host,
                         std::list<std::string> &db);
-        
+
         void get_vhost_otherinfo(Z_OtherInformation *otherInformation,
                                  std::list<std::string> &vhosts);
-        
+
         int remove_vhost_otherinfo(Z_OtherInformation **otherInformation,
                                    std::list<std::string> &vhosts);
 
-        void set_vhost_otherinfo(Z_OtherInformation **otherInformation, 
+        void set_vhost_otherinfo(Z_OtherInformation **otherInformation,
                                  ODR odr,
-                                 const std::string vhost, 
+                                 const std::string vhost,
                                  const int cat);
 
         void set_vhost_otherinfo(Z_OtherInformation **otherInformation,
@@ -134,9 +134,9 @@ namespace metaproxy_1 {
         odr();
         ~odr();
         operator ODR() const;
-        Z_APDU *create_close(const Z_APDU *in_apdu, 
+        Z_APDU *create_close(const Z_APDU *in_apdu,
                              int reason, const char *addinfo);
-        Z_APDU *create_initResponse(const Z_APDU *in_apdu, 
+        Z_APDU *create_initResponse(const Z_APDU *in_apdu,
                                     int error, const char *addinfo);
         Z_APDU *create_searchResponse(const Z_APDU *in_apdu,
                                       int error, const char *addinfo);
@@ -163,7 +163,7 @@ namespace metaproxy_1 {
     private:
         WRBUF m_wrbuf;
     };
-    
+
     class PlainFile {
         class Rep;
         boost::scoped_ptr<Rep> m_p;

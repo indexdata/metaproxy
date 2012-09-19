@@ -39,7 +39,7 @@ namespace mp = metaproxy_1;
 
 BOOST_AUTO_TEST_CASE( test_filter_z3950_client_1 )
 {
-    try 
+    try
     {
         mp::filter::Z3950Client zc; // can we construct OK?
     }
@@ -50,33 +50,33 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_1 )
 
 BOOST_AUTO_TEST_CASE( test_filter_z3950_client_2 )
 {
-    try 
+    try
     {
         mp::RouterChain router;
-        
+
         mp::filter::Z3950Client zc;
-        
+
         router.append(zc);
-        
+
         // Create package with Z39.50 init request in it
         mp::Package pack;
-        
+
         mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
-        
+
         BOOST_CHECK(apdu);
-        
+
         pack.request() = apdu;
-        
+
         // Put it in router
-        pack.router(router).move(); 
-        
+        pack.router(router).move();
+
         // Inspect that we got Z39.50 init Response - a Z39.50 session MUST
         // specify a virtual host
         yazpp_1::GDU *gdu = &pack.response();
-        
-        BOOST_CHECK(pack.session().is_closed()); 
-        
+
+        BOOST_CHECK(pack.session().is_closed());
+
         Z_GDU *z_gdu = gdu->get();
         BOOST_CHECK(z_gdu);
         if (z_gdu) {
@@ -91,33 +91,33 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_2 )
 
 BOOST_AUTO_TEST_CASE( test_filter_z3950_client_3 )
 {
-    try 
+    try
     {
         mp::RouterChain router;
-        
+
         mp::filter::Z3950Client zc;
 
         router.append(zc);
-        
+
         // Create package with Z39.50 present request in it
         mp::Package pack;
-        
+
         mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_presentRequest);
-        
+
         BOOST_CHECK(apdu);
-        
+
         pack.request() = apdu;
-        
+
         // Put it in router
-        pack.router(router).move(); 
-        
+        pack.router(router).move();
+
         // Inspect that we got Z39.50 close - a Z39.50 session must start
         // with an init !
         yazpp_1::GDU *gdu = &pack.response();
-        
-        BOOST_CHECK(pack.session().is_closed()); 
-        
+
+        BOOST_CHECK(pack.session().is_closed());
+
         Z_GDU *z_gdu = gdu->get();
         BOOST_CHECK(z_gdu);
         if (z_gdu) {
@@ -132,20 +132,20 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_3 )
 
 BOOST_AUTO_TEST_CASE( test_filter_z3950_client_4 )
 {
-    try 
+    try
     {
         mp::RouterChain router;
-        
+
         mp::filter::Z3950Client zc;
-        
+
         router.append(zc);
-        
+
         // Create package with Z39.50 init request in it
         mp::Package pack;
-        
+
         mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
-        
+
         const char *vhost = "localhost:9999";
         if (vhost)
         {
@@ -153,12 +153,12 @@ BOOST_AUTO_TEST_CASE( test_filter_z3950_client_4 )
                                   odr, yaz_oid_userinfo_proxy, 1, vhost);
         }
         BOOST_CHECK(apdu);
-        
+
         pack.request() = apdu;
-        
+
         // Put it in router
-        pack.router(router).move(); 
-        
+        pack.router(router).move();
+
         if (pack.session().is_closed())
         {
             // OK, server was not up!

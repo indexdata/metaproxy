@@ -34,14 +34,14 @@ namespace mp = metaproxy_1;
 // Doxygen doesn't like mp::util, so we use this instead
 namespace mp_util = metaproxy_1::util;
 
-const char * 
+const char *
 mp_util::record_composition_to_esn(Z_RecordComposition *comp)
 {
     if (comp && comp->which == Z_RecordComp_complex)
     {
-        if (comp->u.complex->generic 
+        if (comp->u.complex->generic
             && comp->u.complex->generic->elementSpec
-            && (comp->u.complex->generic->elementSpec->which == 
+            && (comp->u.complex->generic->elementSpec->which ==
                 Z_ElementSpec_elementSetName))
             return comp->u.complex->generic->elementSpec->u.elementSetName;
     }
@@ -53,26 +53,26 @@ mp_util::record_composition_to_esn(Z_RecordComposition *comp)
 
 
 
-std::string mp_util::http_header_value(const Z_HTTP_Header* header, 
+std::string mp_util::http_header_value(const Z_HTTP_Header* header,
                                        const std::string name)
 {
     while (header && header->name
            && std::string(header->name) !=  name)
         header = header->next;
-    
+
     if (header && header->name && std::string(header->name) == name
         && header->value)
         return std::string(header->value);
-    
+
     return std::string();
 }
-    
+
 std::string mp_util::http_headers_debug(const Z_HTTP_Request &http_req)
 {
     std::string message("<html>\n<body>\n<h1>"
                         "Metaproxy SRUtoZ3950 filter"
                         "</h1>\n");
-    
+
     message += "<h3>HTTP Info</h3><br/>\n";
     message += "<p>\n";
     message += "<b>Method: </b> " + std::string(http_req.method) + "<br/>\n";
@@ -85,43 +85,43 @@ std::string mp_util::http_headers_debug(const Z_HTTP_Request &http_req)
     message += "<b>Content-Length:</b>"
         + mp_util::http_header_value(http_req.headers, "Content-Length")
         + "<br/>\n";
-    message += "</p>\n";    
-    
+    message += "</p>\n";
+
     message += "<h3>Headers</h3><br/>\n";
-    message += "<p>\n";    
+    message += "<p>\n";
     Z_HTTP_Header* header = http_req.headers;
     while (header){
-        message += "<b>Header: </b> <i>" 
+        message += "<b>Header: </b> <i>"
             + std::string(header->name) + ":</i> "
             + std::string(header->value) + "<br/>\n";
         header = header->next;
     }
-    message += "</p>\n";    
+    message += "</p>\n";
     message += "</body>\n</html>\n";
     return message;
 }
 
 
-void mp_util::http_response(metaproxy_1::Package &package, 
-                     const std::string &content, 
+void mp_util::http_response(metaproxy_1::Package &package,
+                     const std::string &content,
                      int http_code)
 {
 
-    Z_GDU *zgdu_req = package.request().get(); 
-    Z_GDU *zgdu_res = 0; 
+    Z_GDU *zgdu_req = package.request().get();
+    Z_GDU *zgdu_res = 0;
     mp::odr odr;
-    zgdu_res 
-       = odr.create_HTTP_Response(package.session(), 
-                                  zgdu_req->u.HTTP_Request, 
+    zgdu_res
+       = odr.create_HTTP_Response(package.session(),
+                                  zgdu_req->u.HTTP_Request,
                                   http_code);
-        
+
     zgdu_res->u.HTTP_Response->content_len = content.size();
-    zgdu_res->u.HTTP_Response->content_buf 
+    zgdu_res->u.HTTP_Response->content_buf
         = (char*) odr_malloc(odr, zgdu_res->u.HTTP_Response->content_len);
-    
-    strncpy(zgdu_res->u.HTTP_Response->content_buf, 
+
+    strncpy(zgdu_res->u.HTTP_Response->content_buf,
             content.c_str(),  zgdu_res->u.HTTP_Response->content_len);
-    
+
     //z_HTTP_header_add(odr, &hres->headers,
     //                  "Content-Type", content_type.c_str());
     package.response() = zgdu_res;
@@ -139,7 +139,7 @@ int mp_util::memcmp2(const void *buf1, int len1,
         return 1;
     else if (c < 0)
         return -1;
-    
+
     // compare (remaining bytes)
     if (d > 0)
         return 1;
@@ -219,7 +219,7 @@ void mp_util::piggyback(Odr_int smallSetUpperBound,
         number_to_present = result_set_size;
         if (element_set_name && smallSetElementSetNames)
             *element_set_name = smallSetElementSetNames;
-            
+
     }
     else if (result_set_size > largeSetLowerBound)
     {
@@ -242,7 +242,7 @@ void mp_util::piggyback(Odr_int smallSetUpperBound,
 bool mp_util::pqf(ODR odr, Z_APDU *apdu, const std::string &q)
 {
     YAZ_PQF_Parser pqf_parser = yaz_pqf_create();
-    
+
     Z_RPNQuery *rpn = yaz_pqf_parse(pqf_parser, odr, q.c_str());
     if (!rpn)
     {
@@ -253,7 +253,7 @@ bool mp_util::pqf(ODR odr, Z_APDU *apdu, const std::string &q)
     Z_Query *query = (Z_Query *) odr_malloc(odr, sizeof(Z_Query));
     query->which = Z_Query_type_1;
     query->u.type_1 = rpn;
-    
+
     apdu->u.searchRequest->query = query;
     return true;
 }
@@ -266,14 +266,14 @@ std::string mp_util::zQueryToString(Z_Query *query)
     if (query && query->which == Z_Query_type_1)
     {
         Z_RPNQuery *rpn = query->u.type_1;
-        
+
         if (rpn)
         {
             mp::wrbuf w;
-            
+
             // put query in w
             yaz_rpnquery_to_wrbuf(w, rpn);
-            
+
             // from w to std::string
             query_str = std::string(w.buf(), w.len());
         }
@@ -281,19 +281,19 @@ std::string mp_util::zQueryToString(Z_Query *query)
 
 #if 0
     if (query && query->which == Z_Query_type_1){
-        
+
         // allocate wrbuf (strings in YAZ!)
         WRBUF w = wrbuf_alloc();
-        
+
         // put query in w
         yaz_query_to_wrbuf(w, query);
-        
+
         // from w to std::string
         query_str = std::string(wrbuf_buf(w), wrbuf_len(w));
-        
+
         // destroy wrbuf
         wrbuf_free(w, 1);
-    }    
+    }
 #endif
     return query_str;
 }
@@ -317,7 +317,7 @@ void mp_util::get_init_diagnostics(
     Z_InitResponse *initrs, int &error_code, std::string &addinfo)
 {
     Z_External *uif = initrs->userInformationField;
-    
+
     if (uif && uif->which == Z_External_userInfo1)
     {
         Z_OtherInformation *ui = uif->u.userInfo1;
@@ -328,9 +328,9 @@ void mp_util::get_init_diagnostics(
             if (unit->which == Z_OtherInfo_externallyDefinedInfo &&
                 unit->information.externallyDefinedInfo &&
                 unit->information.externallyDefinedInfo->which ==
-                Z_External_diag1) 
+                Z_External_diag1)
             {
-                Z_DiagnosticFormat *diag = 
+                Z_DiagnosticFormat *diag =
                     unit->information.externallyDefinedInfo->u.diag1;
 
                 if (diag->num > 0)
@@ -340,7 +340,7 @@ void mp_util::get_init_diagnostics(
                         mp::util::get_default_diag(ds->u.defaultDiagRec,
                                                     error_code, addinfo);
                 }
-            } 
+            }
         }
     }
 }
@@ -411,7 +411,7 @@ void mp_util::split_zurl(std::string zurl, std::string &host,
     cs_get_host_args(zurl_cstr, &args);
 
     if (args && *args)
-    { 
+    {
         host = std::string(zurl_cstr, args - zurl_cstr);
 
         const char *cp1 = args;
@@ -440,7 +440,7 @@ bool mp_util::set_databases_from_zurl(
     std::list<std::string> dblist;
 
     split_zurl(zurl, host, dblist);
-   
+
     if (dblist.size() == 0)
         return false;
     *db_num = dblist.size();
@@ -476,7 +476,7 @@ Z_APDU *mp::odr::create_close(const Z_APDU *in_apdu,
                               int reason, const char *addinfo)
 {
     Z_APDU *apdu = create_APDU(Z_APDU_close, in_apdu);
-    
+
     *apdu->u.close->closeReason = reason;
     if (addinfo)
         apdu->u.close->diagnosticInformation = odr_strdup(m_odr, addinfo);
@@ -527,10 +527,10 @@ Z_APDU *mp::odr::create_initResponse(const Z_APDU *in_apdu,
     apdu->u.initResponse->implementationName =
         odr_prepend(m_odr, "Metaproxy",
                     apdu->u.initResponse->implementationName);
-    apdu->u.initResponse->implementationVersion = 
+    apdu->u.initResponse->implementationVersion =
         odr_prepend(m_odr,
                     VERSION, apdu->u.initResponse->implementationVersion);
-                   
+
     return apdu;
 }
 
@@ -546,7 +546,7 @@ Z_APDU *mp::odr::create_searchResponse(const Z_APDU *in_apdu,
         rec->which = Z_Records_NSD;
         rec->u.nonSurrogateDiagnostic =
             zget_DefaultDiagFormat(m_odr, error, addinfo);
-        
+
     }
     return apdu;
 }
@@ -559,7 +559,7 @@ Z_APDU *mp::odr::create_presentResponse(const Z_APDU *in_apdu,
     {
         Z_Records *rec = (Z_Records *) odr_malloc(m_odr, sizeof(Z_Records));
         apdu->u.presentResponse->records = rec;
-        
+
         rec->which = Z_Records_NSD;
         rec->u.nonSurrogateDiagnostic =
             zget_DefaultDiagFormat(m_odr, error, addinfo);
@@ -584,7 +584,7 @@ Z_APDU *mp::odr::create_scanResponse(const Z_APDU *in_apdu,
         res->entries->num_nonsurrogateDiagnostics = 1;
         res->entries->nonsurrogateDiagnostics = (Z_DiagRec **)
             odr_malloc(m_odr, sizeof(Z_DiagRec *));
-        res->entries->nonsurrogateDiagnostics[0] = 
+        res->entries->nonsurrogateDiagnostics[0] =
             zget_DiagRec(m_odr, error, addinfo);
     }
     else
@@ -600,7 +600,7 @@ Z_GDU *mp::odr::create_HTTP_Response(mp::Session &session,
 {
     const char *response_version = "1.0";
     bool keepalive = false;
-    if (!strcmp(hreq->version, "1.0")) 
+    if (!strcmp(hreq->version, "1.0"))
     {
         const char *v = z_HTTP_header_lookup(hreq->headers, "Connection");
         if (v && !strcmp(v, "Keep-Alive"))
@@ -624,7 +624,7 @@ Z_GDU *mp::odr::create_HTTP_Response(mp::Session &session,
     hres->version = odr_strdup(m_odr, response_version);
     if (keepalive)
         z_HTTP_header_add(m_odr, &hres->headers, "Connection", "Keep-Alive");
-    
+
     return gdu;
 }
 
@@ -633,7 +633,7 @@ Z_ReferenceId **mp_util::get_referenceId(const Z_APDU *apdu)
     switch (apdu->which)
     {
     case  Z_APDU_initRequest:
-        return &apdu->u.initRequest->referenceId; 
+        return &apdu->u.initRequest->referenceId;
     case  Z_APDU_initResponse:
         return &apdu->u.initResponse->referenceId;
     case  Z_APDU_searchRequest:

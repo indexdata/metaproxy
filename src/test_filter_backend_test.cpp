@@ -40,7 +40,7 @@ namespace mp = metaproxy_1;
 
 BOOST_AUTO_TEST_CASE( test_filter_backend_test_1 )
 {
-    try 
+    try
     {
         mp::filter::BackendTest btest;
     }
@@ -51,30 +51,30 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_1 )
 
 BOOST_AUTO_TEST_CASE( test_filter_backend_test_2 )
 {
-    try 
+    try
     {
         mp::RouterChain router;
-        
+
         mp::filter::BackendTest btest;
         router.append(btest);
-        
+
         mp::Package pack;
-        
+
         mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_initRequest);
-        
+
         BOOST_CHECK(apdu);
-        
+
         pack.request() = apdu;
-        
+
         // Put it in router
-        pack.router(router).move(); 
-        
+        pack.router(router).move();
+
         // Inspect that we got Z39.50 init Response OK.
         yazpp_1::GDU *gdu = &pack.response();
-        
-        BOOST_CHECK(!pack.session().is_closed()); 
-        
+
+        BOOST_CHECK(!pack.session().is_closed());
+
         Z_GDU *z_gdu = gdu->get();
         BOOST_CHECK(z_gdu);
         if (z_gdu) {
@@ -89,39 +89,39 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_2 )
 
 BOOST_AUTO_TEST_CASE( test_filter_backend_test_3 )
 {
-    try 
+    try
     {
         mp::RouterChain router;
-        
+
         mp::filter::BackendTest btest;
         router.append(btest);
-        
+
         mp::Package pack;
-        
+
         // send search request as first request.. That should fail with
         // a close from the backend
         mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_searchRequest);
 
         mp::util::pqf(odr, apdu, "computer");
-        
+
         apdu->u.searchRequest->num_databaseNames = 1;
         apdu->u.searchRequest->databaseNames = (char**)
             odr_malloc(odr, sizeof(char *));
         apdu->u.searchRequest->databaseNames[0] = odr_strdup(odr, "Default");
-        
+
         BOOST_CHECK(apdu);
-        
+
         pack.request() = apdu;
-        
+
         // Put it in router
-        pack.router(router).move(); 
-        
+        pack.router(router).move();
+
         // Inspect that we got Z39.50 close
         yazpp_1::GDU *gdu = &pack.response();
-        
-        BOOST_CHECK(pack.session().is_closed()); 
-        
+
+        BOOST_CHECK(pack.session().is_closed());
+
         Z_GDU *z_gdu = gdu->get();
         BOOST_CHECK(z_gdu);
         if (z_gdu) {
@@ -136,32 +136,32 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_3 )
 
 BOOST_AUTO_TEST_CASE( test_filter_backend_test_4 )
 {
-    try 
+    try
     {
         mp::RouterChain router;
-        
+
         mp::filter::BackendTest btest;
         router.append(btest);
-        
+
         mp::Package pack;
-        
+
         // send present request as first request.. That should fail with
         // a close from the backend
         mp::odr odr;
         Z_APDU *apdu = zget_APDU(odr, Z_APDU_presentRequest);
 
         BOOST_CHECK(apdu);
-        
+
         pack.request() = apdu;
-        
+
         // Put it in router
-        pack.router(router).move(); 
-        
+        pack.router(router).move();
+
         // Inspect that we got Z39.50 close
         yazpp_1::GDU *gdu = &pack.response();
-        
-        BOOST_CHECK(pack.session().is_closed()); 
-        
+
+        BOOST_CHECK(pack.session().is_closed());
+
         Z_GDU *z_gdu = gdu->get();
         BOOST_CHECK(z_gdu);
         if (z_gdu) {

@@ -36,7 +36,7 @@ namespace metaproxy_1 {
 }
 
 void mp::filter::Filter_myfilter::process(mp::Package & package) const
-{   // See src/filter_backend_test.cpp for a more comprehensive 
+{   // See src/filter_backend_test.cpp for a more comprehensive
     // example of a dummy Z-server
     Z_GDU *gdu = package.request().get();
     Z_APDU *apdu_res = 0;
@@ -49,14 +49,14 @@ void mp::filter::Filter_myfilter::process(mp::Package & package) const
         return;
     }
     Z_APDU *apdu_req = gdu->u.z3950;
-    if (apdu_req->which == Z_APDU_initRequest) 
+    if (apdu_req->which == Z_APDU_initRequest)
     {
         yaz_log(YLOG_LOG, "myfilter::process: Init request");
-        apdu_res= odr.create_initResponse( apdu_req,  
+        apdu_res= odr.create_initResponse( apdu_req,
               YAZ_BIB1_PERMANENT_SYSTEM_ERROR, "Not implemented!");
         package.response() = apdu_res;
     }
-    else 
+    else
     {
         yaz_log(YLOG_LOG, "myfilter::process: Unknown request type");
         package.move(); // Send on to other filters
@@ -66,7 +66,7 @@ void mp::filter::Filter_myfilter::process(mp::Package & package) const
 void mp::filter::Filter_myfilter::configure(const xmlNode *ptr, bool test_only)
 {
     yaz_log(YLOG_LOG, "myfilter::configure");
-    for (ptr = ptr->children; ptr; ptr = ptr->next) 
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
@@ -76,7 +76,7 @@ void mp::filter::Filter_myfilter::configure(const xmlNode *ptr, bool test_only)
             yaz_log(YLOG_LOG, "myfilter::configure: %s", msg.c_str() );
 
         }
-        else 
+        else
         {
             throw mp::filter::FilterException("Bad element "
                       + std::string((const char *) ptr->name));

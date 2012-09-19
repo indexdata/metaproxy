@@ -31,12 +31,12 @@ class counter
 {
    public:
       counter() : count(0) { }
-      
+
     int increment() {
         boost::mutex::scoped_lock scoped_lock(mutex);
         return ++count;
     }
-    
+
 private:
     boost::mutex mutex;
     int count;
@@ -57,11 +57,11 @@ public:
 
 BOOST_AUTO_TEST_CASE( thread_group )
 {
-    try 
+    try
     {
         const int num_threads = 4;
         boost::thread_group thrds;
-        
+
         for (int i=0; i < num_threads; ++i)
         {
             worker w;
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE( thread_group )
         }
         thrds.join_all();
     }
-    catch (...) 
+    catch (...)
     {
         BOOST_CHECK(false);
     }
@@ -79,11 +79,11 @@ BOOST_AUTO_TEST_CASE( thread_group )
 
 BOOST_AUTO_TEST_CASE( thread_list )
 {
-    try 
+    try
     {
         const int num_threads = 4;
         std::list<boost::thread *> thread_list;
-        
+
         for (int i=0; i < num_threads; ++i)
         {
             worker w;
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE( thread_list )
         }
 
     }
-    catch (...) 
+    catch (...)
     {
         BOOST_CHECK(false);
     }

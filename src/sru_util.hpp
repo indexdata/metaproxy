@@ -27,9 +27,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <iosfwd>
 #include <string>
 
-namespace std 
+namespace std
 {
-    std::ostream& operator<<(std::ostream& os, Z_SRW_PDU& srw_pdu); 
+    std::ostream& operator<<(std::ostream& os, Z_SRW_PDU& srw_pdu);
 
 }
 
@@ -41,37 +41,37 @@ namespace metaproxy_1 {
 
         // std::string sru_protocol(const Z_HTTP_Request &http_req);
         // std::string debug_http(const Z_HTTP_Request &http_req);
-        // void http_response(mp::Package &package, 
-        //                   const std::string &content, 
+        // void http_response(mp::Package &package,
+        //                   const std::string &content,
         //                   int http_code = 200);
 
         bool build_sru_debug_package(metaproxy_1::Package &package);
 
         SRUServerInfo get_sru_server_info(metaproxy_1::Package &package);
-                                          // Z_SRW_explainRequest 
+                                          // Z_SRW_explainRequest
                                           //const *er_req);
-        
-//         bool build_simple_explain(metaproxy_1::Package &package, 
+
+//         bool build_simple_explain(metaproxy_1::Package &package,
 //                                   metaproxy_1::odr &odr_en,
 //                                   Z_SRW_PDU *sru_pdu_res,
 //                                   SRUServerInfo sruinfo,
 //                                   Z_SRW_explainRequest const *er_req = 0);
-        
-        bool build_sru_explain(metaproxy_1::Package &package, 
+
+        bool build_sru_explain(metaproxy_1::Package &package,
                                metaproxy_1::odr &odr_en,
                                Z_SRW_PDU *sru_pdu_res,
                                SRUServerInfo sruinfo,
                                const xmlNode *explain = 0,
                                Z_SRW_explainRequest const *er_req = 0);
-        
-        bool build_sru_response(metaproxy_1::Package &package, 
+
+        bool build_sru_response(metaproxy_1::Package &package,
                                 metaproxy_1::odr &odr_en,
                                 Z_SOAP *soap,
                                 const Z_SRW_PDU *sru_pdu_res,
                                 char *charset,
-                                const char *stylesheet);        
-        
-        Z_SRW_PDU * decode_sru_request(metaproxy_1::Package &package,   
+                                const char *stylesheet);
+
+        Z_SRW_PDU * decode_sru_request(metaproxy_1::Package &package,
                                        metaproxy_1::odr &odr_de,
                                        metaproxy_1::odr &odr_en,
                                        Z_SRW_PDU *sru_pdu_res,
@@ -84,8 +84,8 @@ namespace metaproxy_1 {
                                     Z_SRW_PDU *sru_pdu_res,
                                     Z_SRW_searchRetrieveRequest
                                     const *sr_req);
-        
-        Z_ElementSetNames * build_esn_from_schema(metaproxy_1::odr &odr_en, 
+
+        Z_ElementSetNames * build_esn_from_schema(metaproxy_1::odr &odr_en,
                                                   const char *schema);
 
         class SRUServerInfo
@@ -99,11 +99,11 @@ namespace metaproxy_1 {
             std::string host;
             std::string port;
         };
-        
-        
-        
 
-//         class SRU 
+
+
+
+//         class SRU
 //         {
 //         public:
 //             enum SRU_protocol_type { SRU_NONE, SRU_GET, SRU_POST, SRU_SOAP};
@@ -115,9 +115,9 @@ namespace metaproxy_1 {
 //         private:
 //             SRU_protocol_type m_protocol;
 //             std::string m_charset;
-//             std::string m_stylesheet;            
+//             std::string m_stylesheet;
 //         };
-    }    
+    }
 }
 
 #endif

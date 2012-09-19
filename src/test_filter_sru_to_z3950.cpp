@@ -39,7 +39,7 @@ using namespace mp::util;
 
 BOOST_AUTO_TEST_CASE( test_filter_sru_to_z3950_1 )
 {
-    try 
+    try
     {
         mp::filter::SRUtoZ3950 f_sru_to_z3950;
     }
@@ -50,17 +50,17 @@ BOOST_AUTO_TEST_CASE( test_filter_sru_to_z3950_1 )
 
 BOOST_AUTO_TEST_CASE( test_filter_sru_to_z3950_2 )
 {
-    try 
+    try
     {
         mp::RouterChain router;
-        
+
         mp::filter::SRUtoZ3950 f_sru_to_z3950;
-        
+
         router.append(f_sru_to_z3950);
 
         //check_sru_to_z3950_init(router);
-        //check_sru_to_z3950_search(router, 
-        //                           "@attrset Bib-1 @attr 1=4 the", 
+        //check_sru_to_z3950_search(router,
+        //                           "@attrset Bib-1 @attr 1=4 the",
         //                           "@attrset Bib-1 @attr 1=4 the");
 
     }
@@ -72,20 +72,20 @@ BOOST_AUTO_TEST_CASE( test_filter_sru_to_z3950_2 )
 
 // BOOST_AUTO_TEST_CASE( test_filter_sru_to_z3950_3 )
 // {
-    
 
-//     try 
+
+//     try
 //     {
 //         mp::RouterChain router;
-        
 
-//         std::string xmlconf = 
+
+//         std::string xmlconf =
 //             "<?xml version='1.0'?>\n"
 //             "<filter xmlns='http://indexdata.com/metaproxy'\n"
 //             "        id='qrw1' type='sru_to_z3950'>\n"
 //             "</filter>\n"
 //             ;
-         
+
 //         //std::cout << xmlconf  << std::endl;
 
 //         // reading and parsing XML conf
@@ -96,17 +96,17 @@ BOOST_AUTO_TEST_CASE( test_filter_sru_to_z3950_2 )
 //         // creating and configuring filter
 //         mp::filter::SRUtoZ3950 f_sru_to_z3950;
 //         f_sru_to_z3950.configure(root_element);
-        
+
 //         // remeber to free XML DOM
 //         xmlFreeDoc(doc);
-        
+
 //         // add only filter to router
 //         router.append(f_sru_to_z3950);
 
 //         // start testing
 //         check_sru_to_z3950_init(router);
-//         check_sru_to_z3950_search(router, 
-//                                    "@attrset Bib-1 @attr 1=4 the", 
+//         check_sru_to_z3950_search(router,
+//                                    "@attrset Bib-1 @attr 1=4 the",
 //                                    "@attrset Bib-1 @attr 1=4 the");
 
 //     }

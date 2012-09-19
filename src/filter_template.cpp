@@ -44,7 +44,7 @@ namespace metaproxy_1 {
 }
 
 // define Pimpl wrapper forwarding to Impl
- 
+
 yf::Template::Template() : m_p(new Impl)
 {
 }
@@ -75,7 +75,7 @@ yf::Template::Impl::Impl()
 }
 
 yf::Template::Impl::~Impl()
-{ 
+{
 }
 
 void yf::Template::Impl::configure(const xmlNode *xmlnode, bool test_only,

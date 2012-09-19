@@ -257,10 +257,10 @@ void yf::AuthSimple::process_init(mp::Package &package) const
 static bool contains(std::list<std::string> list, std::string thing) {
     std::list<std::string>::const_iterator i;
     for (i = list.begin(); i != list.end(); i++)
-        if (mp::util::database_name_normalize(*i) == 
+        if (mp::util::database_name_normalize(*i) ==
             mp::util::database_name_normalize(thing))
             return true;
-    
+
     return false;
 }
 
@@ -283,7 +283,7 @@ void yf::AuthSimple::process_search(mp::Package &package) const
             // Make an Search rejection APDU
             mp::odr odr;
             Z_APDU *apdu = odr.create_searchResponse(
-                package.request().get()->u.z3950, 
+                package.request().get()->u.z3950,
                 YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED,
                 req->databaseNames[i]);
             package.response() = apdu;
@@ -315,7 +315,7 @@ void yf::AuthSimple::process_scan(mp::Package &package) const
             // Make an Scan rejection APDU
             mp::odr odr;
             Z_APDU *apdu = odr.create_scanResponse(
-                package.request().get()->u.z3950, 
+                package.request().get()->u.z3950,
                 YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED,
                 req->databaseNames[i]);
             package.response() = apdu;
@@ -329,7 +329,7 @@ void yf::AuthSimple::process_scan(mp::Package &package) const
 }
 
 
-static void reject_init(mp::Package &package, int err, const char *addinfo) { 
+static void reject_init(mp::Package &package, int err, const char *addinfo) {
     if (err == 0)
         err = YAZ_BIB1_INIT_AC_AUTHENTICATION_SYSTEM_ERROR;
     // Make an Init rejection APDU

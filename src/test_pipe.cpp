@@ -60,7 +60,7 @@ public:
 
 
 Timer::Timer(yazpp_1::ISocketObservable *obs,
-				 int duration) : 
+				 int duration) :
     m_obs(obs), m_pipe(9122), m_data(false), m_timeout(false)
 {
     obs->addObserver(m_pipe.read_fd(), this);
@@ -104,7 +104,7 @@ void Timer::socketNotify(int event)
 BOOST_AUTO_TEST_CASE( test_pipe_1 )
 {
     yazpp_1::SocketManager mySocketManager;
-    
+
     Timer t(&mySocketManager, 1);
 
     while (mySocketManager.processEvent() > 0)

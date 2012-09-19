@@ -33,7 +33,7 @@ namespace mp = metaproxy_1;
 namespace metaproxy_1 {
     class FactoryFilter::Rep {
         typedef std::map<std::string, CreateFilterCallback> CallbackMap;
-        typedef std::map<std::string, CreateFilterCallback>::iterator 
+        typedef std::map<std::string, CreateFilterCallback>::iterator
             CallbackMapIt;
     public:
         friend class FactoryFilter;
@@ -81,7 +81,7 @@ bool mp::FactoryFilter::drop_creator(std::string fi)
 bool mp::FactoryFilter::exist(std::string fi)
 {
     Rep::CallbackMap::const_iterator it = m_p->m_fcm.find(fi);
-    
+
     if (it == m_p->m_fcm.end())
     {
         return false;
@@ -92,7 +92,7 @@ bool mp::FactoryFilter::exist(std::string fi)
 mp::filter::Base* mp::FactoryFilter::create(std::string fi)
 {
     Rep::CallbackMap::const_iterator it = m_p->m_fcm.find(fi);
-    
+
     if (it == m_p->m_fcm.end()){
         std::string msg = "filter type '" + fi + "' not found";
             throw NotFound(msg);
@@ -124,13 +124,13 @@ bool mp::FactoryFilter::add_creator_dl(const std::string &fi,
     if (!dl_handle)
     {
         const char *dl = dlerror();
-        std::cout << "dlopen " << full_path << " failed. dlerror=" << dl << 
+        std::cout << "dlopen " << full_path << " failed. dlerror=" << dl <<
             std::endl;
         return false;
     }
 
     std::string full_name = "metaproxy_1_filter_" + fi;
-    
+
     void *dlsym_ptr = dlsym(dl_handle, full_name.c_str());
     if (!dlsym_ptr)
     {

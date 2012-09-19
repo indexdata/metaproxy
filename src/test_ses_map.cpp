@@ -39,7 +39,7 @@ namespace mp = metaproxy_1;
 
 namespace metaproxy_1 {
     class SesMap;
-    
+
 
     class SesMap {
         class Wrap {
@@ -53,7 +53,7 @@ namespace metaproxy_1 {
     public:
         void create(SesMap &sm, const mp::Session &s, double &t) {
             boost::mutex::scoped_lock lock(m_map_mutex);
-            
+
             boost::shared_ptr<Wrap> w_ptr(new Wrap(t));
             m_map_ptr[s] = w_ptr;
         }
@@ -64,7 +64,7 @@ namespace metaproxy_1 {
 
 BOOST_AUTO_TEST_CASE( test_ses_map_1 )
 {
-    try 
+    try
     {
         mp::SesMap ses_map;
     }

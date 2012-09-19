@@ -51,7 +51,7 @@ namespace metaproxy_1 {
 
 
 // define Pimpl wrapper forwarding to Impl
- 
+
 yf::CQLtoRPN::CQLtoRPN() : m_p(new Impl)
 {
 }
@@ -79,7 +79,7 @@ yf::CQLtoRPN::Impl::Impl()
 }
 
 yf::CQLtoRPN::Impl::~Impl()
-{ 
+{
 }
 
 void yf::CQLtoRPN::Impl::configure(const xmlNode *xmlnode)
@@ -90,7 +90,7 @@ void yf::CQLtoRPN::Impl::configure(const xmlNode *xmlnode)
       <conversion file="pqf.properties"/>
       </filter>
     */
-    
+
     std::string fname;
     for (xmlnode = xmlnode->children; xmlnode; xmlnode = xmlnode->next)
     {
@@ -111,7 +111,7 @@ void yf::CQLtoRPN::Impl::configure(const xmlNode *xmlnode)
         }
         else
         {
-            throw mp::filter::FilterException("Bad element " 
+            throw mp::filter::FilterException("Bad element "
                                                + std::string((const char *)
                                                              xmlnode->name));
         }
@@ -146,15 +146,15 @@ void yf::CQLtoRPN::Impl::process(mp::Package &package)
             char *addinfo = 0;
             Z_RPNQuery *rpnquery = 0;
             mp::odr odr;
-            
+
             int r = m_cql2rpn.query_transform(sr->query->u.type_104->u.cql,
                                                  &rpnquery, odr,
                                                  &addinfo);
             if (r == -3)
             {
-                Z_APDU *f_apdu = 
+                Z_APDU *f_apdu =
                     odr.create_searchResponse(
-                        apdu_req, 
+                        apdu_req,
                         YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
                         "Missing CQL to RPN configuration");
                 package.response() = f_apdu;
@@ -164,14 +164,14 @@ void yf::CQLtoRPN::Impl::process(mp::Package &package)
             {
                 int error_code = yaz_diag_srw_to_bib1(r);
 
-                Z_APDU *f_apdu = 
+                Z_APDU *f_apdu =
                     odr.create_searchResponse(apdu_req, error_code, addinfo);
                 package.response() = f_apdu;
                 return;
             }
             else
             {   // conversion OK
-                
+
                 sr->query->which = Z_Query_type_1;
                 sr->query->u.type_1 = rpnquery;
                 package.request() = gdu;

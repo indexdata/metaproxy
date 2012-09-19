@@ -58,14 +58,14 @@ std::ostream& std::operator<<(std::ostream& os,  Z_GDU& zgdu)
 std::ostream& std::operator<<(std::ostream& os, Z_HTTP_Request& httpreq)
 {
     os << httpreq.method << " ";
-    os << httpreq.path;    
+    os << httpreq.path;
     return os;
 }
 
 std::ostream& std::operator<<(std::ostream& os, Z_HTTP_Response& httpres)
 {
     os << httpres.code << " ";
-    os << httpres.content_len;   
+    os << httpres.content_len;
     return os;
 }
 
@@ -86,7 +86,7 @@ std::ostream& std::operator<<(std::ostream& os, Z_Records & rs)
     default:
         os << "Z_Records" ;
     }
-    
+
     return os;
 }
 
@@ -104,7 +104,7 @@ std::ostream& std::operator<<(std::ostream& os, Z_DiagRec& dr)
     default:
         os << "Z_DiagRec" ;
     }
-    
+
     return os;
 }
 
@@ -128,7 +128,7 @@ std::ostream& std::operator<<(std::ostream& os, Z_DefaultDiagFormat& ddf)
     default:
         os << "-";
     }
-    
+
     return os;
 }
 
@@ -161,9 +161,9 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
 
     case Z_APDU_initRequest:
         os << " " << "initRequest";
-                        
+
         {
-            Z_InitRequest *ir 
+            Z_InitRequest *ir
                 = zapdu.u.initRequest;
 
             Z_IdAuthentication *a = ir->idAuthentication;
@@ -173,17 +173,17 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 dump_opt_string(os, a->u.open);
             else
                 dump_opt_string(os, 0);
-            
+
             os << " ";
             std::list<std::string> vhosts;
             mp::util::get_vhost_otherinfo(ir->otherInfo, vhosts);
             if (vhosts.size()){
-                copy(vhosts.begin(), vhosts.end(), 
+                copy(vhosts.begin(), vhosts.end(),
                      ostream_iterator<string>(os, " "));
             }
             else
                 os << "-" ;
-            
+
             dump_opt_string(os, ir->implementationId);
             dump_opt_string(os, ir->implementationName);
             dump_opt_string(os, ir->implementationVersion);
@@ -192,7 +192,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
     case Z_APDU_initResponse:
         os << " " << "initResponse ";
         {
-            Z_InitResponse *ir 
+            Z_InitResponse *ir
                 = zapdu.u.initResponse;
             if (ir->result && *(ir->result))
             {
@@ -209,10 +209,10 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         break;
     case Z_APDU_searchRequest:
         os << " " << "searchRequest" << " ";
-        { 
-            Z_SearchRequest *sr 
+        {
+            Z_SearchRequest *sr
                 = zapdu.u.searchRequest;
-                            
+
             for (int i = 0; i < sr->num_databaseNames; i++)
             {
                 os << sr->databaseNames[i];
@@ -272,7 +272,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 char oid_name_str[OID_STR_MAX];
                 const char *oid_name = yaz_oid_to_string_buf(
                     pr->preferredRecordSyntax, 0, oid_name_str);
-                    
+
                 os << " " << oid_name;
             }
             else
@@ -286,7 +286,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
     case Z_APDU_presentResponse:
         os << " " << "presentResponse" << " ";
         {
-            Z_PresentResponse *pr 
+            Z_PresentResponse *pr
                 = zapdu.u.presentResponse;
             if (!pr->presentStatus)
                 os << "Unknown";
@@ -348,9 +348,9 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         break;
     case Z_APDU_scanRequest:
         os << " " << "scanRequest" << " ";
-        { 
+        {
             Z_ScanRequest *sr = zapdu.u.scanRequest;
-                        
+
             if (sr)
             {
                 for (int i = 0; i < sr->num_databaseNames; i++)
@@ -367,7 +367,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 if (sr->termListAndStartPoint)
                 {
                     mp::wrbuf wr;
-                    yaz_scan_to_wrbuf(wr, sr->termListAndStartPoint, 
+                    yaz_scan_to_wrbuf(wr, sr->termListAndStartPoint,
                                       sr->attributeSet);
                     os << wrbuf_cstr(wr);
                 }
@@ -430,8 +430,8 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         break;
     case Z_APDU_extendedServicesRequest:
         os << " " << "extendedServicesRequest";
-        { 
-            Z_ExtendedServicesRequest *er 
+        {
+            Z_ExtendedServicesRequest *er
                 = zapdu.u.extendedServicesRequest;
             if (er)
             {
@@ -455,18 +455,18 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                 }
                 else
                     os << " -";
-                    
-                
+
+
                 if (er->userId)
                     os << " " << er->userId ;
                 else
                     os << " -";
-                
+
                 if (er->packageName)
                     os << " " << er->packageName;
                 else
                     os << " -";
-                
+
                 if (er->description)
                     os << " " << er->description;
                 else
@@ -476,8 +476,8 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         break;
     case Z_APDU_extendedServicesResponse:
         os << " " << "extendedServicesResponse";
-        { 
-            Z_ExtendedServicesResponse *er 
+        {
+            Z_ExtendedServicesResponse *er
                 = zapdu.u.extendedServicesResponse;
             if (er)
             {
@@ -509,7 +509,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
         break;
     case Z_APDU_close:
         os  << " " << "close" << " ";
-        { 
+        {
             Z_Close *c = zapdu.u.close;
             if (c)
             {
@@ -553,7 +553,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
                         os << "unknown";
                     }
                 }
-                
+
                 if (c->diagnosticInformation)
                     os << " " << c->diagnosticInformation;
             }
@@ -565,7 +565,7 @@ std::ostream& std::operator<<(std::ostream& os,  Z_APDU& zapdu)
     case Z_APDU_duplicateDetectionResponse:
         os << " " << "duplicateDetectionResponse";
         break;
-    default: 
+    default:
         os << " " << "Z_APDU " << "UNKNOWN";
     }
 

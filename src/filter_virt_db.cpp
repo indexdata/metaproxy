@@ -90,23 +90,23 @@ namespace metaproxy_1 {
                                   BackendPtr b);
             void fixup_npr_records(ODR odr, Z_Records *records,
                                    BackendPtr b);
-    
+
             BackendPtr lookup_backend_from_databases(
                 std::list<std::string> databases);
             BackendPtr create_backend_from_databases(
                 std::list<std::string> databases,
                 int &error_code,
                 std::string &failing_database);
-            
+
             BackendPtr init_backend(std::list<std::string> database,
                                     Package &package,
                                     int &error_code, std::string &addinfo);
             Rep *m_p;
-        };            
+        };
         class VirtualDB::Rep {
             friend class VirtualDB;
             friend struct Frontend;
-            
+
             FrontendPtr get_frontend(Package &package);
             void release_frontend(Package &package);
             void refresh_torus();
@@ -228,8 +228,8 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::init_backend(
     ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_3);
 
     init_package.request() = init_apdu;
-    
-    init_package.move(b->m_route);  // sending init 
+
+    init_package.move(b->m_route);  // sending init
 
     Z_GDU *gdu = init_package.response().get();
     // we hope to get an init response
@@ -264,7 +264,7 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::init_backend(
         close_package.move(b->m_route);  // closing it
     }
     BackendPtr null;
-    return null; 
+    return null;
 }
 
 void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
@@ -283,20 +283,20 @@ void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     Sets_it sets_it = m_sets.find(req->resultSetName);
     if (sets_it != m_sets.end())
     {
-        // result set already exist 
+        // result set already exist
         // if replace indicator is off: we return diagnostic if
         // result set already exist.
         if (*req->replaceIndicator == 0)
         {
-            Z_APDU *apdu = 
+            Z_APDU *apdu =
                 odr.create_searchResponse(
                     apdu_req,
                     YAZ_BIB1_RESULT_SET_EXISTS_AND_REPLACE_INDICATOR_OFF,
                     0);
             package.response() = apdu;
-            
+
             return;
-        } 
+        }
         sets_it->second.m_backend->m_number_of_sets--;
     }
     // pick up any existing database with named result sets ..
@@ -323,8 +323,8 @@ void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
         if (!b)
         {
             // did not get a backend (unavailable somehow?)
-            
-            Z_APDU *apdu = 
+
+            Z_APDU *apdu =
                 odr.create_searchResponse(
                     apdu_req, error_code, addinfo.c_str());
             package.response() = apdu;
@@ -385,7 +385,7 @@ yf::VirtualDB::Frontend::Frontend(Rep *rep)
 void yf::VirtualDB::Frontend::close(mp::Package &package)
 {
     std::list<BackendPtr>::const_iterator b_it;
-    
+
     for (b_it = m_backend_list.begin(); b_it != m_backend_list.end(); b_it++)
     {
         (*b_it)->m_backend_session.close();
@@ -405,13 +405,13 @@ yf::VirtualDB::FrontendPtr yf::VirtualDB::Rep::get_frontend(mp::Package &package
     boost::mutex::scoped_lock lock(m_mutex);
 
     std::map<mp::Session,yf::VirtualDB::FrontendPtr>::iterator it;
-    
+
     while(true)
     {
         it = m_clients.find(package.session());
         if (it == m_clients.end())
             break;
-        
+
         if (!it->second->m_in_use)
         {
             it->second->m_in_use = true;
@@ -429,7 +429,7 @@ void yf::VirtualDB::Rep::release_frontend(mp::Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
     std::map<mp::Session,yf::VirtualDB::FrontendPtr>::iterator it;
-    
+
     it = m_clients.find(package.session());
     if (it != m_clients.end())
     {
@@ -462,15 +462,15 @@ yf::VirtualDB::Set::~Set()
 {
 }
 
-yf::VirtualDB::Map::Map(std::string database, 
+yf::VirtualDB::Map::Map(std::string database,
                         std::list<std::string> targets, std::string route)
-    : m_dbpattern(database), m_targets(targets), m_route(route) 
+    : m_dbpattern(database), m_targets(targets), m_route(route)
 {
 }
 
-yf::VirtualDB::Map::Map(std::string database, 
+yf::VirtualDB::Map::Map(std::string database,
                         std::string target, std::string route)
-    : m_dbpattern(database), m_route(route) 
+    : m_dbpattern(database), m_route(route)
 {
     m_targets.push_back(target);
 }
@@ -505,7 +505,7 @@ void yf::VirtualDB::Frontend::fixup_npr_record(ODR odr, Z_NamePlusRecord *npr,
 
         // consider each of the frontend databases..
         std::list<std::string>::const_iterator db_it;
-        for (db_it = b->m_frontend_databases.begin(); 
+        for (db_it = b->m_frontend_databases.begin();
              db_it != b->m_frontend_databases.end(); db_it++)
         {
             // see which target it corresponds to.. (if any)
@@ -518,7 +518,7 @@ void yf::VirtualDB::Frontend::fixup_npr_record(ODR odr, Z_NamePlusRecord *npr,
                 map_it++;
             }
             if (map_it != m_p->m_maps.end())
-            { 
+            {
                 std::list<std::string>::const_iterator t
                     = map_it->m_targets.begin();
                 while (t != map_it->m_targets.end())
@@ -531,7 +531,7 @@ void yf::VirtualDB::Frontend::fixup_npr_record(ODR odr, Z_NamePlusRecord *npr,
                     t++;
                 }
             }
-            
+
         }
         db_it = b->m_frontend_databases.begin();
         if (db_it != b->m_frontend_databases.end())
@@ -587,7 +587,7 @@ void yf::VirtualDB::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
     Sets_it sets_it = m_sets.find(resultSetId);
     if (sets_it == m_sets.end())
     {
-        Z_APDU *apdu = 
+        Z_APDU *apdu =
             odr.create_presentResponse(
                 apdu_req,
                 YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST,
@@ -597,13 +597,13 @@ void yf::VirtualDB::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
     }
     Session *id =
         new mp::Session(sets_it->second.m_backend->m_backend_session);
-    
+
     // sending present to backend
     Package present_package(*id, package.origin());
     present_package.copy_filter(package);
 
     req->resultSetId = odr_strdup(odr, sets_it->second.m_setname.c_str());
-    
+
     present_package.request() = ngdu;
 
     present_package.move(sets_it->second.m_backend->m_route);
@@ -631,7 +631,7 @@ int yf::VirtualDB::Frontend::relay_apdu(mp::Package &package, Z_APDU *apdu_req)
     for (; map_it != m_backend_list.end(); map_it++)
     {
         BackendPtr b = *map_it;
-        
+
         Package relay_package(b->m_backend_session, package.origin());
         relay_package.copy_filter(package);
 
@@ -666,7 +666,7 @@ void yf::VirtualDB::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
         if (tmp->m_frontend_databases == databases)
             break;
     }
-    if (map_it != m_backend_list.end()) 
+    if (map_it != m_backend_list.end())
         b = *map_it;
     if (!b)  // no backend yet. Must create a new one
     {
@@ -680,7 +680,7 @@ void yf::VirtualDB::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
                 odr.create_scanResponse(
                     apdu_req, error_code, addinfo.c_str());
             package.response() = apdu;
-            
+
             return;
         }
     }
@@ -699,7 +699,7 @@ void yf::VirtualDB::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
     }
 
     scan_package.request() = ngdu;
-    
+
     scan_package.move(b->m_route);
 
     if (scan_package.session().is_closed())
@@ -712,7 +712,7 @@ void yf::VirtualDB::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
 }
 
 
-void yf::VirtualDB::add_map_db2targets(std::string db, 
+void yf::VirtualDB::add_map_db2targets(std::string db,
                                        std::list<std::string> targets,
                                        std::string route)
 {
@@ -721,7 +721,7 @@ void yf::VirtualDB::add_map_db2targets(std::string db,
 }
 
 
-void yf::VirtualDB::add_map_db2target(std::string db, 
+void yf::VirtualDB::add_map_db2target(std::string db,
                                       std::string target,
                                       std::string route)
 
@@ -735,12 +735,12 @@ void yf::VirtualDB::process(mp::Package &package) const
     FrontendPtr f = m_p->get_frontend(package);
 
     Z_GDU *gdu = package.request().get();
-    
+
     if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
         Z_APDU_initRequest && !f->m_is_virtual)
     {
         Z_InitRequest *req = gdu->u.z3950->u.initRequest;
-        
+
         std::list<std::string> vhosts;
         mp::util::get_vhost_otherinfo(req->otherInfo, vhosts);
 
@@ -751,23 +751,23 @@ void yf::VirtualDB::process(mp::Package &package) const
         else
         {
             f->m_init_gdu = gdu;
-            
+
             mp::odr odr;
             Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950, 0, 0);
             Z_InitResponse *resp = apdu->u.initResponse;
-            
+
             int i;
             static const int masks[] = {
                 Z_Options_search,
                 Z_Options_present,
                 Z_Options_namedResultSets,
                 Z_Options_scan,
-                -1 
+                -1
             };
             for (i = 0; masks[i] != -1; i++)
                 if (ODR_MASK_GET(req->options, masks[i]))
                     ODR_MASK_SET(resp->options, masks[i]);
-            
+
             static const int versions[] = {
                 Z_ProtocolVersion_1,
                 Z_ProtocolVersion_2,
@@ -779,7 +779,7 @@ void yf::VirtualDB::process(mp::Package &package) const
                     ODR_MASK_SET(resp->protocolVersion, versions[i]);
                 else
                     break;
-            
+
             *resp->preferredMessageSize = *req->preferredMessageSize;
             *resp->maximumRecordSize = *req->maximumRecordSize;
 
@@ -795,12 +795,12 @@ void yf::VirtualDB::process(mp::Package &package) const
         if (apdu->which == Z_APDU_initRequest)
         {
             mp::odr odr;
-            
+
             package.response() = odr.create_close(
                 apdu,
                 Z_Close_protocolError,
                 "double init");
-            
+
             package.session().close();
         }
         else if (apdu->which == Z_APDU_searchRequest)
@@ -820,21 +820,21 @@ void yf::VirtualDB::process(mp::Package &package) const
             if (f->relay_apdu(package, apdu) == 0)
             {
                 mp::odr odr;
-                
+
                 package.response() = odr.create_close(
                     apdu, Z_Close_finished, "virt_db");
-                
+
                 package.session().close();
             }
         }
         else
         {
             mp::odr odr;
-            
+
             package.response() = odr.create_close(
                 apdu, Z_Close_protocolError,
                 "unsupported APDU in filter_virt_db");
-            
+
             package.session().close();
         }
     }
@@ -861,14 +861,14 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only,
             {
                 if (v_node->type != XML_ELEMENT_NODE)
                     continue;
-                
+
                 if (mp::xml::is_element_mp(v_node, "database"))
                     database = mp::xml::get_text(v_node);
                 else if (mp::xml::is_element_mp(v_node, "target"))
                     targets.push_back(mp::xml::get_text(v_node));
                 else
                     throw mp::filter::FilterException
-                        ("Bad element " 
+                        ("Bad element "
                          + std::string((const char *) v_node->name)
                          + " in virtual section"
                             );
@@ -882,7 +882,7 @@ void mp::filter::VirtualDB::configure(const xmlNode * ptr, bool test_only,
         else
         {
             throw mp::filter::FilterException
-                ("Bad element " 
+                ("Bad element "
                  + std::string((const char *) ptr->name)
                  + " in virt_db filter");
         }

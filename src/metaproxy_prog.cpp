@@ -87,7 +87,7 @@ static void work_debug(void *data)
 {
     work_common(data);
 }
-    
+
 static void work_normal(void *data)
 {
 #if HAVE_UNISTD_H
@@ -108,8 +108,8 @@ static int sc_main(
     unsigned mode = 0;
     const char *pidfile = 0;
     const char *uid = 0;
-    
-    while ((ret = options("c{config}:Dh{help}l:p:tu:V{version}w:X", 
+
+    while ((ret = options("c{config}:Dh{help}l:p:tu:V{version}w:X",
                           argv, argc, &arg)) != -2)
     {
         switch (ret)
@@ -136,7 +136,7 @@ static int sc_main(
                 " -install      install windows service\n"
                 " -remove       remove windows service\n"
 #endif
-                
+
                       << std::endl;
             break;
         case 'l':
@@ -166,7 +166,7 @@ static int sc_main(
 #else
                 chdir(arg)
 #endif
-                ) 
+                )
             {
                 std::cerr << "chdir " << arg << " failed" << std::endl;
                 return 1;
@@ -184,7 +184,7 @@ static int sc_main(
         std::cerr << "No configuration given; use -h for help\n";
         return 1;
     }
-    
+
     if (!test_config)
         yaz_log(YLOG_LOG, "metaproxy start " VERSION
 #ifdef VERSION_SHA1
@@ -194,10 +194,10 @@ static int sc_main(
 
     yaz_log_xml_errors(0, YLOG_LOG);
     xmlDocPtr doc = xmlReadFile(fname,
-                                NULL, 
+                                NULL,
                                 XML_PARSE_XINCLUDE + XML_PARSE_NOBLANKS
                                 + XML_PARSE_NSCLEAN + XML_PARSE_NONET );
-    
+
     if (!doc)
     {
         yaz_log(YLOG_FATAL,"XML parsing failed");
@@ -229,9 +229,9 @@ static int sc_main(
             new mp::RouterFleXML(doc, factory, test_config, wrbuf_cstr(base_path));
         if (!test_config)
         {
-            
+
             yaz_sc_running(s);
-            
+
             yaz_daemon("metaproxy", mode, mode == YAZ_DAEMON_DEBUG ?
                        work_debug : work_normal, router, pidfile, uid);
         }

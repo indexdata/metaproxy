@@ -23,19 +23,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <string>
 #include <stdexcept>
 
-namespace metaproxy_1 
+namespace metaproxy_1
 {
     namespace filter {
         class Base;
     }
     class RoutePos;
-    
+
     class RouterException : public std::runtime_error {
     public:
         RouterException(const std::string message)
             : std::runtime_error("RouterException: " + message){};
     };
-      
+
     class Router : boost::noncopyable {
     public:
         Router(){};

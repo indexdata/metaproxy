@@ -32,7 +32,7 @@ namespace metaproxy_1 {
     };
 }
 
-mp::Package::Package() 
+mp::Package::Package()
     : m_route_pos(0)
 {
 }
@@ -42,7 +42,7 @@ mp::Package::~Package()
     delete m_route_pos;
 }
 
-mp::Package::Package(mp::Session &session, const mp::Origin &origin) 
+mp::Package::Package(mp::Session &session, const mp::Origin &origin)
     : m_session(session), m_origin(origin),
       m_route_pos(0)
 {
@@ -88,11 +88,11 @@ mp::Session & mp::Package::session()
     return m_session;
 }
 
-mp::Origin mp::Package::origin() const 
+mp::Origin mp::Package::origin() const
 {
     return m_origin;
 }
-    
+
 mp::Origin & mp::Package::origin()
 {
     return m_origin;

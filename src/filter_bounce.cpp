@@ -54,18 +54,18 @@ void yf::Bounce::process(mp::Package &package) const
         return;
     }
     package.session().close();
-    
+
     Z_GDU *zgdu = package.request().get();
-    
+
     if (!zgdu)
         return;
-    
+
     //std::string message("BOUNCE ");
-    std::ostringstream message;    
+    std::ostringstream message;
     message << "BOUNCE " << *zgdu;
-    
-    metaproxy_1::odr odr; 
-    
+
+    metaproxy_1::odr odr;
+
     if (zgdu->which == Z_GDU_Z3950)
     {
         Z_APDU *apdu_res = 0;
@@ -77,16 +77,16 @@ void yf::Bounce::process(mp::Package &package) const
     else if (zgdu->which == Z_GDU_HTTP_Request)
     {
         Z_GDU *zgdu_res = 0;
-        zgdu_res 
-            = odr.create_HTTP_Response(package.session(), 
+        zgdu_res
+            = odr.create_HTTP_Response(package.session(),
                                        zgdu->u.HTTP_Request, 400);
-        
+
         package.response() = zgdu_res;
     }
     else if (zgdu->which == Z_GDU_HTTP_Response)
     {
     }
-    
+
 
     return;
 }

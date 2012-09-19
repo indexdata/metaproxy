@@ -107,7 +107,7 @@ Z_Records *yf::BackendTest::Rep::fetch(
     int *number_returned, int *next_position)
 {
     const char *element_set_name = "F"; // default to use
-    
+
     if (number + start - 1 > result_set_size || start < 1)
     {
         error_code = YAZ_BIB1_PRESENT_REQUEST_OUT_OF_RANGE;
@@ -135,24 +135,24 @@ Z_Records *yf::BackendTest::Rep::fetch(
     {
         if (esn->which != Z_ElementSetNames_generic)
         {
-            error_code 
+            error_code
                 = YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_;
             return 0;
         }
         element_set_name = esn->u.generic;
     }
-    if (!strcmp(element_set_name, "B") 
+    if (!strcmp(element_set_name, "B")
         && !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_usmarc))
         ; // Brief
-    else if (!strcmp(element_set_name, "F") 
+    else if (!strcmp(element_set_name, "F")
              && !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_usmarc))
         ; // Full
-    else if (!strncmp(element_set_name, "FF", 2) 
+    else if (!strncmp(element_set_name, "FF", 2)
              && !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml))
         ; // Huge XML test record
     else
     {
-        error_code 
+        error_code
             = YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_;
         addinfo = std::string(element_set_name);
         return 0;
@@ -219,8 +219,8 @@ void yf::BackendTest::process(Package &package) const
         Z_APDU *apdu_req = gdu->u.z3950;
         Z_APDU *apdu_res = 0;
         mp::odr odr;
-        
-        if (apdu_req->which != Z_APDU_initRequest && 
+
+        if (apdu_req->which != Z_APDU_initRequest &&
             !m_p->m_sessions.exist(package.session()))
         {
             apdu_res = odr.create_close(apdu_req,
@@ -237,11 +237,11 @@ void yf::BackendTest::process(Package &package) const
             resp->implementationName = odr_strdup(odr, "backend_test");
             if (ODR_MASK_GET(req->options, Z_Options_namedResultSets))
                 m_p->m_support_named_result_sets = true;
-            
+
             int i;
             static const int masks[] = {
                 Z_Options_search, Z_Options_present,
-                Z_Options_namedResultSets, -1 
+                Z_Options_namedResultSets, -1
             };
             for (i = 0; masks[i] != -1; i++)
                 if (ODR_MASK_GET(req->options, masks[i]))
@@ -267,11 +267,11 @@ void yf::BackendTest::process(Package &package) const
         else if (apdu_req->which == Z_APDU_searchRequest)
         {
             Z_SearchRequest *req = apdu_req->u.searchRequest;
-                
-            if (!m_p->m_support_named_result_sets && 
+
+            if (!m_p->m_support_named_result_sets &&
                 strcmp(req->resultSetName, "default"))
             {
-                apdu_res = 
+                apdu_res =
                     odr.create_searchResponse(
                         apdu_req,  YAZ_BIB1_RESULT_SET_NAMING_UNSUPP, 0);
             }
@@ -283,13 +283,13 @@ void yf::BackendTest::process(Package &package) const
                 int error_code = 0;
                 std::string addinfo;
                 const char *element_set_name = 0;
-                
+
                 Odr_int number = 0;
                 mp::util::piggyback_sr(req, result_set_size,
                                        number, &element_set_name);
-                
-                if (number) 
-                {   // not a large set for sure 
+
+                if (number)
+                {   // not a large set for sure
                     Z_ElementSetNames *esn;
                     if (number > *req->smallSetUpperBound)
                         esn = req->mediumSetElementSetNames;
@@ -304,7 +304,7 @@ void yf::BackendTest::process(Package &package) const
                 }
                 if (error_code)
                 {
-                    apdu_res = 
+                    apdu_res =
                         odr.create_searchResponse(
                             apdu_req, error_code, addinfo.c_str());
                     Z_SearchResponse *resp = apdu_res->u.searchResponse;
@@ -312,7 +312,7 @@ void yf::BackendTest::process(Package &package) const
                 }
                 else
                 {
-                    apdu_res = 
+                    apdu_res =
                         odr.create_searchResponse(apdu_req, 0, 0);
                     Z_SearchResponse *resp = apdu_res->u.searchResponse;
                     *resp->resultCount = result_set_size;
@@ -323,7 +323,7 @@ void yf::BackendTest::process(Package &package) const
             }
         }
         else if (apdu_req->which == Z_APDU_presentRequest)
-        { 
+        {
             Z_PresentRequest *req = apdu_req->u.presentRequest;
             int number_returned = 0;
             int next_position = 0;

@@ -73,7 +73,7 @@ std::string mp_xml::url_recipe_handle(xmlDoc *doc, std::string recipe)
             int c_check = c;
             if (c_prev == '\\')
                 c_check = 0;
-            
+
             if (c_check == '}')
                 step = 5;
             else if (step == 0)

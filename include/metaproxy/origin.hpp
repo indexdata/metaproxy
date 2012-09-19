@@ -31,11 +31,11 @@ namespace std {
 }
 
 namespace metaproxy_1 {
-    
+
     class Origin {
     public:
         Origin();
-        
+
         /// set client IP info - left val in assignment
         void set_tcpip_address(std::string addr, unsigned long id);
 
@@ -44,15 +44,15 @@ namespace metaproxy_1 {
 
         /// set max sockets (for outgoing connections to a given target)
         int get_max_sockets();
-        
+
         /// get tcpip address
         std::string get_address();
 
         void set_custom_session(const std::string &s);
     private:
-        friend std::ostream& 
+        friend std::ostream&
         std::operator<<(std::ostream& os, const metaproxy_1::Origin& o);
-        
+
         std::string m_address;
         unsigned int m_origin_id;
         int m_max_sockets;

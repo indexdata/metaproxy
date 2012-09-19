@@ -105,7 +105,7 @@ std::string yf::HttpFile::Rep::get_mime_type(std::string &fname)
 {
     std::string file_part = fname;
     std::string::size_type p = fname.find_last_of('/');
-    
+
     if (p != std::string::npos)
         file_part = fname.substr(p+1);
 
@@ -129,7 +129,7 @@ void yf::HttpFile::Rep::fetch_file(mp::Session &session,
                                    std::string &fname, mp::Package &package)
 {
     mp::odr o;
-    
+
     FILE *f = fopen(fname.c_str(), "rb");
     if (!f)
     {
@@ -170,7 +170,7 @@ void yf::HttpFile::Rep::fetch_file(mp::Session &session,
         }
     }
     fclose(f);
-    
+
     std::string content_type = get_mime_type(fname);
 
     z_HTTP_header_add(o, &hres->headers,
@@ -184,7 +184,7 @@ void yf::HttpFile::Rep::fetch_uri(mp::Session &session,
     bool sane = true;
     std::string::size_type p;
     std::string path = req->path;
-    
+
     p = path.find("#");
     if (p != std::string::npos)
         path = path.erase(p);
@@ -218,7 +218,7 @@ void yf::HttpFile::Rep::fetch_uri(mp::Session &session,
     }
     package.move();
 }
-                         
+
 void yf::HttpFile::process(mp::Package &package) const
 {
     Z_GDU *gdu = package.request().get();
@@ -246,7 +246,7 @@ void mp::filter::HttpFile::configure(const xmlNode * ptr, bool test_only,
                 throw mp::filter::FilterException
                     ("Can not open mime types file " + fname);
             }
-            
+
             std::vector<std::string> args;
             while (f.getline(args))
             {
@@ -263,14 +263,14 @@ void mp::filter::HttpFile::configure(const xmlNode * ptr, bool test_only,
             {
                 if (a_node->type != XML_ELEMENT_NODE)
                     continue;
-                
+
                 if (mp::xml::is_element_mp(a_node, "documentroot"))
                     a.m_file_root = mp::xml::get_text(a_node);
                 else if (mp::xml::is_element_mp(a_node, "prefix"))
                     a.m_url_path_prefix = mp::xml::get_text(a_node);
                 else
                     throw mp::filter::FilterException
-                        ("Bad element " 
+                        ("Bad element "
                          + std::string((const char *) a_node->name)
                          + " in area section"
                             );
@@ -283,7 +283,7 @@ void mp::filter::HttpFile::configure(const xmlNode * ptr, bool test_only,
         else
         {
             throw mp::filter::FilterException
-                ("Bad element " 
+                ("Bad element "
                  + std::string((const char *) ptr->name)
                  + " in virt_db filter");
         }

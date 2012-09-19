@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 // Filter that bounces all requests packages
-// No packages are ever passed to later filters in the chain  
+// No packages are ever passed to later filters in the chain
 #ifndef FILTER_BOUNCE_HPP
 #define FILTER_BOUNCE_HPP
 

@@ -88,7 +88,7 @@ namespace metaproxy_1 {
         virtual ~Pos();
         mp::RouterFleXML::Rep *m_p;
 
-        std::map<std::string, 
+        std::map<std::string,
                  RouterFleXML::Route>::iterator m_route_it;
         std::list<boost::shared_ptr <const mp::filter::Base> >::iterator m_filter_it;
     };
@@ -168,10 +168,10 @@ void mp::RouterFleXML::Rep::parse_xml_filters1(xmlDocPtr doc,
             {
                 std::string name = std::string((const char *) attr->name);
                 std::string value;
-            
+
                 if (attr->children && attr->children->type == XML_TEXT_NODE)
                     value = std::string((const char *)attr->children->content);
-            
+
                 if (name == "refid")
                     refid_value = value;
                 else if (name == "type")
@@ -201,13 +201,13 @@ void mp::RouterFleXML::Rep::parse_xml_filters1(xmlDocPtr doc,
                     m_factory->add_creator_dl(type_value, m_dl_path);
                 }
                 mp::filter::Base* filter_base = m_factory->create(type_value);
-            
+
                 filter_base->configure(node, test_only, file_include_path);
-            
+
                 route.m_list.push_back(
                     boost::shared_ptr<mp::filter::Base>(filter_base));
             }
-        
+
         }
         node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
     }
@@ -232,10 +232,10 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
         {
             std::string name = std::string((const char *) attr->name);
             std::string value;
-            
+
             if (attr->children && attr->children->type == XML_TEXT_NODE)
                 value = std::string((const char *)attr->children->content);
-            
+
             if (name == "id")
                 id_value = value;
             else
@@ -285,10 +285,10 @@ void mp::RouterFleXML::Rep::check_routes_in_filters(const xmlNode *node)
                     if (!strcmp((const char *) attr->name, "route"))
                     {
                         std::string value;
-                        
+
                         if (attr->children && attr->children->type == XML_TEXT_NODE)
                             value = std::string((const char *)attr->children->content);
-       
+
                         std::map<std::string,RouterFleXML::Route>::iterator it;
                         it = m_routes.find(value);
                         if (it == m_routes.end())
@@ -310,7 +310,7 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
 {
     if (!doc)
         throw mp::XMLError("Empty XML Document");
-    
+
     const xmlNode* root = xmlDocGetRootElement(doc);
 
     if (file_include_path)
@@ -319,7 +319,7 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
         if (r)
             throw mp::XMLError("YAZ XML Include failed");
     }
-    
+
     mp::xml::check_element_mp(root,  "metaproxy");
 
     const xmlNode* node = mp::xml::jump_to_children(root, XML_ELEMENT_NODE);
@@ -355,19 +355,19 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
         parse_xml_filters(doc, mp::xml::jump_to_children(node,
                                                          XML_ELEMENT_NODE),
                           test_only, file_include_path);
-                      
+
         node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
     }
     // process <routes> node which is expected third element node
     mp::xml::check_element_mp(node, "routes");
-    
+
     parse_xml_routes(doc, mp::xml::jump_to_children(node, XML_ELEMENT_NODE),
                      test_only, file_include_path);
 
     node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
     if (node)
     {
-        throw mp::XMLError("Unexpected element " 
+        throw mp::XMLError("Unexpected element "
                             + std::string((const char *)node->name));
     }
 
@@ -388,7 +388,7 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
                 {
                     check_routes_in_filters(
                         mp::xml::jump_to_children(n, XML_ELEMENT_NODE));
-                    
+
                 }
                 n = mp::xml::jump_to_next(n, XML_ELEMENT_NODE);
             }
@@ -417,11 +417,11 @@ mp::RouterFleXML::RouterFleXML(xmlDocPtr doc, mp::FactoryFilter &factory,
 }
 
 mp::RouterFleXML::RouterFleXML(std::string xmlconf, mp::FactoryFilter &factory,
-    bool test_only) 
+    bool test_only)
     : m_p(new Rep)
-{            
+{
     LIBXML_TEST_VERSION;
-    
+
     xmlDocPtr doc = xmlParseMemory(xmlconf.c_str(),
                                    xmlconf.size());
     if (!doc)

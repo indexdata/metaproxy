@@ -59,7 +59,7 @@ namespace metaproxy_1 {
 }
 
 // define Pimpl wrapper forwarding to Impl
- 
+
 yf::Limit::Limit() : m_p(new Impl)
 {
 }
@@ -88,7 +88,7 @@ yf::Limit::Impl::Impl() : m_bw_max(0), m_pdu_max(0), m_search_max(0),
 }
 
 yf::Limit::Impl::~Impl()
-{ 
+{
 }
 
 void yf::Limit::Impl::configure(const xmlNode *ptr)
@@ -119,7 +119,7 @@ void yf::Limit::Impl::configure(const xmlNode *ptr)
         }
         else
         {
-            throw mp::filter::FilterException("Bad element " 
+            throw mp::filter::FilterException("Bad element "
                                                + std::string((const char *)
                                                              ptr->name));
         }
@@ -134,7 +134,7 @@ void yf::Limit::Impl::process(mp::Package &package)
 
         yf::Limit::Ses *ses = 0;
 
-        std::map<mp::Session,yf::Limit::Ses *>::iterator it = 
+        std::map<mp::Session,yf::Limit::Ses *>::iterator it =
             m_sessions.find(package.session());
         if (it != m_sessions.end())
             ses = it->second;
@@ -172,7 +172,7 @@ void yf::Limit::Impl::process(mp::Package &package)
 
         yf::Limit::Ses *ses = 0;
 
-        std::map<mp::Session,yf::Limit::Ses *>::iterator it = 
+        std::map<mp::Session,yf::Limit::Ses *>::iterator it =
             m_sessions.find(package.session());
         if (it != m_sessions.end())
             ses = it->second;
@@ -183,14 +183,14 @@ void yf::Limit::Impl::process(mp::Package &package)
         }
 
         sz += package.response().get_size();
-        
+
         ses->bw_stat.add_bytes(sz);
         ses->pdu_stat.add_bytes(1);
-        
+
         int bw_total = ses->bw_stat.get_total();
         int pdu_total = ses->pdu_stat.get_total();
         int search_total = ses->search_stat.get_total();
-        
+
         if (m_search_max)
             reduce += search_total / m_search_max;
         if (m_bw_max)

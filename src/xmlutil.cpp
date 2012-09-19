@@ -60,7 +60,7 @@ bool mp_xml::get_bool(const xmlNode *ptr, bool default_value)
 }
 
 int mp_xml::get_int(const xmlNode *ptr, int default_value)
-{ 
+{
     if (ptr && ptr->type != XML_TEXT_NODE)
         ptr = ptr->children;
     if (ptr && ptr->type == XML_TEXT_NODE && ptr->content)
@@ -70,13 +70,13 @@ int mp_xml::get_int(const xmlNode *ptr, int default_value)
     return default_value;
 }
 
-bool mp_xml::check_attribute(const _xmlAttr *ptr, 
+bool mp_xml::check_attribute(const _xmlAttr *ptr,
                              const std::string &ns,
                              const std::string &name)
 {
 
     if (!mp::xml::is_attribute(ptr, ns, name))
-    {   
+    {
         std::string got_attr = "'";
         if (ptr && ptr->name)
             got_attr += std::string((const char *)ptr->name);
@@ -85,23 +85,23 @@ bool mp_xml::check_attribute(const _xmlAttr *ptr,
             got_attr += std::string((const char *)ptr->ns->href);
          }
         got_attr += "'";
-        
-        throw mp::XMLError("Expected XML attribute '" + name 
+
+        throw mp::XMLError("Expected XML attribute '" + name
                            + " " + ns + "'"
                            + ", not " + got_attr);
     }
     return true;
 }
 
-bool mp_xml::is_attribute(const _xmlAttr *ptr, 
+bool mp_xml::is_attribute(const _xmlAttr *ptr,
                           const std::string &ns,
                           const std::string &name)
 {
     if (0 != xmlStrcmp(BAD_CAST name.c_str(), ptr->name))
         return false;
 
-    if (ns.size() 
-        && (!ptr->ns || !ptr->ns->href 
+    if (ns.size()
+        && (!ptr->ns || !ptr->ns->href
             || 0 != xmlStrcmp(BAD_CAST ns.c_str(), ptr->ns->href)))
         return false;
 
@@ -109,25 +109,25 @@ bool mp_xml::is_attribute(const _xmlAttr *ptr,
 }
 
 
-bool mp_xml::is_element(const xmlNode *ptr, 
+bool mp_xml::is_element(const xmlNode *ptr,
                           const std::string &ns,
                           const std::string &name)
 {
-    if (ptr && ptr->type == XML_ELEMENT_NODE && ptr->ns && ptr->ns->href 
+    if (ptr && ptr->type == XML_ELEMENT_NODE && ptr->ns && ptr->ns->href
         && !xmlStrcmp(BAD_CAST ns.c_str(), ptr->ns->href)
         && !xmlStrcmp(BAD_CAST name.c_str(), ptr->name))
         return true;
     return false;
 }
 
-bool mp_xml::is_element_mp(const xmlNode *ptr, 
+bool mp_xml::is_element_mp(const xmlNode *ptr,
                            const std::string &name)
 {
     return mp::xml::is_element(ptr, metaproxy_ns, name);
 }
 
 
-bool mp_xml::check_element_mp(const xmlNode *ptr, 
+bool mp_xml::check_element_mp(const xmlNode *ptr,
                               const std::string &name)
 {
     if (!mp::xml::is_element_mp(ptr, name))
@@ -142,7 +142,7 @@ bool mp_xml::check_element_mp(const xmlNode *ptr,
         }
         got_element += ">";
 
-        throw mp::XMLError("Expected XML element <" + name 
+        throw mp::XMLError("Expected XML element <" + name
                            + " xmlns=\"" + metaproxy_ns + "\">"
                            + ", not " + got_element);
     }
@@ -159,10 +159,10 @@ std::string mp_xml::get_route(const xmlNode *node, std::string &auth)
         {
             std::string name = std::string((const char *) attr->name);
             std::string value;
-            
+
             if (attr->children && attr->children->type == XML_TEXT_NODE)
                 value = std::string((const char *)attr->children->content);
-            
+
             if (name == "route")
                 route_value = value;
             else if (name == "auth")

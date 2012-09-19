@@ -124,37 +124,37 @@ static void print_xpath_nodes(xmlNodeSetPtr nodes, FILE* output)
     xmlNodePtr cur;
     int size;
     int i;
-    
+
     assert(output);
     size = nodes ? nodes->nodeNr : 0;
-    
+
     fprintf(output, "Result (%d nodes):\n", size);
     for (i = 0; i < size; ++i) {
 	assert(nodes->nodeTab[i]);
-	
+
 	if (nodes->nodeTab[i]->type == XML_NAMESPACE_DECL)
         {
 	    xmlNsPtr ns = (xmlNsPtr)nodes->nodeTab[i];
 	    cur = (xmlNodePtr)ns->next;
 	    if (cur->ns)
-	        fprintf(output, "= namespace \"%s\"=\"%s\" for node %s:%s\n", 
+	        fprintf(output, "= namespace \"%s\"=\"%s\" for node %s:%s\n",
                         ns->prefix, ns->href, cur->ns->href, cur->name);
             else
-                fprintf(output, "= namespace \"%s\"=\"%s\" for node %s\n", 
+                fprintf(output, "= namespace \"%s\"=\"%s\" for node %s\n",
                         ns->prefix, ns->href, cur->name);
 	}
         else if (nodes->nodeTab[i]->type == XML_ELEMENT_NODE)
         {
-	    cur = nodes->nodeTab[i];   	    
+	    cur = nodes->nodeTab[i];
 	    if (cur->ns)
-    	        fprintf(output, "= element node \"%s:%s\"\n", 
+    	        fprintf(output, "= element node \"%s:%s\"\n",
                         cur->ns->href, cur->name);
             else
     	        fprintf(output, "= element node \"%s\"\n",  cur->name);
 	}
         else
         {
-	    cur = nodes->nodeTab[i];    
+	    cur = nodes->nodeTab[i];
 	    fprintf(output, "= node \"%s\": type %d\n", cur->name, cur->type);
 	}
     }
@@ -167,15 +167,15 @@ bool yf::Sort::Record::register_namespaces(xmlXPathContextPtr xpathCtx,
     xmlChar* prefix;
     xmlChar* href;
     xmlChar* next;
-    
+
     assert(xpathCtx);
     assert(nsList);
 
     nsListDup = xmlStrdup((const xmlChar *) nsList);
     if (!nsListDup)
         return false;
-    
-    next = nsListDup; 
+
+    next = nsListDup;
     while (next)
     {
 	/* skip spaces */
@@ -192,13 +192,13 @@ bool yf::Sort::Record::register_namespaces(xmlXPathContextPtr xpathCtx,
 	    xmlFree(nsListDup);
 	    return false;
 	}
-	*next++ = '\0';	
-	
+	*next++ = '\0';
+
 	/* find href */
 	href = next;
 	next = (xmlChar*)xmlStrchr(next, ' ');
 	if (next)
-	    *next++ = '\0';	
+	    *next++ = '\0';
 
 	/* do register namespace */
 	if (xmlXPathRegisterNs(xpathCtx, prefix, href) != 0)
@@ -207,7 +207,7 @@ bool yf::Sort::Record::register_namespaces(xmlXPathContextPtr xpathCtx,
 	    return false;
 	}
     }
-    
+
     xmlFree(nsListDup);
     return true;
 }
@@ -219,7 +219,7 @@ void yf::Sort::Record::get_xpath(xmlDoc *doc, const char *namespaces,
 {
     xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
     if (xpathCtx)
-    { 
+    {
         register_namespaces(xpathCtx, namespaces);
         xmlXPathObjectPtr xpathObj =
             xmlXPathEvalExpression((const xmlChar *) expr, xpathCtx);
@@ -260,7 +260,7 @@ void yf::Sort::Record::get_xpath(xmlDoc *doc, const char *namespaces,
 yf::Sort::Record::Record(Z_NamePlusRecord *n,
                          const char *namespaces,
                          const char *expr,
-                         bool debug) : npr(n) 
+                         bool debug) : npr(n)
 {
     if (npr->which == Z_NamePlusRecord_databaseRecord)
     {
@@ -307,9 +307,9 @@ yf::Sort::RecordList::RecordList(Odr_oid *syntax,
 
 yf::Sort::RecordList::~RecordList()
 {
-    
+
 }
- 
+
 bool yf::Sort::RecordList::cmp(Odr_oid *syntax)
 {
     if ((!this->syntax && !syntax)
@@ -371,7 +371,7 @@ void yf::Sort::process(mp::Package &package) const
 }
 
 
-yf::Sort::Frontend::Frontend(Impl *impl) : 
+yf::Sort::Frontend::Frontend(Impl *impl) :
     m_p(impl), m_is_virtual(false), m_in_use(true)
 {
 }
@@ -386,7 +386,7 @@ yf::Sort::Impl::Impl() : m_prefetch(20), m_ascending(true), m_debug(false)
 }
 
 yf::Sort::Impl::~Impl()
-{ 
+{
 }
 
 yf::Sort::FrontendPtr yf::Sort::Impl::get_frontend(mp::Package &package)
@@ -394,13 +394,13 @@ yf::Sort::FrontendPtr yf::Sort::Impl::get_frontend(mp::Package &package)
     boost::mutex::scoped_lock lock(m_mutex);
 
     std::map<mp::Session,yf::Sort::FrontendPtr>::iterator it;
-    
+
     while(true)
     {
         it = m_clients.find(package.session());
         if (it == m_clients.end())
             break;
-        
+
         if (!it->second->m_in_use)
         {
             it->second->m_in_use = true;
@@ -418,7 +418,7 @@ void yf::Sort::Impl::release_frontend(mp::Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
     std::map<mp::Session,yf::Sort::FrontendPtr>::iterator it;
-    
+
     it = m_clients.find(package.session());
     if (it != m_clients.end())
     {
@@ -442,7 +442,7 @@ void yf::Sort::Impl::configure(const xmlNode *ptr, bool test_only,
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
         if (!strcmp((const char *) ptr->name, "sort"))
-        {            
+        {
             const struct _xmlAttr *attr;
             for (attr = ptr->properties; attr; attr = attr->next)
             {
@@ -452,7 +452,7 @@ void yf::Sort::Impl::configure(const xmlNode *ptr, bool test_only,
                     if (m_prefetch < 0)
                     {
                         throw mp::filter::FilterException(
-                            "Bad or missing value for attribute " + 
+                            "Bad or missing value for attribute " +
                             std::string((const char *) attr->name));
                     }
                 }
@@ -481,7 +481,7 @@ void yf::Sort::Impl::configure(const xmlNode *ptr, bool test_only,
         else
         {
             throw mp::filter::FilterException
-                ("Bad element " 
+                ("Bad element "
                  + std::string((const char *) ptr->name)
                  + " in sort filter");
         }
@@ -568,7 +568,7 @@ void yf::Sort::Frontend::handle_records(mp::Package &package,
 
 void yf::Sort::Frontend::handle_search(mp::Package &package, Z_APDU *apdu_req)
 {
-    Z_SearchRequest *req = apdu_req->u.searchRequest;    
+    Z_SearchRequest *req = apdu_req->u.searchRequest;
     std::string resultSetId = req->resultSetName;
     Package b_package(package.session(), package.origin());
     mp::odr odr;
@@ -581,19 +581,19 @@ void yf::Sort::Frontend::handle_search(mp::Package &package, Z_APDU *apdu_req)
     Sets_it sets_it = m_sets.find(req->resultSetName);
     if (sets_it != m_sets.end())
     {
-        // result set already exist 
+        // result set already exist
         // if replace indicator is off: we return diagnostic if
         // result set already exist.
         if (*req->replaceIndicator == 0)
         {
-            Z_APDU *apdu = 
+            Z_APDU *apdu =
                 odr.create_searchResponse(
                     apdu_req,
                     YAZ_BIB1_RESULT_SET_EXISTS_AND_REPLACE_INDICATOR_OFF,
                     0);
             package.response() = apdu;
             return;
-        } 
+        }
         m_sets.erase(resultSetId);
     }
     ResultSetPtr s(new ResultSet);
@@ -613,7 +613,7 @@ void yf::Sort::Frontend::handle_search(mp::Package &package, Z_APDU *apdu_req)
 
 void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
 {
-    Z_PresentRequest *req = apdu_req->u.presentRequest;    
+    Z_PresentRequest *req = apdu_req->u.presentRequest;
     std::string resultSetId = req->resultSetId;
     Package b_package(package.session(), package.origin());
     mp::odr odr;
@@ -627,7 +627,7 @@ void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
     Sets_it sets_it = m_sets.find(resultSetId);
     if (sets_it == m_sets.end())
     {
-        Z_APDU *apdu = 
+        Z_APDU *apdu =
             odr.create_presentResponse(
                 apdu_req,
                 YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST,
@@ -640,7 +640,7 @@ void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
     for (; it != rset->record_lists.end(); it++)
         if ((*it)->cmp(req->preferredRecordSyntax))
         {
-            if (*req->resultSetStartPoint - 1 + *req->numberOfRecordsRequested 
+            if (*req->resultSetStartPoint - 1 + *req->numberOfRecordsRequested
                 <= (*it)->size())
             {
                 int i;
@@ -649,9 +649,9 @@ void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
 
                 *p_res->nextResultSetPosition = *req->resultSetStartPoint +
                     *req->numberOfRecordsRequested;
-                *p_res->numberOfRecordsReturned = 
+                *p_res->numberOfRecordsReturned =
                     *req->numberOfRecordsRequested;
-                p_res->records = (Z_Records *) 
+                p_res->records = (Z_Records *)
                     odr_malloc(odr, sizeof(*p_res->records));
                 p_res->records->which = Z_Records_DBOSD;
                 Z_NamePlusRecordList *nprl =  (Z_NamePlusRecordList *)
@@ -676,7 +676,7 @@ void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
         Z_APDU_presentResponse)
     {
         Z_PresentResponse *res = gdu_res->u.z3950->u.presentResponse;
-        handle_records(b_package, apdu_req, res->records, 
+        handle_records(b_package, apdu_req, res->records,
                        start, rset, syntax, resultSetId.c_str());
         package.response() = gdu_res;
     }

@@ -29,7 +29,7 @@ namespace metaproxy_1 {
     class Pipe {
         class Error : public std::runtime_error {
         public:
-            Error(const std::string msg) 
+            Error(const std::string msg)
                 : std::runtime_error("Pipe error: " + msg) {};
         };
         class Rep;

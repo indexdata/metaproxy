@@ -35,14 +35,14 @@ public:
     void configure(const xmlNode * ptr, bool test_only,
                    const char *path) { };
 };
-    
+
 
 BOOST_AUTO_TEST_CASE( test_filter1 )
 {
     try{
         TFilter filter;
 
-        
+
         BOOST_CHECK (sizeof(filter) > 0);
     }
     catch ( ... ) {

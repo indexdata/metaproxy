@@ -29,17 +29,17 @@ namespace metaproxy_1 {
         std::string get_text(const xmlNode *ptr);
         bool get_bool(const xmlNode *ptr, bool default_value);
         int get_int(const xmlNode *ptr, int default_value);
-        bool check_attribute(const _xmlAttr *ptr, 
+        bool check_attribute(const _xmlAttr *ptr,
                         const std::string &ns,
                         const std::string &name);
-        bool is_attribute(const _xmlAttr *ptr, 
+        bool is_attribute(const _xmlAttr *ptr,
                         const std::string &ns,
                         const std::string &name);
-        bool is_element(const xmlNode *ptr, 
+        bool is_element(const xmlNode *ptr,
                         const std::string &ns,
                         const std::string &name);
         bool is_element_mp(const xmlNode *ptr, const std::string &name);
-        bool check_element_mp(const xmlNode *ptr, 
+        bool check_element_mp(const xmlNode *ptr,
                                const std::string &name);
         std::string get_route(const xmlNode *node);
         std::string get_route(const xmlNode *node, std::string &auth);
@@ -47,7 +47,7 @@ namespace metaproxy_1 {
         const xmlNode* jump_to(const xmlNode* node, int node_type);
 
         const xmlNode* jump_to_next(const xmlNode* node, int node_type);
-        
+
         const xmlNode* jump_to_children(const xmlNode* node, int node_type);
 
         void check_empty(const xmlNode *node);

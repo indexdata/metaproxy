@@ -16,7 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// Filter that does nothing. Use as template for new filters 
+// Filter that does nothing. Use as template for new filters
 #ifndef FILTER_TEMPLATE_HPP
 #define FILTER_TEMPLATE_HPP
 

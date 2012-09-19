@@ -83,8 +83,8 @@ void My_Msg::result(const char *t_info)
 }
 
 My_Timer_Thread::My_Timer_Thread(ISocketObservable *obs,
-                                 mp::ThreadPoolSocketObserver *t) : 
-    m_obs(obs), m_pipe(9123) 
+                                 mp::ThreadPoolSocketObserver *t) :
+    m_obs(obs), m_pipe(9123)
 {
     m_t = t;
     m_sum = 0;
@@ -111,7 +111,7 @@ void My_Timer_Thread::socketNotify(int event)
 #endif
 }
 
-BOOST_AUTO_TEST_CASE( thread_pool_observer1 ) 
+BOOST_AUTO_TEST_CASE( thread_pool_observer1 )
 {
     SocketManager mySocketManager;
 

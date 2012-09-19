@@ -28,10 +28,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using namespace boost::unit_test;
 namespace mp = metaproxy_1;
 
-BOOST_AUTO_TEST_CASE( testsession1 ) 
+BOOST_AUTO_TEST_CASE( testsession1 )
 {
 
-    // test session 
+    // test session
     try {
         mp::Session session1;
         mp::Session session2;

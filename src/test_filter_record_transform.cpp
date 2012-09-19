@@ -38,7 +38,7 @@ namespace mp = metaproxy_1;
 
 BOOST_AUTO_TEST_CASE( test_filter_record_transform_1 )
 {
-    try 
+    try
     {
         mp::filter::RecordTransform f_rec_trans;
     }
@@ -49,17 +49,17 @@ BOOST_AUTO_TEST_CASE( test_filter_record_transform_1 )
 
 BOOST_AUTO_TEST_CASE( test_filter_record_transform_2 )
 {
-    try 
+    try
     {
         mp::RouterChain router;
-        
+
         mp::filter::RecordTransform f_rec_trans;
-        
+
         router.append(f_rec_trans);
 
         //check_sru_to_z3950_init(router);
-        //check_sru_to_z3950_search(router, 
-        //                           "@attrset Bib-1 @attr 1=4 the", 
+        //check_sru_to_z3950_search(router,
+        //                           "@attrset Bib-1 @attr 1=4 the",
         //                           "@attrset Bib-1 @attr 1=4 the");
 
     }
@@ -71,19 +71,19 @@ BOOST_AUTO_TEST_CASE( test_filter_record_transform_2 )
 
 BOOST_AUTO_TEST_CASE( test_filter_record_transform_3 )
 {
-    
 
-    try 
+
+    try
     {
         mp::RouterChain router;
-        
 
-        std::string xmlconf = 
+
+        std::string xmlconf =
             "<?xml version='1.0'?>\n"
             "<filter xmlns='http://indexdata.com/metaproxy'\n"
             "        id='rec_trans_1' type='record_transform'>\n"
             "<retrievalinfo>"
-            "<retrieval" 
+            "<retrieval"
             " syntax=\"usmarc\""
             " name=\"marcxml\">"
             "<backend syntax=\"usmarc\""
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE( test_filter_record_transform_3 )
             "</retrievalinfo>"
             "</filter>\n"
             ;
-         
+
         //std::cout << xmlconf  << std::endl;
 
         // reading and parsing XML conf
@@ -104,17 +104,17 @@ BOOST_AUTO_TEST_CASE( test_filter_record_transform_3 )
         // creating and configuring filter
         mp::filter::RecordTransform f_rec_trans;
         f_rec_trans.configure(root_element, true, 0);
-        
+
         // remeber to free XML DOM
         xmlFreeDoc(doc);
-        
+
         // add only filter to router
         router.append(f_rec_trans);
 
         // start testing
         //check_sru_to_z3950_init(router);
-        //check_sru_to_z3950_search(router, 
-        //                           "@attrset Bib-1 @attr 1=4 the", 
+        //check_sru_to_z3950_search(router,
+        //                           "@attrset Bib-1 @attr 1=4 the",
         //                           "@attrset Bib-1 @attr 1=4 the");
 
     }

@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE( test_router_flexml_1 )
             "      <message>other</message>\n"
             "    </filter>\n"
             "  </filters>\n"
-            "  <routes>\n"  
+            "  <routes>\n"
             "    <route id=\"start\">\n"
             "      <filter refid=\"front_default\"/>\n"
             "      <filter refid=\"log_cout1\"/>\n"
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE( test_router_flexml_2 )
             "  <filters>\n"
             "    <filter id=\"front_default\" type=\"frontend_net\">\n"
             "      <port>@:210</port>\n";
-        
+
         mp::FactoryFilter factory;
         mp::RouterFleXML rflexml(xmlconf_invalid, factory, true);
     }
@@ -140,14 +140,14 @@ BOOST_AUTO_TEST_CASE( test_router_flexml_3 )
             "      <message>my msg</message>\n"
             "    </mp:filter>\n"
             "  </mp:filters>\n"
-            "  <mp:routes>\n"  
+            "  <mp:routes>\n"
             "    <mp:route id=\"start\">\n"
             "      <mp:filter refid=\"front_default\"/>\n"
             "      <mp:filter refid=\"log_cout\"/>\n"
             "    </mp:route>\n"
             "  </mp:routes>\n"
             "</mp:metaproxy>\n";
-       
+
         mp::FactoryStatic factory;
         mp::RouterFleXML rflexml(xmlconf, factory, true);
     }
@@ -169,13 +169,13 @@ BOOST_AUTO_TEST_CASE( test_router_flexml_4 )
         std::string xmlconf = "<?xml version=\"1.0\"?>\n"
             "<metaproxy xmlns=\"http://indexdata.com/metaproxy\""
             " version=\"1.0\">\n"
-            "  <start route=\"start\"/>\n" 
+            "  <start route=\"start\"/>\n"
             "  <filters>\n"
             "    <filter id=\"front_default\" type=\"notknown\">\n"
             "      <port>@:210</port>\n"
             "    </filter>\n"
             "  </filters>\n"
-            "  <routes>\n"  
+            "  <routes>\n"
             "    <route id=\"start\">\n"
             "      <filter refid=\"front_default\"/>\n"
             "    </route>\n"

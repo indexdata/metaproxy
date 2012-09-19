@@ -67,20 +67,20 @@ static mp::filter::Base* yfilter_creator(){
 BOOST_AUTO_TEST_CASE( test_filter_factory_1 )
 {
     try {
-        
+
         mp::FactoryFilter  ffactory;
-        
+
         XFilter xf;
         YFilter yf;
 
         const std::string xfid = "XFilter";
         const std::string yfid = "YFilter";
-        
+
         BOOST_CHECK(ffactory.add_creator(xfid, xfilter_creator));
         BOOST_CHECK(ffactory.drop_creator(xfid));
         BOOST_CHECK(ffactory.add_creator(xfid, xfilter_creator));
         BOOST_CHECK(ffactory.add_creator(yfid, yfilter_creator));
-        
+
         mp::filter::Base* xfilter = 0;
         xfilter = ffactory.create(xfid);
         mp::filter::Base* yfilter = 0;
@@ -106,17 +106,17 @@ BOOST_AUTO_TEST_CASE( test_filter_factory_1 )
 #if HAVE_DLFCN_H
 BOOST_AUTO_TEST_CASE( test_filter_factory_2 )
 {
-    try {        
+    try {
         mp::FactoryFilter  ffactory;
-        
+
         const std::string id = "dl";
-        
+
         // first load
         BOOST_CHECK(ffactory.add_creator_dl(id, ".libs"));
 
         // test double load
         BOOST_CHECK(ffactory.add_creator_dl(id, ".libs"));
-                
+
         mp::filter::Base* filter = 0;
         filter = ffactory.create(id);
 

@@ -27,9 +27,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <boost/scoped_ptr.hpp>
 
-namespace metaproxy_1 
+namespace metaproxy_1
 {
-    class RouterFleXML : public metaproxy_1::Router 
+    class RouterFleXML : public metaproxy_1::Router
     {
         class Rep;
         class Route;
@@ -39,7 +39,7 @@ namespace metaproxy_1
             bool test_only);
         RouterFleXML(xmlDocPtr doc, metaproxy_1::FactoryFilter &factory,
                      bool test_only, const char *file_include_path);
-        
+
         ~RouterFleXML();
 
         virtual RoutePos *createpos() const;
@@ -48,7 +48,7 @@ namespace metaproxy_1
     private:
         boost::scoped_ptr<Rep> m_p;
     };
- 
+
 };
 #endif
 

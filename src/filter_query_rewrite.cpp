@@ -85,7 +85,7 @@ void yf::QueryRewrite::process(mp::Package &package) const
 void yf::QueryRewrite::Rep::process(mp::Package &package) const
 {
     Z_GDU *gdu = package.request().get();
-    
+
     if (gdu && gdu->which == Z_GDU_Z3950)
     {
         Z_APDU *apdu_req = gdu->u.z3950;
@@ -95,12 +95,12 @@ void yf::QueryRewrite::Rep::process(mp::Package &package) const
             const char *addinfo = 0;
             mp::odr odr;
             Z_SearchRequest *req = apdu_req->u.searchRequest;
-            
+
             if (m_stylesheet)
             {
                 xmlDocPtr doc_input = 0;
                 yaz_query2xml(req->query, &doc_input);
-                
+
                 if (!doc_input)
                 {
                     error_code = YAZ_BIB1_MALFORMED_QUERY;
@@ -145,13 +145,13 @@ void yf::QueryRewrite::Rep::process(mp::Package &package) const
             }
             if (error_code)
             {
-                Z_APDU *f_apdu = 
+                Z_APDU *f_apdu =
                     odr.create_searchResponse(apdu_req, error_code, addinfo);
                 package.response() = f_apdu;
                 return;
             }
             package.request() = gdu;
-        } 
+        }
     }
     package.move();
 }
@@ -174,16 +174,16 @@ void mp::filter::QueryRewrite::Rep::configure(const xmlNode *ptr,
 
             std::string fname;
 
-            for (struct _xmlAttr *attr = ptr->properties; 
+            for (struct _xmlAttr *attr = ptr->properties;
                  attr; attr = attr->next)
             {
                 mp::xml::check_attribute(attr, "", "stylesheet");
-                fname = mp::xml::get_text(attr);            
+                fname = mp::xml::get_text(attr);
             }
 
             if (0 == fname.size())
                 throw mp::filter::FilterException
-                    ("Attribute <xslt stylesheet=\"" 
+                    ("Attribute <xslt stylesheet=\""
                      + fname
                      + "\"> needs XSLT stylesheet path content"
                      + " in query_rewrite filter");
@@ -199,14 +199,14 @@ void mp::filter::QueryRewrite::Rep::configure(const xmlNode *ptr,
             if (!m_stylesheet)
             {
                 throw mp::filter::FilterException
-                    ("Failed to read XSLT stylesheet '" 
+                    ("Failed to read XSLT stylesheet '"
                      + fname
                      + "' in query_rewrite filter");
             }
         }
         else if (mp::xml::is_element_mp(ptr, "charset"))
         {
-            for (struct _xmlAttr *attr = ptr->properties; 
+            for (struct _xmlAttr *attr = ptr->properties;
                  attr; attr = attr->next)
             {
                 if (!strcmp((const char *) attr->name, "from"))
@@ -226,7 +226,7 @@ void mp::filter::QueryRewrite::Rep::configure(const xmlNode *ptr,
         else
         {
             throw mp::filter::FilterException
-                ("Bad element " 
+                ("Bad element "
                  + std::string((const char *) ptr->name)
                  + " in query_rewrite filter");
         }

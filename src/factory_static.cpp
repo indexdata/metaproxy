@@ -63,7 +63,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_cgi,
 #endif
         &metaproxy_1_filter_cql_to_rpn,
-        &metaproxy_1_filter_frontend_net,        
+        &metaproxy_1_filter_frontend_net,
         &metaproxy_1_filter_http_file,
         &metaproxy_1_filter_limit,
         &metaproxy_1_filter_load_balance,

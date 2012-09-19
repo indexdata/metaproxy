@@ -64,7 +64,7 @@ std::ostream& std::operator<<(std::ostream& os, const mp::Origin& o)
         os << ":" << o.m_custom_session;
     return os;
 }
-                
+
 /*
  * Local variables:
  * c-basic-offset: 4

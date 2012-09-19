@@ -70,7 +70,7 @@ namespace metaproxy_1 {
                 BackendPtr m_backend;
                 int m_pos; // position for backend (1=first, 2=second,..
                 int m_start; // present request start
-                PresentJob(BackendPtr ptr, int pos) : 
+                PresentJob(BackendPtr ptr, int pos) :
                     m_backend(ptr), m_pos(pos), m_start(0) {};
             };
             FrontendSet(std::string setname);
@@ -108,13 +108,13 @@ namespace metaproxy_1 {
             void scan2(Package &package, Z_APDU *apdu);
             void relay_apdu(Package &package, Z_APDU *apdu);
             Rep *m_p;
-        };            
+        };
         class Multi::Map {
             std::string m_target_pattern;
             std::string m_route;
             std::string m_auth;
         public:
-            Map(std::string pattern, std::string route, std::string auth) : 
+            Map(std::string pattern, std::string route, std::string auth) :
                 m_target_pattern(pattern), m_route(route), m_auth(auth) {};
             bool match(const std::string target, std::string *ret,
                        std::string *auth) const {
@@ -130,7 +130,7 @@ namespace metaproxy_1 {
         class Multi::Rep {
             friend class Multi;
             friend struct Frontend;
-            
+
             Rep();
             FrontendPtr get_frontend(Package &package);
             void release_frontend(Package &package);
@@ -173,13 +173,13 @@ yf::Multi::FrontendPtr yf::Multi::Rep::get_frontend(mp::Package &package)
     boost::mutex::scoped_lock lock(m_mutex);
 
     std::map<mp::Session,yf::Multi::FrontendPtr>::iterator it;
-    
+
     while(true)
     {
         it = m_clients.find(package.session());
         if (it == m_clients.end())
             break;
-        
+
         if (!it->second->m_in_use)
         {
             it->second->m_in_use = true;
@@ -197,7 +197,7 @@ void yf::Multi::Rep::release_frontend(mp::Package &package)
 {
     boost::mutex::scoped_lock lock(m_mutex);
     std::map<mp::Session,yf::Multi::FrontendPtr>::iterator it;
-    
+
     it = m_clients.find(package.session());
     if (it != m_clients.end())
     {
@@ -237,7 +237,7 @@ yf::Multi::~Multi() {
 }
 
 
-void yf::Multi::Backend::operator() (void) 
+void yf::Multi::Backend::operator() (void)
 {
     m_package->move(m_route);
 }
@@ -277,7 +277,7 @@ void yf::Multi::FrontendSet::serve_order(int start, int number,
         std::list<BackendSet>::const_iterator bsit;
         int voffset = 0;
         int offset = start + i - 1;
-        for (bsit = m_backend_sets.begin(); bsit != m_backend_sets.end(); 
+        for (bsit = m_backend_sets.begin(); bsit != m_backend_sets.end();
              bsit++)
         {
             if (offset >= voffset && offset < voffset + bsit->m_count)
@@ -327,7 +327,7 @@ void yf::Multi::FrontendSet::round_robin(int start, int number,
             // Yes. skip until start.. Rounding off is deliberate!
             min = (start-p) / no_left;
             p += no_left * min;
-            
+
             // update positions in each set..
             std::list<int>::iterator psit = pos.begin();
             for (psit = pos.begin(); psit != pos.end(); psit++)
@@ -336,11 +336,11 @@ void yf::Multi::FrontendSet::round_robin(int start, int number,
         }
         // skip on each set.. before "present range"..
         p = p + skip;
-        
+
         std::list<int>::iterator psit = pos.begin();
         for (psit = pos.begin(); psit != pos.end(); psit++)
             *psit += min;
-        
+
         omin = min; // update so we consider next class (with higher count)
     }
 #endif
@@ -411,14 +411,14 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
     }
     m_is_multi = true;
 
-    // create init request 
+    // create init request
     std::list<BackendPtr>::iterator bit;
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
         mp::odr odr;
         BackendPtr b = *bit;
         Z_APDU *init_apdu = zget_APDU(odr, Z_APDU_initRequest);
-        
+
         std::list<std::string>vhost_one;
         vhost_one.push_back(b->m_vhost);
         mp::util::set_vhost_otherinfo(&init_apdu->u.initRequest->otherInfo,
@@ -437,7 +437,7 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
         }
         else
             breq->idAuthentication = req->idAuthentication;
-        
+
         *breq->preferredMessageSize = *req->preferredMessageSize;
         *breq->maximumRecordSize = *req->maximumRecordSize;
 
@@ -445,11 +445,11 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
         ODR_MASK_SET(breq->options, Z_Options_present);
         ODR_MASK_SET(breq->options, Z_Options_namedResultSets);
         ODR_MASK_SET(breq->options, Z_Options_scan);
-        
+
         ODR_MASK_SET(breq->protocolVersion, Z_ProtocolVersion_1);
         ODR_MASK_SET(breq->protocolVersion, Z_ProtocolVersion_2);
         ODR_MASK_SET(breq->protocolVersion, Z_ProtocolVersion_3);
-        
+
         b->m_package->request() = init_apdu;
 
         b->m_package->copy_filter(package);
@@ -466,7 +466,7 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
     ODR_MASK_SET(f_resp->options, Z_Options_present);
     ODR_MASK_SET(f_resp->options, Z_Options_namedResultSets);
     ODR_MASK_SET(f_resp->options, Z_Options_scan);
-    
+
     ODR_MASK_SET(f_resp->protocolVersion, Z_ProtocolVersion_1);
     ODR_MASK_SET(f_resp->protocolVersion, Z_ProtocolVersion_2);
     ODR_MASK_SET(f_resp->protocolVersion, Z_ProtocolVersion_3);
@@ -479,7 +479,7 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); )
     {
         PackagePtr p = (*bit)->m_package;
-        
+
         if (p->session().is_closed())
         {
             // failed. Remove from list and increment number of failed
@@ -515,7 +515,7 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
             }
             else
             {
-                if (!f_resp->userInformationField 
+                if (!f_resp->userInformationField
                     && b_resp->userInformationField)
                     f_resp->userInformationField = b_resp->userInformationField;
                 no_failed++;
@@ -549,14 +549,14 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
 
 void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
 {
-    // create search request 
+    // create search request
     Z_SearchRequest *req = apdu_req->u.searchRequest;
 
     // save these for later
     Odr_int smallSetUpperBound = *req->smallSetUpperBound;
     Odr_int largeSetLowerBound = *req->largeSetLowerBound;
     Odr_int mediumSetPresentNumber = *req->mediumSetPresentNumber;
-    
+
     // they are altered now - to disable piggyback
     *req->smallSetUpperBound = 0;
     *req->largeSetLowerBound = 1;
@@ -570,7 +570,7 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     {
         PackagePtr p = (*bit)->m_package;
         mp::odr odr;
-    
+
         if (!mp::util::set_databases_from_zurl(odr, (*bit)->m_vhost,
                                                 &req->num_databaseNames,
                                                 &req->databaseNames))
@@ -595,9 +595,9 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
         PackagePtr p = (*bit)->m_package;
-        
+
         // save closing package for at least one target
-        if (p->session().is_closed()) 
+        if (p->session().is_closed())
             close_p = p;
 
         Z_GDU *gdu = p->response().get();
@@ -606,7 +606,7 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
         {
             Z_APDU *b_apdu = gdu->u.z3950;
             Z_SearchResponse *b_resp = b_apdu->u.searchResponse;
-            
+
             // see we get any errors (AKA diagnstics)
             if (b_resp->records)
             {
@@ -705,24 +705,24 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
         *p_req->numberOfRecordsRequested = number;
         pp.request() = p_apdu;
         present(pp, p_apdu);
-        
+
         if (pp.session().is_closed())
             package.session().close();
-        
+
         Z_GDU *gdu = pp.response().get();
         if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
             Z_APDU_presentResponse)
         {
             Z_PresentResponse *p_res = gdu->u.z3950->u.presentResponse;
             f_resp->records = p_res->records;
-            *f_resp->numberOfRecordsReturned = 
+            *f_resp->numberOfRecordsReturned =
                 *p_res->numberOfRecordsReturned;
-            *f_resp->nextResultSetPosition = 
+            *f_resp->nextResultSetPosition =
                 *p_res->nextResultSetPosition;
         }
-        else 
+        else
         {
-            package.response() = pp.response(); 
+            package.response() = pp.response();
             return;
         }
     }
@@ -731,7 +731,7 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
 
 void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
 {
-    // create present request 
+    // create present request
     Z_PresentRequest *req = apdu_req->u.presentRequest;
 
     Sets_it it;
@@ -739,7 +739,7 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
     if (it == m_sets.end())
     {
         mp::odr odr;
-        Z_APDU *apdu = 
+        Z_APDU *apdu =
             odr.create_presentResponse(
                 apdu_req,
                 YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST,
@@ -802,7 +802,7 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
 
             *req->resultSetStartPoint = start;
             *req->numberOfRecordsRequested = end - start + 1;
-            
+
             p->request() = apdu_req;
             p->copy_filter(package);
 
@@ -818,17 +818,17 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
     for (; pbit != present_backend_list.end(); pbit++)
     {
         PackagePtr p = (*pbit)->m_package;
-        
+
         if (p->session().is_closed()) // if any backend closes, close frontend
             package.session().close();
-        
+
         Z_GDU *gdu = p->response().get();
         if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
             Z_APDU_presentResponse)
         {
             Z_APDU *b_apdu = gdu->u.z3950;
             Z_PresentResponse *b_resp = b_apdu->u.presentResponse;
-         
+
             // see we get any errors (AKA diagnstics)
             if (b_resp->records)
             {
@@ -839,7 +839,7 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
         }
         else
         {
-            // if any target does not return present response - return that 
+            // if any target does not return present response - return that
             package.response() = p->response();
             return;
         }
@@ -856,7 +856,7 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
     }
     else if (number < 0 || (size_t) number > jobs.size())
     {
-        f_apdu = 
+        f_apdu =
             odr.create_presentResponse(
                 apdu_req,
                 YAZ_BIB1_PRESENT_REQUEST_OUT_OF_RANGE,
@@ -879,7 +879,7 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
         for (jit = jobs.begin(); jit != jobs.end(); jit++, i++)
         {
             PackagePtr p = jit->m_backend->m_package;
-            
+
             Z_GDU *gdu = p->response().get();
             Z_APDU *b_apdu = gdu->u.z3950;
             Z_PresentResponse *b_resp = b_apdu->u.presentResponse;
@@ -907,7 +907,7 @@ void yf::Multi::Frontend::scan1(mp::Package &package, Z_APDU *apdu_req)
     if (m_backend_list.size() > 1)
     {
         mp::odr odr;
-        Z_APDU *f_apdu = 
+        Z_APDU *f_apdu =
             odr.create_scanResponse(
                 apdu_req, YAZ_BIB1_COMBI_OF_SPECIFIED_DATABASES_UNSUPP, 0);
         package.response() = f_apdu;
@@ -923,7 +923,7 @@ void yf::Multi::Frontend::scan1(mp::Package &package, Z_APDU *apdu_req)
     {
         PackagePtr p = (*bit)->m_package;
         mp::odr odr;
-    
+
         if (!mp::util::set_databases_from_zurl(odr, (*bit)->m_vhost,
                                                 &req->num_databaseNames,
                                                 &req->databaseNames))
@@ -939,10 +939,10 @@ void yf::Multi::Frontend::scan1(mp::Package &package, Z_APDU *apdu_req)
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
         PackagePtr p = (*bit)->m_package;
-        
+
         if (p->session().is_closed()) // if any backend closes, close frontend
             package.session().close();
-        
+
         Z_GDU *gdu = p->response().get();
         if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
             Z_APDU_scanResponse)
@@ -952,7 +952,7 @@ void yf::Multi::Frontend::scan1(mp::Package &package, Z_APDU *apdu_req)
         }
         else
         {
-            // if any target does not return scan response - return that 
+            // if any target does not return scan response - return that
             package.response() = p->response();
             return;
         }
@@ -1000,7 +1000,7 @@ void yf::Multi::Frontend::relay_apdu(mp::Package &package, Z_APDU *apdu_req)
     {
         PackagePtr p = (*bit)->m_package;
         mp::odr odr;
-    
+
         p->request() = apdu_req;
         p->copy_filter(package);
     }
@@ -1008,10 +1008,10 @@ void yf::Multi::Frontend::relay_apdu(mp::Package &package, Z_APDU *apdu_req)
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
         PackagePtr p = (*bit)->m_package;
-        
+
         if (p->session().is_closed()) // if any backend closes, close frontend
             package.session().close();
-        
+
         package.response() = p->response();
     }
 }
@@ -1029,7 +1029,7 @@ void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
     {
         PackagePtr p = (*bit)->m_package;
         mp::odr odr;
-    
+
         if (!mp::util::set_databases_from_zurl(odr, (*bit)->m_vhost,
                                                 &req->num_databaseNames,
                                                 &req->databaseNames))
@@ -1050,10 +1050,10 @@ void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
         PackagePtr p = (*bit)->m_package;
-        
+
         if (p->session().is_closed()) // if any backend closes, close frontend
             package.session().close();
-        
+
         Z_GDU *gdu = p->response().get();
         if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
             Z_APDU_scanResponse)
@@ -1067,9 +1067,9 @@ void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
                 Z_APDU *f_apdu = odr.create_scanResponse(apdu_req, 1, 0);
                 Z_ScanResponse *f_res = f_apdu->u.scanResponse;
 
-                f_res->entries->nonsurrogateDiagnostics = 
+                f_res->entries->nonsurrogateDiagnostics =
                     res->entries->nonsurrogateDiagnostics;
-                f_res->entries->num_nonsurrogateDiagnostics = 
+                f_res->entries->num_nonsurrogateDiagnostics =
                     res->entries->num_nonsurrogateDiagnostics;
 
                 package.response() = f_apdu;
@@ -1108,7 +1108,7 @@ void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
                         }
                         if (my.m_norm_term.length())
                         {
-                            ScanTermInfoList::iterator it = 
+                            ScanTermInfoList::iterator it =
                                 entries_before.begin();
                             while (it != entries_before.end() && my <*it)
                                 it++;
@@ -1149,7 +1149,7 @@ void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
                         }
                         if (my.m_norm_term.length())
                         {
-                            ScanTermInfoList::iterator it = 
+                            ScanTermInfoList::iterator it =
                                 entries_after.begin();
                             while (it != entries_after.end() && *it < my)
                                 it++;
@@ -1166,11 +1166,11 @@ void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
                     }
                 }
 
-            }                
+            }
         }
         else
         {
-            // if any target does not return scan response - return that 
+            // if any target does not return scan response - return that
             package.response() = p->response();
             return;
         }
@@ -1184,7 +1184,7 @@ void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
         {
             std::cout << " " << it->m_norm_term << " " << it->m_count << "\n";
         }
-        
+
         std::cout << "AFTER\n";
         it = entries_after.begin();
         for(; it != entries_after.end(); it++)
@@ -1204,10 +1204,10 @@ void yf::Multi::Frontend::scan2(mp::Package &package, Z_APDU *apdu_req)
         mp::odr odr;
         Z_APDU *f_apdu = odr.create_scanResponse(apdu_req, 0, 0);
         Z_ScanResponse *resp = f_apdu->u.scanResponse;
-        
+
         int number_returned = *req->numberOfTermsRequested;
         int position_returned = *req->preferredPositionInResponse;
-        
+
         resp->entries->num_entries = number_returned;
         resp->entries->entries = (Z_Entry**)
             odr_malloc(odr, sizeof(Z_Entry*) * number_returned);
@@ -1250,7 +1250,7 @@ void yf::Multi::process(mp::Package &package) const
     FrontendPtr f = m_p->get_frontend(package);
 
     Z_GDU *gdu = package.request().get();
-    
+
     if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
         Z_APDU_initRequest && !f->m_is_multi)
     {
@@ -1264,12 +1264,12 @@ void yf::Multi::process(mp::Package &package) const
         if (apdu->which == Z_APDU_initRequest)
         {
             mp::odr odr;
-            
+
             package.response() = odr.create_close(
                 apdu,
                 Z_Close_protocolError,
                 "double init");
-            
+
             package.session().close();
         }
         else if (apdu->which == Z_APDU_searchRequest)
@@ -1291,11 +1291,11 @@ void yf::Multi::process(mp::Package &package) const
         else
         {
             mp::odr odr;
-            
+
             package.response() = odr.create_close(
                 apdu, Z_Close_protocolError,
                 "unsupported APDU in filter multi");
-            
+
             package.session().close();
         }
     }
@@ -1341,7 +1341,7 @@ void mp::filter::Multi::configure(const xmlNode * ptr, bool test_only,
         else
         {
             throw mp::filter::FilterException
-                ("Bad element " 
+                ("Bad element "
                  + std::string((const char *) ptr->name)
                  + " in multi filter");
         }

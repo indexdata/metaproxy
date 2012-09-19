@@ -54,14 +54,14 @@ namespace metaproxy_1 {
 
 yf::CGI::CGI() : m_p(new Rep)
 {
-    
+
 }
 
 yf::CGI::Rep::~Rep()
 {
     std::map<pid_t,pid_t>::const_iterator it;
     boost::mutex::scoped_lock lock(m_mutex);
-    
+
     for (it = children.begin(); it != children.end(); it++)
         kill(it->second, SIGTERM);
 }
@@ -74,10 +74,10 @@ void yf::CGI::process(mp::Package &package) const
 {
     Z_GDU *zgdu_req = package.request().get();
     Z_GDU *zgdu_res = 0;
-    
+
     if (!zgdu_req)
         return;
-    
+
     if (zgdu_req->which != Z_GDU_HTTP_Request)
     {
         package.move();
@@ -105,7 +105,7 @@ void yf::CGI::process(mp::Package &package) const
             int r;
             pid_t pid;
             int status;
-            
+
             pid = ::fork();
             switch (pid)
             {
@@ -165,7 +165,7 @@ void yf::CGI::configure(const xmlNode *ptr, bool test_only, const char *path)
                     exec.program = mp::xml::get_text(attr->children);
                 else
                     throw mp::filter::FilterException
-                        ("Bad attribute " 
+                        ("Bad attribute "
                          + std::string((const char *) attr->name)
                          + " in cgi section");
             }
@@ -173,7 +173,7 @@ void yf::CGI::configure(const xmlNode *ptr, bool test_only, const char *path)
         }
         else
         {
-            throw mp::filter::FilterException("Bad element " 
+            throw mp::filter::FilterException("Bad element "
                                                + std::string((const char *)
                                                              ptr->name));
         }

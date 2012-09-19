@@ -36,9 +36,9 @@ namespace mp_xml = metaproxy_1::xml;
 
 BOOST_AUTO_TEST_CASE( url_recipe )
 {
-    try 
+    try
     {
-        const char *xml_text = 
+        const char *xml_text =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             "<pz:record xmlns:pz=\"http://www.indexdata.com/pazpar2/1.0\""
             " xmlns:tmarc=\"http://www.indexdata.com/turbomarc\">\n"

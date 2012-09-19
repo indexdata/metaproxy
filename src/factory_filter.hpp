@@ -37,17 +37,17 @@ namespace metaproxy_1 {
         class Rep;
     public:
         /// true if registration ok
-        
+
         FactoryFilter();
         ~FactoryFilter();
 
         bool add_creator(const std::string &fi, CreateFilterCallback cfc);
-        
+
         bool drop_creator(std::string fi);
-        
+
         metaproxy_1::filter::Base* create(std::string fi);
         bool exist(std::string fi);
-    
+
         bool add_creator_dl(const std::string &fi, const std::string &path);
 
         bool have_dl_support();

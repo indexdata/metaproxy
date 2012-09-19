@@ -32,13 +32,13 @@ namespace mp = metaproxy_1;
 
 int main(int argc, char **argv)
 {
-    try 
+    try
     {
         int ret;
         char *arg;
         char *fname = 0;
 
-        while ((ret = options("h{help}c{config}:", 
+        while ((ret = options("h{help}c{config}:",
                               argv, argc, &arg)) != -2)
         {
             switch(ret)
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
             mp::RouterFleXML router(doc, factory, false, 0);
 
 	    mp::Package pack;
-	 
+
             pack.router(router).move();
 
             xmlFreeDoc(doc);

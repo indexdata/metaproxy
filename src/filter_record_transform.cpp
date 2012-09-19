@@ -84,11 +84,11 @@ static int convert_usemarcon(void *info, WRBUF record, WRBUF wr_error)
             return -1;
         }
         p->usemarcon1->GetMarcRecord(converted, convlen);
-        
+
         if (p->usemarcon2)
         {
             p->usemarcon2->SetMarcRecord(converted, convlen);
-            
+
             res = p->usemarcon2->Convert();
             free(converted);
             if (res != 0)
@@ -170,7 +170,7 @@ static void type_usemarcon(struct yaz_record_conv_type *t)
 #endif
 
 // define Pimpl wrapper forwarding to Impl
- 
+
 yf::RecordTransform::RecordTransform() : m_p(new Impl)
 {
 }
@@ -191,14 +191,14 @@ void yf::RecordTransform::process(mp::Package &package) const
 }
 
 
-yf::RecordTransform::Impl::Impl() 
+yf::RecordTransform::Impl::Impl()
 {
     m_retrieval = yaz_retrieval_create();
     assert(m_retrieval);
 }
 
 yf::RecordTransform::Impl::~Impl()
-{ 
+{
     if (m_retrieval)
         yaz_retrieval_destroy(m_retrieval);
 }
@@ -213,8 +213,8 @@ void yf::RecordTransform::Impl::configure(const xmlNode *xml_node,
 
     // parsing down to retrieval node, which can be any of the children nodes
     xmlNode *retrieval_node;
-    for (retrieval_node = xml_node->children; 
-         retrieval_node; 
+    for (retrieval_node = xml_node->children;
+         retrieval_node;
          retrieval_node = retrieval_node->next)
     {
         if (retrieval_node->type != XML_ELEMENT_NODE)
@@ -270,20 +270,20 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         // the effective element set name.. Therefore we can only allow
         // two cases.. Both equal or absent.. If not, we'll just have to
         // disable the piggyback!
-        if (sr_req->smallSetElementSetNames 
+        if (sr_req->smallSetElementSetNames
             &&
             sr_req->mediumSetElementSetNames
             &&
             sr_req->smallSetElementSetNames->which == Z_ElementSetNames_generic
-            && 
+            &&
             sr_req->mediumSetElementSetNames->which == Z_ElementSetNames_generic
-            && 
+            &&
             !strcmp(sr_req->smallSetElementSetNames->u.generic,
                     sr_req->mediumSetElementSetNames->u.generic))
         {
             input_schema = sr_req->smallSetElementSetNames->u.generic;
         }
-        else if (!sr_req->smallSetElementSetNames && 
+        else if (!sr_req->smallSetElementSetNames &&
                  !sr_req->mediumSetElementSetNames)
             ; // input_schema is 0 already
         else
@@ -302,7 +302,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         package.move();
         return;
     }
-    
+
     mp::odr odr_en(ODR_ENCODE);
 
     // setting up variables for conversion state
@@ -314,7 +314,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     const char *backend_schema = 0;
     Odr_oid *backend_syntax = 0;
 
-    int ret_code 
+    int ret_code
         = yaz_retrieval_request(m_retrieval,
                                 input_schema, input_syntax,
                                 &match_schema, &match_syntax,
@@ -369,7 +369,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
 
     if (sr_req)
     {
-        if (backend_syntax) 
+        if (backend_syntax)
             sr_req->preferredRecordSyntax = odr_oiddup(odr_en, backend_syntax);
         else
             sr_req->preferredRecordSyntax = 0;
@@ -380,7 +380,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
                 = (Z_ElementSetNames *)
                 odr_malloc(odr_en, sizeof(Z_ElementSetNames));
             sr_req->smallSetElementSetNames->which = Z_ElementSetNames_generic;
-            sr_req->smallSetElementSetNames->u.generic 
+            sr_req->smallSetElementSetNames->u.generic
                 = odr_strdup(odr_en, backend_schema);
             sr_req->mediumSetElementSetNames = sr_req->smallSetElementSetNames;
         }
@@ -392,23 +392,23 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     }
     else if (pr_req)
     {
-        if (backend_syntax) 
+        if (backend_syntax)
             pr_req->preferredRecordSyntax = odr_oiddup(odr_en, backend_syntax);
         else
             pr_req->preferredRecordSyntax = 0;
-        
+
         if (backend_schema)
         {
-            pr_req->recordComposition 
-                = (Z_RecordComposition *) 
+            pr_req->recordComposition
+                = (Z_RecordComposition *)
                 odr_malloc(odr_en, sizeof(Z_RecordComposition));
-            pr_req->recordComposition->which 
+            pr_req->recordComposition->which
                 = Z_RecordComp_simple;
-            pr_req->recordComposition->u.simple 
+            pr_req->recordComposition->u.simple
                 = (Z_ElementSetNames *)
                 odr_malloc(odr_en, sizeof(Z_ElementSetNames));
             pr_req->recordComposition->u.simple->which = Z_ElementSetNames_generic;
-            pr_req->recordComposition->u.simple->u.generic 
+            pr_req->recordComposition->u.simple->u.generic
                 = odr_strdup(odr_en, backend_schema);
         }
         else
@@ -419,7 +419,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     package.request() = gdu_req;
 
     package.move();
-    
+
     Z_GDU *gdu_res = package.response().get();
 
     // see if we have a records list to patch!
@@ -428,9 +428,9 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         gdu_res->u.z3950->which == Z_APDU_presentResponse)
     {
         Z_PresentResponse * pr_res = gdu_res->u.z3950->u.presentResponse;
-        
-        if (rc && pr_res 
-            && pr_res->numberOfRecordsReturned 
+
+        if (rc && pr_res
+            && pr_res->numberOfRecordsReturned
             && *(pr_res->numberOfRecordsReturned) > 0
             && pr_res->records
             && pr_res->records->which == Z_Records_DBOSD)
@@ -442,9 +442,9 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         gdu_res->u.z3950->which == Z_APDU_searchResponse)
     {
         Z_SearchResponse *sr_res = gdu_res->u.z3950->u.searchResponse;
-        
-        if (rc && sr_res 
-            && sr_res->numberOfRecordsReturned 
+
+        if (rc && sr_res
+            && sr_res->numberOfRecordsReturned
             && *(sr_res->numberOfRecordsReturned) > 0
             && sr_res->records
             && sr_res->records->which == Z_Records_DBOSD)
@@ -452,7 +452,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
             records = sr_res->records->u.databaseOrSurDiagnostics;
         }
     }
-    
+
     if (records)
     {
         int i;
@@ -470,11 +470,11 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
                         yaz_record_conv_opac_record(rc, r->u.opac,
                                                     output_record);
                 }
-                else if (r->which == Z_External_octet) 
+                else if (r->which == Z_External_octet)
                 {
                     ret_trans =
                         yaz_record_conv_record(rc, (const char *)
-                                               r->u.octet_aligned->buf, 
+                                               r->u.octet_aligned->buf,
                                                r->u.octet_aligned->len,
                                                output_record);
                 }

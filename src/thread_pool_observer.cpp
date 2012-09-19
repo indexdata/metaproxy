@@ -185,9 +185,9 @@ void ThreadPoolSocketObserver::run(void *p)
             m_p->m_no_threads_waiting--;
             if (m_p->m_stop_flag)
                 break;
-            
+
             in = m_p->m_input.front();
-            m_p->m_input.pop_front(); 
+            m_p->m_input.pop_front();
             m_p->m_cond_input_full.notify_all();
         }
         IThreadPoolMsg *out = in->handle();

@@ -75,31 +75,31 @@ void yf::ZeeRexExplain::process(mp::Package &package) const
 void yf::ZeeRexExplain::Impl::configure(const xmlNode *confignode)
 {
     const xmlNode * dbnode;
-    
+
     for (dbnode = confignode->children; dbnode; dbnode = dbnode->next){
         if (dbnode->type != XML_ELEMENT_NODE)
             continue;
-        
+
         std::string database;
         mp::xml::check_element_mp(dbnode, "database");
 
-        for (struct _xmlAttr *attr = dbnode->properties; 
+        for (struct _xmlAttr *attr = dbnode->properties;
              attr; attr = attr->next){
-            
+
             mp::xml::check_attribute(attr, "", "name");
             database = mp::xml::get_text(attr);
-            
+
             std::cout << database << "\n";
-            
+
             const xmlNode *explainnode;
-            for (explainnode = dbnode->children; 
+            for (explainnode = dbnode->children;
                  explainnode; explainnode = explainnode->next){
                 if (explainnode->type != XML_ELEMENT_NODE)
                     continue;
                 if (explainnode)
                     break;
             }
-            // assigning explain node to database name - no check yet 
+            // assigning explain node to database name - no check yet
             m_database_explain.insert(std::make_pair(database, explainnode));
          }
     }
@@ -115,7 +115,7 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
         package.move();
         return;
     }
-    
+
     // only working on  HTTP_Request packages now
 
     mp::odr odr_de(ODR_DECODE);
@@ -143,7 +143,7 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
         package.move();
         return;
     }
-    
+
 
     // if SRU package could not be decoded, send minimal explain and
     // close connection
@@ -151,18 +151,18 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
     Z_SOAP *soap = 0;
     char *charset = 0;
     char *stylesheet = 0;
-    if (! (sru_pdu_req = mp_util::decode_sru_request(package, odr_de, odr_en, 
+    if (! (sru_pdu_req = mp_util::decode_sru_request(package, odr_de, odr_en,
                                             sru_pdu_res, &soap,
                                             charset, stylesheet)))
     {
-        mp_util::build_sru_explain(package, odr_en, sru_pdu_res, 
+        mp_util::build_sru_explain(package, odr_en, sru_pdu_res,
                                    sruinfo, explainnode);
-        mp_util::build_sru_response(package, odr_en, soap, 
+        mp_util::build_sru_response(package, odr_en, soap,
                            sru_pdu_res, charset, stylesheet);
         package.session().close();
         return;
     }
-    
+
 
     if (sru_pdu_req->which != Z_SRW_explain_request)
     {
@@ -171,21 +171,21 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
         return;
     }
     // except valid SRU explain request, construct ZeeRex Explain response
-    else 
+    else
     {
         Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
-        //mp_util::build_simple_explain(package, odr_en, sru_pdu_res, 
+        //mp_util::build_simple_explain(package, odr_en, sru_pdu_res,
         //                           sruinfo, er_req);
-        mp_util::build_sru_explain(package, odr_en, sru_pdu_res, 
+        mp_util::build_sru_explain(package, odr_en, sru_pdu_res,
                                    sruinfo, explainnode, er_req);
-        mp_util::build_sru_response(package, odr_en, soap, 
+        mp_util::build_sru_response(package, odr_en, soap,
                                     sru_pdu_res, charset, stylesheet);
         return;
     }
 
     // should never arrive here
     package.session().close();
-    return;   
+    return;
 }
 
 

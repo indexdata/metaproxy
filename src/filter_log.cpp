@@ -56,7 +56,7 @@ namespace metaproxy_1 {
         private:
             void openfile(const std::string &fname);
             // needs to be static to be called by C pointer-to-function-syntax
-            static void stream_write(ODR o, void *handle, int type, 
+            static void stream_write(ODR o, void *handle, int type,
                               const char *buf, int len);
             // needs to be static to be called by C pointer-to-function-syntax
             static void option_write(const char *name, void *handle);
@@ -72,8 +72,8 @@ namespace metaproxy_1 {
             bool m_init_options;
             LFilePtr m_file;
             std::string m_time_format;
-            // Only used during confiqgure stage (no threading), 
-            // for performance avoid opening files which other log filter 
+            // Only used during confiqgure stage (no threading),
+            // for performance avoid opening files which other log filter
             // instances already have opened
             static std::list<LFilePtr> filter_log_files;
 
@@ -93,12 +93,12 @@ namespace metaproxy_1 {
                      std::ostringstream &os);
             void flush();
         };
-        
+
     }
 }
 
 // define Pimpl wrapper forwarding to Impl
- 
+
 yf::Log::Log() : m_p(new Impl)
 {
 }
@@ -143,7 +143,7 @@ yf::Log::Impl::Impl(const std::string &x)
 }
 
 
-yf::Log::Impl::~Impl() 
+yf::Log::Impl::~Impl()
 {
 }
 
@@ -245,7 +245,7 @@ static void log_1line_Z_APDU(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
                     wrbuf_puts(w, "-");
             }
             wrbuf_printf(w, " ID:%s Name:%s Version:%s",
-                         req->implementationId ? req->implementationId :"-", 
+                         req->implementationId ? req->implementationId :"-",
                          req->implementationName ?req->implementationName : "-",
                          req->implementationVersion ?
                          req->implementationVersion : "-");
@@ -289,7 +289,7 @@ static void log_1line_Z_APDU(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
             {
                 wrbuf_puts(w, "ERROR ");
                 log_DiagRecs(
-                    w, 
+                    w,
                     res->records->u.multipleNonSurDiagnostics->num_diagRecs,
                     res->records->u.multipleNonSurDiagnostics->diagRecs);
             }
@@ -330,14 +330,14 @@ static void log_1line_Z_APDU(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
             {
                 wrbuf_puts(w, "ERROR ");
                 log_DiagRecs(
-                    w, 
+                    w,
                     res->records->u.multipleNonSurDiagnostics->num_diagRecs,
                     res->records->u.multipleNonSurDiagnostics->diagRecs);
             }
             wrbuf_puts(w, " ");
             assert(req->preferredRecordSyntax);
             log_syntax(w, req->preferredRecordSyntax);
-                       
+
             wrbuf_printf(w, " %s " ODR_INT_PRINTF "+" ODR_INT_PRINTF " ",
                 req->resultSetId, *req->resultSetStartPoint,
                          *req->numberOfRecordsRequested);
@@ -382,8 +382,8 @@ static void log_1line_Z_APDU(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
                 wrbuf_puts(w, "ERROR");
             else
                 wrbuf_printf(w, "PARTIAL" ODR_INT_PRINTF, *res->scanStatus);
-            
-            wrbuf_printf(w, " " ODR_INT_PRINTF " " ODR_INT_PRINTF "+" 
+
+            wrbuf_printf(w, " " ODR_INT_PRINTF " " ODR_INT_PRINTF "+"
                          ODR_INT_PRINTF "+" ODR_INT_PRINTF " ",
                          res->numberOfEntriesReturned ?
                          *res->numberOfEntriesReturned : 0,
@@ -391,8 +391,8 @@ static void log_1line_Z_APDU(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
                           *req->preferredPositionInResponse : 1,
                          *req->numberOfTermsRequested,
                          res->stepSize ? *res->stepSize : 1);
-            
-            yaz_scan_to_wrbuf(w, req->termListAndStartPoint, 
+
+            yaz_scan_to_wrbuf(w, req->termListAndStartPoint,
                               req->attributeSet);
         }
         break;
@@ -410,7 +410,7 @@ static void log_1line_Z_APDU(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
 
             if (*res->sortStatus == Z_SortResponse_success)
                 wrbuf_puts(w, "OK");
-            else if (*res->sortStatus == Z_SortResponse_partial_1) 
+            else if (*res->sortStatus == Z_SortResponse_partial_1)
                 wrbuf_puts(w, "PARTIAL");
             else if (*res->sortStatus == Z_SortResponse_failure)
                 wrbuf_puts(w, "ERROR");
@@ -460,7 +460,7 @@ static void log_1line_Z_APDU(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
             if (res->diagnostics && res->num_diagnostics >= 1)
                 log_DiagRecs(w, res->num_diagnostics,res->diagnostics);
             else
-                wrbuf_puts(w, "-");      
+                wrbuf_puts(w, "-");
         }
         break;
     case Z_APDU_close:
@@ -507,7 +507,7 @@ static void log_1line_Z_GDU(Z_GDU *gdu_req, Z_GDU *gdu_res, WRBUF w)
 {
     if (gdu_req && gdu_req->which == Z_GDU_Z3950)
     {
-        log_1line_Z_APDU(gdu_req->u.z3950, 
+        log_1line_Z_APDU(gdu_req->u.z3950,
                          (gdu_res && gdu_res->which == Z_GDU_Z3950) ?
                          gdu_res->u.z3950 : 0, w);
     }
@@ -558,26 +558,26 @@ void yf::Log::Impl::configure(const xmlNode *ptr)
                 }
                 else if (!strcmp((const char *) attr->name,
                                  "request-session"))
-                    m_req_session = 
+                    m_req_session =
                         mp::xml::get_bool(attr->children, true);
-                else if (!strcmp((const char *) attr->name, 
+                else if (!strcmp((const char *) attr->name,
                                  "response-session"))
-                    m_res_session = 
+                    m_res_session =
                         mp::xml::get_bool(attr->children, true);
                 else if (!strcmp((const char *) attr->name,
                                  "session"))
                 {
-                    m_req_session = 
+                    m_req_session =
                         mp::xml::get_bool(attr->children, true);
                     m_res_session = m_req_session;
                 }
-                else if (!strcmp((const char *) attr->name, 
+                else if (!strcmp((const char *) attr->name,
                                  "init-options"))
-                    m_init_options = 
+                    m_init_options =
                         mp::xml::get_bool(attr->children, true);
-                else if (!strcmp((const char *) attr->name, 
+                else if (!strcmp((const char *) attr->name,
                                  "init-options"))
-                    m_init_options = 
+                    m_init_options =
                         mp::xml::get_bool(attr->children, true);
                 else
                     throw mp::filter::FilterException(
@@ -587,7 +587,7 @@ void yf::Log::Impl::configure(const xmlNode *ptr)
         }
         else
         {
-            throw mp::filter::FilterException("Bad element " 
+            throw mp::filter::FilterException("Bad element "
                                                + std::string((const char *)
                                                              ptr->name));
         }
@@ -604,7 +604,7 @@ void yf::Log::Impl::process(mp::Package &package)
     // scope for session lock
     {
         boost::mutex::scoped_lock scoped_lock(m_session_mutex);
-        
+
         if (gdu_req && gdu_req->which == Z_GDU_Z3950)
         {
             Z_APDU *apdu_req = gdu_req->u.z3950;
@@ -618,31 +618,31 @@ void yf::Log::Impl::process(mp::Package &package)
                         user = a->u.idPass->userId;
                     else if (a->which == Z_IdAuthentication_open)
                         user = a->u.open;
-                
+
                     m_sessions[package.session()] = user;
                 }
             }
         }
-        std::map<mp::Session,std::string>::iterator it = 
+        std::map<mp::Session,std::string>::iterator it =
             m_sessions.find(package.session());
         if (it != m_sessions.end())
             user = it->second;
-        
+
         if (package.session().is_closed())
             m_sessions.erase(package.session());
     }
     // scope for locking Ostream
-    { 
+    {
         boost::mutex::scoped_lock scoped_lock(m_file->m_mutex);
- 
+
         if (m_access)
         {
-            if (gdu_req)          
+            if (gdu_req)
             {
                 std::ostringstream os;
                 os  << m_msg_config << " "
                     << package << " "
-                    << "0.000000" << " " 
+                    << "0.000000" << " "
                     << *gdu_req;
                 m_file->log(m_time_format, os);
             }
@@ -650,12 +650,12 @@ void yf::Log::Impl::process(mp::Package &package)
 
         if (m_user_access)
         {
-            if (gdu_req)          
+            if (gdu_req)
             {
                 std::ostringstream os;
                 os  << m_msg_config << " " << user << " "
                     << package << " "
-                    << "0.000000" << " " 
+                    << "0.000000" << " "
                     << *gdu_req;
                 m_file->log(m_time_format, os);
             }
@@ -666,7 +666,7 @@ void yf::Log::Impl::process(mp::Package &package)
             std::ostringstream os;
             os << m_msg_config;
             os << " request id=" << package.session().id();
-            os << " close=" 
+            os << " close="
                << (package.session().is_closed() ? "yes" : "no");
             m_file->log(m_time_format, os);
         }
@@ -683,7 +683,7 @@ void yf::Log::Impl::process(mp::Package &package)
                 m_file->log(m_time_format, os);
             }
         }
-        
+
         if (m_req_apdu)
         {
             if (gdu_req)
@@ -694,7 +694,7 @@ void yf::Log::Impl::process(mp::Package &package)
             }
         }
     }
-    
+
     // unlocked during move
     package.move();
 
@@ -703,14 +703,14 @@ void yf::Log::Impl::process(mp::Package &package)
     yaz_timing_stop(timer);
     double duration = yaz_timing_get_real(timer);
 
-    // scope for locking Ostream 
-    { 
+    // scope for locking Ostream
+    {
         boost::mutex::scoped_lock scoped_lock(m_file->m_mutex);
-        
+
         if (m_1line)
         {
             mp::wrbuf w;
-            
+
             log_1line_Z_GDU(gdu_req, gdu_res, w);
             if (w.len() > 0)
             {
@@ -748,7 +748,7 @@ void yf::Log::Impl::process(mp::Package &package)
                     << std::fixed << std::setprecision (6) << duration << " "
                     << *gdu_res;
                 m_file->log(m_time_format, os);
-            }   
+            }
         }
 
         if (m_res_session)
@@ -756,9 +756,9 @@ void yf::Log::Impl::process(mp::Package &package)
             std::ostringstream os;
             os << m_msg_config;
             os << " response id=" << package.session().id();
-            os << " close=" 
+            os << " close="
                << (package.session().is_closed() ? "yes " : "no ")
-               << "duration=" 
+               << "duration="
                << std::fixed << std::setprecision (6) << duration;
             m_file->log(m_time_format, os);
         }
@@ -776,7 +776,7 @@ void yf::Log::Impl::process(mp::Package &package)
                 m_file->log(m_time_format, os);
             }
         }
-        
+
         if (m_res_apdu)
         {
             if (gdu_res)
@@ -823,9 +823,9 @@ void yf::Log::Impl::option_write(const char *name, void *handle)
 }
 
 
-yf::Log::Impl::LFile::LFile(std::string fname) : 
+yf::Log::Impl::LFile::LFile(std::string fname) :
     m_fname(fname)
-    
+
 {
     if (fname.c_str())
         fhandle = fopen(fname.c_str(), "a");
@@ -857,7 +857,7 @@ void yf::Log::Impl::LFile::log(const std::string &date_format,
         }
         fputs(os.str().c_str(), fhandle);
         fputc('\n', fhandle);
-    }    
+    }
     else
         yaz_log(YLOG_LOG, "%s", os.str().c_str());
 }

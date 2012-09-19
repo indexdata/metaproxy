@@ -47,19 +47,19 @@ void check_bounce_z3950(mp::RouterChain &router, int request, int response)
 
     // Create package with Z39.50 init request in it
     mp::Package pack;
-        
+
     mp::odr odr;
     Z_APDU *apdu = zget_APDU(odr, request);
 
     pack.request() = apdu;
 
     // Put it in router
-    pack.router(router).move(); 
-    
+    pack.router(router).move();
+
     // Inspect bounced back request
     yazpp_1::GDU *gdu_req = &pack.request();
     yazpp_1::GDU *gdu_res = &pack.response();
-    
+
     Z_GDU *z_gdu_req = gdu_req->get();
     Z_GDU *z_gdu_res = gdu_res->get();
 
@@ -89,19 +89,19 @@ void check_bounce_http(mp::RouterChain &router)
 
     // Create package with Z39.50 init request in it
     mp::Package pack;
-        
+
     mp::odr odr;
     Z_GDU *gdu = z_get_HTTP_Request(odr);
     //z_get_HTTP_Request_host_path(odr, host, path);
     pack.request() = gdu;
 
     // Put it in router
-    pack.router(router).move(); 
-    
+    pack.router(router).move();
+
     // Inspect bounced back request
     yazpp_1::GDU *gdu_req = &pack.request();
     yazpp_1::GDU *gdu_res = &pack.response();
-    
+
     Z_GDU *z_gdu_req = gdu_req->get();
     Z_GDU *z_gdu_res = gdu_res->get();
 
@@ -122,7 +122,7 @@ void check_bounce_http(mp::RouterChain &router)
 
 BOOST_AUTO_TEST_CASE( test_filter_bounce_1 )
 {
-    try 
+    try
     {
         mp::filter::Bounce f_bounce;
     }
@@ -133,39 +133,39 @@ BOOST_AUTO_TEST_CASE( test_filter_bounce_1 )
 
 BOOST_AUTO_TEST_CASE( test_filter_bounce_2 )
 {
-    try 
+    try
     {
-        mp::RouterChain router;        
+        mp::RouterChain router;
         mp::filter::Bounce f_bounce;
         router.append(f_bounce);
 
-        check_bounce_z3950(router, 
+        check_bounce_z3950(router,
                            Z_APDU_initRequest, Z_APDU_close);
-        //check_bounce_z3950(router, 
+        //check_bounce_z3950(router,
         //                   Z_APDU_searchRequest, Z_APDU_close);
-        check_bounce_z3950(router, 
+        check_bounce_z3950(router,
                            Z_APDU_presentRequest, Z_APDU_close);
-        check_bounce_z3950(router, 
+        check_bounce_z3950(router,
                            Z_APDU_deleteResultSetRequest, Z_APDU_close);
-        //check_bounce_z3950(router, 
+        //check_bounce_z3950(router,
         //                   Z_APDU_accessControlRequest, Z_APDU_close);
-        check_bounce_z3950(router, 
+        check_bounce_z3950(router,
                            Z_APDU_resourceControlRequest, Z_APDU_close);
-        check_bounce_z3950(router, 
+        check_bounce_z3950(router,
                            Z_APDU_triggerResourceControlRequest, Z_APDU_close);
-        check_bounce_z3950(router, 
+        check_bounce_z3950(router,
                            Z_APDU_resourceReportRequest, Z_APDU_close);
-        //check_bounce_z3950(router, 
+        //check_bounce_z3950(router,
         //                   Z_APDU_scanRequest, Z_APDU_close);
-        //check_bounce_z3950(router, 
+        //check_bounce_z3950(router,
         //                   Z_APDU_sortRequest, Z_APDU_close);
-        check_bounce_z3950(router, 
+        check_bounce_z3950(router,
                            Z_APDU_segmentRequest, Z_APDU_close);
-        //check_bounce_z3950(router, 
+        //check_bounce_z3950(router,
         //                   Z_APDU_extendedServicesRequest, Z_APDU_close);
-        check_bounce_z3950(router, 
+        check_bounce_z3950(router,
                            Z_APDU_close , Z_APDU_close);
-        //check_bounce_z3950(router, 
+        //check_bounce_z3950(router,
         //                   Z_APDU_duplicateDetectionRequest, Z_APDU_close);
 
 
@@ -177,9 +177,9 @@ BOOST_AUTO_TEST_CASE( test_filter_bounce_2 )
 
 BOOST_AUTO_TEST_CASE( test_filter_bounce_3 )
 {
-    try 
+    try
     {
-        mp::RouterChain router;        
+        mp::RouterChain router;
         mp::filter::Bounce f_bounce;
         router.append(f_bounce);
 
