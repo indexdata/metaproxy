@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yazpp/limit-connect.h>
 #include <yaz/timing.h>
 #include <yaz/log.h>
+#include <yaz/daemon.h>
 #include "gduutil.hpp"
 
 #include <iostream>
@@ -597,6 +598,7 @@ void yf::FrontendNet::process(Package &package) const
                 size_t i;
                 for (i = 0; i < m_p->m_ports.size(); i++)
                     m_p->az[i]->server("");
+                yaz_daemon_stop();
             }
         }
         int no = m_p->mySocketManager.getNumberOfObservers();

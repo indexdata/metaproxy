@@ -79,7 +79,6 @@ static void work_common(void *data)
     mp::Package pack;
     pack.router(*routerp).move();
     yaz_log(YLOG_LOG, "metaproxy stop"); /* only for graceful stop */
-    yaz_daemon_stop();
     _exit(0);
 }
 
