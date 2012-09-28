@@ -887,7 +887,7 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
             nprl->records[i] = (Z_NamePlusRecord*)
                 odr_malloc(odr, sizeof(Z_NamePlusRecord));
             int inside_pos = jit->m_pos - jit->m_start;
-            if (inside_pos >= b_resp->records->
+            if (!b_resp->records || inside_pos >= b_resp->records->
                 u.databaseOrSurDiagnostics->num_records)
                 break;
 	    *nprl->records[i] = *b_resp->records->
