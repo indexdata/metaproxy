@@ -80,8 +80,7 @@ std::ostream& std::operator<<(std::ostream& os, Z_Records & rs)
             os << *(rs.u.nonSurrogateDiagnostic);
         break;
     case Z_Records_multipleNSD:
-        os << "Z_Records_multipleNSD";
-        //os << *(rs.u.multipleNonSurDiagnostics);
+        os << *(rs.u.multipleNonSurDiagnostics);
         break;
     default:
         os << "Z_Records" ;
@@ -89,6 +88,20 @@ std::ostream& std::operator<<(std::ostream& os, Z_Records & rs)
 
     return os;
 }
+
+std::ostream& std::operator<<(std::ostream& os, Z_DiagRecs& dr)
+{
+    if (dr.num_diagRecs >= 1)
+    {
+        os << *dr.diagRecs[0];
+    }
+    else
+    {
+        os << "multipleNSD";
+    }
+    return os;
+}
+
 
 std::ostream& std::operator<<(std::ostream& os, Z_DiagRec& dr)
 {

@@ -33,6 +33,7 @@ namespace std
     std::ostream& operator<<(std::ostream& os, Z_HTTP_Response& httpres);
     std::ostream& operator<<(std::ostream& os, Z_Records & rs);
     std::ostream& operator<<(std::ostream& os, Z_DiagRec& dr);
+    std::ostream& operator<<(std::ostream& os, Z_DiagRecs& dr);
     std::ostream& operator<<(std::ostream& os, Z_DefaultDiagFormat& ddf);
 }
 
