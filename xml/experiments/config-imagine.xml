@@ -20,12 +20,12 @@
     </filter>
   </filters>
 
-  <routes>  
+  <routes>
     <route id="start">
       <filter refid="log_cout"/>
       <filter type="cond">           <!-- conditional -->
-	<if test="port=210 and db=public" route="A"/> 
-	<if test="port=210 and db=other" route="B"/> 
+	<if test="port=210 and db=public" route="A"/>
+	<if test="port=210 and db=other" route="B"/>
         <switch>
           <case test="blabla" route="C"/>
           <case test="blabla2" route="C2"/>
@@ -36,7 +36,7 @@
       <filter refid="log_cerr"/>
       <filter type="log">          <!-- apply logging always -->
 	<logfile>mylog.log</logfile>
-      </filter>   
+      </filter>
     <filter name="reject">        <!-- reject .. -->
     </filter>
     <filter type="bounce"/>
@@ -99,7 +99,7 @@ yp2::filter::Log::Context : public Context
 
 
 Filters are constructed with a FilterFactory class which exposes a
-method 
+method
 
 Filter* createFilter(std::string type)
 

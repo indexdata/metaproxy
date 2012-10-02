@@ -1,4 +1,4 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN" 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
     "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
  <!ENTITY % idcommon SYSTEM "common/common.ent">
@@ -9,18 +9,18 @@
   <productname>Metaproxy</productname>
   <info><orgname>Index Data</orgname></info>
  </refentryinfo>
- 
+
  <refmeta>
   <refentrytitle>auth_simple</refentrytitle>
   <manvolnum>3mp</manvolnum>
   <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
  </refmeta>
- 
+
  <refnamediv>
   <refname>auth_simple</refname>
   <refpurpose>Metaproxy Simple Authentication And Authorization Module</refpurpose>
  </refnamediv>
- 
+
  <refsect1><title>DESCRIPTION</title>
   <para>
    Simple authentication and authorization.  The configuration
@@ -40,7 +40,7 @@
 		     xmlns:xi="http://www.w3.org/2001/XInclude" />
    </literallayout>
  </refsect1>
- 
+
  <refsect1><title>EXAMPLES</title>
   <para>
    A typical configuration looks like this:
@@ -54,8 +54,8 @@
    </screen>
   </para>
   <!-- Show and describe example.target-auth -->
- </refsect1> 
- 
+ </refsect1>
+
  <refsect1><title>SEE ALSO</title>
   <para>
    <citerefentry>
@@ -64,7 +64,7 @@
    </citerefentry>
   </para>
  </refsect1>
- 
+
  &copyright;
 </refentry>
 

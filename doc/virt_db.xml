@@ -1,4 +1,4 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN" 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
     "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
  <!ENTITY % idcommon SYSTEM "common/common.ent">
@@ -15,28 +15,28 @@
   <manvolnum>3mp</manvolnum>
   <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
  </refmeta>
- 
+
  <refnamediv>
   <refname>virt_db</refname>
   <refpurpose>Metaproxy Virtual Databases Module</refpurpose>
  </refnamediv>
- 
+
  <refsect1><title>DESCRIPTION</title>
   <para>
    This filter allows one Z39.50 database to be me mapped to
    another target; or even multiple targets.
   </para>
   <para>
-   The configuration of virt_db consists of zero or more 
+   The configuration of virt_db consists of zero or more
    <literal>&lt;virtual&gt;</literal> elements each describing the
    Z39.50 virtual database recognized.
    The name of the database is the text content of the
    <literal>&lt;database&gt;</literal> element which should be
-   first element inside the virtual section. 
+   first element inside the virtual section.
   </para>
   <para>
    For Metaproxy 1.0.20 and later, the database is treated as a glob pattern.
-   This allows operators * (any number of any character) and 
+   This allows operators * (any number of any character) and
    ? (any single character). The virtual sections are inspected in
    the order given. The first matching virtual database is used.
   </para>
@@ -65,14 +65,14 @@
    databases do not result in the same routing.
   </para>
  </refsect1>
- 
+
  <refsect1><title>SCHEMA</title>
    <literallayout><xi:include
 		     xi:href="../xml/schema/filter_virt_db.rnc" xi:parse="text"
 		     xmlns:xi="http://www.w3.org/2001/XInclude" />
    </literallayout>
  </refsect1>
- 
+
  <refsect1><title>EXAMPLES</title>
   <para>
    Consider this virt_db configuration:
@@ -102,7 +102,7 @@
     </filter>
 ]]>
    </screen>
-   This will offer 4 databases, <literal>db1</literal>, 
+   This will offer 4 databases, <literal>db1</literal>,
    <literal>db2</literal>, <literal>combined</literal> and
    <literal>db3</literal>. If a Z39.50 specifies <literal>db1</literal>
    and <literal>db2</literal> that will have same effect as specifying
@@ -112,8 +112,8 @@
    Since <literal>db3</literal> routes differently from the other databases,
    this database may not be combined with the others.
   </para>
- </refsect1> 
- 
+ </refsect1>
+
  <refsect1><title>SEE ALSO</title>
   <para>
    <citerefentry>
@@ -132,7 +132,7 @@
    </citerefentry>
   </para>
  </refsect1>
- 
+
  &copyright;
 </refentry>
 

@@ -1,4 +1,4 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN" 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
     "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
  <!ENTITY % idcommon SYSTEM "common/common.ent">
@@ -15,15 +15,15 @@
   <manvolnum>3mp</manvolnum>
    <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
  </refmeta>
- 
+
  <refnamediv>
   <refname>log</refname>
   <refpurpose>Metaproxy Package Logging Module</refpurpose>
  </refnamediv>
- 
+
  <refsect1><title>DESCRIPTION</title>
   <para>
-   This filter logs packages sent - and received . 
+   This filter logs packages sent - and received .
   </para>
 
   <para>
@@ -47,7 +47,7 @@
      <listitem>
       <para>
        Specifies the category of messages to be logged. The category is an
-       XML attribute and value of attribute is a boolean; 
+       XML attribute and value of attribute is a boolean;
        <literal>true</literal> for enabled; <literal>false</literal>
        for disabled.
        The following category attributes are supported:
@@ -121,7 +121,7 @@
 	 </listitem>
 	</varlistentry>
        </variablelist>
-       
+
       </para>
      </listitem>
     </varlistentry>
@@ -187,30 +187,30 @@
     <varlistentry><term>protocol (position 6)</term>
      <listitem><para>
        Protocol type which is one of <literal>Z3950</literal> or
-       <literal>HTTP_Request</literal> or 
+       <literal>HTTP_Request</literal> or
        <literal>HTTP_Response</literal>.
       </para>
      </listitem>
     </varlistentry>
    </variablelist>
   </para>
-  
+
   <para>
    For packages of with protocol marker <literal>Z3950</literal>
    the the access log line is followed by the APDU type + information
    depending on the type. The APDU type is on position 7.
-   
+
    <variablelist>
-    
+
     <varlistentry><term>initRequest</term>
      <listitem><para>
-       Z39.50 Initialize Request with the information 
+       Z39.50 Initialize Request with the information
        username, vhost,
        implementation ID, implementation name, implementation version.
       </para>
      </listitem>
     </varlistentry>
-    
+
     <varlistentry><term>initResponse</term>
      <listitem><para>
        Z39.50 Initialize Response with the information:
@@ -219,21 +219,21 @@
       </para>
      </listitem>
     </varlistentry>
-    
+
     <varlistentry><term>searchRequest</term>
      <listitem><para>
        Z39.50 Search Request with the information:
        database(s), result set ID, record syntax, query.
       </para>
       <para>
-       Multiple databases are separated by 
+       Multiple databases are separated by
        a plus-sign (<literal>+</literal>). The query itself is
        multiple tokens. For this reason it is placed as the last
        information on this log entry.
       </para>
      </listitem>
     </varlistentry>
-    
+
     <varlistentry><term>searchResponse</term>
      <listitem><para>
        Z39.50 Search Response with the information:
@@ -242,7 +242,7 @@
       </para>
      </listitem>
     </varlistentry>
-    
+
     <varlistentry><term>presentRequest</term>
      <listitem><para>
        Z39.50 Present Request with the information:
@@ -251,7 +251,7 @@
       </para>
      </listitem>
     </varlistentry>
-    
+
     <varlistentry><term>presentResponse</term>
      <listitem><para>
        Z39.50 Present Response with the information:
@@ -260,7 +260,7 @@
       </para>
      </listitem>
     </varlistentry>
-    
+
     <varlistentry><term>scanRequest</term>
      <listitem><para>
        Z39.50 Scan Request with the information:
@@ -272,7 +272,7 @@
       </para>
      </listitem>
     </varlistentry>
-    
+
     <varlistentry><term>scanResponse</term>
      <listitem><para>
        Z39.50 Scan Response with the information:
@@ -281,19 +281,19 @@
       </para>
      </listitem>
     </varlistentry>
-    
+
    </variablelist>
   </para>
-  
+
  </refsect1>
 
  <refsect1><title>SCHEMA</title>
    <literallayout><xi:include
-		     xi:href="../xml/schema/filter_log.rnc" xi:parse="text"  
+		     xi:href="../xml/schema/filter_log.rnc" xi:parse="text"
 		     xmlns:xi="http://www.w3.org/2001/XInclude" />
    </literallayout>
  </refsect1>
- 
+
  <refsect1><title>EXAMPLES</title>
   <para>
    A typical configuration looks like this:
@@ -306,8 +306,8 @@
 ]]>
    </screen>
   </para>
- </refsect1> 
- 
+ </refsect1>
+
  <refsect1><title>SEE ALSO</title>
   <para>
    <citerefentry>
@@ -316,7 +316,7 @@
    </citerefentry>
   </para>
  </refsect1>
- 
+
  &copyright;
 </refentry>
 

@@ -1,4 +1,4 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN" 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
     "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
  <!ENTITY % idcommon SYSTEM "common/common.ent">
@@ -15,30 +15,30 @@
   <manvolnum>3mp</manvolnum>
   <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
  </refmeta>
- 
+
  <refnamediv>
   <refname>sru_z3950</refname>
   <refpurpose>Metaproxy Module transforming SRU web service requests to
   Z39.50 Metaproxy packages</refpurpose>
  </refnamediv>
- 
+
  <refsect1><title>DESCRIPTION</title>
   <para>
    The <literal>sru_z3950</literal> Metaproxy filter transforms valid
    SRU GET/POST/SOAP requests to Z39.50 requests, and wraps the
-   received hit counts and XML records into suitable SRU response messages. 
+   received hit counts and XML records into suitable SRU response messages.
   </para>
   <para>
    Multiple database elements defining the names of the accepted
    databases are allowed in the configuration file. Each
-   of them must contain their own explain record, or must be empty. 
+   of them must contain their own explain record, or must be empty.
    Notice that explain
    records come in SRU and Z39.50 flavors, and this filter requires
-   the SRU version. See the 
+   the SRU version. See the
    <ulink url="&url.zeerex.explain;">ZeeReX Explain</ulink>
-   standard pages and the 
+   standard pages and the
    <ulink url="&url.sru.explain;">SRU Explain</ulink> pages
-   for more information. 
+   for more information.
   </para>
   <para>
    All Z39.50 packages and all HTTP packages that do not resolve to
@@ -46,14 +46,14 @@
    filters on the route.
    </para>
   <para>
-   The SRU <literal>explain</literal> operation is supported, 
+   The SRU <literal>explain</literal> operation is supported,
    returning either the absolute minimum required by the standard, or
-   a  full  pre-defined ZeeReX explain record. 
+   a  full  pre-defined ZeeReX explain record.
   </para>
   <para>
    It supports the SRU <literal>searchRetrieve</literal> operation, which
-   is transformed into successive Z39.50 <literal>init</literal>, 
-   <literal>search</literal> and <literal>present</literal> requests. 
+   is transformed into successive Z39.50 <literal>init</literal>,
+   <literal>search</literal> and <literal>present</literal> requests.
   </para>
   <para>
    The SRU <literal>scan</literal> operation is not supported.
@@ -113,11 +113,11 @@
  <refsect1><title>SCHEMA</title>
    <literallayout><xi:include
 		     xi:href="../xml/schema/filter_sru_z3950.rnc"
-		     xi:parse="text"  
+		     xi:parse="text"
 		     xmlns:xi="http://www.w3.org/2001/XInclude" />
    </literallayout>
  </refsect1>
- 
+
  <refsect1><title>EXAMPLES</title>
   <para>
    A typical configuration looks like this:
@@ -134,8 +134,8 @@
 ]]>
    </screen>
   </para>
- </refsect1> 
- 
+ </refsect1>
+
  <refsect1><title>SEE ALSO</title>
   <para>
    <citerefentry>
@@ -144,7 +144,7 @@
    </citerefentry>
   </para>
  </refsect1>
- 
+
  &copyright;
 </refentry>
 

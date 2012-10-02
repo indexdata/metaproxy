@@ -16,12 +16,12 @@
             element_raw="raw"
             explain_xsl="torus2zeerex.xsl"
             record_xsl="pz2dc.xsl"
-	    >	
+	    >
 
 	<!--
-	http://usi.indexdata.com/torus2/admin.admin/records/?query=userName==test+and+password==test 
+	http://usi.indexdata.com/torus2/admin.admin/records/?query=userName==test+and+password==test
 	-->
-	
+
 
         <!-- these records are examples only -->
 	<records>
@@ -206,7 +206,7 @@
       <zoom timeout="20" proxy_timeout="1"/>
     </filter>
   </filters>
-  <routes>  
+  <routes>
     <route id="start">
       <filter refid="frontend"/>
       <filter type="sru_z3950"/>

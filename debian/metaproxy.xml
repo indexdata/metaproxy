@@ -9,7 +9,7 @@
       <message>FN</message>
     </filter>
   </filters>
-  <routes>  
+  <routes>
     <route id="start">
       <filter refid="frontend"/>
       <include src="filters-enabled/*.xml"/>

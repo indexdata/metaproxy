@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
-  <!-- Z39.50 proxy which relays to target specified in Init otherinfo 
+  <!-- Z39.50 proxy which relays to target specified in Init otherinfo
   (VAL_RPOXY). If no target is given, it relays to target
   z3950.indexdata.dk -->
   <start route="start"/>
@@ -16,7 +16,7 @@
      <force_close>true</force_close>
     </filter>
   </filters>
-  <routes>  
+  <routes>
     <route id="start">
       <filter refid="frontend"/>
       <filter type="log">

@@ -7,12 +7,12 @@
       <port>@:9000</port>
     </filter>
   </filters>
-  <routes>  
+  <routes>
     <route id="start">
       <filter refid="frontend"/>
       <filter type="log">
         <message>F</message>
-	<time-format>%Y%m%d-%H%M%S</time-format> 
+	<time-format>%Y%m%d-%H%M%S</time-format>
       </filter>
       <filter type="query_rewrite">
        <xslt stylesheet="../etc/pqf2pqf.xsl"/>
@@ -20,7 +20,7 @@
       </filter>
       <filter type="log">
         <message>B</message>
-	<time-format>%Y%m%d-%H%M%S</time-format> 
+	<time-format>%Y%m%d-%H%M%S</time-format>
 	<category init-options="true" request-session="true" response-session="true"
 		  request-apdu="true" response-apdu="true"
 		  />

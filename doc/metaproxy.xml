@@ -1,4 +1,4 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN" 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
     "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
  <!ENTITY % local SYSTEM "local.ent">
@@ -18,12 +18,12 @@
   <manvolnum>1</manvolnum>
   <refmiscinfo class="manual">Commands</refmiscinfo>
  </refmeta>
- 
+
  <refnamediv>
   <refname>metaproxy</refname>
   <refpurpose>Metaproxy - server</refpurpose>
  </refnamediv>
- 
+
  <refsynopsisdiv>
   <cmdsynopsis>
    <command>metaproxy</command>
@@ -39,7 +39,7 @@
    <arg choice="opt"><option>-X</option></arg>
   </cmdsynopsis>
  </refsynopsisdiv>
- 
+
  <refsect1><title>DESCRIPTION</title>
 
   <para>
@@ -47,9 +47,9 @@
   </para>
 
  </refsect1>
- 
+
  <refsect1><title>OPTIONS</title>
-  
+
   <variablelist>
    <varlistentry>
     <term>--help</term>
@@ -155,7 +155,7 @@
 	 <term>filters</term>
 	 <listitem>
 	   <para>
-	     Specifies all filters. Includes one ore more 
+	     Specifies all filters. Includes one ore more
 	     <literal>filter</literal> elements with filter-specific
 	     configuration material.
 	   </para>
@@ -198,7 +198,7 @@
      <default_target>z3950.indexdata.dk</default_target>
     </filter>
   </filters>
-  <routes>  
+  <routes>
     <route id="start">
       <filter refid="frontend"/>
       <filter type="log">
@@ -217,16 +217,16 @@
        metaproxy --config my.xml
      </screen>
    </para>
- </refsect1> 
+ </refsect1>
 
  <refsect1><title>SCHEMA</title>
    <literallayout><xi:include
 		     xi:href="../xml/schema/metaproxy.rnc"
-		     xi:parse="text"  
+		     xi:parse="text"
 		     xmlns:xi="http://www.w3.org/2001/XInclude" />
    </literallayout>
  </refsect1>
- 
+
  <refsect1><title>FILES</title>
   <para>
    None important.

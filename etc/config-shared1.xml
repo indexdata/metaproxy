@@ -9,7 +9,7 @@
     <filter id="backend" type="z3950_client">
     </filter>
   </filters>
-  <routes>  
+  <routes>
     <route id="start">
       <filter refid="frontend"/>
       <filter type="log">
@@ -19,7 +19,7 @@
       <filter type="limit">
         <limit bandwidth="50000" pdu="100" search="5" retrieve="50"/>
       </filter>
-      <filter type="session_shared"> 
+      <filter type="session_shared">
 	<resultset ttl="10" max="3" optimizesearch="false" restart="true"/>
 	<session ttl="30"/>
       </filter>

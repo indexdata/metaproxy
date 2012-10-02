@@ -5,8 +5,8 @@ be fetched from Z39.50 OPAC records from a Z39.50 target. The virt_db
 is NOT used and, thus, the database does not map to a Z93.50 target.
 The Z39.50 is set, instead via the new x-target SRU parameter .
 -->
-<metaproxy 
-    xmlns="http://indexdata.com/metaproxy" 
+<metaproxy
+    xmlns="http://indexdata.com/metaproxy"
     version="1.0">
   <start route="start"/>
   <filters>
@@ -48,7 +48,7 @@ The Z39.50 is set, instead via the new x-target SRU parameter .
       </retrievalinfo>
     </filter>
   </filters>
-  <routes>  
+  <routes>
     <route id="start">
       <filter refid="frontend"/>
       <filter type="log">

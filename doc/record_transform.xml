@@ -1,4 +1,4 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN" 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
     "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
  <!ENTITY % idcommon SYSTEM "common/common.ent">
@@ -15,7 +15,7 @@
   <manvolnum>3mp</manvolnum>
   <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
  </refmeta>
- 
+
  <refnamediv>
   <refname>record_transform</refname>
   <refpurpose>Metaproxy Module that performs record transformations</refpurpose>
@@ -30,35 +30,35 @@
    syntax and elementset name according to the rules specified, to fetch
    only existing record formats, and transform them on the fly to requested
    record syntaxes.
-  </para> 
+  </para>
   <para>
-   The allowed record present syntax and 
+   The allowed record present syntax and
    element name are described in multiple
-   <literal>&lt;retrieval&gt;</literal> elements inside the 
+   <literal>&lt;retrieval&gt;</literal> elements inside the
    <literal>&lt;retrievalinfo&gt;</literal>
    element. The <literal>syntax</literal> attribute is mandatory, but
    the <literal>name</literal> attribute
-   may be omitted, in which case any 
+   may be omitted, in which case any
    element name is accepted. An additional
    <literal>identifier</literal> attribute can be added to explicitly
    describe the Z39.50 identifier string.
   </para>
   <para>
     The <literal>&lt;retrieval&gt;</literal> element and the content
-    is described in the 
+    is described in the
     <ulink url="&url.yaz.retrieval;">Retrieval Facility</ulink> section
     of the YAZ manual.
   </para>
  </refsect1>
- 
+
  <refsect1><title>SCHEMA</title>
    <literallayout><xi:include
 		     xi:href="../xml/schema/filter_record_transform.rnc"
-		     xi:parse="text"  
+		     xi:parse="text"
 		     xmlns:xi="http://www.w3.org/2001/XInclude" />
    </literallayout>
  </refsect1>
- 
+
  <refsect1><title>EXAMPLES</title>
   <para>
    A typical configuration looks like this:
@@ -89,8 +89,8 @@
 ]]>
    </screen>
   </para>
- </refsect1> 
- 
+ </refsect1>
+
  <refsect1><title>SEE ALSO</title>
   <para>
    <citerefentry>
@@ -99,7 +99,7 @@
    </citerefentry>
   </para>
  </refsect1>
- 
+
  &copyright;
 </refentry>
 

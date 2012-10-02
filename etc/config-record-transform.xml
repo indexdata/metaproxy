@@ -10,14 +10,14 @@
      <timeout>30</timeout>
     </filter>
   </filters>
-  <routes>  
+  <routes>
     <route id="start">
       <filter refid="frontend"/>
       <filter type="log">
         <message>Front</message>
       </filter>
       <filter type="sort">
-        <sort 
+        <sort
 	    xpath="/marc:record/marc:datafield[@tag='245']/marc:subfield[@code='a']"
 	    namespaces="marc=http://www.loc.gov/MARC21/slim"
 	    prefetch="5"

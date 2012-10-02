@@ -2,7 +2,7 @@
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <!-- sample config which illustrates the use of http_file filter.. -->
-  <routes>  
+  <routes>
     <route id="start">
       <filter type="frontend_net">
         <threads>10</threads>

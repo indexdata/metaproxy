@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- fictive yaz-frontend plus zeerex-explain plus retrieval info format -->
-<zeerex xmlns="http://indexdata.com/yaz" 
+<zeerex xmlns="http://indexdata.com/yaz"
         xmlns:dc="http://purl.org/dc/elements/1.1/"
         version="1.0">
 
@@ -30,7 +30,7 @@
     <protocol refid="z3950"/>
 
     <database name="Default">
-      <!-- host and port can be different from listen socket 
+      <!-- host and port can be different from listen socket
            due to firewalling!!! -->
       <target host="server1.mydomain" port="80"/>
 
@@ -106,7 +106,7 @@
         <attr type="4" set="bib1">3</attr>
       </map>
     </index>
-    
+
 
     <!-- Dublin Core Indexes -->
     <index search="true" scan="true" sort="false">
@@ -244,7 +244,7 @@
     <!-- <supports type="relation">any</supports> --><!-- 2=3 OK -->
 
     <!-- relation modifier supported by the server or index -->
-    <!-- MARC: So I promise that you can use 'title <>/stem fish' , but it 
+    <!-- MARC: So I promise that you can use 'title <>/stem fish' , but it
          really defaults to  'title =/stem  fish' ??? And nobody cares ???-->
     <!-- <supports type="relationModifier">relevant</supports> --><!-- 2=102 OK, makes no difference .. sic -->
     <!-- <supports type="relationModifier">phonetic</supports> --> <!-- 2=100 DEAD -->
@@ -254,7 +254,7 @@
     <!-- <supports type="proximity"></supports> --> <!-- DEAD,  title = (house prox/distance=1/unit=word  the) FAILS -->
 
 
-    <!-- proximity modifier supported by the server or index 
+    <!-- proximity modifier supported by the server or index
          (relation, distance, unit, ordering) -->
     <!-- <supports type="proximityModifier"></supports> -->
 
@@ -266,7 +266,7 @@
     <supports type="maskingCharacter">?</supports>
 
     <!-- anchoring supported? (^ character) -->
-    <!-- MARC: how do I express that I only support left anchoring in 
+    <!-- MARC: how do I express that I only support left anchoring in
          the beginning of the field ( bib1 3=1 ), but no right anchoring ?? -->
     <!-- MIKE: You can't.  The ZeeRex documentation should be changed
 	 to allow this, as <supports type="anchoring">left</supports> -->
@@ -286,7 +286,7 @@
     <!-- MIKE: this is for the new CQL "sortby" sorting, which Zebra
 	 doesn't yet do at all, so you're right to omit this for now. -->
 
-    <!-- presentation settings --> 
+    <!-- presentation settings -->
 
     <!-- default number of records that a server will return at once  -->
     <default type="numberOfRecords">0</default>
@@ -304,7 +304,7 @@
     <!-- <setting type="maximumRecords">1000</setting> -->
 
     <!-- support result sets (Empty) -->
-    <!-- <supports type="resultSets"></supports>  --> 
+    <!-- <supports type="resultSets"></supports>  -->
 
     <!-- XPath retrieval supported -->
     <!-- <supports type="recordXPath"></supports> -->
@@ -367,4 +367,4 @@
 
 </zeerex>
 
- 
+

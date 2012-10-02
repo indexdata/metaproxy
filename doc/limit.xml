@@ -1,4 +1,4 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN" 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
     "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
  <!ENTITY % idcommon SYSTEM "common/common.ent">
@@ -10,15 +10,15 @@
   <manvolnum>3mp</manvolnum>
   <refmiscinfo>Metaproxy Module</refmiscinfo>
  </refmeta>
- 
+
  <refnamediv>
   <refname>limit</refname>
   <refpurpose> Metaproxy Module for imposing resource limits </refpurpose>
  </refnamediv>
- 
+
  <refsect1><title>DESCRIPTION</title>
   <para>
-   This filter offers a way to limit access for a single session to 
+   This filter offers a way to limit access for a single session to
    a resource (target) in order to obtain a fair resource sharing.
   </para>
   <para>
@@ -29,18 +29,18 @@
    transferred within the last minute. The pdu is the number of requests
    in the last minute. The retrieve holds the maximum records to which may
    be retrieved in one Present Request.
-   The search is the maximum number of searches within the last minute. 
+   The search is the maximum number of searches within the last minute.
   </para>
  </refsect1>
 
  <refsect1><title>SCHEMA</title>
    <literallayout><xi:include
 		     xi:href="../xml/schema/filter_limit.rnc"
-		     xi:parse="text"  
+		     xi:parse="text"
 		     xmlns:xi="http://www.w3.org/2001/XInclude" />
    </literallayout>
  </refsect1>
- 
+
  <refsect1><title>EXAMPLES</title>
   <para>
    Configuration:
@@ -51,8 +51,8 @@
 ]]>
    </screen>
   </para>
- </refsect1> 
- 
+ </refsect1>
+
  <refsect1><title>SEE ALSO</title>
   <para>
    <citerefentry>
@@ -61,7 +61,7 @@
    </citerefentry>
   </para>
  </refsect1>
- 
+
  &copyright;
 </refentry>
 

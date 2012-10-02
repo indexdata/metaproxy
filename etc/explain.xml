@@ -176,14 +176,14 @@
 
   <schemaInfo>
     <schema identifier="http://www.loc.gov/zing/srw/dcschema/v1.0/"
-            location="http://www.loc.gov/zing/srw/dc.xsd" 
+            location="http://www.loc.gov/zing/srw/dc.xsd"
             name="dc"
             retrieve="true">
       <title lang="en">Dublin Core</title>
     </schema>
     <!--
     <schema identifier="http://indexdata.dk/dc-short"
-            location="" 
+            location=""
             name="dc-short"
             retrieve="true">
       <title lang="en">Dublin Core Short Form</title>
@@ -191,7 +191,7 @@
     -->
   </schemaInfo>
 
- 
+
   <configInfo>
 
     <!-- searchRetrieve settings -->
@@ -207,9 +207,9 @@
     <!--<supports type="relationModifier">phonetic</supports> --><!-- 2=100 -->
     <!--<supports type="relationModifier">stem</supports> --><!-- 2=101  -->
 
-    <!-- <supports type="proximity"></supports> --> 
+    <!-- <supports type="proximity"></supports> -->
           <!-- title = (house prox/distance=1/unit=word  the) -->
-    <!-- proximity modifier supported by the server or index 
+    <!-- proximity modifier supported by the server or index
          (relation, distance, unit, ordering) -->
     <!-- <supports type="proximityModifier"></supports> -->
     <!-- boolean modifier supported by the server or index -->
@@ -223,14 +223,14 @@
     <!-- supported sortmodifier (ascending, missingValue, caseSensitive) -->
     <!-- <supports type="sortModifier"></supports> -->
 
-    <!-- presentation settings --> 
+    <!-- presentation settings -->
     <default type="numberOfRecords">0</default>
     <default type="retrieveSchema">dc</default>
     <default type="recordPacking">xml</default>
 
     <setting type="stylesheet">docpath/sru.xsl</setting>
     <!-- <setting type="maximumRecords">1000</setting> -->
-    <!-- <supports type="resultSets"></supports>  --> 
+    <!-- <supports type="resultSets"></supports>  -->
 
     <!-- scan settings -->
 
@@ -245,5 +245,5 @@
     <!-- <supports type="extraExplainData"></supports> -->
     <!-- <supports type="profile"></supports> -->
   </configInfo>
-   
+
 </explain>

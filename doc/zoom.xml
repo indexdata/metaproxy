@@ -1,4 +1,4 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN" 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
     "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
  <!ENTITY % idcommon SYSTEM "common/common.ent">
@@ -9,18 +9,18 @@
   <productname>Metaproxy</productname>
   <info><orgname>Index Data</orgname></info>
  </refentryinfo>
- 
+
  <refmeta>
   <refentrytitle>zoom</refentrytitle>
   <manvolnum>3mp</manvolnum>
   <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
  </refmeta>
- 
+
  <refnamediv>
   <refname>zoom</refname>
   <refpurpose>Metaproxy ZOOM Module</refpurpose>
  </refnamediv>
- 
+
  <refsect1>
   <title>DESCRIPTION</title>
   <para>
@@ -29,7 +29,7 @@
    The client implements the protocols that ZOOM C does: Z39.50, SRU
    (GET, POST, SOAP) and SOLR .
   </para>
-  
+
   <para>
    This filter only deals with Z39.50 on input. The following services
    are supported: init, search, present and close. The backend target
@@ -172,7 +172,7 @@
       </para>
       <para>
        When Metaproxy creates a content proxy session, the XSL parameter
-       <literal>cproxyhost</literal> is passed to the transform. 
+       <literal>cproxyhost</literal> is passed to the transform.
       </para>
      </listitem>
     </varlistentry>
@@ -348,7 +348,7 @@
   <para>
    Step 1: for CCL, the query is converted to RPN via
    <link linkend="cclmap"><literal>cclmap</literal></link> elements part of
-   the target profile as well as 
+   the target profile as well as
    <link linkend="cclmap_base">base CCL maps</link>.
   </para>
   <para>
@@ -366,13 +366,13 @@
    type.
   </para>
  </refsect1>
- 
+
  <refsect1>
   <title>SORTING</title>
   <para>
    The ZOOM module actively handle CQL sorting - using the SORTBY parameter
    which was introduced in SRU version 1.2. The conversion from SORTBY clause
-   to native sort for some target is driven by the two parameters: 
+   to native sort for some target is driven by the two parameters:
    <link linkend="sortStrategy"><literal>sortStrategy</literal></link>
    and <link linkend="sortmap"><literal>sortmap_</literal><replaceable>field</replaceable></link>.
   </para>
@@ -382,7 +382,7 @@
    conversion. It doesn't throw a diagnostic.
   </para>
  </refsect1>
- 
+
  <refsect1>
   <title>TARGET PROFILE</title>
   <para>
@@ -407,7 +407,7 @@
     </para>
    </listitem>
    </varlistentry>
-   
+
    <varlistentry id="cclmap">
     <term>cclmap_<replaceable>field</replaceable></term><listitem>
     <para>
@@ -419,7 +419,7 @@
     </para>
    </listitem>
    </varlistentry>
-   
+
    <varlistentry>
     <term>cfAuth</term><listitem>
     <para>
@@ -467,7 +467,7 @@
      <literal>element_raw</literal> from the configuration.
      By default that is the element sets <literal>pz2</literal>
      and <literal>raw</literal>.
-     If record transform is not enabled, this setting is 
+     If record transform is not enabled, this setting is
      not used and the element set specified by the client
      is passed verbatim.
     </para>
@@ -487,7 +487,7 @@
     </para>
    </listitem>
    </varlistentry>
-   
+
    <varlistentry>
     <term>piggyback</term><listitem>
     <para>
@@ -498,7 +498,7 @@
     </para>
    </listitem>
    </varlistentry>
-   
+
    <varlistentry>
     <term>queryEncoding</term><listitem>
     <para>
@@ -508,7 +508,7 @@
     </para>
    </listitem>
    </varlistentry>
-   
+
    <varlistentry>
     <term>recordEncoding</term><listitem>
     <para>
@@ -539,7 +539,7 @@
     </para>
    </listitem>
    </varlistentry>
-   
+
    <varlistentry id="sortStrategy">
     <term>sortStrategy</term><listitem>
     <para>
@@ -552,7 +552,7 @@
     </para>
    </listitem>
    </varlistentry>
-   
+
    <varlistentry>
     <term>sru</term><listitem>
     <para>
@@ -599,7 +599,7 @@
     <para>
      The value of this field is a string that generates a dynamic link
      based on record content. If the resulting string is non-zero in length
-     a new field, <literal>metadata</literal> with attribute 
+     a new field, <literal>metadata</literal> with attribute
      <literal>type="generated-url"</literal> is generated.
      The contents of this field is the result of the URL recipe conversion.
      The urlRecipe value may refer to an existing metadata element by
@@ -611,7 +611,7 @@
     </para>
    </listitem>
    </varlistentry>
-   
+
    <varlistentry>
     <term>zurl</term><listitem>
     <para>
@@ -641,7 +641,7 @@
    is a comma rather than a question mark. What follows question mark are
    HTTP arguments (in this case SRU arguments).
   </para>
-  <variablelist>  
+  <variablelist>
    <varlistentry>
     <term>user</term>
     <listitem>
@@ -718,17 +718,17 @@
      </para>
     </listitem>
    </varlistentry>
-  </variablelist>  
+  </variablelist>
  </refsect1>
  <refsect1>
   <title>SCHEMA</title>
   <literallayout><xi:include
   xi:href="../xml/schema/filter_zoom.rnc"
-  xi:parse="text"  
+  xi:parse="text"
   xmlns:xi="http://www.w3.org/2001/XInclude" />
   </literallayout>
  </refsect1>
- 
+
  <refsect1>
   <title>EXAMPLES</title>
   <para>
@@ -745,7 +745,7 @@
       <fieldmap cql="dc.creator" ccl="au"/>
       <fieldmap cql="dc.title" ccl="ti"/>
       <fieldmap cql="dc.subject" ccl="su"/>
-      
+
       <cclmap>
         <qual name="ocn">
           <attr type="u" value="12"/>
@@ -758,9 +758,9 @@
 ]]>
    </screen>
   </para>
-  
- </refsect1> 
- 
+
+ </refsect1>
+
  <refsect1>
   <title>SEE ALSO</title>
   <para>
@@ -776,7 +776,7 @@
    </citerefentry>
   </para>
  </refsect1>
- 
+
  &copyright;
 </refentry>
 

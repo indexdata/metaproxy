@@ -1,4 +1,4 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN" 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
     "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
  <!ENTITY % idcommon SYSTEM "common/common.ent">
@@ -15,12 +15,12 @@
   <manvolnum>3mp</manvolnum>
   <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
  </refmeta>
- 
+
  <refnamediv>
   <refname>sort</refname>
   <refpurpose>Metaproxy Z39.50 Sort Module</refpurpose>
  </refnamediv>
- 
+
  <refsect1><title>DESCRIPTION</title>
   <para>
    This filter performs sorting of Z39.50 result sets.
@@ -72,21 +72,21 @@
    </variablelist>
   </para>
  </refsect1>
- 
+
  <refsect1><title>SCHEMA</title>
    <literallayout><xi:include
 		     xi:href="../xml/schema/filter_sort.rnc"
-		     xi:parse="text"  
+		     xi:parse="text"
 		     xmlns:xi="http://www.w3.org/2001/XInclude" />
    </literallayout>
  </refsect1>
- 
+
  <refsect1><title>EXAMPLES</title>
   <para>
    For example, to sort MARCXML records on title, one could use:
    <screen><![CDATA[
 <filter type="sort">
-  <sort 
+  <sort
     xpath="/marc:record/marc:datafield[@tag='245']/marc:subfield[@code='a']"
     namespaces="marc=http://www.loc.gov/MARC21/slim"
     prefetch="5"
@@ -97,8 +97,8 @@
 ]]>
    </screen>
   </para>
- </refsect1> 
- 
+ </refsect1>
+
  <refsect1><title>SEE ALSO</title>
   <para>
    <citerefentry>
@@ -113,7 +113,7 @@
    </citerefentry>
   </para>
  </refsect1>
- 
+
  &copyright;
 </refentry>
 

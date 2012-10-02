@@ -1,4 +1,4 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN" 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
     "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
  <!ENTITY copyright SYSTEM "copyright.xml">
  <!ENTITY % idcommon SYSTEM "common/common.ent">
@@ -15,7 +15,7 @@
   <manvolnum>3mp</manvolnum>
   <refmiscinfo class="manual">Metaproxy Module</refmiscinfo>
 </refmeta>
- 
+
  <refnamediv>
   <refname>cql_rpn</refname>
   <refpurpose>Metaproxy CQL to RPN Query Language Transforming Module</refpurpose>
@@ -23,7 +23,7 @@
 
  <refsect1><title>DESCRIPTION</title>
   <para>
-   A query language transforming filter which catches Z39.50 
+   A query language transforming filter which catches Z39.50
    <literal>searchRequest</literal>
    packages containing <literal>CQL</literal> queries, transforms
    those to <literal>RPN</literal> queries,
@@ -32,7 +32,7 @@
   </para>
   <para>
    The filter takes only one configuration parameter, namely the path
-   of the standard <literal>YAZ</literal> 
+   of the standard <literal>YAZ</literal>
    <literal>CQL</literal>-to-<literal>CQL</literal> configuration
    file. See the  <ulink url="&url.yaz;">YAZ</ulink> manual for
    configuration file syntax and details.
@@ -48,18 +48,18 @@
    been created by running:
    <screen>
      xsltproc xml/xslt/explain2cqlpqftxt.xsl etc/explain.xml > etc/cql2pqf.txt
-   </screen> 
+   </screen>
   </para>
  </refsect1>
- 
+
  <refsect1><title>SCHEMA</title>
    <literallayout><xi:include
 		     xi:href="../xml/schema/filter_cql_rpn.rnc"
-		     xi:parse="text"  
+		     xi:parse="text"
 		     xmlns:xi="http://www.w3.org/2001/XInclude" />
    </literallayout>
  </refsect1>
- 
+
  <refsect1><title>EXAMPLES</title>
   <para>
    A typical configuration looks like this:
@@ -70,8 +70,8 @@
  ]]>
    </screen>
   </para>
- </refsect1> 
- 
+ </refsect1>
+
  <refsect1><title>SEE ALSO</title>
   <para>
    <citerefentry>
@@ -80,7 +80,7 @@
    </citerefentry>
   </para>
  </refsect1>
- 
+
  &copyright;
 </refentry>
 

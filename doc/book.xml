@@ -1,6 +1,6 @@
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-    "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" 
+    "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"
 [
      <!ENTITY copyright SYSTEM "copyright.xml">
      <!ENTITY % local SYSTEM "local.ent">
@@ -39,10 +39,10 @@
     processes, interprets and redirects requests from IR clients using
     standard protocols such as the binary
     <ulink url="&url.z39.50;">ANSI/NISO Z39.50</ulink>
-    and  the information search and retrieval 
+    and  the information search and retrieval
     web service <ulink url="&url.sru;">SRU</ulink>
     as well as functioning as a limited
-    <ulink url="&url.http;">HTTP</ulink> server. 
+    <ulink url="&url.http;">HTTP</ulink> server.
    </simpara>
    <simpara>
     Metaproxy is configured by an XML file which
@@ -72,7 +72,7 @@
 
  <chapter id="introduction">
   <title>Introduction</title>
-  
+
   <para>
    <ulink url="&url.metaproxy;">Metaproxy</ulink>
    is a stand alone program that acts as a universal router, proxy and
@@ -80,7 +80,7 @@
    as <ulink url="&url.z39.50;">Z39.50</ulink> and
    <ulink url="&url.sru;">SRU</ulink>.
    To clients, it acts as a server of these protocols: it can be searched,
-   records can be retrieved from it, etc. 
+   records can be retrieved from it, etc.
    To servers, it acts as a client: it searches in them,
    retrieves records from them, etc.  it satisfies its clients'
    requests by transforming them, multiplexing them, forwarding them
@@ -123,7 +123,7 @@
    including examples.
   </para>
  </chapter>
- 
+
  <chapter id="installation">
   <title>Installation</title>
   <para>
@@ -138,7 +138,7 @@
     </varlistentry>
     <varlistentry><term><ulink url="&url.libxslt;">Libxslt</ulink></term>
      <listitem>
-      <para>This is an XSLT processor - based on 
+      <para>This is an XSLT processor - based on
        <ulink url="&url.libxml2;">Libxml2</ulink>. Both Libxml2 and
        Libxslt must be installed with the development components
        (header files, etc.) as well as the run-time libraries.
@@ -265,7 +265,7 @@
      The latter the compiler toolset (eg. gcc34).
     </para>
     <para>
-     Pass <literal>--help</literal> to configure to get a list of 
+     Pass <literal>--help</literal> to configure to get a list of
      available options.
     </para>
    </section>
@@ -274,7 +274,7 @@
   <section id="installation.debian">
    <title>Installation on Debian GNU/Linux</title>
    <para>
-    All dependencies for Metaproxy are available as 
+    All dependencies for Metaproxy are available as
     <ulink url="&url.debian;">Debian</ulink>
     packages for the sarge (stable in 2005) and etch (testing in 2005)
     distributions.
@@ -312,14 +312,14 @@
   <section id="installation.rpm">
    <title>Installation on RPM based Linux Systems</title>
    <para>
-    All external dependencies for Metaproxy are available as 
-    RPM packages, either from your distribution site, or from the 
+    All external dependencies for Metaproxy are available as
+    RPM packages, either from your distribution site, or from the
     <ulink url="http://fr.rpmfind.net/">RPMfind</ulink> site.
    </para>
    <para>
-    For example, an installation of the requires Boost C++ development 
+    For example, an installation of the requires Boost C++ development
     libraries on RedHat Fedora C4 and C5 can be done like this:
-    <screen> 
+    <screen>
     wget ftp://fr.rpmfind.net/wlinux/fedora/core/updates/testing/4/SRPMS/boost-1.33.0-3.fc4.src.rpm
     sudo rpmbuild --buildroot src/ --rebuild -p fc4/boost-1.33.0-3.fc4.src.rpm
     sudo rpm -U /usr/src/redhat/RPMS/i386/boost-*rpm
@@ -332,7 +332,7 @@
    </para>
    <para>
     There is currently no official RPM package for YAZ++.
-    See the <ulink url="&url.yazplusplus;">YAZ++</ulink> pages 
+    See the <ulink url="&url.yazplusplus;">YAZ++</ulink> pages
     for more information on a Unix tarball install.
    </para>
    <para>
@@ -458,9 +458,9 @@
        </para>
       </listitem>
      </varlistentry>
-      
+
     </variablelist>
-    
+
     <para>
      After successful compilation you'll find
      <literal>metaproxy.exe</literal> in the
@@ -471,7 +471,7 @@
 
   </section>
  </chapter>
- 
+
 <chapter id="yazproxy-comparison">
  <title>YAZ Proxy Comparison</title>
  <para>
@@ -536,7 +536,7 @@
    </row>
    <row>
     <entry>SRU Virtual database, i.e. select any Z39.50 target for path</entry>
-    <entry>Supported with filter <literal>virt_db</literal>, 
+    <entry>Supported with filter <literal>virt_db</literal>,
      <literal>sru_z3950</literal></entry>
     <entry>Supported</entry>
    </row>
@@ -717,8 +717,8 @@
 
  <chapter id="filters">
   <title>Filters</title>
-  
-  
+
+
   <section id="filters-introductory-notes">
    <title>Introductory notes</title>
    <para>
@@ -756,7 +756,7 @@
     others are sinks: they consume packages and return a result
     (<literal>backend_test</literal>,
     <literal>bounce</literal>,
-    <literal>http_file</literal>, 
+    <literal>http_file</literal>,
     <literal>z3950_client</literal>);
     the others are true filters, that read, process and pass on the
     packages they are fed
@@ -771,8 +771,8 @@
     <literal>virt_db</literal>).
    </para>
  </section>
-  
-  
+
+
   <section id="overview.filter.types">
    <title>Overview of filter types</title>
    <para>
@@ -794,7 +794,7 @@
    <para>
     The filters are here listed in alphabetical order:
    </para>
-   
+
 <!--
 
 ### New filters:
@@ -836,7 +836,7 @@ Figure out what additional information we need in:
      the user.
     </para>
    </section>
-   
+
    <section id="backend_test">
     <title><literal>backend_test</literal>
     (mp::filter::Backend_test)</title>
@@ -847,38 +847,38 @@ Figure out what additional information we need in:
      even read this section.
     </para>
    </section>
-   
+
    <section id="bounce">
     <title><literal>bounce</literal>
     (mp::filter::Bounce)</title>
     <para>
-     A sink that swallows <emphasis>all packages</emphasis>, 
+     A sink that swallows <emphasis>all packages</emphasis>,
      and returns them almost unprocessed.
      It never sends any package of any type further down the row, but
      sets Z39.50 packages to Z_Close, and HTTP_Request packages to
      HTTP_Response err code 400 packages, and adds a suitable bounce
-     message. 
+     message.
      The bounce filter is usually added at end of each filter chain route
      to prevent infinite hanging of for example HTTP
-     requests packages when only the Z39.50 client partial sink 
+     requests packages when only the Z39.50 client partial sink
      filter is found in the
-     route.  
+     route.
     </para>
    </section>
-   
+
    <section id="cql_rpn">
     <title><literal>cql_rpn</literal>
     (mp::filter::CQLtoRPN)</title>
     <para>
-     A query language transforming filter which catches Z39.50 
+     A query language transforming filter which catches Z39.50
      <literal>searchRequest</literal>
      packages containing <literal>CQL</literal> queries, transforms
      those to <literal>RPN</literal> queries,
      and sends the <literal>searchRequests</literal> on to the next
-     filters. It is among other things useful in a SRU context. 
+     filters. It is among other things useful in a SRU context.
     </para>
    </section>
-   
+
    <section id="frontend_net">
     <title><literal>frontend_net</literal>
      (mp::filter::FrontendNet)</title>
@@ -894,19 +894,19 @@ Figure out what additional information we need in:
     <title><literal>http_file</literal>
      (mp::filter::HttpFile)</title>
     <para>
-     A partial sink which swallows only 
-     <literal>HTTP_Request</literal> packages, and 
+     A partial sink which swallows only
+     <literal>HTTP_Request</literal> packages, and
      returns the contents of files from the local
-     filesystem in response to HTTP requests.  
+     filesystem in response to HTTP requests.
      It lets Z39.50 packages and all other forthcoming package types
-     pass untouched. 
+     pass untouched.
      (Yes, Virginia, this
      does mean that Metaproxy is also a Web-server in its spare time.  So
      far it does not contain either an email-reader or a Lisp
      interpreter, but that day is surely coming.)
     </para>
    </section>
-   
+
    <section id="load_balance">
     <title><literal>load_balance</literal>
      (mp::filter::LoadBalance)</title>
@@ -914,7 +914,7 @@ Figure out what additional information we need in:
      Performs load balancing for incoming Z39.50 init requests.
      It is used together with the <literal>virt_db</literal> filter,
      but unlike the <literal>multi</literal> filter it does send an
-     entire session to only one of the virtual backends. The 
+     entire session to only one of the virtual backends. The
      <literal>load_balance</literal> filter is assuming that
      all backend targets have equal content, and chooses the backend
      with least load cost for a new session.
@@ -926,7 +926,7 @@ Figure out what additional information we need in:
     </warning>
    </para>
    </section>
-      
+
    <section id="log">
     <title><literal>log</literal>
      (mp::filter::Log)</title>
@@ -947,13 +947,13 @@ Figure out what additional information we need in:
      of virtual databases and multi-database searching below.
     </para>
    </section>
-   
+
    <section id="query_rewrite">
    <title><literal>query_rewrite</literal>
      (mp::filter::QueryRewrite)</title>
     <para>
-     Rewrites Z39.50 <literal>Type-1</literal> 
-     and <literal>Type-101</literal> (``<literal>RPN</literal>'') 
+     Rewrites Z39.50 <literal>Type-1</literal>
+     and <literal>Type-101</literal> (``<literal>RPN</literal>'')
      queries by a
      three-step process: the query is transliterated from Z39.50
      packet structures into an XML representation; that XML
@@ -962,8 +962,8 @@ Figure out what additional information we need in:
      structure.
     </para>
    </section>
-   
-   
+
+
    <section id="record_transform">
     <title><literal>record_transform</literal>
     (mp::filter::RecordTransform)</title>
@@ -985,7 +985,7 @@ Figure out what additional information we need in:
      This filter implements global sharing of
      result sets (i.e. between threads and therefore between
      clients), yielding performance improvements by clever resource
-     pooling. 
+     pooling.
     </para>
    </section>
 
@@ -1000,17 +1000,17 @@ Figure out what additional information we need in:
      messages.
      The <literal>sru_z3950</literal> filter  processes also  SRU
      GET/POST/SOAP explain requests, returning
-     either the absolute minimum required by the standard, or a  full 
+     either the absolute minimum required by the standard, or a  full
      pre-defined ZeeReX explain record.
-     See the 
+     See the
      <ulink url="&url.zeerex.explain;">ZeeReX Explain</ulink>
-     standard pages and the 
+     standard pages and the
      <ulink url="&url.sru.explain;">SRU Explain</ulink> pages
      for more information on the correct explain syntax.
      SRU scan requests are not supported yet.
     </para>
    </section>
-   
+
    <section id="template">
     <title><literal>template</literal>
      (mp::filter::Template)</title>
@@ -1023,7 +1023,7 @@ Figure out what additional information we need in:
      intended for civilians.
     </para>
    </section>
-   
+
    <section id="virt_db">
     <title><literal>virt_db</literal>
      (mp::filter::VirtualDB)</title>
@@ -1038,7 +1038,7 @@ Figure out what additional information we need in:
      of virtual databases and multi-database searching below.
     </para>
    </section>
-   
+
    <section id="z3950_client">
     <title><literal>z3950_client</literal>
      (mp::filter::Z3950Client)</title>
@@ -1052,7 +1052,7 @@ Figure out what additional information we need in:
      the route.  Subsequent requests are sent to the same address,
      which is remembered at Init time in a Session object.
      HTTP_Request packages and all other forthcoming package types
-     are passed untouched. 
+     are passed untouched.
     </para>
   </section>
 
@@ -1065,7 +1065,7 @@ Figure out what additional information we need in:
      Z39.50 explain requests, returning a static ZeeReX
      Explain XML record from the config section. All other packages
      are passed through.
-     See the 
+     See the
      <ulink url="&url.zeerex.explain;">ZeeReX Explain</ulink>
      standard pages
      for more information on the correct explain syntax.
@@ -1076,11 +1076,11 @@ Figure out what additional information we need in:
      </para>
     </warning>
    </section>
-   
+
 
   </section>
-  
-  
+
+
   <section id="future.directions">
    <title>Future directions</title>
   <para>
@@ -1118,13 +1118,13 @@ Figure out what additional information we need in:
    </variablelist>
   </section>
  </chapter>
- 
- 
- 
+
+
+
  <chapter id="configuration">
   <title>Configuration: the Metaproxy configuration file format</title>
-  
-  
+
+
   <section id="configuration-introductory-notes">
    <title>Introductory notes</title>
    <para>
@@ -1137,7 +1137,7 @@ Figure out what additional information we need in:
     Metaproxy.)
    </para>
   </section>
-  
+
   <section id="overview.xml.structure">
    <title>Overview of the config file XML structure</title>
    <para>
@@ -1159,7 +1159,7 @@ Figure out what additional information we need in:
     All four are non-repeatable.
    </para>
    <para>
-     The &lt;dlpath;&gt; element contains a text element which 
+     The &lt;dlpath;&gt; element contains a text element which
      specifies the location of filter modules. This is only needed
      if Metaproxy must load 3rd party filters (most filters with Metaproxy
      are built into the Metaproxy application).
@@ -1224,7 +1224,7 @@ Figure out what additional information we need in:
     <filter id="backend" type="z3950_client">
     </filter>
   </filters>
-  <routes>  
+  <routes>
     <route id="start">
       <filter refid="frontend"/>
       <filter type="log"/>
@@ -1259,7 +1259,7 @@ Figure out what additional information we need in:
     mutton, beef and trout packages.
     When the response arrives, it is handed
     back to the <literal>log</literal> filter, which emits another
-    message; and then to the <literal>frontend_net</literal> filter, 
+    message; and then to the <literal>frontend_net</literal> filter,
     which returns the response to the client.
    </para>
   </section>
@@ -1269,7 +1269,7 @@ Figure out what additional information we need in:
    <para>
     Metaproxy XML configuration snippets can be reused by other
     filters using the <literal>XInclude</literal> standard, as seen in
-    the <literal>/etc/config-sru-to-z3950.xml</literal> example SRU 
+    the <literal>/etc/config-sru-to-z3950.xml</literal> example SRU
     configuration.
    <screen><![CDATA[
     <filter id="sru" type="sru_z3950">
@@ -1287,7 +1287,7 @@ Figure out what additional information we need in:
    <para>
     The distribution contains RelaxNG Compact and XML syntax checking
     files, as well as XML Schema files. These are found in the
-    distribution paths 
+    distribution paths
    <screen>
     xml/schema/metaproxy.rnc
     xml/schema/metaproxy.rng
@@ -1297,8 +1297,8 @@ Figure out what additional information we need in:
     configuration files. For example, using the utility
     <filename>xmllint</filename>, syntax checking is done like this:
    <screen>
-    xmllint --noout --schema xml/schema/metaproxy.xsd etc/config-local.xml 
-    xmllint --noout --relaxng xml/schema/metaproxy.rng etc/config-local.xml 
+    xmllint --noout --schema xml/schema/metaproxy.xsd etc/config-local.xml
+    xmllint --noout --relaxng xml/schema/metaproxy.rng etc/config-local.xml
    </screen>
     (A recent version of <literal>libxml2</literal> is required, as
     support for XML Schemas is a relatively recent addition.)
@@ -1679,17 +1679,17 @@ Z>
  <chapter id="sru-server">
   <title>Combined SRU webservice and Z39.50 server configuration</title>
   <para>
-   Metaproxy can act as 
-   <ulink url="&url.sru;">SRU</ulink> and 
-   web service server, which translates web service requests to 
+   Metaproxy can act as
+   <ulink url="&url.sru;">SRU</ulink> and
+   web service server, which translates web service requests to
    <ulink url="&url.z39.50;">ANSI/NISO Z39.50</ulink> packages and
    sends them off to common available targets.
   </para>
   <para>
   A typical setup for this operation needs a filter route including the
-  following modules: 
+  following modules:
   </para>
-   
+
   <table id="sru-server-table-config" frame="top">
    <title>SRU/Z39.50 Server Filter Route Configuration</title>
    <tgroup cols="3">
@@ -1700,7 +1700,7 @@ Z>
       <entry>Purpose</entry>
      </row>
     </thead>
-    
+
     <tbody>
      <row>
       <entry><literal>frontend_net</literal></entry>
@@ -1770,16 +1770,16 @@ Z>
     </tbody>
    </tgroup>
   </table>
-  <para> 
+  <para>
    A typical minimal example <ulink url="&url.sru;">SRU</ulink>
-   server configuration file is found in the tarball distribution at 
+   server configuration file is found in the tarball distribution at
    <literal>etc/config-sru-to-z3950.xml</literal>.
-  </para> 
+  </para>
   <para>
    Off course, any other metaproxy modules can be integrated into a
-   SRU server solution, including, but not limited to, load balancing, 
-   multiple target querying 
-   (see  <xref linkend="multidb"/>), and complex RPN query rewrites. 
+   SRU server solution, including, but not limited to, load balancing,
+   multiple target querying
+   (see  <xref linkend="multidb"/>), and complex RPN query rewrites.
   </para>
 
 
@@ -2050,8 +2050,8 @@ Z>
    </para>
   </section>
  </chapter>
- 
- 
+
+
  <reference id="reference">
   <title>Reference</title>
    <partintro id="reference-introduction">
@@ -2084,14 +2084,14 @@ Z>
    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
    for more details.
   </para>
-  
+
   <para>
    You should have received a copy of the GNU General Public License
    along with Metaproxy; see the file LICENSE.  If not, write to the
-   Free Software Foundation, 
+   Free Software Foundation,
    51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
    </para>
-  
+
  </appendix>
 
  &gpl2;
