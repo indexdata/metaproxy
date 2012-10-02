@@ -732,8 +732,12 @@
  <refsect1>
   <title>EXAMPLES</title>
   <para>
-   The following configuration illustrates most of the
-   facilities:
+   In example below Target definitions (Torus records) are fetched
+   from a web service via a proxy. A CQL profile is configured which
+   maps to a set of CCL fields ("no field", au, tu and su). Presumably
+   the target definitions fetched maps the CCL to their native RPN.
+   A CCL "ocn" is mapped for all targets. Logging of APDUs are enabled,
+   and a timeout is given.
    <screen><![CDATA[
     <filter type="zoom">
       <torus
@@ -759,6 +763,35 @@
    </screen>
   </para>
 
+  <para>
+   Here is another example with two locally defined targets: A
+   Solr target and a Z39.50 target.
+   <screen><![CDATA[
+      </filter>
+      <filter type="zoom">
+        <torus>
+          <records>
+            <record>
+              <udb>ocs-test</udb>
+              <cclmap_term>t=z</cclmap_term>
+              <cclmap_ti>u=title t=z</cclmap_ti>
+              <sru>solr</sru>
+              <zurl>ocs-test.indexdata.com/solr/select</zurl>
+            </record>
+            <record>
+              <udb>loc</udb>
+              <cclmap_term>t=l,r</cclmap_term>
+              <cclmap_ti>u=4 t=l,r</cclmap_ti>
+              <zurl>z3950.loc.gov:7090/voyager</zurl>
+            </record>
+          </records>
+        </torus>
+        <fieldmap cql="cql.serverChoice"/>
+        <fieldmap cql="dc.title" ccl="ti"/>
+      </filter>
+]]>
+   </screen>
+  </para>
  </refsect1>
 
  <refsect1>
