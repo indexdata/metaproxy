@@ -56,6 +56,7 @@ namespace metaproxy_1 {
             void timeoutNotify();
             void recv_GDU(Z_GDU *gdu, int len);
             void fixup_nsd(ODR odr, Z_Records *records);
+            void fixup_nsd(ODR odr, Z_DefaultDiagFormat *nsd);
             void fixup_init(ODR odr, Z_InitResponse *initrs);
             yazpp_1::IPDU_Observer* sessionNotify(
                 yazpp_1::IPDU_Observable *the_PDU_Observable,
@@ -170,25 +171,40 @@ void yf::Z3950Client::Assoc::timeoutNotify()
     }
 }
 
+void yf::Z3950Client::Assoc::fixup_nsd(ODR odr, Z_DefaultDiagFormat *nsd)
+{
+    std::string addinfo;
+
+    // should really check for nsd->which.. But union has two members
+    // containing almost same data
+    const char *v2Addinfo = nsd->u.v2Addinfo;
+    //  Z_InternationalString *v3Addinfo;
+    if (v2Addinfo && *v2Addinfo)
+    {
+        addinfo.assign(nsd->u.v2Addinfo);
+        addinfo += " ";
+    }
+    addinfo += "(backend=" + m_host + ")";
+    nsd->u.v2Addinfo = odr_strdup(odr, addinfo.c_str());
+}
+
 void yf::Z3950Client::Assoc::fixup_nsd(ODR odr, Z_Records *records)
 {
     if (records && records->which == Z_Records_NSD)
     {
-        Z_DefaultDiagFormat *nsd = records->u.nonSurrogateDiagnostic;
-	std::string addinfo;
-
-        // should really check for nsd->which.. But union has two members
-        // containing almost same data
-        const char *v2Addinfo = nsd->u.v2Addinfo;
-	//  Z_InternationalString *v3Addinfo;
-
-        if (v2Addinfo && *v2Addinfo)
+        fixup_nsd(odr, records->u.nonSurrogateDiagnostic);
+    }
+    if (records && records->which == Z_Records_multipleNSD)
+    {
+        Z_DiagRecs *drecs = records->u.multipleNonSurDiagnostics;
+        int i;
+        for (i = 0; i < drecs->num_diagRecs; i++)
         {
-            addinfo.assign(nsd->u.v2Addinfo);
-            addinfo += " ";
+            Z_DiagRec *dr = drecs->diagRecs[i];
+
+            if (dr->which == Z_DiagRec_defaultFormat)
+                fixup_nsd(odr, dr->u.defaultFormat);
         }
-        addinfo += "(backend=" + m_host + ")";
-        nsd->u.v2Addinfo = odr_strdup(odr, addinfo.c_str());
     }
 }
 
