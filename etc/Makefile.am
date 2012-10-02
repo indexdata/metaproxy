@@ -20,6 +20,7 @@ xmlconfig = $(srcdir)/config-bytarget.xml \
     $(srcdir)/config4.xml \
     $(srcdir)/config5.xml \
     $(srcdir)/config-cgi.xml \
+    $(srcdir)/config-solr.xml \
     $(srcdir)/config-zoom.xml \
     $(srcdir)/retrieval-info.xml
 

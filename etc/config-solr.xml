@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
+  <start route="start"/>
+  <routes>
+    <route id="start">
+      <filter type="frontend_net">
+        <threads>10</threads>
+        <port>@:9000</port>
+      </filter>
+      <filter type="log">
+        <message>F</message>
+	<category session="true" apdu="true"/>
+      </filter>
+      <filter type="zoom">
+	<torus>
+	  <records>
+	    <record>
+	      <udb>ocs-test</udb>
+	      <cclmap_term>1=4 t=z</cclmap_term>
+	      <cclmap_ti>u=title t=z</cclmap_ti>
+	      <sru>solr</sru>
+	      <zurl>ocs-test.indexdata.com/solr/select</zurl>
+	    </record>
+	    <record>
+	      <udb>loc</udb>
+	      <cclmap_term>t=l,r</cclmap_term>
+	      <cclmap_ti>u=4 t=l,r</cclmap_ti>
+	      <zurl>z3950.loc.gov:7090/voyager</zurl>
+	    </record>
+	  </records>
+	</torus>
+	<fieldmap cql="cql.serverChoice"/>
+	<fieldmap cql="dc.title" ccl="ti"/>
+      </filter>
+      <filter type="bounce"/>
+    </route>
+  </routes>
+</metaproxy>
+
