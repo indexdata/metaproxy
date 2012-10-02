@@ -54,7 +54,7 @@
    A typical configuration looks like this:
    <screen><![CDATA[
    <filter type="query_rewrite">
-    <xslt>pqf2pqf.xsl</xslt>
+    <xslt stylesheet="pqf2pqf.xsl">
    </filter>
 ]]>
    </screen>
