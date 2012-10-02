@@ -573,7 +573,7 @@ void yf::Multi::Frontend::record_diagnostics(Z_Records *records,
             {
                 Z_DiagRec **n = (Z_DiagRec **)
                     odr_malloc(odr,
-                               (1+z_diag->num_diagRecs) * sizeof(*n));
+                               (1 + z_diag->num_diagRecs) * sizeof(*n));
                 memcpy(n, z_diag->diagRecs, z_diag->num_diagRecs
                        * sizeof(*n));
                 z_diag->diagRecs = n;
@@ -586,8 +586,24 @@ void yf::Multi::Frontend::record_diagnostics(Z_Records *records,
         }
         else if (records->which == Z_Records_multipleNSD)
         {
-            // we may set this multiple times (TOO BAD!)
-            z_diag = records->u.multipleNonSurDiagnostics;
+            Z_DiagRecs * dr =records->u.multipleNonSurDiagnostics;
+
+            if (!z_diag)
+            {
+                z_diag = (Z_DiagRecs *) odr_malloc(odr, sizeof(*z_diag));
+                z_diag->num_diagRecs = 0;
+                z_diag->diagRecs = 0;
+            }
+            Z_DiagRec **n = (Z_DiagRec **)
+                odr_malloc(odr,
+                           (dr->num_diagRecs + z_diag->num_diagRecs) * 
+                           sizeof(*n));
+            if (z_diag->num_diagRecs)
+                memcpy(n, z_diag->diagRecs, z_diag->num_diagRecs * sizeof(*n));
+            memcpy(n + z_diag->num_diagRecs,
+                   dr->diagRecs, dr->num_diagRecs * sizeof(*n));
+            z_diag->diagRecs = n;
+            z_diag->num_diagRecs += dr->num_diagRecs;
         }
         else
             no_successful++; // probably piggyback
