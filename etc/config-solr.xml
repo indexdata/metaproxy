@@ -16,7 +16,7 @@
 	  <records>
 	    <record>
 	      <udb>ocs-test</udb>
-	      <cclmap_term>1=4 t=z</cclmap_term>
+	      <cclmap_term>t=z</cclmap_term>
 	      <cclmap_ti>u=title t=z</cclmap_ti>
 	      <sru>solr</sru>
 	      <zurl>ocs-test.indexdata.com/solr/select</zurl>
