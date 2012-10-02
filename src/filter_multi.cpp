@@ -107,6 +107,10 @@ namespace metaproxy_1 {
             void scan1(Package &package, Z_APDU *apdu);
             void scan2(Package &package, Z_APDU *apdu);
             void relay_apdu(Package &package, Z_APDU *apdu);
+            void record_diagnostics(Z_Records *records, 
+                                    Z_DiagRecs * &z_diag,
+                                    ODR odr,
+                                    int &no_successful);
             Rep *m_p;
         };
         class Multi::Map {
@@ -547,6 +551,51 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
     package.response() = f_apdu;
 }
 
+void yf::Multi::Frontend::record_diagnostics(Z_Records *records, 
+                                             Z_DiagRecs * &z_diag,
+                                             ODR odr,
+                                             int &no_successful)
+{
+    // see we get any errors (AKA diagnstics)
+    if (records)
+    {
+        if (records->which == Z_Records_NSD)
+        {
+            if (!z_diag)
+            {
+                z_diag = (Z_DiagRecs *)
+                    odr_malloc(odr, sizeof(*z_diag));
+                z_diag->num_diagRecs = 0;
+                z_diag->diagRecs = (Z_DiagRec**)
+                    odr_malloc(odr, sizeof(*z_diag->diagRecs));
+            }
+            else
+            {
+                Z_DiagRec **n = (Z_DiagRec **)
+                    odr_malloc(odr,
+                               (1+z_diag->num_diagRecs) * sizeof(*n));
+                memcpy(n, z_diag->diagRecs, z_diag->num_diagRecs
+                       * sizeof(*n));
+                z_diag->diagRecs = n;
+            }
+            Z_DiagRec *nr = (Z_DiagRec *) odr_malloc(odr, sizeof(*nr));
+            nr->which = Z_DiagRec_defaultFormat;
+            nr->u.defaultFormat =
+                records->u.nonSurrogateDiagnostic;
+            z_diag->diagRecs[z_diag->num_diagRecs++] = nr;
+        }
+        else if (records->which == Z_Records_multipleNSD)
+        {
+            // we may set this multiple times (TOO BAD!)
+            z_diag = records->u.multipleNonSurDiagnostics;
+        }
+        else
+            no_successful++; // probably piggyback
+    }
+    else
+        no_successful++;  // no records and no diagnostics
+}
+
 void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
 {
     // create search request
@@ -607,44 +656,8 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
             Z_APDU *b_apdu = gdu->u.z3950;
             Z_SearchResponse *b_resp = b_apdu->u.searchResponse;
 
-            // see we get any errors (AKA diagnstics)
-            if (b_resp->records)
-            {
-                if (b_resp->records->which == Z_Records_NSD)
-                {
-                    if (!z_diag)
-                    {
-                        z_diag = (Z_DiagRecs *)
-                            odr_malloc(odr, sizeof(*z_diag));
-                        z_diag->num_diagRecs = 0;
-                        z_diag->diagRecs = (Z_DiagRec**)
-                            odr_malloc(odr, sizeof(*z_diag->diagRecs));
-                    }
-                    else
-                    {
-                        Z_DiagRec **n = (Z_DiagRec **)
-                            odr_malloc(odr,
-                                       (1+z_diag->num_diagRecs) * sizeof(*n));
-                        memcpy(n, z_diag->diagRecs, z_diag->num_diagRecs
-                               * sizeof(*n));
-                        z_diag->diagRecs = n;
-                    }
-                    Z_DiagRec *nr = (Z_DiagRec *) odr_malloc(odr, sizeof(*nr));
-                    nr->which = Z_DiagRec_defaultFormat;
-                    nr->u.defaultFormat =
-                        b_resp->records->u.nonSurrogateDiagnostic;
-                    z_diag->diagRecs[z_diag->num_diagRecs++] = nr;
-                }
-                else if (b_resp->records->which == Z_Records_multipleNSD)
-                {
-                    // we may set this multiple times (TOO BAD!)
-                    z_diag = b_resp->records->u.multipleNonSurDiagnostics;
-                }
-                else
-                    no_successful++; // probably piggyback
-            }
-            else
-                no_successful++;  // no records and no diagnostics
+            record_diagnostics(b_resp->records, z_diag, odr, no_successful);
+
             BackendSet backendSet;
             backendSet.m_backend = *bit;
             backendSet.m_count = *b_resp->resultCount;
@@ -812,15 +825,19 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
     multi_move(present_backend_list);
 
     // look at each response
-    Z_Records *z_records_diag = 0;
+    Z_DiagRecs *z_diag = 0;
+    int no_successful = 0;
+    mp::odr odr;
+    PackagePtr close_p;
 
     std::list<BackendPtr>::const_iterator pbit = present_backend_list.begin();
     for (; pbit != present_backend_list.end(); pbit++)
     {
         PackagePtr p = (*pbit)->m_package;
 
-        if (p->session().is_closed()) // if any backend closes, close frontend
-            package.session().close();
+        // save closing package for at least one target
+        if (p->session().is_closed())
+            close_p = p;
 
         Z_GDU *gdu = p->response().get();
         if (gdu && gdu->which == Z_GDU_Z3950 && gdu->u.z3950->which ==
@@ -829,30 +846,34 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
             Z_APDU *b_apdu = gdu->u.z3950;
             Z_PresentResponse *b_resp = b_apdu->u.presentResponse;
 
-            // see we get any errors (AKA diagnstics)
-            if (b_resp->records)
-            {
-                if (b_resp->records->which != Z_Records_DBOSD)
-                    z_records_diag = b_resp->records;
-                // we may set this multiple times (TOO BAD!)
-            }
-        }
-        else
-        {
-            // if any target does not return present response - return that
-            package.response() = p->response();
-            return;
+            record_diagnostics(b_resp->records, z_diag, odr, no_successful);
         }
     }
 
-    mp::odr odr;
     Z_APDU *f_apdu = odr.create_presentResponse(apdu_req, 0, 0);
     Z_PresentResponse *f_resp = f_apdu->u.presentResponse;
 
-    if (z_records_diag)
+    if (close_p && (no_successful == 0 || !m_p->m_hide_errors))
     {
-        f_resp->records = z_records_diag;
-        *f_resp->presentStatus = Z_PresentStatus_failure;
+        package.session().close();
+        package.response() = close_p->response();
+        return;
+    }
+    if (z_diag && (no_successful == 0 || !m_p->m_hide_errors))
+    {
+        f_resp->records = (Z_Records *)
+            odr_malloc(odr, sizeof(*f_resp->records));
+        if (z_diag->num_diagRecs > 1)
+        {
+            f_resp->records->which = Z_Records_multipleNSD;
+            f_resp->records->u.multipleNonSurDiagnostics = z_diag;
+        }
+        else
+        {
+            f_resp->records->which = Z_Records_NSD;
+            f_resp->records->u.nonSurrogateDiagnostic =
+                z_diag->diagRecs[0]->u.defaultFormat;
+        }
     }
     else if (number < 0 || (size_t) number > jobs.size())
     {
@@ -876,24 +897,27 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
             odr_malloc(odr, sizeof(Z_NamePlusRecord *) * nprl->num_records);
         int i = 0;
         std::list<Multi::FrontendSet::PresentJob>::const_iterator jit;
-        for (jit = jobs.begin(); jit != jobs.end(); jit++, i++)
+        for (jit = jobs.begin(); jit != jobs.end(); jit++)
         {
             PackagePtr p = jit->m_backend->m_package;
 
             Z_GDU *gdu = p->response().get();
             Z_APDU *b_apdu = gdu->u.z3950;
-            Z_PresentResponse *b_resp = b_apdu->u.presentResponse;
-
-            nprl->records[i] = (Z_NamePlusRecord*)
-                odr_malloc(odr, sizeof(Z_NamePlusRecord));
             int inside_pos = jit->m_pos - jit->m_start;
-            if (!b_resp->records || inside_pos >= b_resp->records->
-                u.databaseOrSurDiagnostics->num_records)
-                break;
-	    *nprl->records[i] = *b_resp->records->
-                u.databaseOrSurDiagnostics->records[inside_pos];
-            nprl->records[i]->databaseName =
+            Z_Records *records = b_apdu->u.presentResponse->records;
+
+            if (records && records->which == Z_Records_DBOSD
+                && inside_pos < 
+                records->u.databaseOrSurDiagnostics->num_records)
+            {
+                nprl->records[i] = (Z_NamePlusRecord*)
+                    odr_malloc(odr, sizeof(Z_NamePlusRecord));
+                *nprl->records[i] = *records->
+                    u.databaseOrSurDiagnostics->records[inside_pos];
+                nprl->records[i]->databaseName =
                     odr_strdup(odr, jit->m_backend->m_vhost.c_str());
+                i++;
+            }
         }
         nprl->num_records = i; // usually same as jobs.size();
         *f_resp->nextResultSetPosition = start + i;
