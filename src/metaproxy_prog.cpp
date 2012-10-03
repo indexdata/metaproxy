@@ -47,6 +47,16 @@ namespace mp = metaproxy_1;
 
 mp::RouterFleXML *routerp = 0;
 
+static void set_log_prefix(void)
+{
+#if HAVE_UNISTD_H
+    char str[80];
+
+    sprintf(str, "%lld", (long long) getpid());
+    yaz_log_init_prefix(str);
+#endif
+}
+
 #if HAVE_UNISTD_H
 static pid_t process_group = 0;
 
@@ -67,6 +77,7 @@ static void sig_term_handler(int s)
 
 static void work_common(void *data)
 {
+    set_log_prefix();
 #if HAVE_UNISTD_H
     process_group = getpgid(0); // save process group ID
 
@@ -107,6 +118,8 @@ static int sc_main(
     unsigned mode = 0;
     const char *pidfile = 0;
     const char *uid = 0;
+
+    set_log_prefix();
 
     while ((ret = options("c{config}:Dh{help}l:p:tu:V{version}w:X",
                           argv, argc, &arg)) != -2)
