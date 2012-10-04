@@ -1,3 +1,29 @@
+--- 1.3.47 2012/10/04
+
+For graceful stop (SIGUSR1), metaproxy will kill children processes.
+
+Log when metaproxy is invoked in test mode (-t).
+
+Log PID for each log message.
+
+multi: combine both NSDs and multiple NSDs into one (diagnostics).
+
+z3950_client: fixup multiple NSD's too. Like surrogate diagnostics,
+a (backend=target) is appended for each diagnostic so that can be
+determined the origin of error.
+
+multi: hideerrors also in use for present response.
+
+Solr example in zoom man page.
+
+Fix typo in query_rewrite config example.
+
+Log at least first non surrogate diagnostic. Instead of
+"Z_Records_multipleNSD"
+
+multi: Fix check for opt Records in present response. A SEGV could occur
+if a target did not return records and no diagnostics.
+
 --- 1.3.46 2012/09/24
 
 Yet another fix for graceful stop.
