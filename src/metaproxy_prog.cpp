@@ -197,11 +197,11 @@ static int sc_main(
         return 1;
     }
 
-    if (!test_config)
-        yaz_log(YLOG_LOG, "metaproxy start " VERSION
+    yaz_log(YLOG_LOG, "metaproxy %s " VERSION
 #ifdef VERSION_SHA1
                 " " VERSION_SHA1
 #endif
+        , test_config ? "test" : "start"
             );
 
     yaz_log_xml_errors(0, YLOG_LOG);
@@ -261,6 +261,8 @@ static int sc_main(
         ret = 1;
     }
     xmlFreeDoc(doc);
+    if (test_config)
+        yaz_log(YLOG_LOG, "metaproxy test exit code %d", ret);
     return ret;
 }
 
