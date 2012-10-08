@@ -125,7 +125,7 @@ void yf::QueryRewrite::Rep::process(mp::Package &package) const
                     xmlFreeDoc(doc_input);
                 }
             }
-            if (charset_to.length() && charset_from.length() &&
+            if (!error_code && charset_to.length() && charset_from.length() &&
                 (req->query->which == Z_Query_type_1
                  || req->query->which == Z_Query_type_101))
             {
