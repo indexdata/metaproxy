@@ -238,9 +238,10 @@ void yf::Z3950Client::Assoc::fixup_init(ODR odr, Z_InitResponse *initrs)
                             odr,
                             (oaddinfo ? strlen(oaddinfo) : 0) + 20 +
                             m_host.length());
+                        *naddinfo = '\0';
                         if (oaddinfo && *oaddinfo)
                         {
-                            strcpy(naddinfo, oaddinfo);
+                            strcat(naddinfo, oaddinfo);
                             strcat(naddinfo, " ");
                         }
                         strcat(naddinfo, "(backend=");
