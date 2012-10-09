@@ -224,26 +224,23 @@ static void reject_init(mp::Package &package, int err, const char *addinfo);
 
 void yf::AuthSimple::process_init(mp::Package &package) const
 {
-    Z_IdAuthentication *auth =
-        package.request().get()->u.z3950->u.initRequest->idAuthentication;
-        // This is just plain perverted.
+    Z_InitRequest *initReq = package.request().get()->u.z3950->u.initRequest;
 
-    if (!auth)
+    std::string password;
+    std::string user = get_user(initReq, password);
+
+    if (user.length() == 0)
         return reject_init(package, 0, "no credentials supplied");
-    if (auth->which != Z_IdAuthentication_idPass)
-        return reject_init(package, 0,
-                           "only idPass authentication is supported");
-    Z_IdPass *idPass = auth->u.idPass;
 
-    if (m_p->userRegister.count(idPass->userId)) {
+    if (m_p->userRegister.count(user)) {
         // groupId is ignored, in accordance with ancient tradition.
         yf::AuthSimple::Rep::PasswordAndDBs pdbs =
-            m_p->userRegister[idPass->userId];
-        if (pdbs.password == idPass->password) {
+            m_p->userRegister[user];
+        if (pdbs.password == password) {
             // Success!  Remember who the user is for future reference
             {
                 boost::mutex::scoped_lock lock(m_p->mutex);
-                m_p->userBySession[package.session()] = idPass->userId;
+                m_p->userBySession[package.session()] = user;
             }
             return package.move();
         }
@@ -341,18 +338,43 @@ static void reject_init(mp::Package &package, int err, const char *addinfo) {
     package.session().close();
 }
 
+std::string yf::AuthSimple::get_user(Z_InitRequest *initReq,
+                                     std::string &password) const
+{
+    Z_IdAuthentication *auth = initReq->idAuthentication;
+    std::string user;
+    if (auth)
+    {
+        const char *cp;
+        switch (auth->which)
+        {
+        case Z_IdAuthentication_open:
+            cp = strchr(auth->u.open, '/');
+            if (cp)
+            {
+                user.assign(auth->u.open, cp - auth->u.open);
+                password.assign(cp + 1);
+            }
+            else
+                user = auth->u.open;
+            break;
+        case Z_IdAuthentication_idPass:
+            if (auth->u.idPass->userId)
+                user = auth->u.idPass->userId;
+            if (auth->u.idPass->password)
+                password = auth->u.idPass->password;
+            break;
+        }
+    }
+    return user;
+}
 
 void yf::AuthSimple::check_targets(mp::Package & package) const
 {
     Z_InitRequest *initReq = package.request().get()->u.z3950->u.initRequest;
 
-    Z_IdAuthentication *auth = initReq->idAuthentication;
-    // We only get into this method if we are dealing with a session
-    // that has been authenticated using idPass authentication.  So we
-    // know what kind of information is in the Init Request, and we
-    // can trust the username without needing to re-authenticate.
-    assert(auth->which == Z_IdAuthentication_idPass);
-    std::string user = auth->u.idPass->userId;
+    std::string password;
+    std::string user = get_user(initReq, password);
     std::list<std::string> authorisedTargets = m_p->targetsByUser[user];
 
     std::list<std::string> targets;
