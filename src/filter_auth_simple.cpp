@@ -72,6 +72,36 @@ yf::AuthSimple::~AuthSimple()
 static void die(std::string s) { throw mp::filter::FilterException(s); }
 
 
+static std::string get_user(Z_InitRequest *initReq, std::string &password)
+{
+    Z_IdAuthentication *auth = initReq->idAuthentication;
+    std::string user;
+    if (auth)
+    {
+        const char *cp;
+        switch (auth->which)
+        {
+        case Z_IdAuthentication_open:
+            cp = strchr(auth->u.open, '/');
+            if (cp)
+            {
+                user.assign(auth->u.open, cp - auth->u.open);
+                password.assign(cp + 1);
+            }
+            else
+                user = auth->u.open;
+            break;
+        case Z_IdAuthentication_idPass:
+            if (auth->u.idPass->userId)
+                user = auth->u.idPass->userId;
+            if (auth->u.idPass->password)
+                password = auth->u.idPass->password;
+            break;
+        }
+    }
+    return user;
+}
+
 // Read XML config.. Put config info in m_p.
 void mp::filter::AuthSimple::configure(const xmlNode * ptr, bool test_only,
                                        const char *path)
@@ -336,37 +366,6 @@ static void reject_init(mp::Package &package, int err, const char *addinfo) {
     *apdu->u.initResponse->result = 0; // reject
     package.response() = apdu;
     package.session().close();
-}
-
-std::string yf::AuthSimple::get_user(Z_InitRequest *initReq,
-                                     std::string &password) const
-{
-    Z_IdAuthentication *auth = initReq->idAuthentication;
-    std::string user;
-    if (auth)
-    {
-        const char *cp;
-        switch (auth->which)
-        {
-        case Z_IdAuthentication_open:
-            cp = strchr(auth->u.open, '/');
-            if (cp)
-            {
-                user.assign(auth->u.open, cp - auth->u.open);
-                password.assign(cp + 1);
-            }
-            else
-                user = auth->u.open;
-            break;
-        case Z_IdAuthentication_idPass:
-            if (auth->u.idPass->userId)
-                user = auth->u.idPass->userId;
-            if (auth->u.idPass->password)
-                password = auth->u.idPass->password;
-            break;
-        }
-    }
-    return user;
 }
 
 void yf::AuthSimple::check_targets(mp::Package & package) const

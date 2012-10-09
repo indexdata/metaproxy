@@ -41,8 +41,6 @@ namespace metaproxy_1 {
             void process_search(metaproxy_1::Package & package) const;
             void process_scan(metaproxy_1::Package & package) const;
             void check_targets(metaproxy_1::Package & package) const;
-            std::string get_user(Z_InitRequest *initReq, std::string &password)
-                const;
         };
     }
 }
