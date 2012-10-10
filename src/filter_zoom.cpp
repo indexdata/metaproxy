@@ -227,6 +227,7 @@ namespace metaproxy_1 {
             CCL_bibset bibset;
             std::string element_transform;
             std::string element_raw;
+            std::string element_passthru;
             std::string proxy;
             xsltStylesheetPtr explain_xsp;
             xsltStylesheetPtr record_xsp;
@@ -473,7 +474,8 @@ void yf::Zoom::Impl::release_frontend(mp::Package &package)
 }
 
 yf::Zoom::Impl::Impl() :
-    apdu_log(false), element_transform("pz2") , element_raw("raw"),
+    apdu_log(false), element_transform("pz2") , element_raw("raw") ,
+    element_passthru("F"),
     zoom_timeout("40"), proxy_timeout(1)
 {
     bibset = ccl_qual_mk();
@@ -700,6 +702,8 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                     element_transform = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "element_raw"))
                     element_raw = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "element_passthru"))
+                    element_passthru = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "proxy"))
                     proxy = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "explain_xsl"))
@@ -1503,9 +1507,15 @@ void yf::Zoom::Frontend::prepare_elements(BackendPtr b,
 
     if (enable_pz2_retrieval)
     {
-        element_set_name = 0;
-        if (b->sptr->element_set.length())
-            element_set_name = b->sptr->element_set.c_str();
+        if (element_set_name && !strcmp(element_set_name,
+                                        m_p->element_passthru.c_str()))
+            ;
+        else
+        {
+            element_set_name = 0;
+            if (b->sptr->element_set.length())
+                element_set_name = b->sptr->element_set.c_str();
+        }
     }
 
     b->set_option("elementSetName", element_set_name);

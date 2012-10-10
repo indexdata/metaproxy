@@ -14,6 +14,7 @@ filter_zoom =
     attribute xsldir { xsd:string }?,
     attribute element_transform { xsd:string }?,
     attribute element_raw { xsd:string }?,
+    attribute element_passthru { xsd:string }?,
     attribute proxy { xsd:string }?,
     attribute explain_xsl { xsd:string }?,
     attribute record_xsl { xsd:string }?,

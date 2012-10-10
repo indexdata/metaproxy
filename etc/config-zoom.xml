@@ -14,6 +14,7 @@
             xsldir="."
             element_transform="pz2"
             element_raw="raw"
+            element_passthru="F"
             explain_xsl="torus2zeerex.xsl"
             record_xsl="pz2dc.xsl"
 	    >
