@@ -1,3 +1,11 @@
+--- 1.3.49 2012/10/18
+
+zoom: new config element passthru. This defines an element set that is
+passed verbatim to the backend in pz2 mode.
+
+auth_simple: allow both idPass and open auth. Also fix SEGV that could
+occur for open auth.
+
 --- 1.3.48 2012/10/08
 
 z3950_client: fix string handling for init diagnostics in the case where
