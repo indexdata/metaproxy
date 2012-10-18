@@ -625,15 +625,9 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
         if (!strcmp((const char *) ptr->name, "port"))
         {
             Port port;
-            const struct _xmlAttr *attr;
-            for (attr = ptr->properties; attr; attr = attr->next)
-            {
-                if (!strcmp((const char *) attr->name, "route"))
-                    port.route = mp::xml::get_text(attr);
-            }
+            port.route = mp::xml::get_route(ptr);
             port.port = mp::xml::get_text(ptr);
             ports.push_back(port);
-
         }
         else if (!strcmp((const char *) ptr->name, "threads"))
         {
