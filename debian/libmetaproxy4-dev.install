@@ -2,3 +2,4 @@ debian/tmp/usr/include/metaproxy
 debian/tmp/usr/lib/libmetaproxy*.a
 debian/tmp/usr/lib/libmetaproxy*.so
 debian/tmp/usr/bin/metaproxy-config
+debian/tmp/usr/share/man/man1/metaproxy-config.1

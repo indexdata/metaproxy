@@ -92,6 +92,7 @@ rm -fr ${RPM_BUILD_ROOT}
 %{_libdir}/*.so
 %{_libdir}/*.a
 %{_bindir}/metaproxy-config
+%{_mandir}/man1/metaproxy-config.*
 
 %files doc
 %defattr(-,root,root)
@@ -100,7 +101,8 @@ rm -fr ${RPM_BUILD_ROOT}
 %files
 %defattr(-,root,root)
 %{_bindir}/metaproxy
-%{_mandir}/man?/*
+%{_mandir}/man3/*
+%{_mandir}/man1/metaproxy.*
 %config /etc/init.d/metaproxy
 %config(noreplace) /etc/metaproxy/metaproxy.xml
 %config /etc/metaproxy/metaproxy.user

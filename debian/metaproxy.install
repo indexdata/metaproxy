@@ -1,6 +1,6 @@
 debian/tmp/etc/metaproxy/metaproxy.xml
 debian/tmp/etc/metaproxy/metaproxy.user
 debian/tmp/usr/bin/metaproxy
-debian/tmp/usr/share/man/man1/*
+debian/tmp/usr/share/man/man1/metaproxy.1
 debian/tmp/usr/share/man/man3/*
 debian/tmp/usr/share/metaproxy/*

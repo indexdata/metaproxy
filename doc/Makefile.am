@@ -9,6 +9,7 @@ XMLFILES = book.xml manref.xml copyright.xml gpl-2.0.xml
 MAINXML = $(srcdir)/book.xml
 
 XMLMAN = metaproxy.xml \
+	metaproxy-config.xml \
 	auth_simple.xml \
 	backend_test.xml \
 	bounce.xml \
@@ -32,6 +33,7 @@ XMLMAN = metaproxy.xml \
         zeerex_explain.xml
 
 MANFILES = metaproxy.1 \
+	metaproxy-config.1 \
 	auth_simple.3mp \
 	backend_test.3mp  \
 	bounce.3mp \
