@@ -1,0 +1,130 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
+    "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
+ <!ENTITY copyright SYSTEM "copyright.xml">
+ <!ENTITY % local SYSTEM "local.ent">
+     %local;
+ <!ENTITY % idcommon SYSTEM "common/common.ent">
+     %idcommon;
+]>
+<refentry id="ref-metaproxy">
+ <refentryinfo>
+  <productname>Metaproxy</productname>
+  <productnumber>&version;</productnumber>
+  <info><orgname>Index Data</orgname></info>
+ </refentryinfo>
+
+ <refmeta>
+  <refentrytitle>metaproxy-config</refentrytitle>
+  <manvolnum>1</manvolnum>
+  <refmiscinfo class="manual">Commands</refmiscinfo>
+ </refmeta>
+
+ <refnamediv>
+  <refname>metaproxy-config</refname>
+  <refpurpose>
+  script to get information about the installation of Metaproxy
+  </refpurpose>
+ </refnamediv>
+
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>metaproxy-config</command>
+   <arg choice="opt"><option>--prefix[=<replaceable>DIR</replaceable>]</option></arg>
+   <arg choice="opt"><option>--version</option></arg>
+   <arg choice="opt"><option>--libs</option></arg>
+   <arg choice="opt"><option>--lalibs</option></arg>
+   <arg choice="opt"><option>--cflags</option></arg>
+   <!-- <arg choice="opt"><option>- -comp</option></arg> -->
+   <!-- <arg choice="opt" rep="repeat">libraries</arg> -->
+  </cmdsynopsis>
+ </refsynopsisdiv>
+
+ <refsect1><title>DESCRIPTION</title>
+
+  <para>
+   <command>metaproxy-config</command> is a script that returns information
+   that your own software should use to build software that uses Metaproxy.
+  </para>
+
+ </refsect1>
+
+ <refsect1><title>OPTIONS</title>
+
+  <variablelist>
+   <varlistentry>
+    <term>--prefix[=<replaceable>DIR</replaceable>]</term>
+    <listitem><para>
+      Returns prefix of Metaproxy or assume a different one if DIR is
+      specified.
+     </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>--version</term>
+    <listitem><para>
+      Returns version of Metaproxy.
+     </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>--libs</term>
+    <listitem><para>
+      Library specification be used when linking with Metaproxy libraries.
+     </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>--lalibs</term>
+    <listitem><para>
+      Returns library specification.
+     </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>--cflags</term>
+    <listitem><para>
+      Returns C++ Compiler flags.
+     </para></listitem>
+   </varlistentry>
+
+  </variablelist>
+ </refsect1>
+
+ <refsect1><title>FILES</title>
+  <para>
+   <filename><replaceable>prefix</replaceable>/bin/metaproxy-config</filename>
+  </para>
+  <para>
+   <filename><replaceable>prefix</replaceable>/lib/libmetaproxy*.a</filename>
+  </para>
+  <para>
+   <filename><replaceable>prefix</replaceable>/lib/metaproxy4/modules</filename>
+  </para>
+  <para>
+   <filename><replaceable>prefix</replaceable>/include/metaproxy</filename>
+  </para>
+ </refsect1>
+
+ <refsect1><title>SEE ALSO</title>
+  <para>
+   <citerefentry>
+    <refentrytitle>metaproxy</refentrytitle>
+    <manvolnum>1</manvolnum>
+   </citerefentry>
+  </para>
+  <para>
+   The Metaproxy
+   <ulink url="&url.metaproxy.doc;">manual</ulink>.
+  </para>
+ </refsect1>
+
+ &copyright;
+
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: nxml
+nxml-child-indent: 1
+End:
+-->
