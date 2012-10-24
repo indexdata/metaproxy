@@ -433,6 +433,51 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
     release_frontend(package);
 }
 
+static void interpret_default_diag(int *error,
+                                   const char **addinfo,
+                                   Z_DefaultDiagFormat *r)
+{
+    *error = *r->condition;
+    *addinfo = r->u.v2Addinfo;
+}
+
+static void interpret_init_diag2(int *error,
+                                const char **addinfo,
+                                Z_DiagnosticFormat *diag)
+{
+    if (diag->num > 0)
+    {
+        Z_DiagnosticFormat_s *ds = diag->elements[0];
+        if (ds->which == Z_DiagnosticFormat_s_defaultDiagRec)
+            interpret_default_diag(error, addinfo, ds->u.defaultDiagRec);
+    }
+}
+
+static void interpret_init_diag(int *error,
+                                const char **addinfo,
+                                Z_InitResponse *initrs)
+{
+    Z_External *uif = initrs->userInformationField;
+    if (uif && uif->which == Z_External_userInfo1)
+    {
+        int i;
+        Z_OtherInformation *ui = uif->u.userInfo1;
+        for (i = 0; i < ui->num_elements; i++)
+        {
+            Z_OtherInformationUnit *unit = ui->list[i];
+            if (unit->which == Z_OtherInfo_externallyDefinedInfo &&
+                unit->information.externallyDefinedInfo &&
+                unit->information.externallyDefinedInfo->which ==
+                Z_External_diag1)
+            {
+                interpret_init_diag2(
+                    error, addinfo,
+                    unit->information.externallyDefinedInfo->u.diag1);
+            }
+        }
+    }
+}
+
 bool
 yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
                                          mp::odr &odr_en,
@@ -492,28 +537,26 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
     // send Z3950 package
     z3950_package.move();
 
-    // dead Z3950 backend detection
-    if (z3950_package.session().is_closed())
-    {
-        yaz_add_srw_diagnostic(odr_en,
-                               &(sru_pdu_res->u.response->diagnostics),
-                               &(sru_pdu_res->u.response->num_diagnostics),
-                               YAZ_SRW_SYSTEM_TEMPORARILY_UNAVAILABLE, 0);
-        return false;
-    }
-
     // check successful initResponse
     Z_GDU *z3950_gdu = z3950_package.response().get();
 
+    int error = YAZ_SRW_SYSTEM_TEMPORARILY_UNAVAILABLE;
+    const char *addinfo = 0;
     if (z3950_gdu && z3950_gdu->which == Z_GDU_Z3950
-        && z3950_gdu->u.z3950->which == Z_APDU_initResponse
-        && *z3950_gdu->u.z3950->u.initResponse->result)
-        return true;
-
+        && z3950_gdu->u.z3950->which == Z_APDU_initResponse)
+    {
+        Z_InitResponse *initrs = z3950_gdu->u.z3950->u.initResponse;
+        if (*initrs->result)
+            return true;
+        int z_error = 0;
+        interpret_init_diag(&error, &addinfo, initrs);
+        if (z_error)
+            error = yaz_diag_bib1_to_srw(z_error);
+    }
     yaz_add_srw_diagnostic(odr_en,
                            &(sru_pdu_res->u.response->diagnostics),
                            &(sru_pdu_res->u.response->num_diagnostics),
-                           YAZ_SRW_SYSTEM_TEMPORARILY_UNAVAILABLE, 0);
+                           error, addinfo);
     return false;
 }
 
