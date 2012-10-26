@@ -390,38 +390,40 @@ yf::SessionShared::BackendInstancePtr yf::SessionShared::BackendClass::create_ba
 
     m_named_result_sets = false;
     Z_GDU *gdu = init_package.response().get();
-    if (init_package.session().is_closed())
+
+    if (gdu && gdu->which == Z_GDU_Z3950
+        && gdu->u.z3950->which == Z_APDU_initResponse)
     {
-        /* already closed. We don't know why */
-        return null;
-    }
-    else if (gdu && gdu->which == Z_GDU_Z3950
-             && gdu->u.z3950->which == Z_APDU_initResponse
-             && *gdu->u.z3950->u.initResponse->result)
-    {
-        /* successful init response */
         Z_InitResponse *res = gdu->u.z3950->u.initResponse;
         m_init_response = gdu->u.z3950;
         if (ODR_MASK_GET(res->options, Z_Options_namedResultSets))
         {
             m_named_result_sets = true;
         }
+        if (*gdu->u.z3950->u.initResponse->result
+            && !init_package.session().is_closed())
+        {
+            bp->m_in_use = true;
+            time(&bp->m_time_last_use);
+            bp->m_sequence_this = 0;
+            bp->m_result_set_sequence = 0;
+            m_backend_list.push_back(bp);
+            return bp;
+        }
     }
     else
     {
-        /* not init or init rejected */
+        yazpp_1::GDU empty_gdu;
+        m_init_response = empty_gdu;
+    }
+
+    if (!init_package.session().is_closed())
+    {
         init_package.copy_filter(frontend_package);
         init_package.session().close();
         init_package.move();
-        return null;
     }
-    bp->m_in_use = true;
-    time(&bp->m_time_last_use);
-    bp->m_sequence_this = 0;
-    bp->m_result_set_sequence = 0;
-    m_backend_list.push_back(bp);
-
-    return bp;
+    return null;
 }
 
 
@@ -464,45 +466,52 @@ void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
         }
     }
     BackendClassPtr bc = frontend->m_backend_class;
-    BackendInstancePtr backend;
     mp::odr odr;
 
     // we only need to get init response from "first" target in
     // backend class - the assumption being that init response is
     // same for all
-    if (bc->m_init_response.get() == 0)
+    if (bc->m_backend_list.size() == 0)
     {
-        backend = bc->get_backend(package);
+        BackendInstancePtr backend = bc->create_backend(package);
+
+        if (backend)
+            bc->release_backend(backend);
     }
+
+    yazpp_1::GDU init_response;
     {
         boost::mutex::scoped_lock lock(bc->m_mutex_backend_class);
-        if (bc->m_init_response.get() == 0)
-        {
-            Z_APDU *apdu = odr.create_initResponse(gdu->u.z3950, 0, 0);
-            *apdu->u.initResponse->result = 0;
-            package.response() = apdu;
-            package.session().close();
-        }
-        else
-        {
-            yazpp_1::GDU init_response = bc->m_init_response;
-            Z_GDU *response_gdu = init_response.get();
-            mp::util::transfer_referenceId(odr, gdu->u.z3950,
-                                           response_gdu->u.z3950);
 
-            Z_Options *server_options =
-                response_gdu->u.z3950->u.initResponse->options;
-            Z_Options *client_options = &frontend->m_init_options;
-
-            int i;
-            for (i = 0; i < 30; i++)
-                if (!ODR_MASK_GET(client_options, i))
-                    ODR_MASK_CLEAR(server_options, i);
-            package.response() = init_response;
-        }
+        init_response = bc->m_init_response;
     }
-    if (backend)
-        bc->release_backend(backend);
+
+    if (init_response.get())
+    {
+        Z_GDU *response_gdu = init_response.get();
+        mp::util::transfer_referenceId(odr, gdu->u.z3950,
+                                       response_gdu->u.z3950);
+        Z_Options *server_options =
+            response_gdu->u.z3950->u.initResponse->options;
+        Z_Options *client_options = &frontend->m_init_options;
+        int i;
+        for (i = 0; i < 30; i++)
+            if (!ODR_MASK_GET(client_options, i))
+                ODR_MASK_CLEAR(server_options, i);
+        package.response() = init_response;
+        if (!*response_gdu->u.z3950->u.initResponse->result)
+            package.session().close();
+    }
+    else
+    {
+        Z_APDU *apdu =
+            odr.create_initResponse(
+                gdu->u.z3950, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
+                "session_shared: target closed connection during init");
+        *apdu->u.initResponse->result = 0;
+        package.response() = apdu;
+        package.session().close();
+    }
 }
 
 void yf::SessionShared::BackendSet::timestamp()
@@ -566,15 +575,17 @@ bool yf::SessionShared::BackendSet::search(
         return true;
     }
     Z_APDU *f_apdu = 0;
+    const char *addinfo = "session_shared: "
+        "target closed connection during search";
     if (frontend_apdu->which == Z_APDU_searchRequest)
         f_apdu = odr.create_searchResponse(
-            frontend_apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+            frontend_apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, addinfo);
     else if (frontend_apdu->which == Z_APDU_presentRequest)
         f_apdu = odr.create_presentResponse(
-            frontend_apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+            frontend_apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, addinfo);
     else
         f_apdu = odr.create_close(
-            frontend_apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+            frontend_apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, addinfo);
     frontend_package.response() = f_apdu;
     return false;
 }
@@ -692,6 +703,8 @@ restart:
 
             if (out_of_sessions)
                 addinfo = "session_shared: all sessions in use";
+            else
+                addinfo = "session_shared: could not create backend";
             if (apdu_req->which == Z_APDU_searchRequest)
             {
                 f_apdu = odr.create_searchResponse(
@@ -972,7 +985,8 @@ void yf::SessionShared::Frontend::present(mp::Package &package,
         bc->remove_backend(found_backend);
         Z_APDU *f_apdu_res =
             odr.create_presentResponse(
-                apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+                apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
+                "session_shared: target closed connection during present");
         package.response() = f_apdu_res;
     }
 }
