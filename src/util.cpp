@@ -316,33 +316,11 @@ void mp_util::get_default_diag(Z_DefaultDiagFormat *r,
 void mp_util::get_init_diagnostics(
     Z_InitResponse *initrs, int &error_code, std::string &addinfo)
 {
-    Z_External *uif = initrs->userInformationField;
 
-    if (uif && uif->which == Z_External_userInfo1)
-    {
-        Z_OtherInformation *ui = uif->u.userInfo1;
-        int i;
-        for (i = 0; i < ui->num_elements; i++)
-        {
-            Z_OtherInformationUnit *unit = ui->list[i];
-            if (unit->which == Z_OtherInfo_externallyDefinedInfo &&
-                unit->information.externallyDefinedInfo &&
-                unit->information.externallyDefinedInfo->which ==
-                Z_External_diag1)
-            {
-                Z_DiagnosticFormat *diag =
-                    unit->information.externallyDefinedInfo->u.diag1;
+    Z_DefaultDiagFormat *df = yaz_decode_init_diag(0, initrs);
 
-                if (diag->num > 0)
-                {
-                    Z_DiagnosticFormat_s *ds = diag->elements[0];
-                    if (ds->which == Z_DiagnosticFormat_s_defaultDiagRec)
-                        mp::util::get_default_diag(ds->u.defaultDiagRec,
-                                                    error_code, addinfo);
-                }
-            }
-        }
-    }
+    if (df)
+        get_default_diag(df, error_code, addinfo);
 }
 
 int mp_util::get_or_remove_vhost_otherinfo(
