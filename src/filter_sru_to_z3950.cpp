@@ -26,8 +26,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "sru_util.hpp"
 #include "filter_sru_to_z3950.hpp"
 
-#include <yaz/zgdu.h>
-#include <yaz/z-core.h>
 #include <yaz/srw.h>
 #include <yaz/pquery.h>
 #include <yaz/oid_db.h>
@@ -39,7 +37,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <iostream>
 #include <sstream>
 #include <string>
-/* #include <algorithm> */
 #include <map>
 
 namespace mp = metaproxy_1;
@@ -433,51 +430,6 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
     release_frontend(package);
 }
 
-static void interpret_default_diag(int *error,
-                                   const char **addinfo,
-                                   Z_DefaultDiagFormat *r)
-{
-    *error = *r->condition;
-    *addinfo = r->u.v2Addinfo;
-}
-
-static void interpret_init_diag2(int *error,
-                                const char **addinfo,
-                                Z_DiagnosticFormat *diag)
-{
-    if (diag->num > 0)
-    {
-        Z_DiagnosticFormat_s *ds = diag->elements[0];
-        if (ds->which == Z_DiagnosticFormat_s_defaultDiagRec)
-            interpret_default_diag(error, addinfo, ds->u.defaultDiagRec);
-    }
-}
-
-static void interpret_init_diag(int *error,
-                                const char **addinfo,
-                                Z_InitResponse *initrs)
-{
-    Z_External *uif = initrs->userInformationField;
-    if (uif && uif->which == Z_External_userInfo1)
-    {
-        int i;
-        Z_OtherInformation *ui = uif->u.userInfo1;
-        for (i = 0; i < ui->num_elements; i++)
-        {
-            Z_OtherInformationUnit *unit = ui->list[i];
-            if (unit->which == Z_OtherInfo_externallyDefinedInfo &&
-                unit->information.externallyDefinedInfo &&
-                unit->information.externallyDefinedInfo->which ==
-                Z_External_diag1)
-            {
-                interpret_init_diag2(
-                    error, addinfo,
-                    unit->information.externallyDefinedInfo->u.diag1);
-            }
-        }
-    }
-}
-
 bool
 yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
                                          mp::odr &odr_en,
@@ -548,11 +500,28 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
         Z_InitResponse *initrs = z3950_gdu->u.z3950->u.initResponse;
         if (*initrs->result)
             return true;
-        int z_error = 0;
-        interpret_init_diag(&error, &addinfo, initrs);
-        if (z_error)
-            error = yaz_diag_bib1_to_srw(z_error);
+        int no = 0;
+        while (1)
+        {
+            Z_DefaultDiagFormat *df = yaz_decode_init_diag(no, initrs);
+
+            if (!df)
+                break;
+            yaz_add_srw_diagnostic(odr_en,
+                                   &(sru_pdu_res->u.response->diagnostics),
+                                   &(sru_pdu_res->u.response->num_diagnostics),
+                                   yaz_diag_bib1_to_srw(*df->condition),
+                                   df->u.v2Addinfo);
+            no++;
+        }
+        if (no)
+            return false; // got least one diagnostic from init
+
+        // we just have result=false.
+        error = YAZ_SRW_AUTHENTICATION_ERROR;
     }
+    else
+        addinfo = "sru_z3950: expected initResponse";
     yaz_add_srw_diagnostic(odr_en,
                            &(sru_pdu_res->u.response->diagnostics),
                            &(sru_pdu_res->u.response->num_diagnostics),
