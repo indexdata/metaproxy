@@ -90,7 +90,9 @@ static void work_common(void *data)
     mp::Package pack;
     pack.router(*routerp).move();
     yaz_log(YLOG_LOG, "metaproxy stop"); /* only for graceful stop */
+#if HAVE_UNISTD_H
     kill(-process_group, SIGTERM); /* kill all children processes as well */
+#endif
     _exit(0);
 }
 
