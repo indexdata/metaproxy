@@ -431,7 +431,13 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
             return 0;
         }
         boost::xtime xt;
-        xtime_get(&xt, boost::TIME_UTC);
+        xtime_get(&xt,
+#if BOOST_VERSION >= 105000 
+                boost::TIME_UTC_
+#else
+                boost::TIME_UTC
+#endif 
+                );
 
         xt.sec += 15;
         if (!m_cond_session_ready.timed_wait(lock, xt))

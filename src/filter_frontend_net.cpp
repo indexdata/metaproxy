@@ -442,7 +442,7 @@ void yf::FrontendNet::ZAssocServer::set_package(const mp::Package *package)
 }
 
 void yf::FrontendNet::ZAssocServer::set_thread_pool(
-    ThreadPoolSocketObserver *observer)
+    mp::ThreadPoolSocketObserver *observer)
 {
     m_thread_pool_observer = observer;
 }
@@ -570,7 +570,7 @@ void yf::FrontendNet::My_Timer_Thread::socketNotify(int event)
     m_obs->deleteObserver(this);
 }
 
-void yf::FrontendNet::process(Package &package) const
+void yf::FrontendNet::process(mp::Package &package) const
 {
     if (m_p->az == 0)
         return;

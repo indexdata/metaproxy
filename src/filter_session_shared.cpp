@@ -1067,7 +1067,13 @@ void yf::SessionShared::Rep::expire()
     while (true)
     {
         boost::xtime xt;
-        boost::xtime_get(&xt, boost::TIME_UTC);
+        boost::xtime_get(&xt,
+#if BOOST_VERSION >= 105000 
+                boost::TIME_UTC_
+#else
+                boost::TIME_UTC
+#endif
+                  );
         xt.sec += m_session_ttl / 3;
         boost::thread::sleep(xt);
 
