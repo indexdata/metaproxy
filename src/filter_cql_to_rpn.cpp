@@ -155,8 +155,8 @@ void yf::CQLtoRPN::Impl::process(mp::Package &package)
                 Z_APDU *f_apdu =
                     odr.create_searchResponse(
                         apdu_req,
-                        YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
-                        "Missing CQL to RPN configuration");
+                        YAZ_BIB1_PERMANENT_SYSTEM_ERROR,
+                        "cql_rpn: missing CQL to RPN configuration");
                 package.response() = f_apdu;
                 return;
             }
