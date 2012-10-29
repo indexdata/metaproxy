@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/package.hpp>
 
 #include <boost/thread/mutex.hpp>
-#include <boost/algorithm/string.hpp>
 
 #include <metaproxy/util.hpp>
 #include "filter_auth_simple.hpp"
@@ -137,6 +136,17 @@ void mp::filter::AuthSimple::configure(const xmlNode * ptr, bool test_only,
         config_targetRegister(targetRegisterName);
 }
 
+static void split_db(std::list<std::string> &dbs,
+                     const char *databasesp)
+{
+    const char *cp;
+    while ((cp = strchr(databasesp, ',')))
+    {
+        dbs.push_back(std::string(databasesp, cp - databasesp));
+        databasesp = cp + 1;
+    }
+    dbs.push_back(std::string(databasesp));
+}
 
 void mp::filter::AuthSimple::config_userRegister(std::string filename)
 {
@@ -162,7 +172,7 @@ void mp::filter::AuthSimple::config_userRegister(std::string filename)
                 "no databases on line: '" + buf + ":" + passwdp + "'");
         *databasesp++ = 0;
         yf::AuthSimple::Rep::PasswordAndDBs tmp(passwdp);
-        boost::split(tmp.dbs, databasesp, boost::is_any_of(","));
+        split_db(tmp.dbs, databasesp);
         m_p->userRegister[buf] = tmp;
 
         if (0)
@@ -198,7 +208,7 @@ void mp::filter::AuthSimple::config_targetRegister(std::string filename)
                 "no targets on line: '" + buf + "'");
         *targetsp++ = 0;
         std::list<std::string> tmp;
-        boost::split(tmp, targetsp, boost::is_any_of(","));
+        split_db(tmp, targetsp);
         m_p->targetsByUser[buf] = tmp;
 
         if (0) {                // debugging
