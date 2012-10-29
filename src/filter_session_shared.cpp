@@ -1000,7 +1000,8 @@ void yf::SessionShared::Frontend::scan(mp::Package &frontend_package,
     {
         mp::odr odr;
         Z_APDU *apdu = odr.create_scanResponse(
-            apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, 0);
+            apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
+            "session_shared: could not create backend");
         frontend_package.response() = apdu;
     }
     else
