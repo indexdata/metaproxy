@@ -425,7 +425,8 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
             mp::odr odr;
 
             package.response() = odr.create_initResponse(
-                apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, "max sessions");
+                apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
+                "z3950_client: max sessions");
             package.session().close();
             return 0;
         }
@@ -438,7 +439,8 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
             mp::odr odr;
 
             package.response() = odr.create_initResponse(
-                apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, "max sessions");
+                apdu, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
+                "z3950_client: max sessions");
             package.session().close();
             return 0;
         }
