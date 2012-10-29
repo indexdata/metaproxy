@@ -14,8 +14,8 @@ YAZ_DIR=..\..\yaz
 YAZPP_DIR=..\..\yazpp
 
 # Boost
-BOOST=\program files\boost\boost_1_43
-BOOST_VERSION=1_43
+BOOST=\program files\boost\boost_1_51
+BOOST_VERSION=1_51
 BOOST_TOOLSET=vc90 # vc90 for VS2008, vc80 for VS 2005, vc71 for 2003
 BOOST_MODEL=mt
 
