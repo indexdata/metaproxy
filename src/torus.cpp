@@ -70,18 +70,25 @@ xmlDoc *mp::get_searchable(mp::Package &package,
     if (http_response && http_response->code == 200 &&
         http_response->content_buf)
     {
-        package.log("zoom", YLOG_LOG, "Torus: %s OK", url_template.c_str());
         doc = xmlParseMemory(http_response->content_buf,
                              http_response->content_len);
-
+        if (doc)
+            package.log("zoom", YLOG_LOG, "Torus: %s OK",
+                        url_template.c_str());
+        else
+            package.log("zoom", YLOG_WARN, "Torus: %s FAIL. XML parse failed",
+                        url_template.c_str());
     }
     else
     {
-        package.log("zoom", YLOG_WARN, "Torus: %s FAIL", url_template.c_str());
         if (http_response)
         {
-            package.log("zoom", YLOG_LOG, "HTTP code: %d", http_response->code);
+            package.log("zoom", YLOG_WARN, "Torus: %s FAIL. HTTP code %d",
+                        url_template.c_str(), http_response->code);
         }
+        else
+            package.log("zoom", YLOG_WARN, "Torus: %s FAIL. No HTTP response",
+                        url_template.c_str());
     }
 
     if (http_response && http_response->content_buf)
