@@ -125,9 +125,10 @@ BOOST_LIB_SUFFIX=$(BOOST_TOOLSET)-$(BOOST_MODEL)-$(BOOST_VERSION).lib
 
 BOOST_DEF = /I"$(BOOST)"
 BOOST_LIB = \
-    "$(BOOST)\lib\libboost_thread-$(BOOST_LIB_SUFFIX)"  \
-    "$(BOOST)\lib\libboost_regex-$(BOOST_LIB_SUFFIX)" \
-    "$(BOOST)\lib\libboost_date_time-$(BOOST_LIB_SUFFIX)" 
+	     /LIBPATH:"$(BOOST)\lib" \
+    "libboost_thread-$(BOOST_LIB_SUFFIX)"  \
+    "libboost_regex-$(BOOST_LIB_SUFFIX)" \
+    "libboost_date_time-$(BOOST_LIB_SUFFIX)" 
 
 LIBXSLT_DEF = \
 	      /I"$(ICONV_DIR)\include" \
