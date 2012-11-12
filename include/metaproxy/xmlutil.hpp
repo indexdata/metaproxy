@@ -29,6 +29,9 @@ namespace metaproxy_1 {
         std::string get_text(const xmlNode *ptr);
         bool get_bool(const xmlNode *ptr, bool default_value);
         int get_int(const xmlNode *ptr, int default_value);
+
+        void parse_attr(const xmlNode *node, const char **names,
+                        std::string *values);
         bool check_attribute(const _xmlAttr *ptr,
                         const std::string &ns,
                         const std::string &name);

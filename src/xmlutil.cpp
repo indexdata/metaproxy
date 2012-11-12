@@ -74,7 +74,6 @@ bool mp_xml::check_attribute(const _xmlAttr *ptr,
                              const std::string &ns,
                              const std::string &name)
 {
-
     if (!mp::xml::is_attribute(ptr, ns, name))
     {
         std::string got_attr = "'";
@@ -149,37 +148,59 @@ bool mp_xml::check_element_mp(const xmlNode *ptr,
     return true;
 }
 
-std::string mp_xml::get_route(const xmlNode *node, std::string &auth)
+void mp_xml::parse_attr(const xmlNode *node, const char **names,
+                        std::string *values)
 {
-    std::string route_value;
+    size_t i;
+    for (i = 0; names[i]; i++)
+        values[i].clear();
+
     if (node)
     {
         const struct _xmlAttr *attr;
         for (attr = node->properties; attr; attr = attr->next)
         {
-            std::string name = std::string((const char *) attr->name);
             std::string value;
+            const char *name = (const char *) attr->name;
 
             if (attr->children && attr->children->type == XML_TEXT_NODE)
                 value = std::string((const char *)attr->children->content);
-
-            if (name == "route")
-                route_value = value;
-            else if (name == "auth")
-                auth = value;
-            else
-                throw XMLError("Only attribute route allowed"
-                               " in " + std::string((const char *)node->name)
-                               + " element. Got " + std::string(name));
+            for (i = 0; names[i]; i++)
+                if (!strcmp(name, names[i]))
+                {
+                    values[i] = value;
+                    break;
+                }
+            if (!names[i])
+            {
+                throw XMLError("Unsupported attribute: '" +
+                               std::string(name) +
+                               "' in element '" + 
+                               std::string((const char *) node->name) + "'");
+            }
         }
     }
-    return route_value;
+}
+
+std::string mp_xml::get_route(const xmlNode *node, std::string &auth)
+{
+    const char *names[3] = { "route", "auth", 0 };
+    std::string values[2];
+
+    parse_attr(node, names, values);
+
+    auth = values[1];
+    return values[0];
 }
 
 std::string mp_xml::get_route(const xmlNode *node)
 {
-    std::string auth;
-    return get_route(node, auth);
+    const char *names[2] = { "route", 0 };
+    std::string values[1];
+
+    parse_attr(node, names, values);
+
+    return values[0];
 }
 
 const xmlNode* mp_xml::jump_to_children(const xmlNode* node,

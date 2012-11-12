@@ -47,6 +47,7 @@ namespace metaproxy_1 {
             friend class FrontendNet;
             std::string port;
             std::string route;
+            int max_recv_bytes;
         };
         class FrontendNet::Rep {
             friend class FrontendNet;
@@ -625,8 +626,20 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
         if (!strcmp((const char *) ptr->name, "port"))
         {
             Port port;
-            port.route = mp::xml::get_route(ptr);
-            port.port = mp::xml::get_text(ptr);
+
+            const char *names[4] = {"route", "max_recv_bytes", "port", 0};
+            std::string values[3];
+
+            mp::xml::parse_attr(ptr, names, values);
+            port.route = values[0];
+            if (values[1].length() > 0)
+                port.max_recv_bytes = atoi(values[1].c_str());
+            else
+                port.max_recv_bytes = 0;
+            if (values[2].length() > 0)
+                port.port = values[2];
+            else
+                port.port = mp::xml::get_text(ptr);
             ports.push_back(port);
         }
         else if (!strcmp((const char *) ptr->name, "threads"))
@@ -709,6 +722,11 @@ void yf::FrontendNet::set_ports(std::vector<Port> &ports)
             throw yf::FilterException("Unable to bind to address "
                                       + std::string(m_p->m_ports[i].port));
         }
+        COMSTACK cs = as->get_comstack();
+
+        if (cs && m_p->m_ports[i].max_recv_bytes)
+            cs_set_max_recv_bytes(cs, m_p->m_ports[i].max_recv_bytes);
+
     }
 }
 
