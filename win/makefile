@@ -77,10 +77,10 @@ test_pipe: $(TEST_PIPE)
 
 !if $(DEBUG)
 YAZD=yaz4d
-YAZPPD=yazpp4d
+YAZPPD=yazpp5d
 !else
 YAZD=yaz4
-YAZPPD=yazpp4
+YAZPPD=yazpp5
 !endif
 
 # YAZ includes & libs
