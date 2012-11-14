@@ -1423,7 +1423,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     std::string url(sptr->target);
     if (sptr->sru.length())
     {
-        yaz_log(YLOG_LOG, "Got URL %s", url.c_str());
         b->set_option("sru", sptr->sru);
         if (url.find_first_of("://") == std::string::npos)
             url = "http://" + url;
