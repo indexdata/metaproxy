@@ -1420,18 +1420,15 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (proxy.length())
             b->set_option("proxy", proxy);
     }
-    std::string url;
+    std::string url(sptr->target);
     if (sptr->sru.length())
     {
-        url = "http://" + sptr->target;
+        yaz_log(YLOG_LOG, "Got URL %s", url.c_str());
         b->set_option("sru", sptr->sru);
-
+        if (url.find_first_of("://") == std::string::npos)
+            url = "http://" + url;
         if (sptr->sru_version.length())
             b->set_option("sru_version", sptr->sru_version);
-    }
-    else
-    {
-        url = sptr->target;
     }
     if (no_out_args)
     {
