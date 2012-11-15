@@ -203,7 +203,7 @@
       <contentProxy
          config_file="/etc/cf-proxy/cproxy.cfg"
       />
-      <log apdu="false"/>
+      <log apdu="true"/>
       <zoom timeout="20" proxy_timeout="1"/>
     </filter>
   </filters>
