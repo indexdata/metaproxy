@@ -1424,7 +1424,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (sptr->sru.length())
     {
         b->set_option("sru", sptr->sru);
-        if (url.find_first_of("://") == std::string::npos)
+        if (url.find("://") == std::string::npos)
             url = "http://" + url;
         if (sptr->sru_version.length())
             b->set_option("sru_version", sptr->sru_version);
