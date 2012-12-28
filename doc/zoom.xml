@@ -102,12 +102,24 @@
       </para>
      </listitem>
     </varlistentry>
+    <varlistentry id="auth_url">
+     <term>attribute <literal>auth_url</literal></term>
+     <listitem>
+      <para>
+       URL of Web service to be used to for auth/IP lookup. If this
+       defined, all access is granted or denied as part of Z39.50 Init
+       by the ZOOM module and the use of database parameters realm and
+       torus_url is not allowed. If this setting is not defined,
+       all access is allowed and realm and/or torus_url may be used.
+      </para>
+     </listitem>
+    </varlistentry>
     <varlistentry>
       <term>attribute <literal>realm</literal></term>
       <listitem>
 	<para>
 	 The default realm value. Used for %realm in URL, unless
-	 specified in DATABASE argument.
+	 specified in DATABASE parameter.
 	</para>
       </listitem>
     </varlistentry>
@@ -643,15 +655,41 @@
   </para>
   <variablelist>
    <varlistentry>
-    <term>user</term>
+    <term>content-password</term>
     <listitem>
      <para>
-      Specifies user to be passed to backend. If this parameter is
-      omitted, the user will be taken from TARGET profile setting
-      <link linkend="zoom-torus-authentication">
-       <literal>authentication</literal>
-      </link>
-      .
+      The password to be used for content proxy session. If this parameter
+      is not given, value of parameter <literal>password</literal> is passed
+      to content proxy session.
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>content-user</term>
+    <listitem>
+     <para>
+      The user to be used for content proxy session. If this parameter
+      is not given, value of parameter <literal>user</literal> is passed
+      to content proxy session.
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>cproxysession</term>
+    <listitem>
+     <para>
+      Specifies the session ID for content proxy. This parameter is, generally,
+      not used by anything but the content proxy itself when invoking
+      Metaproxy via SRU.
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>nocproxy</term>
+    <listitem>
+     <para>
+      If this parameter is specified, content-proxying is disabled
+      for the search.
      </para>
     </listitem>
    </varlistentry>
@@ -659,8 +697,10 @@
     <term>password</term>
     <listitem>
      <para>
-      Specifies password to be passed to backend. If this parameters is
-      omitted, the password will be taken from TARGET profile setting
+      Specifies password to be passed to backend. It is also passed
+      to cproxy session unless overriden by content-password.
+      If this parameter is omitted, the password will be taken from
+      TARGET profile setting
       <link linkend="zoom-torus-authentication">
        <literal>authentication</literal>
       </link>
@@ -682,30 +722,44 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term>cproxysession</term>
-    <listitem>
-     <para>
-      Session ID for content proxy. This parameter is, generally,
-      not used by anything but the content proxy itself.
-     </para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term>nocproxy</term>
-    <listitem>
-     <para>
-      If this parameter is specified, content-proyxing is disabled
-      for the search.
-     </para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
     <term>realm</term>
     <listitem>
      <para>
       Session realm to be used for this target, changed the resulting
       URL to be used for getting a target profile, by changing the
-      value that gets substituted for the %realm string.
+      value that gets substituted for the %realm string. This parameter
+      is not allowed if access is controlled by
+      <link linkend="auth_url">auth_url</link>
+      in configuration.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>torus_url</term>
+    <listitem>
+     <para>
+      Sets the URL to be used for Torus records fetch - overriding value
+      of <literal>url</literal> attribute of element <literal>torus</literal>
+      in zoom configuration. This parameter is not allowed if access is
+      controlled by
+      <link linkend="auth_url">auth_url</link> in configuration.
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>user</term>
+    <listitem>
+     <para>
+      Specifies user to be passed to backend. It is also passed
+      to cproxy session unless overriden by content-user.
+      If this parameter is omitted, the user will be taken from TARGET
+      profile setting
+      <link linkend="zoom-torus-authentication">
+       <literal>authentication</literal>
+      </link>
+      .
      </para>
     </listitem>
    </varlistentry>
