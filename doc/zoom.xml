@@ -665,6 +665,16 @@
     </listitem>
    </varlistentry>
    <varlistentry>
+    <term>content-proxy</term>
+    <listitem>
+     <para>
+      Specifies proxy to be used for content proxy session. If this parameter
+      is not given, value of parameter <literal>proxy</literal> is passed
+      to content proxy session.
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
     <term>content-user</term>
     <listitem>
      <para>
@@ -698,7 +708,7 @@
     <listitem>
      <para>
       Specifies password to be passed to backend. It is also passed
-      to cproxy session unless overriden by content-password.
+      to content proxy session unless overriden by content-password.
       If this parameter is omitted, the password will be taken from
       TARGET profile setting
       <link linkend="zoom-torus-authentication">
@@ -753,7 +763,7 @@
     <listitem>
      <para>
       Specifies user to be passed to backend. It is also passed
-      to cproxy session unless overriden by content-user.
+      to content proxy session unless overriden by content-user.
       If this parameter is omitted, the user will be taken from TARGET
       profile setting
       <link linkend="zoom-torus-authentication">
