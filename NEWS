@@ -1,3 +1,13 @@
+--- 1.3.53 2013/01/31
+
+record_transform: allow OPACXML to OPAC conversion
+
+zoom: document content-proxy
+
+zoom: document db parm content-{user,password}, torus_url. Also
+<torus auth_url="..> which makes zoom operate in authenticated mode
+via Torus lookup.
+
 --- 1.3.52 2012/11/30
 
 zoom: fix http://-check. SRU search broken in 1.3.51.
