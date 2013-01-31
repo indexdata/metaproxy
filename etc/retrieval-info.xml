@@ -31,4 +31,16 @@
       <usemarcon stage1="/etc/usemarcon/uni2us/uni2us.ini"/>
     </backend>
   </retrieval>
+  <retrieval syntax="opac" name="OP">
+    <backend syntax="opac" name="F">
+      <marc inputformat="marc" outputformat="marcxchange"
+            inputcharset="marc-8"/>
+    </backend>
+  </retrieval>
+  <retrieval syntax="xml" name="OP">
+    <backend syntax="opac" name="F">
+      <marc inputformat="marc" outputformat="marcxchange"
+            inputcharset="marc-8"/>
+    </backend>
+  </retrieval>
 </retrievalinfo>
