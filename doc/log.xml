@@ -120,6 +120,15 @@
 	  </para>
 	 </listitem>
 	</varlistentry>
+	<varlistentry><term>line</term>
+	 <listitem>
+	  <para>
+	   Simple one-line log message indicating the most important
+	   things from a request and response.
+	   Available from version 1.3.38 and later.
+	  </para>
+	 </listitem>
+	</varlistentry>
        </variablelist>
 
       </para>
