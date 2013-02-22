@@ -617,16 +617,6 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     // create search request
     Z_SearchRequest *req = apdu_req->u.searchRequest;
 
-    // save these for later
-    Odr_int smallSetUpperBound = *req->smallSetUpperBound;
-    Odr_int largeSetLowerBound = *req->largeSetLowerBound;
-    Odr_int mediumSetPresentNumber = *req->mediumSetPresentNumber;
-
-    // they are altered now - to disable piggyback
-    *req->smallSetUpperBound = 0;
-    *req->largeSetLowerBound = 1;
-    *req->mediumSetPresentNumber = 0;
-
     int default_num_db = req->num_databaseNames;
     char **default_db = req->databaseNames;
 
@@ -634,16 +624,23 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
         PackagePtr p = (*bit)->m_package;
+        yazpp_1::GDU gdu1(apdu_req);
         mp::odr odr;
+        Z_SearchRequest *req1 = gdu1.get()->u.z3950->u.searchRequest;
+
+        // they are altered now - to disable piggyback
+        *req1->smallSetUpperBound = 0;
+        *req1->largeSetLowerBound = 1;
+        *req1->mediumSetPresentNumber = 0;
 
         if (!mp::util::set_databases_from_zurl(odr, (*bit)->m_vhost,
-                                                &req->num_databaseNames,
-                                                &req->databaseNames))
+                                               &req1->num_databaseNames,
+                                               &req1->databaseNames))
         {
-            req->num_databaseNames = default_num_db;
-            req->databaseNames = default_db;
+            req1->num_databaseNames = default_num_db;
+            req1->databaseNames = default_db;
         }
-        p->request() = apdu_req;
+        p->request() = gdu1;
         p->copy_filter(package);
     }
     multi_move(m_backend_list);
@@ -716,9 +713,9 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     m_sets[resultSet.m_setname] = resultSet;
 
     Odr_int number;
-    mp::util::piggyback(smallSetUpperBound,
-                        largeSetLowerBound,
-                        mediumSetPresentNumber,
+    mp::util::piggyback(*req->smallSetUpperBound,
+                        *req->largeSetLowerBound,
+                        *req->mediumSetPresentNumber,
                         0, 0,
                         result_set_size,
                         number, 0);
