@@ -678,7 +678,7 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     Z_APDU *f_apdu = odr.create_searchResponse(apdu_req, 0, 0);
     Z_SearchResponse *f_resp = f_apdu->u.searchResponse;
 
-    yaz_log(YLOG_LOG, "no_successful=%d is_closed=%s hide_errors=%s",
+    yaz_log(YLOG_DEBUG, "no_successful=%d is_closed=%s hide_errors=%s",
             no_successful,
             close_p ? "true" : "false",
             m_p->m_hide_errors ? "true" : "false");
@@ -783,7 +783,7 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
         std::list<Multi::FrontendSet::PresentJob>::const_iterator jit;
         for (jit = jobs.begin(); jit != jobs.end(); jit++)
         {
-            yaz_log(YLOG_LOG, "job pos=%d", jit->m_pos);
+            yaz_log(YLOG_DEBUG, "job pos=%d", jit->m_pos);
         }
     }
 
