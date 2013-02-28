@@ -49,14 +49,33 @@
     <ulink url="&url.yaz.retrieval;">Retrieval Facility</ulink> section
     of the YAZ manual.
   </para>
+  <para>
+   From Metaproxy version 1.3.26 and onwards the backend conversion ma
+   also use <ulink url="&url.usemarcon;">USEMARCON</ulink>.
+   If USEMARCON is enabled, the <literal>backend</literal> may include
+   a <literal>usemarcon</literal> element with two attributes:
+   <literal>stage1</literal> and <literal>stage2</literal> that points to
+   conversion files as interpreted by USEMARCON. One or both must be given.
+  </para>
  </refsect1>
 
  <refsect1><title>SCHEMA</title>
-   <literallayout><xi:include
-		     xi:href="../xml/schema/filter_record_transform.rnc"
-		     xi:parse="text"
-		     xmlns:xi="http://www.w3.org/2001/XInclude" />
-   </literallayout>
+ <para>
+  Schema is in two parts.. One for the filter itself and one for the
+  retrieval info.
+ </para>
+ <literallayout>
+  <xi:include
+      xi:href="../xml/schema/filter_record_transform.rnc"
+      xi:parse="text"
+      xmlns:xi="http://www.w3.org/2001/XInclude" />
+ </literallayout>
+ <literallayout>
+  <xi:include
+      xi:href="../xml/schema/retrievalinfo.rnc"
+      xi:parse="text"
+      xmlns:xi="http://www.w3.org/2001/XInclude" />
+ </literallayout>
  </refsect1>
 
  <refsect1><title>EXAMPLES</title>
@@ -82,6 +101,11 @@
         </retrieval>
         <retrieval syntax="usmarc">
           <backend syntax="usmarc" name="F">
+          </backend>
+        </retrieval>
+        <retrieval syntax="usmarc" name="C">
+	  <backend syntax="unimarc" name="F">
+            <usemarcon stage1="/etc/usemarcon/uni2us/uni2us.ini"/>
           </backend>
         </retrieval>
       </retrievalinfo>

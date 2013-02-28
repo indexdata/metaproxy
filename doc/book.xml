@@ -169,6 +169,11 @@
    <ulink url="&url.vstudio;">Microsoft Visual Studio</ulink> 2003/2005/2008.
   </para>
 
+  <para>
+   As an option, Metaproxy may also be compiled with
+   <ulink url="&url.usemarcon;">USEMARCON</ulink> support which allows for
+   MARC conversions for the <xref linkend="ref-record_transform"/> filter.
+  </para>
   <section id="installation.unix">
    <title>Installation on Unix (from Source)</title>
    <para>
@@ -177,6 +182,14 @@
     tools binary packages. If, for example, Libxml2/libxslt are already
     installed as development packages use those (and omit compilation).
    </para>
+
+   <note>
+    <para>
+     <ulink url="&url.usemarcon;">USEMARCON</ulink> is not available
+     as a package at the moment, so Metaproxy must be built from source
+     if that is to be used.
+    </para>
+   </note>
 
    <section id="libxml2.fromsource">
     <title>Libxml2/libxslt</title>
@@ -200,6 +213,18 @@
      make install
     </screen>
    </section>
+   <section id="usemarcon">
+    <title>USEMARCON (optional)</title>
+    <screen>
+     gunzip -c usemarcon317.tar.gz|tar xf -
+     cd usemarcon317
+     ./configure
+     make
+     su
+     make install
+    </screen>
+   </section>
+
    <section id="yaz.fromsource">
     <title>YAZ/YAZ++</title>
     <screen>
@@ -276,7 +301,7 @@
    <para>
     All dependencies for Metaproxy are available as
     <ulink url="&url.debian;">Debian</ulink>
-    packages for the sarge (stable in 2005) and etch (testing in 2005)
+    packages for the squeeze (stable in 2012) and wheezy (testing in 2012)
     distributions.
    </para>
    <para>
