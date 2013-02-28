@@ -1,28 +1,6 @@
-# Metaproxy XML config file schemas
-# 
-#   Copyright (C) 2005-2013 Index Data.
-# 
-#   See the LICENSE file for details
-# 
-# 
-# The RelaxNG Compact Syntax file 'retrievalinfo.rnc' is the master copy.
-# 
-# The RelaxNG XML Syntax and XML Schema are generated using 'trang':
-# trang retrievalinfo.rnc retrievalinfo.rng 
-# trang retrievalinfo.rnc retrievalinfo.xsd 
-# 
-# Config file validation is done using 'xmllint':
-# xmllint -/-relaxng retrievalinfo.rng retrievalinfo.xml 
-# xmllint -/-schema retrievalinfo.xsd retirevalinfo.xml
-# 
-# For information on RelaxNG see http://relaxng.org 
-# see also http://books.xmlschemata.org/relaxng/
+# Schema for YAZ retrieval info and USEMARCON extension
 
 namespace y = "http://indexdata.com/yaz"
-
-# need to be in different namespace then metaproxy, otherwise 
-# xslt element definition clashes in XML Schema files
-# namespace y = "http://indexdata.com/metaproxy"
 
 start |= retrievalinfo
 
