@@ -598,7 +598,7 @@
 
    <row>
     <entry><ulink url="&url.usemarcon;">USEMARCON</ulink></entry>
-    <entry>Unsupported</entry>
+    <entry>Supported with <literal>record_transform</literal></entry>
     <entry>Supported</entry>
    </row>
 
