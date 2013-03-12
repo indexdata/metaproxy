@@ -32,6 +32,7 @@
    <arg choice="opt"><option>--config <replaceable>config</replaceable></option></arg>
    <arg choice="opt"><option>-D</option></arg>
    <arg choice="opt"><option>-l <replaceable>logfile</replaceable></option></arg>
+   <arg choice="opt"><option>-m <replaceable>timeformat</replaceable></option></arg>
    <arg choice="opt"><option>-p <replaceable>pidfile</replaceable></option></arg>
    <arg choice="opt"><option>-t</option></arg>
    <arg choice="opt"><option>-u <replaceable>ID</replaceable></option></arg>
@@ -84,6 +85,18 @@
     <listitem><para>
       Specifies YAZ log file.
      </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-m <replaceable>timeformat</replaceable></term>
+    <listitem><para>
+     Sets the format of time-stamps for all logging performed via yaz_log.
+     Refer to
+       <ulink
+	   url="http://pubs.opengroup.org/onlinepubs/009695399/functions/strftime.html">
+       strftime(3)</ulink>
+       man page for the format.
+    </para></listitem>
    </varlistentry>
 
    <varlistentry>

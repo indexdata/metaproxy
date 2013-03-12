@@ -36,10 +36,24 @@
       </para>
      </listitem>
     </varlistentry>
+    <varlistentry><term>time-format</term>
+     <listitem>
+      <para>
+       Date+time format if log is written to a custom file (see filename configuration, below), using the format of
+       <ulink
+	   url="http://pubs.opengroup.org/onlinepubs/009695399/functions/strftime.html">
+	strftime(3)</ulink>.
+      </para>
+      <para>
+       Use option -m in invocation of Metaproxy command to set format if yaz_log is used (no filename given).
+      </para>
+     </listitem>
+    </varlistentry>
     <varlistentry><term>filename</term>
      <listitem>
       <para>
-       Specifies a name of log file.
+       Specifies a name of log file. If this is omitted, logging is performed
+       using the log system of YAZ (yaz_log).
       </para>
      </listitem>
     </varlistentry>
