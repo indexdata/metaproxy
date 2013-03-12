@@ -6,7 +6,7 @@
  <!ENTITY % idcommon SYSTEM "common/common.ent">
      %idcommon;
 ]>
-<refentry id="ref-metaproxy">
+<refentry id="ref-metaproxy-config">
  <refentryinfo>
   <productname>Metaproxy</productname>
   <productnumber>&version;</productnumber>
