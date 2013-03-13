@@ -124,7 +124,7 @@ static int sc_main(
 
     set_log_prefix();
 
-    while ((ret = options("c{config}:Dh{help}l:p:tu:V{version}w:X",
+    while ((ret = options("c{config}:Dh{help}l:m:p:tu:V{version}w:X",
                           argv, argc, &arg)) != -2)
     {
         switch (ret)
@@ -142,6 +142,7 @@ static int sc_main(
                 " -c|--config f config filename\n"
                 " -D            daemon and keepalive operation\n"
                 " -l f          log file f\n"
+                " -m logformat  log time format (strftime)\n"
                 " -p f          pid file f\n"
                 " -t            test configuration\n"
                 " -u id         change uid to id\n"
@@ -156,6 +157,9 @@ static int sc_main(
             break;
         case 'l':
             yaz_log_init_file(arg);
+            break;
+        case 'm':
+            yaz_log_time_format(arg);
             break;
         case 'p':
             pidfile = arg;
