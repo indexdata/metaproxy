@@ -27,7 +27,7 @@
    This filter implements a generic client based on
    <ulink url="&url.yaz.zoom;">ZOOM</ulink> of YAZ.
    The client implements the protocols that ZOOM C does: Z39.50, SRU
-   (GET, POST, SOAP) and SOLR .
+   (GET, POST, SOAP) and Solr .
   </para>
 
   <para>
@@ -374,7 +374,7 @@
   <para>
    Step 2: If the target is Z39.50-based, it is passed verbatim (RPN).
    If the target is SRU-based, the RPN will be converted to CQL.
-   If the target is SOLR-based, the RPN will be converted to SOLR's query
+   If the target is Solr-based, the RPN will be converted to Solr's query
    type.
   </para>
  </refsect1>
