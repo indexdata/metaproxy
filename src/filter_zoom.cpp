@@ -2295,7 +2295,7 @@ next_proxy:
         if (status)
         {
             error = YAZ_BIB1_MALFORMED_QUERY;
-            const char *addinfo = "can not convert from RPN to CQL/SOLR";
+            const char *addinfo = "can not convert from RPN to CQL/Solr";
             log_diagnostic(package, error, addinfo);
             apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
             package.response() = apdu_res;
