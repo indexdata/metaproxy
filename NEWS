@@ -1,3 +1,24 @@
+--- 1.3.54 2013/03/27
+
+configure: check for Libxslt support in YAZ and rely on definitions
+from yaz-config, rather than doing own xslt/xml2 checks.
+
+Allow timestamp format for log lines to be given with option -m
+for metaproxy. Similar to yaz-ztest/GFS option -m.
+
+Document log category 'line' for log filter.
+
+Solr configuration example in etc/config-solr.xml
+
+multi: do not mess with request package. For scan and search,
+database-names were modified and the request package was left with
+dangling pointers that caused a log filter to fail (request package
+inspected after multi was invoked).
+
+Documentation: fix id of metaproxy-config ref .
+
+Documentation: update for USEMARCON support.
+
 --- 1.3.53 2013/01/31
 
 record_transform: allow OPACXML to OPAC conversion
