@@ -4,7 +4,7 @@ INKSCAPE=inkscape
 
 SUFFIXES=.3mp .1 .pdf .tkl .esp .xml 
 
-XMLFILES = book.xml manref.xml copyright.xml gpl-2.0.xml
+XMLFILES = book.xml manref.xml copyright.xml gpl-2.0.xml local.ent
 
 MAINXML = $(srcdir)/book.xml
 
@@ -66,6 +66,8 @@ doc_DATA = $(HTMLFILES) $(PNGFILES)
 man_MANS = $(MANFILES)
 
 EXTRA_DIST = $(XMLFILES) $(XMLMAN) $(doc_DATA) $(man_MANS) multi.svg 
+
+$(MANFILES): local.ent
 
 $(HTMLFILES): $(XMLFILES) $(PNGFILES)
 	rm -f *.html

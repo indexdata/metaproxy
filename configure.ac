@@ -94,13 +94,14 @@ AC_OUTPUT([
 	xml/schema/Makefile
 	xml/xslt/Makefile
 	doc/Makefile
-	doc/local.ent
-        doc/common/Makefile
+	doc/local0.ent
+	doc/common/Makefile
 	doc/common/print.dsl
 	etc/Makefile
 ],[
         sed s%echo_source=yes%echo_source=no%g < metaproxy-config > src/metaproxy-config && chmod +x metaproxy-config src/metaproxy-config
-
+	diff doc/local.ent doc/local0.ent >/dev/null 2>/dev/null \
+		|| cp doc/local0.ent doc/local.ent
 ])
 
 echo \
