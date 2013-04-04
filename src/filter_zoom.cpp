@@ -1407,16 +1407,59 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     }
     else
     {
-        size_t found = authentication.find('/');
-
-        if (sptr->sru.length() && found != std::string::npos)
-        {
-            b->set_option("user", authentication.substr(0, found));
-            b->set_option("password", authentication.substr(found+1));
-        }
+        if (sptr->sru.length() == 0)
+            b->set_option("user", authentication); /* Z39.50 */
         else
-            b->set_option("user", authentication);
+        {
+            std::string user;
+            std::string password;
+            std::string authtype;
+            {
+                const char *cstr = authentication.c_str();
+                const char *cp1 = strchr(cstr, '/');
+                const char *cp2 = 0;
+                if (cp1)
+                {
+                    cp2 = strchr(cp1 + 1, '/');
+                    if (cp2)
+                    {
+                        password.assign(cp1 + 1, cp2 - cp1 - 1);
+                        authtype.assign(cp2 + 1);
+                    }
+                    else
+                        password.assign(cp1 + 1);
+                    user.assign(cstr, cp1 - cstr);
+                }
+                else
+                    user.assign(cstr);
+            }
 
+            if (authtype.compare("url") == 0)
+            {
+                /* SRU URL encoding of auth stuff */
+                ODR o = odr_createmem(ODR_ENCODE);
+                char *path = 0;
+                const char *names[3];
+                const char *values[3];
+
+                names[0] = "x-username";
+                values[0] = user.c_str();
+                names[1] = "x-password";
+                values[1] = password.c_str();
+                names[2] = 0;
+                values[2] = 0;
+
+                yaz_array_to_uri(&path, o, (char **) names, (char **) values);
+                b->set_option("extraArgs", path);
+                odr_destroy(o);
+            }
+            else
+            {
+                b->set_option("user", user);
+                if (password.length())
+                    b->set_option("password", password);
+            }
+        }
         if (proxy.length())
             b->set_option("proxy", proxy);
     }
