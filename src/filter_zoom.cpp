@@ -60,6 +60,7 @@ namespace metaproxy_1 {
         class Zoom::Searchable : boost::noncopyable {
           public:
             std::string authentication;
+            std::string authenticationMode;
             std::string cfAuth;
             std::string cfProxy;
             std::string cfSubDB;
@@ -506,6 +507,11 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
                          "authentication"))
         {
             s->authentication = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name,
+                         "authenticationMode"))
+        {
+            s->authenticationMode = mp::xml::get_text(ptr);
         }
         else if (!strcmp((const char *) ptr->name,
                          "cfAuth"))
@@ -1345,8 +1351,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (sptr->query_encoding.length())
         b->set_option("rpnCharset", sptr->query_encoding);
 
-    if (sptr->extraArgs.length())
-        b->set_option("extraArgs", sptr->extraArgs);
+    std::string extraArgs = sptr->extraArgs;
 
     b->set_option("timeout", m_p->zoom_timeout.c_str());
 
@@ -1413,21 +1418,14 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         {
             std::string user;
             std::string password;
-            std::string authtype;
+            std::string authtype = sptr->authenticationMode;
+
             {
                 const char *cstr = authentication.c_str();
                 const char *cp1 = strchr(cstr, '/');
-                const char *cp2 = 0;
                 if (cp1)
                 {
-                    cp2 = strchr(cp1 + 1, '/');
-                    if (cp2)
-                    {
-                        password.assign(cp1 + 1, cp2 - cp1 - 1);
-                        authtype.assign(cp2 + 1);
-                    }
-                    else
-                        password.assign(cp1 + 1);
+                    password.assign(cp1 + 1);
                     user.assign(cstr, cp1 - cstr);
                 }
                 else
@@ -1450,7 +1448,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                 values[2] = 0;
 
                 yaz_array_to_uri(&path, o, (char **) names, (char **) values);
-                b->set_option("extraArgs", path);
+                if (extraArgs.length())
+                    extraArgs.append("&");
+                extraArgs.append(path);
                 odr_destroy(o);
             }
             else
@@ -1463,6 +1463,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (proxy.length())
             b->set_option("proxy", proxy);
     }
+    if (extraArgs.length())
+        b->set_option("extraArgs", extraArgs);
+
     std::string url(sptr->target);
     if (sptr->sru.length())
     {

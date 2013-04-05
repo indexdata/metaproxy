@@ -21,6 +21,7 @@ filter_zoom =
     element mp:records {
       element mp:record {
         element mp:authentication { xsd:string }?,
+        element mp:authenticationMode { xsd:string }?,
         element mp:piggyback { xsd:string }?,
         element mp:queryEncoding { xsd:string }?,
         element mp:udb { xsd:string },
@@ -47,7 +48,8 @@ filter_zoom =
         element mp:sortmap_author { xsd:string }?,
         element mp:sortmap_date { xsd:string }?,
         element mp:sortmap_title { xsd:string }?,
-	element mp:rpn2cql { xsd:string }?
+        element mp:extraArgs { xsd:string }?,
+        element mp:rpn2cql { xsd:string }?
       }*
     }?
   }?,
