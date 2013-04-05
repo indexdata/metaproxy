@@ -47,6 +47,8 @@
 
           <!-- sru local connector -->
 	  <record>
+            <authentication>a/b</authentication>
+            <authenticationMode>url</authenticationMode>
 	    <piggyback>1</piggyback>
 	    <queryEncoding>UTF-8</queryEncoding>
 	    <udb>sru-local</udb>
