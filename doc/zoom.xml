@@ -359,7 +359,8 @@
   </para>
   <para>
    Step 1: for CCL, the query is converted to RPN via
-   <link linkend="cclmap"><literal>cclmap</literal></link> elements part of
+   <link linkend="zoom-torus-cclmap"><literal>cclmap</literal></link>
+   elements part of
    the target profile as well as
    <link linkend="cclmap_base">base CCL maps</link>.
   </para>
@@ -385,8 +386,12 @@
    The ZOOM module actively handle CQL sorting - using the SORTBY parameter
    which was introduced in SRU version 1.2. The conversion from SORTBY clause
    to native sort for some target is driven by the two parameters:
-   <link linkend="sortStrategy"><literal>sortStrategy</literal></link>
-   and <link linkend="sortmap"><literal>sortmap_</literal><replaceable>field</replaceable></link>.
+   <link linkend="zoom-torus-sortStrategy">
+    <literal>sortStrategy</literal>
+   </link>
+   and <link linkend="zoom-torus-sortmap">
+   <literal>sortmap_</literal><replaceable>field</replaceable>
+   </link>.
   </para>
   <para>
    If a sort field that does not have an equivalent
@@ -420,7 +425,25 @@
    </listitem>
    </varlistentry>
 
-   <varlistentry id="cclmap">
+   <varlistentry>
+    <term id="zoom-torus-authenticationMode">authenticationMode</term><listitem>
+    <para>
+     Specifies how authentication parameters are passed to server
+     for SRU. Possible values are: <literal>url</literal>
+     and <literal>basic</literal>. For the url mode username and password
+     are carried in URL arguments x-username and x-password.
+     For the basic mode, HTTP basic authentication is used.
+     The settings only takes effect
+     if <link linkend="zoom-torus-authentication">authentication</link>
+     is set.
+    </para>
+    <para>
+     If this value is omitted HTTP basic authencation is used.
+    </para>
+   </listitem>
+   </varlistentry>
+
+   <varlistentry id="zoom-torus-cclmap">
     <term>cclmap_<replaceable>field</replaceable></term><listitem>
     <para>
      This value specifies CCL field (qualifier) definition for some
@@ -543,16 +566,16 @@
    </listitem>
    </varlistentry>
 
-   <varlistentry id="sortmap">
+   <varlistentry id="zoom-torus-sortmap">
     <term>sortmap_<replaceable>field</replaceable></term><listitem>
     <para>
      This value the native field for a target. The form of the value is
-     given by <link linkend="sortStrategy">sortStrategy</link>.
+     given by <link linkend="zoom-torus-sortStrategy">sortStrategy</link>.
     </para>
    </listitem>
    </varlistentry>
 
-   <varlistentry id="sortStrategy">
+   <varlistentry id="zoom-torus-sortStrategy">
     <term>sortStrategy</term><listitem>
     <para>
      Specifies sort strategy for a target. One of:
@@ -576,7 +599,7 @@
    </listitem>
    </varlistentry>
 
-   <varlistentry>
+   <varlistentry id="sruVersion">
     <term>sruVersion</term><listitem>
     <para>
      Specifies the SRU version to use. It unset, version 1.2 will be
@@ -586,7 +609,7 @@
    </listitem>
    </varlistentry>
 
-   <varlistentry>
+   <varlistentry id="transform">
     <term>transform</term><listitem>
     <para>
      Specifies a XSL stylesheet filename to be used if record
@@ -597,7 +620,7 @@
    </listitem>
    </varlistentry>
 
-   <varlistentry>
+   <varlistentry id="udb">
     <term>udb</term><listitem>
     <para>
      This value is required and specifies the unique database for
@@ -624,7 +647,7 @@
    </listitem>
    </varlistentry>
 
-   <varlistentry>
+   <varlistentry id="zurl">
     <term>zurl</term><listitem>
     <para>
      This is setting is mandatory and specifies the ZURL of the
