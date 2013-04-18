@@ -18,6 +18,9 @@
 	<prefix>/etc</prefix>
       </area>
       </filter>
+      <filter type="http_client">
+	<proxy>localhost:9999</proxy>
+      </filter>
       <filter type="bounce"/>
     </route>
   </routes>

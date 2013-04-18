@@ -10,6 +10,7 @@ filter_bounce.rnc \
 filter_cgi.rnc \
 filter_cql_rpn.rnc \
 filter_frontend_net.rnc \
+filter_http_client.rnc \
 filter_http_file.rnc \
 filter_limit.rnc \
 filter_load_balance.rnc \

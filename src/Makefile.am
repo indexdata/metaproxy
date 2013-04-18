@@ -28,6 +28,7 @@ libmetaproxy_la_SOURCES = \
 	filter_cgi.cpp filter_cgi.hpp \
 	filter_cql_to_rpn.cpp filter_cql_to_rpn.hpp \
 	filter_frontend_net.cpp filter_frontend_net.hpp \
+	filter_http_client.cpp filter_http_client.hpp \
 	filter_http_file.cpp filter_http_file.hpp \
 	filter_limit.cpp filter_limit.hpp \
 	filter_load_balance.cpp filter_load_balance.hpp \

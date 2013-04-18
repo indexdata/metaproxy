@@ -35,6 +35,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 #include "filter_cql_to_rpn.hpp"
 #include "filter_frontend_net.hpp"
+#include "filter_http_client.hpp"
 #include "filter_http_file.hpp"
 #include "filter_limit.hpp"
 #include "filter_load_balance.hpp"
@@ -64,6 +65,7 @@ mp::FactoryStatic::FactoryStatic()
 #endif
         &metaproxy_1_filter_cql_to_rpn,
         &metaproxy_1_filter_frontend_net,
+        &metaproxy_1_filter_http_client,
         &metaproxy_1_filter_http_file,
         &metaproxy_1_filter_limit,
         &metaproxy_1_filter_load_balance,
