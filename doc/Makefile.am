@@ -16,6 +16,7 @@ XMLMAN = metaproxy.xml \
 	cgi.xml \
         cql_rpn.xml \
 	frontend_net.xml \
+	http_client.xml \
 	http_file.xml \
 	limit.xml \
 	load_balance.xml \
@@ -40,6 +41,7 @@ MANFILES = metaproxy.1 \
 	cgi.3mp \
         cql_rpn.3mp \
         frontend_net.3mp \
+	http_client.3mp \
 	http_file.3mp \
 	limit.3mp \
 	load_balance.3mp \
