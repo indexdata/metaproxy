@@ -35,6 +35,7 @@ libmetaproxy_la_SOURCES = \
 	filter_log.cpp filter_log.hpp \
 	filter_multi.cpp filter_multi.hpp \
 	filter_query_rewrite.cpp filter_query_rewrite.hpp \
+	filter_present_chunk.cpp filter_present_chunk.hpp \
 	filter_record_transform.cpp filter_record_transform.hpp \
 	filter_session_shared.cpp filter_session_shared.hpp \
 	filter_sort.cpp filter_sort.hpp \
@@ -57,10 +58,11 @@ libmetaproxy_la_SOURCES = \
 	torus.cpp torus.hpp \
 	url_recipe.cpp \
 	util.cpp \
-	xmlutil.cpp 
+	xmlutil.cpp
 
 
-libmetaproxy_la_LIBADD = $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB) $(BOOST_REGEX_LIB)
+libmetaproxy_la_LIBADD = $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB) \
+	$(BOOST_REGEX_LIB)
 
 # Rules for lib
 
@@ -159,9 +161,3 @@ test_ses_map_LDADD = $(TESTLDADD)
 test_thread_pool_observer_LDADD = $(TESTLDADD)
 test_xmlutil_LDADD = $(TESTLDADD)
 
-# doxygen target
-dox:
-	(cd $(top_srcdir) ; make dox) 
-
-showdox:
-	(cd $(top_srcdir) ; make showdox) 

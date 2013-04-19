@@ -41,6 +41,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_load_balance.hpp"
 #include "filter_log.hpp"
 #include "filter_multi.hpp"
+#include "filter_present_chunk.hpp"
 #include "filter_query_rewrite.hpp"
 #include "filter_record_transform.hpp"
 #include "filter_session_shared.hpp"
@@ -71,6 +72,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_load_balance,
         &metaproxy_1_filter_log,
         &metaproxy_1_filter_multi,
+        &metaproxy_1_filter_present_chunk,
         &metaproxy_1_filter_query_rewrite,
         &metaproxy_1_filter_record_transform,
         &metaproxy_1_filter_session_shared,
