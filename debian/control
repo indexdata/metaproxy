@@ -3,7 +3,7 @@ Section: devel
 Standards-Version: 3.6.2
 Maintainer: Adam Dickmeiss <adam@indexdata.dk>
 Priority: extra
-Build-Depends: debhelper (>= 4),
+Build-Depends: debhelper (>= 5),
 	libyaz4-dev (>= 4.2.50),
 	libyazpp5-dev (>= 1.4.0),
 	libxslt1-dev,
@@ -38,6 +38,19 @@ Description: Z39.50/SRU router (runtime)
  service SRU as well as functioning as a limited HTTP server. 
  .
  This package includes the Metaproxy libraries.
+
+Package: libmetaproxy4-dbg
+Section: debug
+Architecture: any
+Depends: libmetaproxy4 (= ${binary:Version}), ${misc:Depends}
+Description: debugging symbols for libmetaproxy4
+ This is a universal router, proxy and encapsulated metasearcher
+ for information retrieval protocols. It accepts, processes, interprets
+ and redirects requests from IR clients using standard protocols such as
+ the binary ANSI/NISO Z39.50  and the information search and retrieval web
+ service SRU as well as functioning as a limited HTTP server. 
+ .
+ This package contains the debugging symbols for libmetaproxy4.
 
 Package: libmetaproxy4-dev
 Section: libdevel
