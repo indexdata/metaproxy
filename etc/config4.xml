@@ -18,6 +18,9 @@
 	<prefix>/etc</prefix>
       </area>
       </filter>
+      <filter type="http_rewrite1">
+        <replace content-type="text/html" pattern="YAZ" replacement="yaz"/>
+      </filter>
       <filter type="http_client">
 	<proxy>localhost:9999</proxy>
       </filter>

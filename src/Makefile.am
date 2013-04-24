@@ -30,6 +30,7 @@ libmetaproxy_la_SOURCES = \
 	filter_frontend_net.cpp filter_frontend_net.hpp \
 	filter_http_client.cpp filter_http_client.hpp \
 	filter_http_file.cpp filter_http_file.hpp \
+	filter_http_rewrite1.cpp filter_http_rewrite1.hpp \
 	filter_limit.cpp filter_limit.hpp \
 	filter_load_balance.cpp filter_load_balance.hpp \
 	filter_log.cpp filter_log.hpp \

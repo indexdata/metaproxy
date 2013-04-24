@@ -37,6 +37,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_frontend_net.hpp"
 #include "filter_http_client.hpp"
 #include "filter_http_file.hpp"
+#include "filter_http_rewrite1.hpp"
 #include "filter_limit.hpp"
 #include "filter_load_balance.hpp"
 #include "filter_log.hpp"
@@ -67,6 +68,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_frontend_net,
         &metaproxy_1_filter_http_client,
         &metaproxy_1_filter_http_file,
+        &metaproxy_1_filter_http_rewrite1,
         &metaproxy_1_filter_limit,
         &metaproxy_1_filter_load_balance,
         &metaproxy_1_filter_log,

@@ -1,0 +1,15 @@
+# Metaproxy XML config file schema
+
+namespace mp = "http://indexdata.com/metaproxy"
+
+filter_http_rewrite1 =
+  attribute type { "http_rewrite1" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element mp:replace {
+    attribute pattern { xsd:string },
+    attribute replacement { xsd:string }?,
+    attribute mode { xsd:string }?,
+    attribute content-type { xsd:string }?
+  }*
+
