@@ -30,7 +30,7 @@ namespace metaproxy_1 {
         class Filter_myfilter: public mp::filter::Base {
         public:
             void process(mp::Package & package) const;
-            void configure(const xmlNode *ptr, bool test_only);
+            void configure(const xmlNode *ptr, bool test_only, const char *path);
         };
     }
 }
@@ -63,9 +63,9 @@ void mp::filter::Filter_myfilter::process(mp::Package & package) const
     }
 }
 
-void mp::filter::Filter_myfilter::configure(const xmlNode *ptr, bool test_only)
+void mp::filter::Filter_myfilter::configure(const xmlNode *ptr, bool test_only, const char *path)
 {
-    yaz_log(YLOG_LOG, "myfilter::configure");
+    yaz_log(YLOG_LOG, "myfilter::configure called with test_only %d and %s", test_only, path);
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
         if (ptr->type != XML_ELEMENT_NODE)
