@@ -8,6 +8,7 @@ Build-Depends: debhelper (>= 5),
 	libyazpp5-dev (>= 1.4.0),
 	libxslt1-dev,
 	libboost-dev,
+	libboost-system-dev,
 	libboost-thread-dev,
 	libboost-test-dev,
 	libboost-regex-dev
