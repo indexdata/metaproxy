@@ -104,6 +104,7 @@ check_PROGRAMS = \
 	test_filter_record_transform \
 	test_filter_sru_to_z3950 \
 	test_filter_virt_db \
+	test_filter_rewrite \
 	test_ses_map \
 	test_router_flexml \
 	test_xmlutil
@@ -130,6 +131,7 @@ test_filter_bounce_SOURCES = test_filter_bounce.cpp
 test_filter_record_transform_SOURCES = test_filter_record_transform.cpp
 test_filter_sru_to_z3950_SOURCES = test_filter_sru_to_z3950.cpp
 test_filter_virt_db_SOURCES = test_filter_virt_db.cpp
+test_filter_rewrite_SOURCES = test_filter_rewrite.cpp
 test_ses_map_SOURCES = test_ses_map.cpp
 test_router_flexml_SOURCES = test_router_flexml.cpp
 test_xmlutil_SOURCES = test_xmlutil.cpp
@@ -155,6 +157,7 @@ test_filter_bounce_LDADD = $(TESTLDADD)
 test_filter_record_transform_LDADD = $(TESTLDADD)
 test_filter_sru_to_z3950_LDADD = $(TESTLDADD)
 test_filter_virt_db_LDADD = $(TESTLDADD)
+test_filter_rewrite_LDADD = $(TESTLDADD)
 test_router_flexml_LDADD = $(TESTLDADD)
 test_ses_map_LDADD = $(TESTLDADD)
 test_thread_pool_observer_LDADD = $(TESTLDADD)
