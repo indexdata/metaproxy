@@ -40,46 +40,59 @@ class FilterHeaderRewrite: public mp::filter::Base {
 public:
     void process(mp::Package & package) const {
         Z_GDU *gdu = package.request().get();
+        //map of request/response vars
+        std::map<std::string, std::string> vars;
         //we have an http req
         if (gdu && gdu->which == Z_GDU_HTTP_Request)
         {
-          std::cout << "Request headers" << std::endl;
-          Z_HTTP_Request *hreq = gdu->u.HTTP_Request;
-          //dump req headers
-          for (Z_HTTP_Header *header = hreq->headers;
-              header != 0; 
-              header = header->next) 
-          {
-            std::cout << header->name << ": " << header->value << std::endl;
-            rewrite_req_header(header);
-          }
+            std::cout << ">> Request headers" << std::endl;
+            Z_HTTP_Request *hreq = gdu->u.HTTP_Request;
+            mp::odr o;
+            //iterate headers
+            for (Z_HTTP_Header *header = hreq->headers;
+                    header != 0; 
+                    header = header->next) 
+            {
+                std::cout << header->name << ": " << header->value << std::endl;
+                rewrite_header(o, vars, header, req_uri_rx, req_uri_pat);
+            }
+            package.request() = gdu;
         }
         package.move();
         gdu = package.response().get();
         if (gdu && gdu->which == Z_GDU_HTTP_Response)
         {
-          std::cout << "Respose headers" << std::endl;
-          Z_HTTP_Response *hr = gdu->u.HTTP_Response;
-          //dump resp headers
-          for (Z_HTTP_Header *header = hr->headers;
-              header != 0; 
-              header = header->next) 
-          {
-            std::cout << header->name << ": " << header->value << std::endl;
-          }
+            std::cout << "<< Respose headers" << std::endl;
+            Z_HTTP_Response *hr = gdu->u.HTTP_Response;
+            mp::odr o;
+            //iterate headers
+            for (Z_HTTP_Header *header = hr->headers;
+                    header != 0; 
+                    header = header->next) 
+            {
+                std::cout << header->name << ": " << header->value << std::endl;
+                rewrite_header(o, vars, header, resp_uri_rx, resp_uri_pat);
+            }
+            package.response() = gdu;
         }
-
     };
+
     void configure(const xmlNode* ptr, bool test_only, const char *path) {};
 
-    void rewrite_req_header(Z_HTTP_Header *header) const
+    void rewrite_header(mp::odr & o, 
+            std::map<std::string, std::string> & vars,
+            Z_HTTP_Header *header,
+            const std::string & uri_re,
+            const std::string & uri_pat) const
     {
         //exec regex against value
-        boost::regex re(req_uri_rx);
+        boost::regex re(uri_re);
         boost::smatch what;
         std::string hvalue(header->value);
-        std::map<std::string, std::string> vars;
-        if (regex_match(hvalue, what, re))
+        std::string::const_iterator start, end;
+        start = hvalue.begin();
+        end = hvalue.end();
+        while (regex_search(start, end, what, re)) //find next full match
         {
             unsigned i;
             for (i = 1; i < what.size(); ++i)
@@ -92,14 +105,16 @@ public:
                     std::string name = it->second;
                     vars[name] = what[i];
                 }
+
             }
-            //rewrite the header according to the recipe
-            std::string rvalue = sub_vars(req_uri_pat, vars);
-            std::cout << "Rewritten '"+hvalue+"' to '"+rvalue+"'\n";
-        }
-        else
-        {
-            std::cout << "No match found in '" + hvalue + "'\n";
+            //prepare replacement string
+            std::string rvalue = sub_vars(uri_pat, vars);
+            //rewrite value
+            std::string rhvalue = what.prefix().str() 
+                + rvalue + what.suffix().str();
+            header->value = odr_strdup(o, rhvalue.c_str());
+            std::cout << "! Rewritten '"+hvalue+"' to '"+rhvalue+"'\n";
+            start = what[0].second; //move search forward
         }
     };
 
@@ -248,10 +263,12 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
 
         FilterHeaderRewrite fhr;
         fhr.configure(
-                ".*?(?<host>[^:]+):(?<port>\\d+).*",
+                "(?<host>[A-Za-z.]+):(?<port>\\d+)",
                 "http://${host}:${port}/somepath",
-                ".*(localhost).*",
-                "http:://g");
+                //rewrite connection close
+                "close",
+                "open");
+
         mp::filter::HTTPClient hc;
         
         router.append(fhr);
