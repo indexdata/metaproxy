@@ -25,9 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "router_chain.hpp"
 #include <metaproxy/package.hpp>
 
-#define BOOST_REGEX_MATCH_EXTRA
-
-#include <boost/xpressive/xpressive.hpp>
+#include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
 
 #define BOOST_AUTO_TEST_MAIN
@@ -36,7 +34,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <boost/test/auto_unit_test.hpp>
 
 using namespace boost::unit_test;
-using namespace boost::xpressive;
 namespace mp = metaproxy_1;
 
 class FilterHeaderRewrite: public mp::filter::Base {
@@ -78,8 +75,8 @@ public:
     void rewrite_req_header(Z_HTTP_Header *header) const
     {
         //exec regex against value
-        sregex re = sregex::compile(req_uri_rx);
-        smatch what;
+        boost::regex re(req_uri_rx);
+        boost::smatch what;
         std::string hvalue(header->value);
         std::map<std::string, std::string> vars;
         if (regex_match(hvalue, what, re))
@@ -251,7 +248,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
 
         FilterHeaderRewrite fhr;
         fhr.configure(
-                ".*?(?P<host>[^:]+):(?P<port>\\d+).*",
+                ".*?(?<host>[^:]+):(?<port>\\d+).*",
                 "http://${host}:${port}/somepath",
                 ".*(localhost).*",
                 "http:://g");
