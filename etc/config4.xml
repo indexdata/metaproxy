@@ -22,7 +22,7 @@
         <replace content-type="text/html" pattern="YAZ" replacement="yaz"/>
       </filter>
       <filter type="http_client">
-	<proxy>localhost:9999</proxy>
+	<default-host>http://localhost:9999</default-host>
       </filter>
       <filter type="bounce"/>
     </route>

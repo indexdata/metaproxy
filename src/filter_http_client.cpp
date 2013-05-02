@@ -49,6 +49,7 @@ namespace metaproxy_1 {
             friend class HTTPClient;
             void proxy(mp::Package &package);
             std::string proxy_host;
+            std::string default_host;
         };
     }
 }
@@ -70,11 +71,23 @@ void yf::HTTPClient::Rep::proxy(mp::Package &package)
         Z_GDU *res_gdu = 0;
         mp::odr o;
         yaz_url_t yaz_url = yaz_url_create();
+        const char *h = strchr(hreq->path, '/');
+        std::string uri;
 
         if (proxy_host.length())
             yaz_url_set_proxy(yaz_url, proxy_host.c_str());
-        Z_HTTP_Response *http_response =
-            yaz_url_exec(yaz_url, hreq->path, hreq->method,
+
+        if (h > hreq->path+1 && !memcmp(h-1, "://", 3))
+            uri = hreq->path; /* we have a host already */
+        else
+        {
+            if (default_host.length())
+                uri = default_host + hreq->path;
+        }
+        Z_HTTP_Response *http_response = 0;
+        if (uri.length())
+            http_response =
+            yaz_url_exec(yaz_url, uri.c_str(), hreq->method,
                          hreq->headers, hreq->content_buf,
                          hreq->content_len);
         if (http_response)
@@ -113,12 +126,22 @@ void mp::filter::HTTPClient::configure(const xmlNode * ptr, bool test_only,
         {
             m_p->proxy_host = mp::xml::get_text(ptr);
         }
+        else if (!strcmp((const char *) ptr->name, "default-host"))
+        {
+            m_p->default_host = mp::xml::get_text(ptr);
+            if (m_p->default_host.find("://") == std::string::npos)
+            {
+                throw mp::filter::FilterException
+                    ("default-host is missing method (such as http://)"
+                     " in http_client filter");
+            }
+        }
         else
         {
             throw mp::filter::FilterException
                 ("Bad element "
                  + std::string((const char *) ptr->name)
-                 + " in virt_db filter");
+                 + " in http_client filter");
         }
     }
 }
