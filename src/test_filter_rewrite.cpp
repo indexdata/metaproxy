@@ -45,16 +45,39 @@ public:
         //we have an http req
         if (gdu && gdu->which == Z_GDU_HTTP_Request)
         {
-            std::cout << ">> Request headers" << std::endl;
             Z_HTTP_Request *hreq = gdu->u.HTTP_Request;
             mp::odr o;
+            //rewrite the request line
+            std::string path;
+            if (strstr(hreq->path, "http://") == hreq->path)
+            {
+                std::cout << "Path in the method line is absolute, " 
+                    "possibly a proxy request\n";
+                path += hreq->path;
+            }
+            else
+            {
+               path += z_HTTP_header_lookup(hreq->headers, "Host");
+               path += hreq->path; 
+            }
+            std::cout << "Proxy request URL is " << path << std::endl;
+            std::string npath = 
+                search_replace(vars, path, req_uri_rx, req_uri_pat);
+            std::cout << "Resp request URL is " << npath << std::endl;
+            if (!npath.empty())
+                hreq->path = odr_strdup(o, npath.c_str());
+            std::cout << ">> Request headers" << std::endl;
             //iterate headers
             for (Z_HTTP_Header *header = hreq->headers;
                     header != 0; 
                     header = header->next) 
             {
                 std::cout << header->name << ": " << header->value << std::endl;
-                rewrite_header(o, vars, header, req_uri_rx, req_uri_pat);
+                std::string out = search_replace(vars, 
+                        std::string(header->value), 
+                        req_uri_rx, req_uri_pat);
+                if (!out.empty())
+                    header->value = odr_strdup(o, out.c_str());
             }
             package.request() = gdu;
         }
@@ -71,7 +94,11 @@ public:
                     header = header->next) 
             {
                 std::cout << header->name << ": " << header->value << std::endl;
-                rewrite_header(o, vars, header, resp_uri_rx, resp_uri_pat);
+                std::string out = search_replace(vars, 
+                        std::string(header->value), 
+                        resp_uri_rx, resp_uri_pat);
+                if (!out.empty())
+                    header->value = odr_strdup(o, out.c_str());
             }
             package.response() = gdu;
         }
@@ -79,19 +106,19 @@ public:
 
     void configure(const xmlNode* ptr, bool test_only, const char *path) {};
 
-    void rewrite_header(mp::odr & o, 
+    const std::string search_replace(
             std::map<std::string, std::string> & vars,
-            Z_HTTP_Header *header,
+            const std::string txt,
             const std::string & uri_re,
             const std::string & uri_pat) const
     {
         //exec regex against value
         boost::regex re(uri_re);
         boost::smatch what;
-        std::string hvalue(header->value);
         std::string::const_iterator start, end;
-        start = hvalue.begin();
-        end = hvalue.end();
+        start = txt.begin();
+        end = txt.end();
+        std::string out;
         while (regex_search(start, end, what, re)) //find next full match
         {
             unsigned i;
@@ -112,10 +139,11 @@ public:
             //rewrite value
             std::string rhvalue = what.prefix().str() 
                 + rvalue + what.suffix().str();
-            header->value = odr_strdup(o, rhvalue.c_str());
-            std::cout << "! Rewritten '"+hvalue+"' to '"+rhvalue+"'\n";
+            std::cout << "! Rewritten '"+what.str(0)+"' to '"+rvalue+"'\n";
+            out += rhvalue;
             start = what[0].second; //move search forward
         }
+        return out;
     };
 
     static void parse_groups(const std::string & str,
@@ -137,6 +165,12 @@ public:
                if (i+1 < str.size() && str[i+1] == '?') //group with attrs 
                {
                    i++;
+                   if (i+1 < str.size() && str[i+1] == ':') //non-capturing
+                   {
+                       if (gnum > 0) gnum--;
+                       i++;
+                       continue;
+                   }
                    if (i+1 < str.size() && str[i+1] == 'P') //optional, python
                        i++;
                    if (i+1 < str.size() && str[i+1] == '<') //named
@@ -263,11 +297,11 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
 
         FilterHeaderRewrite fhr;
         fhr.configure(
-                "(?<host>[A-Za-z.]+):(?<port>\\d+)",
+                "(?:http\\:\\/\\/s?)?(?<host>[A-Za-z.]+):(?<port>\\d+)",
                 "http://${host}:${port}/somepath",
                 //rewrite connection close
                 "close",
-                "open");
+                "open for ${host}");
 
         mp::filter::HTTPClient hc;
         
