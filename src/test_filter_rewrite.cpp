@@ -85,8 +85,9 @@ public:
         gdu = package.response().get();
         if (gdu && gdu->which == Z_GDU_HTTP_Response)
         {
-            std::cout << "<< Respose headers" << std::endl;
             Z_HTTP_Response *hr = gdu->u.HTTP_Response;
+            std::cout << "Response " << hr->code;
+            std::cout << "<< Respose headers" << std::endl;
             mp::odr o;
             //iterate headers
             for (Z_HTTP_Header *header = hr->headers;
@@ -130,7 +131,8 @@ public:
                 if (it != groups_by_num.end()) 
                 {   //it is
                     std::string name = it->second;
-                    vars[name] = what[i];
+                    if (!what[i].str().empty())
+                        vars[name] = what[i];
                 }
 
             }
@@ -235,7 +237,9 @@ public:
                     std::map<std::string, std::string>::const_iterator it
                         = vars.find(name);
                     if (it != vars.end())
+                    {
                         out += it->second;
+                    }
                 }
                 else
                 {
@@ -297,8 +301,9 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
 
         FilterHeaderRewrite fhr;
         fhr.configure(
-                "(?:http\\:\\/\\/s?)?(?<host>[A-Za-z.]+):(?<port>\\d+)",
-                "http://${host}:${port}/somepath",
+    "((?<proto>http\\:\\/\\/s?)(?<pxhost>[^\\/?#]+)\\/(?<pxpath>[^\\/]+)"
+    "(?<target>.+))|(proxyhost)",
+                "${proto}${target}${whatever}",
                 //rewrite connection close
                 "close",
                 "open for ${host}");
@@ -313,7 +318,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
 
         mp::odr odr;
         Z_GDU *gdu_req = z_get_HTTP_Request_uri(odr, 
-            "http://localhost:80/~jakub/targetsite.php", 0, 1);
+        "http://proxyhost/proxypath/localhost:80/~jakub/targetsite.php", 0, 1);
 
         pack.request() = gdu_req;
 
