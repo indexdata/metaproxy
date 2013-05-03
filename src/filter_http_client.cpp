@@ -71,19 +71,18 @@ void yf::HTTPClient::Rep::proxy(mp::Package &package)
         Z_GDU *res_gdu = 0;
         mp::odr o;
         yaz_url_t yaz_url = yaz_url_create();
-        const char *h = strchr(hreq->path, '/');
         std::string uri;
 
         if (proxy_host.length())
             yaz_url_set_proxy(yaz_url, proxy_host.c_str());
 
-        if (h > hreq->path+1 && !memcmp(h-1, "://", 3))
-            uri = hreq->path; /* we have a host already */
-        else
+        if (hreq->path[0] == '/')
         {
             if (default_host.length())
                 uri = default_host + hreq->path;
         }
+        else
+            uri = hreq->path;
         Z_HTTP_Response *http_response = 0;
         if (uri.length())
             http_response =
