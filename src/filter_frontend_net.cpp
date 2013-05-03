@@ -47,6 +47,7 @@ namespace metaproxy_1 {
             friend class FrontendNet;
             std::string port;
             std::string route;
+            std::string cert_fname;
             int max_recv_bytes;
         };
         class FrontendNet::Rep {
@@ -627,8 +628,9 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
         {
             Port port;
 
-            const char *names[4] = {"route", "max_recv_bytes", "port", 0};
-            std::string values[3];
+            const char *names[5] = {"route", "max_recv_bytes", "port",
+                                    "cert_fname", 0};
+            std::string values[4];
 
             mp::xml::parse_attr(ptr, names, values);
             port.route = values[0];
@@ -640,6 +642,7 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
                 port.port = values[2];
             else
                 port.port = mp::xml::get_text(ptr);
+            port.cert_fname = values[3];
             ports.push_back(port);
         }
         else if (!strcmp((const char *) ptr->name, "threads"))
@@ -714,6 +717,8 @@ void yf::FrontendNet::set_ports(std::vector<Port> &ports)
         // create a PDU assoc object (one per yf::FrontendNet::ZAssocServer)
         yazpp_1::PDU_Assoc *as = new yazpp_1::PDU_Assoc(&m_p->mySocketManager);
 
+        if (m_p->m_ports[i].cert_fname.length())
+            as->set_cert_fname(m_p->m_ports[i].cert_fname.c_str());
         // create ZAssoc with PDU Assoc
         m_p->az[i] = new yf::FrontendNet::ZAssocServer(
             as, m_p->m_ports[i].route, m_p.get());
