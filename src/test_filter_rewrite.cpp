@@ -36,6 +36,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using namespace boost::unit_test;
 namespace mp = metaproxy_1;
 
+typedef std::pair<std::string, std::string> string_pair;
+typedef std::vector<string_pair> spair_vec;
+typedef spair_vec::iterator spv_iter;
+
 class FilterHeaderRewrite: public mp::filter::Base {
 public:
     void process(mp::Package & package) const {
@@ -57,12 +61,13 @@ public:
             }
             else
             {
+                //TODO what about proto
                path += z_HTTP_header_lookup(hreq->headers, "Host");
                path += hreq->path; 
             }
             std::cout << "Proxy request URL is " << path << std::endl;
             std::string npath = 
-                search_replace(vars, path, req_uri_rx, req_uri_pat);
+                test_patterns(vars, path, req_uri_pats, req_groups_bynum);
             std::cout << "Resp request URL is " << npath << std::endl;
             if (!npath.empty())
                 hreq->path = odr_strdup(o, npath.c_str());
@@ -73,9 +78,9 @@ public:
                     header = header->next) 
             {
                 std::cout << header->name << ": " << header->value << std::endl;
-                std::string out = search_replace(vars, 
+                std::string out = test_patterns(vars, 
                         std::string(header->value), 
-                        req_uri_rx, req_uri_pat);
+                        req_uri_pats, req_groups_bynum);
                 if (!out.empty())
                     header->value = odr_strdup(o, out.c_str());
             }
@@ -95,9 +100,9 @@ public:
                     header = header->next) 
             {
                 std::cout << header->name << ": " << header->value << std::endl;
-                std::string out = search_replace(vars, 
+                std::string out = test_patterns(vars,
                         std::string(header->value), 
-                        resp_uri_rx, resp_uri_pat);
+                        res_uri_pats, res_groups_bynum); 
                 if (!out.empty())
                     header->value = odr_strdup(o, out.c_str());
             }
@@ -107,11 +112,34 @@ public:
 
     void configure(const xmlNode* ptr, bool test_only, const char *path) {};
 
+    /**
+     * Tests pattern from the vector in order and executes recipe on
+       the first match.
+     */
+    const std::string test_patterns(
+            std::map<std::string, std::string> & vars,
+            const std::string & txt, 
+            const spair_vec & uri_pats,
+            const std::vector<std::map<int, std::string> > & groups_bynum_vec)
+        const
+    {
+        for (int i = 0; i < uri_pats.size(); i++) 
+        {
+            std::string out = search_replace(vars, txt, 
+                    uri_pats[i].first, uri_pats[i].second,
+                    groups_bynum_vec[i]);
+            if (!out.empty()) return out;
+        }
+        return "";
+    }
+
+
     const std::string search_replace(
             std::map<std::string, std::string> & vars,
-            const std::string txt,
+            const std::string & txt,
             const std::string & uri_re,
-            const std::string & uri_pat) const
+            const std::string & uri_pat,
+            const std::map<int, std::string> & groups_bynum) const
     {
         //exec regex against value
         boost::regex re(uri_re);
@@ -127,8 +155,8 @@ public:
             {
                 //check if the group is named
                 std::map<int, std::string>::const_iterator it
-                    = groups_by_num.find(i);
-                if (it != groups_by_num.end()) 
+                    = groups_bynum.find(i);
+                if (it != groups_bynum.end()) 
                 {   //it is
                     std::string name = it->second;
                     if (!what[i].str().empty())
@@ -146,65 +174,72 @@ public:
             start = what[0].second; //move search forward
         }
         return out;
-    };
+    }
 
-    static void parse_groups(const std::string & str,
-            std::map<int, std::string> & groups_bynum,
-            std::map<std::string, int> & groups_byname)
+    static void parse_groups(
+            const spair_vec & uri_pats,
+            std::vector<std::map<int, std::string> > & groups_bynum_vec)
     {
-       int gnum = 0;
-       bool esc = false;
-       for (int i = 0; i < str.size(); ++i)
-       {
-           if (!esc && str[i] == '\\')
-           {
-               esc = true;
-               continue;
-           }
-           if (!esc && str[i] == '(') //group starts
-           {
-               gnum++;
-               if (i+1 < str.size() && str[i+1] == '?') //group with attrs 
-               {
-                   i++;
-                   if (i+1 < str.size() && str[i+1] == ':') //non-capturing
-                   {
-                       if (gnum > 0) gnum--;
-                       i++;
-                       continue;
-                   }
-                   if (i+1 < str.size() && str[i+1] == 'P') //optional, python
-                       i++;
-                   if (i+1 < str.size() && str[i+1] == '<') //named
-                   {
-                       i++;
-                       std::string gname;
-                       bool term = false;
-                       while (++i < str.size())
-                       {
-                           if (str[i] == '>') { term = true; break; }
-                           if (!isalnum(str[i])) 
-                               throw mp::filter::FilterException
-                                   ("Only alphanumeric chars allowed, found "
-                                    " in '" 
-                                    + str 
-                                    + "' at " 
-                                    + boost::lexical_cast<std::string>(i)); 
-                           gname += str[i];
-                       }
-                       if (!term)
-                           throw mp::filter::FilterException
-                               ("Unterminated group name '" + gname 
-                                + " in '" + str +"'");
-                      groups_bynum[gnum] = gname;
-                      groups_byname[gname] = gnum;
-                      std::cout << "Found named group '" << gname 
-                          << "' at $" << gnum << std::endl;
-                   }
-               }
-           }
-           esc = false;
-       }
+        for (int h = 0; h < uri_pats.size(); h++) 
+        {
+            int gnum = 0;
+            bool esc = false;
+            //regex is first, subpat is second
+            std::string str = uri_pats[h].first;
+            //for each pair we have an indexing map
+            std::map<int, std::string> groups_bynum;
+            for (int i = 0; i < str.size(); ++i)
+            {
+                if (!esc && str[i] == '\\')
+                {
+                    esc = true;
+                    continue;
+                }
+                if (!esc && str[i] == '(') //group starts
+                {
+                    gnum++;
+                    if (i+1 < str.size() && str[i+1] == '?') //group with attrs 
+                    {
+                        i++;
+                        if (i+1 < str.size() && str[i+1] == ':') //non-capturing
+                        {
+                            if (gnum > 0) gnum--;
+                            i++;
+                            continue;
+                        }
+                        if (i+1 < str.size() && str[i+1] == 'P') //optional, python
+                            i++;
+                        if (i+1 < str.size() && str[i+1] == '<') //named
+                        {
+                            i++;
+                            std::string gname;
+                            bool term = false;
+                            while (++i < str.size())
+                            {
+                                if (str[i] == '>') { term = true; break; }
+                                if (!isalnum(str[i])) 
+                                    throw mp::filter::FilterException
+                                        ("Only alphanumeric chars allowed, found "
+                                         " in '" 
+                                         + str 
+                                         + "' at " 
+                                         + boost::lexical_cast<std::string>(i)); 
+                                gname += str[i];
+                            }
+                            if (!term)
+                                throw mp::filter::FilterException
+                                    ("Unterminated group name '" + gname 
+                                     + " in '" + str +"'");
+                            groups_bynum[gnum] = gname;
+                            std::cout << "Found named group '" << gname 
+                                << "' at $" << gnum << std::endl;
+                        }
+                    }
+                }
+                esc = false;
+            }
+            groups_bynum_vec.push_back(groups_bynum);
+        }
     }
 
     static std::string sub_vars (const std::string & in, 
@@ -257,27 +292,23 @@ public:
     }
     
     void configure(
-            const std::string & req_uri_rx, 
-            const std::string & req_uri_pat, 
-            const std::string & resp_uri_rx, 
-            const std::string & resp_uri_pat) 
+            const spair_vec req_uri_pats,
+            const spair_vec res_uri_pats)
     {
-       this->req_uri_rx = req_uri_rx;
-       this->req_uri_pat = req_uri_pat;
+       //TODO should we really copy them out?
+       this->req_uri_pats = req_uri_pats;
+       this->res_uri_pats = res_uri_pats;
        //pick up names
-       parse_groups(req_uri_rx, groups_by_num, groups_by_name);
-       this->resp_uri_rx = resp_uri_rx;
-       this->resp_uri_pat = resp_uri_pat;
+       parse_groups(req_uri_pats, req_groups_bynum);
+       parse_groups(res_uri_pats, res_groups_bynum);
     };
 
 private:
     std::map<std::string, std::string> vars;
-    std::string req_uri_rx;
-    std::string resp_uri_rx;
-    std::string req_uri_pat;
-    std::string resp_uri_pat;
-    std::map<int, std::string> groups_by_num;
-    std::map<std::string, int> groups_by_name;
+    spair_vec req_uri_pats;
+    spair_vec res_uri_pats;
+    std::vector<std::map<int, std::string> > req_groups_bynum;
+    std::vector<std::map<int, std::string> > res_groups_bynum;
 
 };
 
@@ -300,13 +331,21 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
         mp::RouterChain router;
 
         FilterHeaderRewrite fhr;
-        fhr.configure(
-    "((?<proto>http\\:\\/\\/s?)(?<pxhost>[^\\/?#]+)\\/(?<pxpath>[^\\/]+)"
-    "(?<target>.+))|(proxyhost)",
-                "${proto}${target}${whatever}",
-                //rewrite connection close
-                "close",
-                "open for ${host}");
+        
+        spair_vec vec_req;
+        vec_req.push_back(std::make_pair(
+        "(?<proto>http\\:\\/\\/s?)(?<pxhost>[^\\/?#]+)\\/(?<pxpath>[^\\/]+)"
+        "\\/(?<target>.+)",
+        "${proto}${target}"
+        ));
+        vec_req.push_back(std::make_pair(
+        "proxyhost",
+        "localhost"
+        ));
+
+        spair_vec vec_res;
+        
+        fhr.configure(vec_req, vec_res);
 
         mp::filter::HTTPClient hc;
         
