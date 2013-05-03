@@ -7,6 +7,7 @@
       <filter type="frontend_net">
         <threads>10</threads>
         <port>@:9000</port>
+        <port cert_fname="ztest.pem">ssl:@:9001</port>
       </filter>
       <filter type="log">
         <message>M</message>
