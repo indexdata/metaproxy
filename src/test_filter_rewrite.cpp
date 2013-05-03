@@ -344,6 +344,10 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
         ));
 
         spair_vec vec_res;
+        vec_res.push_back(std::make_pair(
+        "(?<proto>http\\:\\/\\/s?)(?<host>[^\\/?#]+)\\/(?<path>[^ >]+)",
+        "http://${pxhost}/${pxpath}/${host}/${path}"
+        ));
         
         fhr.configure(vec_req, vec_res);
 
