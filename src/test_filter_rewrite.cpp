@@ -77,12 +77,25 @@ public:
                     header != 0; 
                     header = header->next) 
             {
+                std::string sheader(header->name);
+                sheader += ": ";
+                sheader += header->value;
                 std::cout << header->name << ": " << header->value << std::endl;
                 std::string out = test_patterns(vars, 
-                        std::string(header->value), 
+                        sheader, 
                         req_uri_pats, req_groups_bynum);
-                if (!out.empty())
-                    header->value = odr_strdup(o, out.c_str());
+                if (!out.empty()) 
+                {
+                    size_t pos = out.find(": ");
+                    if (pos == std::string::npos)
+                    {
+                        std::cout << "Header malformed during rewrite, ignoring";
+                        continue;
+                    }
+                    header->name = odr_strdup(o, out.substr(0, pos).c_str());
+                    header->value = odr_strdup(o, out.substr(pos+2, 
+                                std::string::npos).c_str());
+                }
             }
             package.request() = gdu;
         }
@@ -335,12 +348,12 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
         spair_vec vec_req;
         vec_req.push_back(std::make_pair(
         "(?<proto>http\\:\\/\\/s?)(?<pxhost>[^\\/?#]+)\\/(?<pxpath>[^\\/]+)"
-        "\\/(?<target>.+)",
-        "${proto}${target}"
+        "\\/(?<host>[^\\/]+)(?<path>.*)",
+        "${proto}${host}${path}"
         ));
         vec_req.push_back(std::make_pair(
-        "proxyhost",
-        "localhost"
+        "(?:Host\\: )(.*)",
+        "Host: localhost"
         ));
 
         spair_vec vec_res;
