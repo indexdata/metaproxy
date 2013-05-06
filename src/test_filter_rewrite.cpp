@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdexcept>
 
 #include "filter_http_client.hpp"
+#include "filter_http_rewrite.hpp"
 #include <metaproxy/util.hpp>
 #include "router_chain.hpp"
 #include <metaproxy/package.hpp>
@@ -36,320 +37,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using namespace boost::unit_test;
 namespace mp = metaproxy_1;
 
-typedef std::pair<std::string, std::string> string_pair;
-typedef std::vector<string_pair> spair_vec;
-typedef spair_vec::iterator spv_iter;
-
-class FilterHeaderRewrite: public mp::filter::Base {
-public:
-    void process(mp::Package & package) const 
-    {
-        Z_GDU *gdu = package.request().get();
-        //map of request/response vars
-        std::map<std::string, std::string> vars;
-        //we have an http req
-        if (gdu && gdu->which == Z_GDU_HTTP_Request)
-        {
-            Z_HTTP_Request *hreq = gdu->u.HTTP_Request;
-            mp::odr o;
-            std::cout << ">> Request headers" << std::endl;
-            rewrite_reqline(o, hreq, vars);
-            rewrite_headers(o, hreq->headers, vars);
-            rewrite_body(o, &hreq->content_buf, &hreq->content_len, vars);
-            package.request() = gdu;
-        }
-        package.move();
-        gdu = package.response().get();
-        if (gdu && gdu->which == Z_GDU_HTTP_Response)
-        {
-            Z_HTTP_Response *hres = gdu->u.HTTP_Response;
-            std::cout << "Response " << hres->code;
-            std::cout << "<< Respose headers" << std::endl;
-            mp::odr o;
-            rewrite_headers(o, hres->headers, vars);
-            rewrite_body(o, &hres->content_buf, &hres->content_len, vars);
-            package.response() = gdu;
-        }
-    }
-
-    void rewrite_reqline (mp::odr & o, Z_HTTP_Request *hreq,
-            std::map<std::string, std::string> & vars) const 
-    {
-        //rewrite the request line
-        std::string path;
-        if (strstr(hreq->path, "http://") == hreq->path)
-        {
-            std::cout << "Path in the method line is absolute, " 
-                "possibly a proxy request\n";
-            path += hreq->path;
-        }
-        else
-        {
-            //TODO what about proto
-            path += z_HTTP_header_lookup(hreq->headers, "Host");
-            path += hreq->path; 
-        }
-        std::cout << "Proxy request URL is " << path << std::endl;
-        std::string npath = 
-            test_patterns(vars, path, req_uri_pats, req_groups_bynum);
-        std::cout << "Resp request URL is " << npath << std::endl;
-        if (!npath.empty())
-            hreq->path = odr_strdup(o, npath.c_str());
-    }
- 
-    void rewrite_headers (mp::odr & o, Z_HTTP_Header *headers,
-            std::map<std::string, std::string> & vars) const 
-    {
-        for (Z_HTTP_Header *header = headers;
-                header != 0; 
-                header = header->next) 
-        {
-            std::string sheader(header->name);
-            sheader += ": ";
-            sheader += header->value;
-            std::cout << header->name << ": " << header->value << std::endl;
-            std::string out = test_patterns(vars, 
-                    sheader, 
-                    req_uri_pats, req_groups_bynum);
-            if (!out.empty()) 
-            {
-                size_t pos = out.find(": ");
-                if (pos == std::string::npos)
-                {
-                    std::cout << "Header malformed during rewrite, ignoring";
-                    continue;
-                }
-                header->name = odr_strdup(o, out.substr(0, pos).c_str());
-                header->value = odr_strdup(o, out.substr(pos+2, 
-                            std::string::npos).c_str());
-            }
-        }
-    }
-
-    void rewrite_body (mp::odr & o, char **content_buf, int *content_len,
-            std::map<std::string, std::string> & vars) const 
-    {
-        if (*content_buf)
-        {
-            std::string body(*content_buf);
-            std::string nbody = 
-                test_patterns(vars, body, req_uri_pats, req_groups_bynum);
-            if (!nbody.empty())
-            {
-                *content_buf = odr_strdup(o, nbody.c_str());
-                *content_len = nbody.size();
-            }
-        }
-    }
-
-
-    void configure(const xmlNode* ptr, bool test_only, const char *path) {};
-
-    /**
-     * Tests pattern from the vector in order and executes recipe on
-       the first match.
-     */
-    const std::string test_patterns(
-            std::map<std::string, std::string> & vars,
-            const std::string & txt, 
-            const spair_vec & uri_pats,
-            const std::vector<std::map<int, std::string> > & groups_bynum_vec)
-        const
-    {
-        for (int i = 0; i < uri_pats.size(); i++) 
-        {
-            std::string out = search_replace(vars, txt, 
-                    uri_pats[i].first, uri_pats[i].second,
-                    groups_bynum_vec[i]);
-            if (!out.empty()) return out;
-        }
-        return "";
-    }
-
-
-    const std::string search_replace(
-            std::map<std::string, std::string> & vars,
-            const std::string & txt,
-            const std::string & uri_re,
-            const std::string & uri_pat,
-            const std::map<int, std::string> & groups_bynum) const
-    {
-        //exec regex against value
-        boost::regex re(uri_re);
-        boost::smatch what;
-        std::string::const_iterator start, end;
-        start = txt.begin();
-        end = txt.end();
-        std::string out;
-        while (regex_search(start, end, what, re)) //find next full match
-        {
-            unsigned i;
-            for (i = 1; i < what.size(); ++i)
-            {
-                //check if the group is named
-                std::map<int, std::string>::const_iterator it
-                    = groups_bynum.find(i);
-                if (it != groups_bynum.end()) 
-                {   //it is
-                    std::string name = it->second;
-                    if (!what[i].str().empty())
-                        vars[name] = what[i];
-                }
-
-            }
-            //prepare replacement string
-            std::string rvalue = sub_vars(uri_pat, vars);
-            //rewrite value
-            std::string rhvalue = what.prefix().str() 
-                + rvalue + what.suffix().str();
-            std::cout << "! Rewritten '"+what.str(0)+"' to '"+rvalue+"'\n";
-            out += rhvalue;
-            start = what[0].second; //move search forward
-        }
-        return out;
-    }
-
-    static void parse_groups(
-            const spair_vec & uri_pats,
-            std::vector<std::map<int, std::string> > & groups_bynum_vec)
-    {
-        for (int h = 0; h < uri_pats.size(); h++) 
-        {
-            int gnum = 0;
-            bool esc = false;
-            //regex is first, subpat is second
-            std::string str = uri_pats[h].first;
-            //for each pair we have an indexing map
-            std::map<int, std::string> groups_bynum;
-            for (int i = 0; i < str.size(); ++i)
-            {
-                if (!esc && str[i] == '\\')
-                {
-                    esc = true;
-                    continue;
-                }
-                if (!esc && str[i] == '(') //group starts
-                {
-                    gnum++;
-                    if (i+1 < str.size() && str[i+1] == '?') //group with attrs 
-                    {
-                        i++;
-                        if (i+1 < str.size() && str[i+1] == ':') //non-capturing
-                        {
-                            if (gnum > 0) gnum--;
-                            i++;
-                            continue;
-                        }
-                        if (i+1 < str.size() && str[i+1] == 'P') //optional, python
-                            i++;
-                        if (i+1 < str.size() && str[i+1] == '<') //named
-                        {
-                            i++;
-                            std::string gname;
-                            bool term = false;
-                            while (++i < str.size())
-                            {
-                                if (str[i] == '>') { term = true; break; }
-                                if (!isalnum(str[i])) 
-                                    throw mp::filter::FilterException
-                                        ("Only alphanumeric chars allowed, found "
-                                         " in '" 
-                                         + str 
-                                         + "' at " 
-                                         + boost::lexical_cast<std::string>(i)); 
-                                gname += str[i];
-                            }
-                            if (!term)
-                                throw mp::filter::FilterException
-                                    ("Unterminated group name '" + gname 
-                                     + " in '" + str +"'");
-                            groups_bynum[gnum] = gname;
-                            std::cout << "Found named group '" << gname 
-                                << "' at $" << gnum << std::endl;
-                        }
-                    }
-                }
-                esc = false;
-            }
-            groups_bynum_vec.push_back(groups_bynum);
-        }
-    }
-
-    static std::string sub_vars (const std::string & in, 
-            const std::map<std::string, std::string> & vars)
-    {
-        std::string out;
-        bool esc = false;
-        for (int i = 0; i < in.size(); ++i)
-        {
-            if (!esc && in[i] == '\\')
-            {
-                esc = true;
-                continue;
-            }
-            if (!esc && in[i] == '$') //var
-            {
-                if (i+1 < in.size() && in[i+1] == '{') //ref prefix
-                {
-                    ++i;
-                    std::string name;
-                    bool term = false;
-                    while (++i < in.size()) 
-                    {
-                        if (in[i] == '}') { term = true; break; }
-                        name += in[i];
-                    }
-                    if (!term) throw mp::filter::FilterException
-                        ("Unterminated var ref in '"+in+"' at "
-                         + boost::lexical_cast<std::string>(i));
-                    std::map<std::string, std::string>::const_iterator it
-                        = vars.find(name);
-                    if (it != vars.end())
-                    {
-                        out += it->second;
-                    }
-                }
-                else
-                {
-                    throw mp::filter::FilterException
-                        ("Malformed or trimmed var ref in '"
-                         +in+"' at "+boost::lexical_cast<std::string>(i)); 
-                }
-                continue;
-            }
-            //passthru
-            out += in[i];
-            esc = false;
-        }
-        return out;
-    }
-    
-    void configure(
-            const spair_vec req_uri_pats,
-            const spair_vec res_uri_pats)
-    {
-       //TODO should we really copy them out?
-       this->req_uri_pats = req_uri_pats;
-       this->res_uri_pats = res_uri_pats;
-       //pick up names
-       parse_groups(req_uri_pats, req_groups_bynum);
-       parse_groups(res_uri_pats, res_groups_bynum);
-    };
-
-private:
-    spair_vec req_uri_pats;
-    spair_vec res_uri_pats;
-    std::vector<std::map<int, std::string> > req_groups_bynum;
-    std::vector<std::map<int, std::string> > res_groups_bynum;
-
-};
-
 
 BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
 {
     try
     {
-       FilterHeaderRewrite fhr;
+        mp::filter::HttpRewrite fhr;
     }
     catch ( ... ) {
         BOOST_CHECK (false);
@@ -362,9 +55,9 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
     {
         mp::RouterChain router;
 
-        FilterHeaderRewrite fhr;
+        mp::filter::HttpRewrite fhr;
         
-        spair_vec vec_req;
+        mp::filter::HttpRewrite::spair_vec vec_req;
         vec_req.push_back(std::make_pair(
         "(?<proto>http\\:\\/\\/s?)(?<pxhost>[^\\/?#]+)\\/(?<pxpath>[^\\/]+)"
         "\\/(?<host>[^\\/]+)(?<path>.*)",
@@ -375,7 +68,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
         "Host: localhost"
         ));
 
-        spair_vec vec_res;
+        mp::filter::HttpRewrite::spair_vec vec_res;
         vec_res.push_back(std::make_pair(
         "(?<proto>http\\:\\/\\/s?)(?<host>[^\\/?#]+)\\/(?<path>[^ >]+)",
         "http://${pxhost}/${pxpath}/${host}/${path}"
