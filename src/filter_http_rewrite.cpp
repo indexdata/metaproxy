@@ -146,9 +146,6 @@ void yf::HttpRewrite::rewrite_body (mp::odr & o, char **content_buf, int *conten
     }
 }
 
-
-void yf::HttpRewrite::configure(const xmlNode* ptr, bool test_only, const char *path) {};
-
 /**
  * Tests pattern from the vector in order and executes recipe on
  the first match.
@@ -338,6 +335,69 @@ void yf::HttpRewrite::configure(
     //pick up names
     parse_groups(req_uri_pats, req_groups_bynum);
     parse_groups(res_uri_pats, res_groups_bynum);
+}
+
+
+static void configure_rules(const xmlNode *ptr, yf::HttpRewrite::spair_vec & dest)
+{
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
+    {
+        if (ptr->type != XML_ELEMENT_NODE)
+            continue;
+        else if (!strcmp((const char *) ptr->name, "rewrite"))
+        {
+            std::string from, to;
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name,  "from"))
+                    from = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name,  "to"))
+                    to = mp::xml::get_text(attr->children);
+                else
+                    throw mp::filter::FilterException
+                        ("Bad attribute "
+                         + std::string((const char *) attr->name)
+                         + " in rewrite section of http_rewrite");
+            }
+            if (!from.empty())
+                dest.push_back(std::make_pair(from, to));
+        }
+        else
+        {
+            throw mp::filter::FilterException
+                ("Bad element "
+                 + std::string((const char *) ptr->name)
+                 + " in http_rewrite1 filter");
+        }
+    }
+}
+
+void yf::HttpRewrite::configure(const xmlNode * ptr, bool test_only,
+        const char *path)
+{
+    spair_vec req_uri_pats;
+    spair_vec res_uri_pats;
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
+    {
+        if (ptr->type != XML_ELEMENT_NODE)
+            continue;
+        else if (!strcmp((const char *) ptr->name, "request"))
+        {
+            configure_rules(ptr->children, req_uri_pats);
+        }
+        else if (!strcmp((const char *) ptr->name, "response"))
+        {
+            configure_rules(ptr->children, res_uri_pats);
+        }
+        else
+        {
+            throw mp::filter::FilterException
+                ("Bad element "
+                 + std::string((const char *) ptr->name)
+                 + " in http_rewrite1 filter");
+        }
+    }
 }
 
 static mp::filter::Base* filter_creator()
