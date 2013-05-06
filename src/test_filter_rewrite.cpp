@@ -42,7 +42,8 @@ typedef spair_vec::iterator spv_iter;
 
 class FilterHeaderRewrite: public mp::filter::Base {
 public:
-    void process(mp::Package & package) const {
+    void process(mp::Package & package) const 
+    {
         Z_GDU *gdu = package.request().get();
         //map of request/response vars
         std::map<std::string, std::string> vars;
@@ -51,52 +52,9 @@ public:
         {
             Z_HTTP_Request *hreq = gdu->u.HTTP_Request;
             mp::odr o;
-            //rewrite the request line
-            std::string path;
-            if (strstr(hreq->path, "http://") == hreq->path)
-            {
-                std::cout << "Path in the method line is absolute, " 
-                    "possibly a proxy request\n";
-                path += hreq->path;
-            }
-            else
-            {
-                //TODO what about proto
-               path += z_HTTP_header_lookup(hreq->headers, "Host");
-               path += hreq->path; 
-            }
-            std::cout << "Proxy request URL is " << path << std::endl;
-            std::string npath = 
-                test_patterns(vars, path, req_uri_pats, req_groups_bynum);
-            std::cout << "Resp request URL is " << npath << std::endl;
-            if (!npath.empty())
-                hreq->path = odr_strdup(o, npath.c_str());
             std::cout << ">> Request headers" << std::endl;
-            //iterate headers
-            for (Z_HTTP_Header *header = hreq->headers;
-                    header != 0; 
-                    header = header->next) 
-            {
-                std::string sheader(header->name);
-                sheader += ": ";
-                sheader += header->value;
-                std::cout << header->name << ": " << header->value << std::endl;
-                std::string out = test_patterns(vars, 
-                        sheader, 
-                        req_uri_pats, req_groups_bynum);
-                if (!out.empty()) 
-                {
-                    size_t pos = out.find(": ");
-                    if (pos == std::string::npos)
-                    {
-                        std::cout << "Header malformed during rewrite, ignoring";
-                        continue;
-                    }
-                    header->name = odr_strdup(o, out.substr(0, pos).c_str());
-                    header->value = odr_strdup(o, out.substr(pos+2, 
-                                std::string::npos).c_str());
-                }
-            }
+            rewrite_reqline(o, hreq, vars);
+            rewrite_headers(o, hreq->headers, vars);
             package.request() = gdu;
         }
         package.move();
@@ -107,21 +65,64 @@ public:
             std::cout << "Response " << hr->code;
             std::cout << "<< Respose headers" << std::endl;
             mp::odr o;
-            //iterate headers
-            for (Z_HTTP_Header *header = hr->headers;
-                    header != 0; 
-                    header = header->next) 
-            {
-                std::cout << header->name << ": " << header->value << std::endl;
-                std::string out = test_patterns(vars,
-                        std::string(header->value), 
-                        res_uri_pats, res_groups_bynum); 
-                if (!out.empty())
-                    header->value = odr_strdup(o, out.c_str());
-            }
+            rewrite_headers(o, hr->headers, vars);
             package.response() = gdu;
         }
-    };
+    }
+
+    void rewrite_reqline (mp::odr & o, Z_HTTP_Request *hreq,
+            std::map<std::string, std::string> & vars) const 
+    {
+        //rewrite the request line
+        std::string path;
+        if (strstr(hreq->path, "http://") == hreq->path)
+        {
+            std::cout << "Path in the method line is absolute, " 
+                "possibly a proxy request\n";
+            path += hreq->path;
+        }
+        else
+        {
+            //TODO what about proto
+            path += z_HTTP_header_lookup(hreq->headers, "Host");
+            path += hreq->path; 
+        }
+        std::cout << "Proxy request URL is " << path << std::endl;
+        std::string npath = 
+            test_patterns(vars, path, req_uri_pats, req_groups_bynum);
+        std::cout << "Resp request URL is " << npath << std::endl;
+        if (!npath.empty())
+            hreq->path = odr_strdup(o, npath.c_str());
+    }
+ 
+    void rewrite_headers (mp::odr & o, Z_HTTP_Header *headers,
+            std::map<std::string, std::string> & vars) const 
+    {
+        for (Z_HTTP_Header *header = headers;
+                header != 0; 
+                header = header->next) 
+        {
+            std::string sheader(header->name);
+            sheader += ": ";
+            sheader += header->value;
+            std::cout << header->name << ": " << header->value << std::endl;
+            std::string out = test_patterns(vars, 
+                    sheader, 
+                    req_uri_pats, req_groups_bynum);
+            if (!out.empty()) 
+            {
+                size_t pos = out.find(": ");
+                if (pos == std::string::npos)
+                {
+                    std::cout << "Header malformed during rewrite, ignoring";
+                    continue;
+                }
+                header->name = odr_strdup(o, out.substr(0, pos).c_str());
+                header->value = odr_strdup(o, out.substr(pos+2, 
+                            std::string::npos).c_str());
+            }
+        }
+    }
 
     void configure(const xmlNode* ptr, bool test_only, const char *path) {};
 
@@ -317,7 +318,6 @@ public:
     };
 
 private:
-    std::map<std::string, std::string> vars;
     spair_vec req_uri_pats;
     spair_vec res_uri_pats;
     std::vector<std::map<int, std::string> > req_groups_bynum;
