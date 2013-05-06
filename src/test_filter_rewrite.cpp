@@ -55,17 +55,19 @@ public:
             std::cout << ">> Request headers" << std::endl;
             rewrite_reqline(o, hreq, vars);
             rewrite_headers(o, hreq->headers, vars);
+            rewrite_body(o, &hreq->content_buf, &hreq->content_len, vars);
             package.request() = gdu;
         }
         package.move();
         gdu = package.response().get();
         if (gdu && gdu->which == Z_GDU_HTTP_Response)
         {
-            Z_HTTP_Response *hr = gdu->u.HTTP_Response;
-            std::cout << "Response " << hr->code;
+            Z_HTTP_Response *hres = gdu->u.HTTP_Response;
+            std::cout << "Response " << hres->code;
             std::cout << "<< Respose headers" << std::endl;
             mp::odr o;
-            rewrite_headers(o, hr->headers, vars);
+            rewrite_headers(o, hres->headers, vars);
+            rewrite_body(o, &hres->content_buf, &hres->content_len, vars);
             package.response() = gdu;
         }
     }
@@ -123,6 +125,23 @@ public:
             }
         }
     }
+
+    void rewrite_body (mp::odr & o, char **content_buf, int *content_len,
+            std::map<std::string, std::string> & vars) const 
+    {
+        if (*content_buf)
+        {
+            std::string body(*content_buf);
+            std::string nbody = 
+                test_patterns(vars, body, req_uri_pats, req_groups_bynum);
+            if (!nbody.empty())
+            {
+                *content_buf = odr_strdup(o, nbody.c_str());
+                *content_len = nbody.size();
+            }
+        }
+    }
+
 
     void configure(const xmlNode* ptr, bool test_only, const char *path) {};
 
