@@ -104,6 +104,75 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
     }
     catch (std::exception & e) {
         std::cout << e.what();
+        std::cout << std::endl;
+        BOOST_CHECK (false);
+    }
+}
+
+BOOST_AUTO_TEST_CASE( test_filter_rewrite_3 )
+{
+    try
+    {
+        std::string xmlconf =
+            "<?xml version='1.0'?>\n"
+            "<filter xmlns='http://indexdata.com/metaproxy'\n"
+            "        id='rewrite1' type='http_rewrite'>\n"
+            " <request>\n"
+            "   <rewrite from='"
+    "(?&lt;proto>http\\:\\/\\/s?)(?&lt;pxhost>[^\\/?#]+)\\/(?&lt;pxpath>[^\\/]+)"
+    "\\/(?&lt;host>[^\\/]+)(?&lt;path>.*)'\n"
+            "            to='${proto}${host}${path}' />\n"
+            "   <rewrite from='(?:Host\\: )(.*)'\n"
+            "            to='Host: localhost' />\n" 
+            " </request>\n"
+            " <response>\n"
+            "   <rewrite from='"
+    "(?&lt;proto>http\\:\\/\\/s?)(?&lt;host>[^\\/?#]+)\\/(?&lt;path>[^ >]+)'\n"
+            "            to='http://${pxhost}/${pxpath}/${host}/${path}' />\n" 
+            " </response>\n"
+            "</filter>\n"
+            ;
+
+        std::cout << xmlconf;
+
+        // reading and parsing XML conf
+        xmlDocPtr doc = xmlParseMemory(xmlconf.c_str(), xmlconf.size());
+        BOOST_CHECK(doc);
+        xmlNode *root_element = xmlDocGetRootElement(doc);
+        mp::filter::HttpRewrite fhr; 
+        fhr.configure(root_element, true, "");
+        xmlFreeDoc(doc);
+
+        mp::filter::HTTPClient hc;
+        
+        mp::RouterChain router;
+        router.append(fhr);
+        router.append(hc);
+
+        // create an http request
+        mp::Package pack;
+
+        mp::odr odr;
+        Z_GDU *gdu_req = z_get_HTTP_Request_uri(odr, 
+        "http://proxyhost/proxypath/localhost:80/~jakub/targetsite.php", 0, 1);
+
+        pack.request() = gdu_req;
+
+        //feed to the router
+        pack.router(router).move();
+
+        //analyze the response
+        Z_GDU *gdu_res = pack.response().get();
+        BOOST_CHECK(gdu_res);
+        BOOST_CHECK_EQUAL(gdu_res->which, Z_GDU_HTTP_Response);
+        
+        Z_HTTP_Response *hres = gdu_res->u.HTTP_Response;
+        BOOST_CHECK(hres);
+
+    }
+    catch (std::exception & e) {
+        std::cout << e.what();
+        std::cout << std::endl;
         BOOST_CHECK (false);
     }
 }

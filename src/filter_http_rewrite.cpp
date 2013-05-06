@@ -360,13 +360,14 @@ static void configure_rules(const xmlNode *ptr, yf::HttpRewrite::spair_vec & des
                          + std::string((const char *) attr->name)
                          + " in rewrite section of http_rewrite");
             }
+            std::cout << "Found rewrite rule from=" << from << " to " << to << std::endl;
             if (!from.empty())
                 dest.push_back(std::make_pair(from, to));
         }
         else
         {
             throw mp::filter::FilterException
-                ("Bad element "
+                ("Bad element o"
                  + std::string((const char *) ptr->name)
                  + " in http_rewrite1 filter");
         }
@@ -384,11 +385,12 @@ void yf::HttpRewrite::configure(const xmlNode * ptr, bool test_only,
             continue;
         else if (!strcmp((const char *) ptr->name, "request"))
         {
-            configure_rules(ptr->children, req_uri_pats);
+            std::cout << "Found request rule" << std::endl;
+            configure_rules(ptr, req_uri_pats);
         }
         else if (!strcmp((const char *) ptr->name, "response"))
         {
-            configure_rules(ptr->children, res_uri_pats);
+            configure_rules(ptr, res_uri_pats);
         }
         else
         {
@@ -398,6 +400,7 @@ void yf::HttpRewrite::configure(const xmlNode * ptr, bool test_only,
                  + " in http_rewrite1 filter");
         }
     }
+    configure(req_uri_pats, res_uri_pats);
 }
 
 static mp::filter::Base* filter_creator()
