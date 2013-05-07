@@ -1,10 +1,12 @@
-CONFIG=../../yazpp/yazpp-config
+CONFIG=../metaproxy-config
 SO=metaproxy_filter_myfilter.so
 
 all: $(SO)
 
 $(SO): filter_myfilter.cpp
-	$(CXX) -shared `$(CONFIG) --cflags` -fPIC -I ../src $< -o $(SO) ../src/.libs/libmetaproxy.so -ldl
+	echo $(LIBS)
+	$(CXX) -shared `$(CONFIG) --cflags` -fPIC -I ../src $< \
+		-o $(SO) `$(CONFIG) --libs`
 
 clean:
 	rm -f *.so

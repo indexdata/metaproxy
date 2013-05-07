@@ -29,6 +29,7 @@
    <command>metaproxy</command>
    <arg choice="opt"><option>--help</option></arg>
    <arg choice="opt"><option>--version</option></arg>
+   <arg choice="opt"><option>-v <replaceable>loglevel</replaceable></option></arg>
    <arg choice="opt"><option>--config <replaceable>config</replaceable></option></arg>
    <arg choice="opt"><option>-D</option></arg>
    <arg choice="opt"><option>-l <replaceable>logfile</replaceable></option></arg>
@@ -64,6 +65,13 @@
     <listitem><para>
       Displays Metaproxy version.
      </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-v <replaceable>loglevel</replaceable></term>
+    <listitem><para>
+     Specify YAZ log level (all, debug, log)
+    </para></listitem>
    </varlistentry>
 
    <varlistentry>

@@ -12,7 +12,7 @@ echo_lalibs=no
 src_root=@abs_top_srcdir@
 build_root=@abs_top_builddir@
 
-libs="@YAZPPLIB@ @LIBS@"
+libs="@BOOST_LIB@ @BOOST_REGEX_LIB@ @BOOST_THREAD_LIB@ @YAZPPLIB@ @LIBS@"
 lalibs="@YAZPPLALIB@ @LIBS@"
 VERSION=@VERSION@
 
