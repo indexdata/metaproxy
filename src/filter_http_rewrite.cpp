@@ -67,7 +67,7 @@ void yf::HttpRewrite::process(mp::Package & package) const
     if (gdu && gdu->which == Z_GDU_HTTP_Response)
     {
         Z_HTTP_Response *hres = gdu->u.HTTP_Response;
-        std::cout << "Response " << hres->code;
+        yaz_log(YLOG_DEBUG, "Response %d", hres->code);
         std::cout << "<< Respose headers" << std::endl;
         mp::odr o;
         rewrite_headers(o, hres->headers, vars);
@@ -157,7 +157,7 @@ const std::string yf::HttpRewrite::test_patterns(
         const std::vector<std::map<int, std::string> > & groups_bynum_vec)
     const
 {
-    for (int i = 0; i < uri_pats.size(); i++) 
+    for (unsigned i = 0; i < uri_pats.size(); i++) 
     {
         std::string out = search_replace(vars, txt, 
                 uri_pats[i].first, uri_pats[i].second,
@@ -214,7 +214,7 @@ void yf::HttpRewrite::parse_groups(
         const spair_vec & uri_pats,
         std::vector<std::map<int, std::string> > & groups_bynum_vec)
 {
-    for (int h = 0; h < uri_pats.size(); h++) 
+    for (unsigned h = 0; h < uri_pats.size(); h++) 
     {
         int gnum = 0;
         bool esc = false;
@@ -222,7 +222,7 @@ void yf::HttpRewrite::parse_groups(
         std::string str = uri_pats[h].first;
         //for each pair we have an indexing map
         std::map<int, std::string> groups_bynum;
-        for (int i = 0; i < str.size(); ++i)
+        for (unsigned i = 0; i < str.size(); ++i)
         {
             if (!esc && str[i] == '\\')
             {
@@ -281,7 +281,7 @@ std::string yf::HttpRewrite::sub_vars (const std::string & in,
 {
     std::string out;
     bool esc = false;
-    for (int i = 0; i < in.size(); ++i)
+    for (unsigned i = 0; i < in.size(); ++i)
     {
         if (!esc && in[i] == '\\')
         {
