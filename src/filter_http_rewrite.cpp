@@ -208,14 +208,14 @@ const std::string yf::HttpRewrite::search_replace(
         }
         //prepare replacement string
         std::string rvalue = sub_vars(uri_pat, vars);
-        //rewrite value
-        std::string rhvalue = what.prefix().str() 
-            + rvalue + what.suffix().str();
         yaz_log(YLOG_LOG, "! Rewritten '%s' to '%s'", 
                 what.str(0).c_str(), rvalue.c_str());
-        out += rhvalue;
+        out += std::string(start, what[0].first) + rvalue;
         start = what[0].second; //move search forward
     }
+    //if we had a match cat the last part
+    if (start != txt.begin())
+        out += std::string(start, end);
     return out;
 }
 
