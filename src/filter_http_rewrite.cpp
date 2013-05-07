@@ -48,7 +48,7 @@ yf::HttpRewrite::~HttpRewrite()
 
 void yf::HttpRewrite::process(mp::Package & package) const 
 {
-    yaz_log(YLOG_DEBUG, "HttpRewrite begins....");
+    yaz_log(YLOG_LOG, "HttpRewrite begins....");
     Z_GDU *gdu = package.request().get();
     //map of request/response vars
     std::map<std::string, std::string> vars;
@@ -58,7 +58,7 @@ void yf::HttpRewrite::process(mp::Package & package) const
         Z_HTTP_Request *hreq = gdu->u.HTTP_Request;
         mp::odr o;
         rewrite_reqline(o, hreq, vars);
-        yaz_log(YLOG_DEBUG, ">> Request headers");
+        yaz_log(YLOG_LOG, ">> Request headers");
         rewrite_headers(o, hreq->headers, vars);
         rewrite_body(o, &hreq->content_buf, &hreq->content_len, vars);
         package.request() = gdu;
@@ -68,9 +68,9 @@ void yf::HttpRewrite::process(mp::Package & package) const
     if (gdu && gdu->which == Z_GDU_HTTP_Response)
     {
         Z_HTTP_Response *hres = gdu->u.HTTP_Response;
-        yaz_log(YLOG_DEBUG, "Response code %d", hres->code);
+        yaz_log(YLOG_LOG, "Response code %d", hres->code);
         mp::odr o;
-        yaz_log(YLOG_DEBUG, "<< Respose headers");
+        yaz_log(YLOG_LOG, "<< Respose headers");
         rewrite_headers(o, hres->headers, vars);
         rewrite_body(o, &hres->content_buf, &hres->content_len, vars);
         package.response() = gdu;
@@ -84,7 +84,7 @@ void yf::HttpRewrite::rewrite_reqline (mp::odr & o, Z_HTTP_Request *hreq,
     std::string path;
     if (strstr(hreq->path, "http://") == hreq->path)
     {
-        yaz_log(YLOG_DEBUG, "Path in the method line is absolute, " 
+        yaz_log(YLOG_LOG, "Path in the method line is absolute, " 
             "possibly a proxy request");
         path += hreq->path;
     }
@@ -95,12 +95,12 @@ void yf::HttpRewrite::rewrite_reqline (mp::odr & o, Z_HTTP_Request *hreq,
         path += z_HTTP_header_lookup(hreq->headers, "Host");
         path += hreq->path; 
     }
-    yaz_log(YLOG_DEBUG, "Proxy request URL is %s", path.c_str());
+    yaz_log(YLOG_LOG, "Proxy request URL is %s", path.c_str());
     std::string npath = 
         test_patterns(vars, path, req_uri_pats, req_groups_bynum);
     if (!npath.empty())
     {
-        yaz_log(YLOG_DEBUG, "Rewritten request URL is %s", npath.c_str());
+        yaz_log(YLOG_LOG, "Rewritten request URL is %s", npath.c_str());
         hreq->path = odr_strdup(o, npath.c_str());
     }
 }
@@ -115,7 +115,7 @@ void yf::HttpRewrite::rewrite_headers (mp::odr & o, Z_HTTP_Header *headers,
         std::string sheader(header->name);
         sheader += ": ";
         sheader += header->value;
-        yaz_log(YLOG_DEBUG, "%s: %s", header->name, header->value);
+        yaz_log(YLOG_LOG, "%s: %s", header->name, header->value);
         std::string out = test_patterns(vars, 
                 sheader, 
                 req_uri_pats, req_groups_bynum);
@@ -124,7 +124,7 @@ void yf::HttpRewrite::rewrite_headers (mp::odr & o, Z_HTTP_Header *headers,
             size_t pos = out.find(": ");
             if (pos == std::string::npos)
             {
-                yaz_log(YLOG_DEBUG, "Header malformed during rewrite, ignoring");
+                yaz_log(YLOG_LOG, "Header malformed during rewrite, ignoring");
                 continue;
             }
             header->name = odr_strdup(o, out.substr(0, pos).c_str());
@@ -207,7 +207,7 @@ const std::string yf::HttpRewrite::search_replace(
         //rewrite value
         std::string rhvalue = what.prefix().str() 
             + rvalue + what.suffix().str();
-        yaz_log(YLOG_DEBUG, "! Rewritten '%s' to '%s'", 
+        yaz_log(YLOG_LOG, "! Rewritten '%s' to '%s'", 
                 what.str(0).c_str(), rvalue.c_str());
         out += rhvalue;
         start = what[0].second; //move search forward
@@ -270,7 +270,7 @@ void yf::HttpRewrite::parse_groups(
                                 ("Unterminated group name '" + gname 
                                  + " in '" + str +"'");
                         groups_bynum[gnum] = gname;
-                        yaz_log(YLOG_DEBUG, "Found named group '%s' at $%d",
+                        yaz_log(YLOG_LOG, "Found named group '%s' at $%d",
                                 gname.c_str(), gnum);
                     }
                 }
@@ -365,7 +365,7 @@ static void configure_rules(const xmlNode *ptr, yf::HttpRewrite::spair_vec & des
                          + std::string((const char *) attr->name)
                          + " in rewrite section of http_rewrite");
             }
-            yaz_log(YLOG_DEBUG, "Found rewrite rule from '%s' to '%s'", 
+            yaz_log(YLOG_LOG, "Found rewrite rule from '%s' to '%s'", 
                     from.c_str(), to.c_str());
             if (!from.empty())
                 dest.push_back(std::make_pair(from, to));
