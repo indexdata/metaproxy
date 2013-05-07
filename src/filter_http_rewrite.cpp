@@ -48,6 +48,7 @@ yf::HttpRewrite::~HttpRewrite()
 
 void yf::HttpRewrite::process(mp::Package & package) const 
 {
+    std::cout << "HttpRewrite begins...." << std::endl;
     Z_GDU *gdu = package.request().get();
     //map of request/response vars
     std::map<std::string, std::string> vars;
@@ -56,8 +57,8 @@ void yf::HttpRewrite::process(mp::Package & package) const
     {
         Z_HTTP_Request *hreq = gdu->u.HTTP_Request;
         mp::odr o;
-        std::cout << ">> Request headers" << std::endl;
         rewrite_reqline(o, hreq, vars);
+        std::cout << ">> Request headers" << std::endl;
         rewrite_headers(o, hreq->headers, vars);
         rewrite_body(o, &hreq->content_buf, &hreq->content_len, vars);
         package.request() = gdu;
@@ -68,8 +69,8 @@ void yf::HttpRewrite::process(mp::Package & package) const
     {
         Z_HTTP_Response *hres = gdu->u.HTTP_Response;
         yaz_log(YLOG_DEBUG, "Response %d", hres->code);
-        std::cout << "<< Respose headers" << std::endl;
         mp::odr o;
+        std::cout << "<< Respose headers" << std::endl;
         rewrite_headers(o, hres->headers, vars);
         rewrite_body(o, &hres->content_buf, &hres->content_len, vars);
         package.response() = gdu;
