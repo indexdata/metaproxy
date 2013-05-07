@@ -29,6 +29,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include <yaz/log.h>
+
 #define BOOST_AUTO_TEST_MAIN
 #define BOOST_TEST_DYN_LINK
 
@@ -37,6 +39,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using namespace boost::unit_test;
 namespace mp = metaproxy_1;
 
+struct TestConfig {
+    TestConfig()   
+    {
+        std::cout << "global setup\n"; 
+        yaz_log_init_level(YLOG_ALL);
+    }
+    ~TestConfig() 
+    { 
+        std::cout << "global teardown\n"; 
+    }
+};
+
+BOOST_GLOBAL_FIXTURE( TestConfig );
 
 BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
 {
