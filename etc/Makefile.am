@@ -24,7 +24,8 @@ xmlconfig = $(srcdir)/config-bytarget.xml \
     $(srcdir)/config-zoom.xml \
     $(srcdir)/retrieval-info.xml
 
-config = example.simple-auth example.target-auth pqf2pqf.xsl explain.xml
+config = example.simple-auth example.target-auth pqf2pqf.xsl explain.xml \
+	ztest.pem
 
 
 rng = $(srcdir)/../xml/schema/metaproxy.rng

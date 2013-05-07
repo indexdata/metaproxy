@@ -5,7 +5,7 @@ Maintainer: Adam Dickmeiss <adam@indexdata.dk>
 Priority: extra
 Build-Depends: debhelper (>= 5),
 	libyaz4-dev (>= 4.2.50),
-	libyazpp5-dev (>= 1.4.0),
+	libyazpp5-dev (>= 1.4.1),
 	libxslt1-dev,
 	libboost-dev,
 	libboost-system-dev,

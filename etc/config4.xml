@@ -7,6 +7,7 @@
       <filter type="frontend_net">
         <threads>10</threads>
         <port>@:9000</port>
+        <port cert_fname="ztest.pem">ssl:@:9001</port>
       </filter>
       <filter type="log">
         <message>M</message>
@@ -22,7 +23,7 @@
         <replace content-type="text/html" pattern="YAZ" replacement="yaz"/>
       </filter>
       <filter type="http_client">
-	<proxy>localhost:9999</proxy>
+	<default-host>http://localhost:9999</default-host>
       </filter>
       <filter type="bounce"/>
     </route>

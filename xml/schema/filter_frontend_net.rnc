@@ -10,7 +10,9 @@ filter_frontend_net =
   element mp:port {
     attribute route { xsd:NCName }?,
     attribute max_recv_bytes { xsd:integer }?,
-    xsd:string
+    attribute port { xsd:integer }?,
+    attribute cert_fname { xsd:string }?,
+   xsd:string
   }+,
   element mp:timeout { xsd:integer }?,
   element mp:connect-max { xsd:integer }?,
