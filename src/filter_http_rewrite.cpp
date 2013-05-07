@@ -91,6 +91,7 @@ void yf::HttpRewrite::rewrite_reqline (mp::odr & o, Z_HTTP_Request *hreq,
     else
     {
         //TODO what about proto
+        path += "http://";
         path += z_HTTP_header_lookup(hreq->headers, "Host");
         path += hreq->path; 
     }
