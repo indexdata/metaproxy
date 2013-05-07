@@ -48,14 +48,20 @@ namespace metaproxy_1 {
             void rewrite_reqline (mp::odr & o, Z_HTTP_Request *hreq,
                     std::map<std::string, std::string> & vars) const;
             void rewrite_headers (mp::odr & o, Z_HTTP_Header *headers,
-                    std::map<std::string, std::string> & vars) const; 
+                    std::map<std::string, std::string> & vars,
+                    const spair_vec & uri_pats,
+                    const std::vector<std::map<int, std::string> > & groups_bynum_vec) const;
             void rewrite_body (mp::odr & o, char **content_buf, int *content_len,
-                    std::map<std::string, std::string> & vars) const;
+                    std::map<std::string, std::string> & vars,
+                    const spair_vec & uri_pats,
+                    const std::vector<std::map<int, std::string> > 
+                    & groups_bynum) const; 
             const std::string test_patterns(
                     std::map<std::string, std::string> & vars,
                     const std::string & txt, 
                     const spair_vec & uri_pats,
-                    const std::vector<std::map<int, std::string> > & groups_bynum_vec) const;
+                    const std::vector<std::map<int, std::string> > 
+                    & groups_bynum) const;
             const std::string search_replace(
                     std::map<std::string, std::string> & vars,
                     const std::string & txt,

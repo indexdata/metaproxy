@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
         mp::filter::HttpRewrite::spair_vec vec_res;
         vec_res.push_back(std::make_pair(
         "(?<proto>http\\:\\/\\/s?)(?<host>[^\\/?#]+)\\/(?<path>[^ >]+)",
-        "http://${pxhost}/${pxpath}/${host}/${path}"
+        "THAT WAS MATCHED"
         ));
         
         fhr.configure(vec_req, vec_res);
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_3 )
             " <response>\n"
             "   <rewrite from='"
     "(?&lt;proto>http\\:\\/\\/s?)(?&lt;host>[^\\/?#]+)\\/(?&lt;path>[^ >]+)'\n"
-            "            to='http://${pxhost}/${pxpath}/${host}/${path}' />\n" 
+            "            to='THAT WAS MATCHED' />\n" 
             " </response>\n"
             "</filter>\n"
             ;

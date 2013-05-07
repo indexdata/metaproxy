@@ -59,8 +59,9 @@ void yf::HttpRewrite::process(mp::Package & package) const
         mp::odr o;
         rewrite_reqline(o, hreq, vars);
         yaz_log(YLOG_LOG, ">> Request headers");
-        rewrite_headers(o, hreq->headers, vars);
-        rewrite_body(o, &hreq->content_buf, &hreq->content_len, vars);
+        rewrite_headers(o, hreq->headers, vars, req_uri_pats, req_groups_bynum);
+        rewrite_body(o, &hreq->content_buf, &hreq->content_len, vars,
+                req_uri_pats, req_groups_bynum);
         package.request() = gdu;
     }
     package.move();
@@ -71,8 +72,9 @@ void yf::HttpRewrite::process(mp::Package & package) const
         yaz_log(YLOG_LOG, "Response code %d", hres->code);
         mp::odr o;
         yaz_log(YLOG_LOG, "<< Respose headers");
-        rewrite_headers(o, hres->headers, vars);
-        rewrite_body(o, &hres->content_buf, &hres->content_len, vars);
+        rewrite_headers(o, hres->headers, vars, res_uri_pats, res_groups_bynum);
+        rewrite_body(o, &hres->content_buf, &hres->content_len, vars,
+                res_uri_pats, res_groups_bynum);
         package.response() = gdu;
     }
 }
@@ -106,7 +108,9 @@ void yf::HttpRewrite::rewrite_reqline (mp::odr & o, Z_HTTP_Request *hreq,
 }
 
 void yf::HttpRewrite::rewrite_headers (mp::odr & o, Z_HTTP_Header *headers,
-        std::map<std::string, std::string> & vars) const 
+        std::map<std::string, std::string> & vars, 
+        const spair_vec & uri_pats,
+        const std::vector<std::map<int, std::string> > & groups_bynum) const 
 {
     for (Z_HTTP_Header *header = headers;
             header != 0; 
@@ -116,9 +120,7 @@ void yf::HttpRewrite::rewrite_headers (mp::odr & o, Z_HTTP_Header *headers,
         sheader += ": ";
         sheader += header->value;
         yaz_log(YLOG_LOG, "%s: %s", header->name, header->value);
-        std::string out = test_patterns(vars, 
-                sheader, 
-                req_uri_pats, req_groups_bynum);
+        std::string out = test_patterns(vars, sheader, uri_pats, groups_bynum);
         if (!out.empty()) 
         {
             size_t pos = out.find(": ");
@@ -135,13 +137,15 @@ void yf::HttpRewrite::rewrite_headers (mp::odr & o, Z_HTTP_Header *headers,
 }
 
 void yf::HttpRewrite::rewrite_body (mp::odr & o, char **content_buf, int *content_len,
-        std::map<std::string, std::string> & vars) const 
+        std::map<std::string, std::string> & vars,
+        const spair_vec & uri_pats,
+        const std::vector<std::map<int, std::string> > & groups_bynum) const 
 {
     if (*content_buf)
     {
         std::string body(*content_buf);
         std::string nbody = 
-            test_patterns(vars, body, req_uri_pats, req_groups_bynum);
+            test_patterns(vars, body, uri_pats, groups_bynum);
         if (!nbody.empty())
         {
             *content_buf = odr_strdup(o, nbody.c_str());
