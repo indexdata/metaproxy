@@ -52,6 +52,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_z3950_client.hpp"
 #include "filter_zeerex_explain.hpp"
 #include "filter_zoom.hpp"
+#include "filter_http_rewrite.hpp"
 
 namespace mp = metaproxy_1;
 
@@ -83,6 +84,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_z3950_client,
         &metaproxy_1_filter_zeerex_explain,
         &metaproxy_1_filter_zoom,
+        &metaproxy_1_filter_http_rewrite,
         0
     };
     int i;
