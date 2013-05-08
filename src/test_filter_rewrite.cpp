@@ -94,11 +94,9 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
 
         //create the http response
 
-        /* response, content  */
         const char *resp_buf =
-            /*123456789012345678 */
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 50\r\n"
+            "Content-Length: 441\r\n"
             "Content-Type: text/html\r\n"
             "Link: <http://targetsite/file.xml>; rel=absolute\r\n"
             "Link: </dir/file.xml>; rel=relative\r\n"
@@ -121,11 +119,9 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "<a href=\"/docs/page4.html\" />"
             "</body></html>";
 
-        /* response, content  */
-        const char *resp_result =
-            /*123456789012345678 */
+        const char *resp_expected =
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 50\r\n"
+            "Content-Length: 521\r\n"
             "Content-Type: text/html\r\n"
             "Link: <http://proxyhost/proxypath/targetsite/file.xml>; rel=absolute\r\n"
             "Link: </dir/file.xml>; rel=relative\r\n"
@@ -141,11 +137,11 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "<body>"
             "<p>Welcome to our website. It doesn't make it easy to get pro"
             "xified"
-            "<a href=\"http://proxyhost/proxypath/targetsite/page.html\">"
+            "<a href=\"http://proxyhost/proxypath/targetsite/page2.html\">"
             "  An absolute link</a>"
             "<a target=_blank href='http://proxyhost/proxypath/targetsite/page3.html\">"
             "  Another abs link</a>"
-            "<a href=\"/docs/page2.html\" />"
+            "<a href=\"/docs/page4.html\" />"
             "</body></html>";
 
         int r;
@@ -154,7 +150,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
         odr_setbuf(dec, (char *) resp_buf, strlen(resp_buf), 0);
         r = z_GDU(dec, &gdu_res, 0, 0);
 
-        BOOST_CHECK(r == 0);
+        BOOST_CHECK(r);
         if (r)
         {
             BOOST_CHECK_EQUAL(gdu_res->which, Z_GDU_HTTP_Response);
@@ -173,17 +169,26 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
         Z_HTTP_Response *hres = gdu_res_rew->u.HTTP_Response;
         BOOST_CHECK(hres);
 
-        //how to compare the buffers:
+        //compare buffers
+        std::cout << "Expected result:\n" << resp_expected << std::endl;
+
         ODR enc = odr_createmem(ODR_ENCODE);
-        Z_GDU *zgdu;
-        Z_GDU(enc, &zgdu, 0, 0);
+        z_GDU(enc, &gdu_res_rew, 0, 0);
         char *resp_result;
         int resp_result_len;
         resp_result = odr_getbuf(enc, &resp_result_len, 0);
         
-        BOOST_CHECK(memcmp(resp_result, resp_expected, resp_result_len));
+        BOOST_CHECK(resp_result);
+        BOOST_CHECK_EQUAL(resp_result_len, strlen(resp_expected));
+
+        std::cout << "Rewriten result:\n" << resp_result << std::endl;
+        std::cout << "Rewriten result buf len: " << resp_result_len 
+            << std::endl;
+
+        BOOST_CHECK(memcmp(resp_result, resp_expected, resp_result_len) == 0);
 
         odr_destroy(dec);
+        odr_destroy(enc);
     }
     catch (std::exception & e) {
         std::cout << e.what();
@@ -192,6 +197,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
     }
 }
 
+/*
 BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
 {
     try
@@ -242,9 +248,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
 
         //create the http response
 
-        /* response, content  */
         const char *resp_buf =
-            /*123456789012345678 */
             "HTTP/1.1 200 OK\r\n"
             "Content-Length: 50\r\n"
             "Content-Type: text/html\r\n"
@@ -269,9 +273,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
             "<a href=\"/docs/page4.html\" />"
             "</body></html>";
 
-        /* response, content  */
         const char *resp_buf_rew =
-            /*123456789012345678 */
             "HTTP/1.1 200 OK\r\n"
             "Content-Length: 50\r\n"
             "Content-Type: text/html\r\n"
@@ -331,7 +333,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
         BOOST_CHECK (false);
     }
 }
-
+*/
 
 /*
  * Local variables:

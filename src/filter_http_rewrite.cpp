@@ -141,7 +141,6 @@ void yf::HttpRewrite::rewrite_body (mp::odr & o, char **content_buf, int *conten
         const spair_vec & uri_pats,
         const std::vector<std::map<int, std::string> > & groups_bynum) const 
 {
-    std::cout << "About to rewrite body: " << *content_buf;
     if (*content_buf)
     {
         std::string body(*content_buf);
