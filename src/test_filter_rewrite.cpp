@@ -98,10 +98,10 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
         const char *resp_buf =
             /*123456789012345678 */
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 3000\r\n"
+            "Content-Length: 50\r\n"
             "Content-Type: text/html\r\n"
-            "Link: <http://targetsite/file.xml>; rel=absolute\r\r"
-            "Link: </dir/file.xml>; rel=relative\r\r"
+            "Link: <http://targetsite/file.xml>; rel=absolute\r\n"
+            "Link: </dir/file.xml>; rel=relative\r\n"
             "\r\n"
             "<html><head><title>Hello proxy!</title>"
             "<style>"
@@ -122,13 +122,13 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "</body></html>";
 
         /* response, content  */
-        const char *resp_buf_rew =
+        const char *resp_result =
             /*123456789012345678 */
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 3000\r\n"
+            "Content-Length: 50\r\n"
             "Content-Type: text/html\r\n"
-            "Link: <http://proxyhost/proxypath/targetsite/file.xml>; rel=absolute\r\r"
-            "Link: </dir/file.xml>; rel=relative\r\r"
+            "Link: <http://proxyhost/proxypath/targetsite/file.xml>; rel=absolute\r\n"
+            "Link: </dir/file.xml>; rel=relative\r\n"
             "\r\n"
             "<html><head><title>Hello proxy!</title>"
             "<style>"
@@ -143,16 +143,16 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "xified"
             "<a href=\"http://proxyhost/proxypath/targetsite/page.html\">"
             "  An absolute link</a>"
-            "<a target=_blank href='http://proxyhost/proxypath/targetsite/anotherpage.html\">"
+            "<a target=_blank href='http://proxyhost/proxypath/targetsite/page3.html\">"
             "  Another abs link</a>"
             "<a href=\"/docs/page2.html\" />"
             "</body></html>";
 
         int r;
         Z_GDU *gdu_res;
-        ODR odr2 = odr_createmem(ODR_DECODE);
-        odr_setbuf(odr2, (char *) resp_buf, strlen(resp_buf), 0);
-        r = z_GDU(odr2, &gdu_res, 0, 0);
+        ODR dec = odr_createmem(ODR_DECODE);
+        odr_setbuf(dec, (char *) resp_buf, strlen(resp_buf), 0);
+        r = z_GDU(dec, &gdu_res, 0, 0);
 
         BOOST_CHECK(r == 0);
         if (r)
@@ -174,8 +174,16 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
         BOOST_CHECK(hres);
 
         //how to compare the buffers:
+        ODR enc = odr_createmem(ODR_ENCODE);
+        Z_GDU *zgdu;
+        Z_GDU(enc, &zgdu, 0, 0);
+        char *resp_result;
+        int resp_result_len;
+        resp_result = odr_getbuf(enc, &resp_result_len, 0);
+        
+        BOOST_CHECK(memcmp(resp_result, resp_expected, resp_result_len));
 
-        odr_destroy(odr2);
+        odr_destroy(dec);
     }
     catch (std::exception & e) {
         std::cout << e.what();
@@ -238,10 +246,10 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
         const char *resp_buf =
             /*123456789012345678 */
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 3000\r\n"
+            "Content-Length: 50\r\n"
             "Content-Type: text/html\r\n"
-            "Link: <http://targetsite/file.xml>; rel=absolute\r\r"
-            "Link: </dir/file.xml>; rel=relative\r\r"
+            "Link: <http://targetsite/file.xml>; rel=absolute\r\n"
+            "Link: </dir/file.xml>; rel=relative\r\n"
             "\r\n"
             "<html><head><title>Hello proxy!</title>"
             "<style>"
@@ -265,10 +273,10 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
         const char *resp_buf_rew =
             /*123456789012345678 */
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 3000\r\n"
+            "Content-Length: 50\r\n"
             "Content-Type: text/html\r\n"
-            "Link: <http://proxyhost/proxypath/targetsite/file.xml>; rel=absolute\r\r"
-            "Link: </dir/file.xml>; rel=relative\r\r"
+            "Link: <http://proxyhost/proxypath/targetsite/file.xml>; rel=absolute\r\n"
+            "Link: </dir/file.xml>; rel=relative\r\n"
             "\r\n"
             "<html><head><title>Hello proxy!</title>"
             "<style>"
