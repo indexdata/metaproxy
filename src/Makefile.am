@@ -61,11 +61,14 @@ libmetaproxy_la_SOURCES = \
 	xmlutil.cpp 
 
 
-libmetaproxy_la_LIBADD = $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB) $(BOOST_REGEX_LIB)
+libmetaproxy_la_LIBADD = $(YAZPPLALIB) \
+	$(BOOST_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_THREAD_LIB) \
+	$(BOOST_REGEX_LIB)
 
 # Rules for lib
 
-LDADD = libmetaproxy.la $(YAZPPLALIB) $(BOOST_LIB) $(BOOST_THREAD_LIB) \
+LDADD = libmetaproxy.la $(YAZPPLALIB) \
+	$(BOOST_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_THREAD_LIB) \
 	$(BOOST_REGEX_LIB) $(USEMARCONLALIB)
 
 bin_PROGRAMS = metaproxy
