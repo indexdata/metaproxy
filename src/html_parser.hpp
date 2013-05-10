@@ -26,7 +26,10 @@ namespace metaproxy_1 {
         public:
             virtual void openTagStart(const char *name) = 0;
             virtual void anyTagEnd(const char *name) = 0;
-            virtual void attribute(const char *tagName, const char *name, const char *value) = 0;
+            virtual void attribute(const char *tagName, 
+                    const char *name, 
+                    const char *value,
+                    int val_len) = 0;
             virtual void closeTag(const char *name) = 0;
             virtual void text(const char *value, int len) = 0;
         };

@@ -54,6 +54,15 @@ void mp::HTMLParser::parse(mp::HTMLParserEvent & event, const char *str) const
 
 //static C functions follow would probably make sense to wrap this in PIMPL?
 
+static char* dupe (const char *buff, int len)
+{
+    char *value = (char *) malloc (len + 1);
+    assert (value);
+    memcpy (value, buff, len);
+    value[len] = '\0';
+    return value;
+}
+
 static int skipSpace (const char *cp)
 {
     int i = 0;
@@ -76,7 +85,7 @@ static int skipName (const char *cp, char *dst)
     return i;
 }
 
-static int skipAttribute (const char *cp, char *name, char **value)
+static int skipAttribute (const char *cp, char *name, const char **value, int *val_len)
 {
     int i = skipName (cp, name);   
     *value = NULL;
@@ -105,9 +114,8 @@ static int skipAttribute (const char *cp, char *name, char **value)
                 i++;
             v1 = i;
         }
-        *value = (char *) malloc (v1 - v0 + 1);
-        memcpy (*value, cp + v0, v1-v0);
-        (*value)[v1-v0] = '\0';
+        *value = cp + v0;
+        *val_len = v1 - v0;
     }
     i += skipSpace (cp + i);
     return i;
@@ -119,16 +127,17 @@ static int tagAttrs (mp::HTMLParserEvent & event,
 {
     int i;
     char attr_name[TAG_MAX_LEN];
-    char *attr_value;
+    const char *attr_value;
+    int val_len;
     i = skipSpace (cp);
     while (cp[i] && cp[i] != '>')
     {
-        int nor = skipAttribute (cp+i, attr_name, &attr_value);
+        int nor = skipAttribute (cp+i, attr_name, &attr_value, &val_len);
         i += nor;
 	if (nor)
 	{
-	    DEBUG(printf ("------ attr %s=%s\n", attr_name, attr_value));
-            event.attribute(tagName, attr_name, attr_value);
+	    DEBUG(printf ("------ attr %s=%s\n", attr_name, dupe(attr_value, val_len)));
+            event.attribute(tagName, attr_name, attr_value, val_len);
 	}
         else
         {
@@ -177,23 +186,12 @@ static int tagEnd (mp::HTMLParserEvent & event, const char *tagName, const char 
     return i;
 }
 
-static char* allocFromRange (const char *start, const char *end)
-{
-    char *value = (char *) malloc (end - start + 1);
-    assert (value);
-    memcpy (value, start, end - start);
-    value[end - start] = '\0';
-    return value;
-}
-
 static void tagText (mp::HTMLParserEvent & event, const char *text_start, const char *text_end)
 {
     if (text_end - text_start) //got text to flush
     {
-        char *temp = allocFromRange(text_start, text_end);
-        DEBUG(printf ("------ text %s\n", temp));
+        DEBUG(printf ("------ text %s\n", dupe(text_start, text_end-text_start)));
         event.text(text_start, text_end-text_start);
-        free(temp);
     }
 }
 

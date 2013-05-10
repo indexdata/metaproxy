@@ -45,12 +45,12 @@ class MyEvent : public mp::HTMLParserEvent {
         } 
         
         void attribute(const char *tagName, 
-                const char *name, const char *value)
+                const char *name, const char *value, int val_len)
         {
             out += " ";
             out += name;
             out += "=\"";
-            out += value;
+            out.append(value, val_len);
             out += "\"";
         }
 
