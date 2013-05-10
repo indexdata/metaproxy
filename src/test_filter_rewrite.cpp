@@ -57,21 +57,11 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
 {
     try
     {
-        mp::filter::HttpRewrite fhr;
-    }
-    catch ( ... ) {
-        BOOST_CHECK (false);
-    }
-}
-
-BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
-{
-    try
-    {
+        std::cout << "Running non-xml config test case" << std::endl;
         mp::RouterChain router;
-
         mp::filter::HttpRewrite fhr;
         
+        //configure the filter
         mp::filter::HttpRewrite::spair_vec vec_req;
         vec_req.push_back(std::make_pair(
         "(?<proto>http\\:\\/\\/s?)(?<pxhost>[^\\/?#]+)\\/(?<pxpath>[^\\/]+)"
@@ -80,42 +70,125 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
         ));
         vec_req.push_back(std::make_pair(
         "(?:Host\\: )(.*)",
-        "Host: localhost"
+        "Host: ${host}"
         ));
 
         mp::filter::HttpRewrite::spair_vec vec_res;
         vec_res.push_back(std::make_pair(
-        "(?<proto>http\\:\\/\\/s?)(?<host>[^\\/?#]+)\\/(?<path>[^ >]+)",
-        "THAT WAS MATCHED"
+        "(?<proto>http\\:\\/\\/s?)(?<host>[^\\/?# \"'>]+)\\/(?<path>[^ \"'>]+)",
+        "${proto}${pxhost}/${pxpath}/${host}/${path}"
         ));
         
         fhr.configure(vec_req, vec_res);
-
-        mp::filter::HTTPClient hc;
         
         router.append(fhr);
-        router.append(hc);
 
         // create an http request
         mp::Package pack;
 
         mp::odr odr;
         Z_GDU *gdu_req = z_get_HTTP_Request_uri(odr, 
-        "http://proxyhost/proxypath/localhost:80/~jakub/targetsite.php", 0, 1);
+        "http://proxyhost/proxypath/targetsite/page1.html", 0, 1);
 
         pack.request() = gdu_req;
+
+        //create the http response
+
+        const char *resp_buf =
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 441\r\n"
+            "Content-Type: text/html\r\n"
+            "Link: <http://targetsite/file.xml>; rel=absolute\r\n"
+            "Link: </dir/file.xml>; rel=relative\r\n"
+            "\r\n"
+            "<html><head><title>Hello proxy!</title>"
+            "<style>"
+            "body {"
+            "  background-image:url('http://targetsite/images/bg.png');"
+            "}"
+            "</style>"
+            "</head>"
+            "<script>var jslink=\"http://targetsite/webservice.xml\";</script>"
+            "<body>"
+            "<p>Welcome to our website. It doesn't make it easy to get pro"
+            "xified"
+            "<a href=\"http://targetsite/page2.html\">"
+            "  An absolute link</a>"
+            "<a target=_blank href='http://targetsite/page3.html\">"
+            "  Another abs link</a>"
+            "<a href=\"/docs/page4.html\" />"
+            "</body></html>";
+
+        const char *resp_expected =
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 521\r\n"
+            "Content-Type: text/html\r\n"
+            "Link: <http://proxyhost/proxypath/targetsite/file.xml>; rel=absolute\r\n"
+            "Link: </dir/file.xml>; rel=relative\r\n"
+            "\r\n"
+            "<html><head><title>Hello proxy!</title>"
+            "<style>"
+            "body {"
+            "  background-image:url('http://proxyhost/proxypath/targetsite/images/bg.png');"
+            "}"
+            "</style>"
+            "</head>"
+            "<script>var jslink=\"http://proxyhost/proxypath/targetsite/webservice.xml\";</script>"
+            "<body>"
+            "<p>Welcome to our website. It doesn't make it easy to get pro"
+            "xified"
+            "<a href=\"http://proxyhost/proxypath/targetsite/page2.html\">"
+            "  An absolute link</a>"
+            "<a target=_blank href='http://proxyhost/proxypath/targetsite/page3.html\">"
+            "  Another abs link</a>"
+            "<a href=\"/docs/page4.html\" />"
+            "</body></html>";
+
+        int r;
+        Z_GDU *gdu_res;
+        ODR dec = odr_createmem(ODR_DECODE);
+        odr_setbuf(dec, (char *) resp_buf, strlen(resp_buf), 0);
+        r = z_GDU(dec, &gdu_res, 0, 0);
+
+        BOOST_CHECK(r);
+        if (r)
+        {
+            BOOST_CHECK_EQUAL(gdu_res->which, Z_GDU_HTTP_Response);
+        }
+
+        pack.response() = gdu_res;
 
         //feed to the router
         pack.router(router).move();
 
         //analyze the response
-        Z_GDU *gdu_res = pack.response().get();
-        BOOST_CHECK(gdu_res);
-        BOOST_CHECK_EQUAL(gdu_res->which, Z_GDU_HTTP_Response);
+        Z_GDU *gdu_res_rew = pack.response().get();
+        BOOST_CHECK(gdu_res_rew);
+        BOOST_CHECK_EQUAL(gdu_res_rew->which, Z_GDU_HTTP_Response);
         
-        Z_HTTP_Response *hres = gdu_res->u.HTTP_Response;
+        Z_HTTP_Response *hres = gdu_res_rew->u.HTTP_Response;
         BOOST_CHECK(hres);
 
+        //compare buffers
+        std::cout << "Expected result:\n" << resp_expected << std::endl;
+
+        ODR enc = odr_createmem(ODR_ENCODE);
+        z_GDU(enc, &gdu_res_rew, 0, 0);
+        char *resp_result;
+        int resp_result_len;
+        resp_result = odr_getbuf(enc, &resp_result_len, 0);
+        
+        BOOST_CHECK(resp_result);
+        BOOST_CHECK_EQUAL(resp_result_len, strlen(resp_expected));
+
+        std::cout << "Rewriten result:\n" << resp_result << std::endl;
+        std::cout << "Rewriten result buf len: " << resp_result_len 
+            << std::endl;
+
+        BOOST_CHECK(memcmp(resp_result, resp_expected, resp_result_len) == 0);
+
+        odr_destroy(dec);
+        odr_destroy(enc);
     }
     catch (std::exception & e) {
         std::cout << e.what();
@@ -124,29 +197,34 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_rewrite_3 )
+/*
+BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
 {
     try
     {
+        std::cout << "Running xml config test case" << std::endl;
+        mp::RouterChain router;
+        mp::filter::HttpRewrite fhr;
+
         std::string xmlconf =
             "<?xml version='1.0'?>\n"
             "<filter xmlns='http://indexdata.com/metaproxy'\n"
             "        id='rewrite1' type='http_rewrite'>\n"
             " <request>\n"
             "   <rewrite from='"
-    "(?&lt;proto>http\\:\\/\\/s?)(?&lt;pxhost>[^\\/?#]+)\\/(?&lt;pxpath>[^\\/]+)"
-    "\\/(?&lt;host>[^\\/]+)(?&lt;path>.*)'\n"
+    "(?&lt;proto>https?://)(?&lt;pxhost>[^ /?#]+)/(?&lt;pxpath>[^ /]+)"
+    "/(?&lt;host>[^ /]+)(?&lt;path>[^ ]*)'\n"
             "            to='${proto}${host}${path}' />\n"
-            "   <rewrite from='(?:Host\\: )(.*)'\n"
-            "            to='Host: localhost' />\n" 
+            "   <rewrite from='(?:Host: )(.*)'\n"
+            "            to='Host: ${host}' />\n" 
             " </request>\n"
             " <response>\n"
             "   <rewrite from='"
-    "(?&lt;proto>http\\:\\/\\/s?)(?&lt;host>[^\\/?#]+)\\/(?&lt;path>[^ >]+)'\n"
-            "            to='THAT WAS MATCHED' />\n" 
+    "(?&lt;proto>https?://)(?&lt;host>[^/?# &quot;&apos;>]+)/(?&lt;path>[^  &quot;&apos;>]+)'\n"
+            "            to='${proto}${pxhost}/${pxpath}/${host}/${path}' />\n" 
             " </response>\n"
             "</filter>\n"
-            ;
+        ;
 
         std::cout << xmlconf;
 
@@ -154,36 +232,100 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_3 )
         xmlDocPtr doc = xmlParseMemory(xmlconf.c_str(), xmlconf.size());
         BOOST_CHECK(doc);
         xmlNode *root_element = xmlDocGetRootElement(doc);
-        mp::filter::HttpRewrite fhr; 
         fhr.configure(root_element, true, "");
         xmlFreeDoc(doc);
-
-        mp::filter::HTTPClient hc;
         
-        mp::RouterChain router;
         router.append(fhr);
-        router.append(hc);
 
         // create an http request
         mp::Package pack;
 
         mp::odr odr;
         Z_GDU *gdu_req = z_get_HTTP_Request_uri(odr, 
-        "http://proxyhost/proxypath/localhost:80/~jakub/targetsite.php", 0, 1);
+        "http://proxyhost/proxypath/targetsite/page1.html", 0, 1);
 
         pack.request() = gdu_req;
+
+        //create the http response
+
+        const char *resp_buf =
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 50\r\n"
+            "Content-Type: text/html\r\n"
+            "Link: <http://targetsite/file.xml>; rel=absolute\r\n"
+            "Link: </dir/file.xml>; rel=relative\r\n"
+            "\r\n"
+            "<html><head><title>Hello proxy!</title>"
+            "<style>"
+            "body {"
+            "  background-image:url('http://targetsite/images/bg.png');"
+            "}"
+            "</style>"
+            "</head>"
+            "<script>var jslink=\"http://targetsite/webservice.xml\";</script>"
+            "<body>"
+            "<p>Welcome to our website. It doesn't make it easy to get pro"
+            "xified"
+            "<a href=\"http://targetsite/page2.html\">"
+            "  An absolute link</a>"
+            "<a target=_blank href='http://targetsite/page3.html\">"
+            "  Another abs link</a>"
+            "<a href=\"/docs/page4.html\" />"
+            "</body></html>";
+
+        const char *resp_buf_rew =
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 50\r\n"
+            "Content-Type: text/html\r\n"
+            "Link: <http://proxyhost/proxypath/targetsite/file.xml>; rel=absolute\r\n"
+            "Link: </dir/file.xml>; rel=relative\r\n"
+            "\r\n"
+            "<html><head><title>Hello proxy!</title>"
+            "<style>"
+            "body {"
+            "  background-image:url('http://proxyhost/proxypath/targetsite/images/bg.png');"
+            "}"
+            "</style>"
+            "</head>"
+            "<script>var jslink=\"http://proxyhost/proxypath/targetsite/webservice.xml\";</script>"
+            "<body>"
+            "<p>Welcome to our website. It doesn't make it easy to get pro"
+            "xified"
+            "<a href=\"http://proxyhost/proxypath/targetsite/page.html\">"
+            "  An absolute link</a>"
+            "<a target=_blank href='http://proxyhost/proxypath/targetsite/anotherpage.html\">"
+            "  Another abs link</a>"
+            "<a href=\"/docs/page2.html\" />"
+            "</body></html>";
+
+        int r;
+        Z_GDU *gdu_res;
+        ODR odr2 = odr_createmem(ODR_DECODE);
+        odr_setbuf(odr2, (char *) resp_buf, strlen(resp_buf), 0);
+        r = z_GDU(odr2, &gdu_res, 0, 0);
+
+        BOOST_CHECK(r == 0);
+        if (r)
+        {
+            BOOST_CHECK_EQUAL(gdu_res->which, Z_GDU_HTTP_Response);
+        }
+
+        pack.response() = gdu_res;
 
         //feed to the router
         pack.router(router).move();
 
         //analyze the response
-        Z_GDU *gdu_res = pack.response().get();
-        BOOST_CHECK(gdu_res);
-        BOOST_CHECK_EQUAL(gdu_res->which, Z_GDU_HTTP_Response);
+        Z_GDU *gdu_res_rew = pack.response().get();
+        BOOST_CHECK(gdu_res_rew);
+        BOOST_CHECK_EQUAL(gdu_res_rew->which, Z_GDU_HTTP_Response);
         
-        Z_HTTP_Response *hres = gdu_res->u.HTTP_Response;
+        Z_HTTP_Response *hres = gdu_res_rew->u.HTTP_Response;
         BOOST_CHECK(hres);
 
+        //how to compare the buffers:
+
+        odr_destroy(odr2);
     }
     catch (std::exception & e) {
         std::cout << e.what();
@@ -191,6 +333,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_3 )
         BOOST_CHECK (false);
     }
 }
+*/
 
 /*
  * Local variables:

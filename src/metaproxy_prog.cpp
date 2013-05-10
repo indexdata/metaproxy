@@ -124,7 +124,7 @@ static int sc_main(
 
     set_log_prefix();
 
-    while ((ret = options("c{config}:Dh{help}l:m:p:tu:V{version}w:X",
+    while ((ret = options("c{config}:Dh{help}l:m:p:tu:v:V{version}w:X",
                           argv, argc, &arg)) != -2)
     {
         switch (ret)
@@ -139,6 +139,7 @@ static int sc_main(
             std::cerr << "metaproxy\n"
                 " -h|--help     help\n"
                 " -V|--version  version\n"
+                " -v level\n"
                 " -c|--config f config filename\n"
                 " -D            daemon and keepalive operation\n"
                 " -l f          log file f\n"
@@ -169,6 +170,9 @@ static int sc_main(
             break;
         case 'u':
             uid = arg;
+            break;
+        case 'v':
+            yaz_log_init_level(yaz_log_mask_str(arg));
             break;
         case 'V':
             std::cout << VERSION;
