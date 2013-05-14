@@ -221,7 +221,9 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\filter_bounce.obj \
         $(OBJDIR)\filter_cql_to_rpn.obj \
 	$(OBJDIR)\filter_frontend_net.obj \
+	$(OBJDIR)\filter_http_client.obj \
 	$(OBJDIR)\filter_http_file.obj \
+	$(OBJDIR)\filter_http_rewrite1.obj \
         $(OBJDIR)\filter_limit.obj \
         $(OBJDIR)\filter_load_balance.obj \
         $(OBJDIR)\filter_log.obj \
