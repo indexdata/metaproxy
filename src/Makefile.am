@@ -34,7 +34,8 @@ filter_src = \
 	filter_z3950_client.cpp filter_z3950_client.hpp \
 	filter_zeerex_explain.cpp  filter_zeerex_explain.hpp \
 	filter_zoom.cpp filter_zoom.hpp \
-	filter_frontend_net.cpp filter_frontend_net.hpp
+	filter_frontend_net.cpp filter_frontend_net.hpp \
+	filter_sd_remove.cpp filter_sd_remove.hpp
 
 lib_LTLIBRARIES = libmetaproxy.la
 libmetaproxy_la_LDFLAGS = -version-info 4:0:0 -export-dynamic

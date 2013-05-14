@@ -22,6 +22,7 @@
       <filter type="log">
         <message>log</message>
       </filter>
+      <filter type="sd_remove"/>
       <filter refid="backend"/>
       <filter type="bounce"/>
     </route>

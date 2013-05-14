@@ -44,6 +44,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_multi.hpp"
 #include "filter_query_rewrite.hpp"
 #include "filter_record_transform.hpp"
+#include "filter_sd_remove.hpp"
 #include "filter_session_shared.hpp"
 #include "filter_sort.hpp"
 #include "filter_sru_to_z3950.hpp"
@@ -57,7 +58,7 @@ namespace mp = metaproxy_1;
 
 mp::FactoryStatic::FactoryStatic()
 {
-#ifdef WIN32
+#ifdef HAVE_DLFCN_H
     struct metaproxy_1_filter_struct *buildins[] = {
         &metaproxy_1_filter_auth_simple,
         &metaproxy_1_filter_backend_test,
@@ -76,6 +77,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_multi,
         &metaproxy_1_filter_query_rewrite,
         &metaproxy_1_filter_record_transform,
+        &metaproxy_1_filter_sd_remove,
         &metaproxy_1_filter_session_shared,
         &metaproxy_1_filter_sort,
         &metaproxy_1_filter_sru_to_z3950,
