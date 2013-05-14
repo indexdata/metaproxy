@@ -25,6 +25,7 @@ filter_src = \
 	filter_log.cpp filter_log.hpp \
 	filter_multi.cpp filter_multi.hpp \
 	filter_query_rewrite.cpp filter_query_rewrite.hpp \
+	filter_present_chunk.cpp filter_present_chunk.hpp \
 	filter_record_transform.cpp filter_record_transform.hpp \
 	filter_session_shared.cpp filter_session_shared.hpp \
 	filter_sort.cpp filter_sort.hpp \

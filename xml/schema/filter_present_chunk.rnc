@@ -1,0 +1,10 @@
+# Metaproxy XML config file schema
+
+namespace mp = "http://indexdata.com/metaproxy"
+
+filter_present_chunk =
+  attribute type { "present_chunk" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element mp:chunk { xsd:integer }?
+

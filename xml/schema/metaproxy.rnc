@@ -35,6 +35,7 @@ include "filter_limit.rnc"
 include "filter_load_balance.rnc"
 include "filter_log.rnc"
 include "filter_multi.rnc"
+include "filter_present_chunk.rnc"
 include "filter_query_rewrite.rnc"
 include "filter_record_transform.rnc"
 include "filter_sd_remove.rnc"
@@ -86,6 +87,7 @@ filter =
     | filter_load_balance
     | filter_log
     | filter_multi
+    | filter_present_chunk
     | filter_query_rewrite
     | filter_record_transform
     | filter_sd_remove
