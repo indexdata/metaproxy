@@ -31,7 +31,7 @@ default: all
 
 all: dirs config yaz yazpp libxslt progs
 
-progs: metaproxy ex_filter_frontend_net # test_pipe does not work
+progs: metaproxy # test_pipe does not work
 NSIS="c:\program files\nsis\makensis.exe"
 
 nsis: all
@@ -62,12 +62,10 @@ TMP=$(TMPDIR)
 ############### Targets - what to make
 ###########################################################
 
-EX_FILTER_FRONTEND_NET=$(BINDIR)\ex_filter_frontend_net.exe
 METAPROXY_PROG=$(BINDIR)\metaproxy.exe
 TEST_PIPE=$(BINDIR)\test_pipe.exe
 
 # shortcut names defined here
-ex_filter_frontend_net: $(EX_FILTER_FRONTEND_NET)
 metaproxy: $(METAPROXY_PROG)
 test_pipe: $(TEST_PIPE)
 
@@ -255,7 +253,6 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\util.obj \
         $(OBJDIR)\xmlutil.obj 
 
-EX_FILTER_FRONTEND_NET_OBJS = $(OBJDIR)\ex_filter_frontend_net.obj
 METAPROXY_OBJS = $(OBJDIR)\metaproxy_prog.obj
 TEST_PIPE_OBJS = $(OBJDIR)\test_pipe.obj
 
@@ -294,15 +291,6 @@ $(PROJECT_RES): $(PROJECT_RC)
 ###########################################################
 ############### Linking
 ###########################################################
-
-$(EX_FILTER_FRONTEND_NET) : "$(BINDIR)" $(EX_FILTER_FRONTEND_NET_OBJS) $(PROJECT_DLL_OBJS)
-	$(LINK) \
-		$(LNKOPT) \
-		$(PROG_LINK_OPTIONS) \
-		$(LINK_LIBS) \
-		$(PROJECT_DLL_OBJS) \
-		$(EX_FILTER_FRONTEND_NET_OBJS) \
-		/out:$(EX_FILTER_FRONTEND_NET) 
 
 $(METAPROXY_PROG) : "$(BINDIR)" $(METAPROXY_OBJS) $(PROJECT_DLL_OBJS)
 	$(LINK) \
