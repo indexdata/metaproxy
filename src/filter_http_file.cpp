@@ -47,6 +47,8 @@ namespace metaproxy_1 {
         struct HttpFile::Area {
             std::string m_url_path_prefix;
             std::string m_file_root;
+            bool m_raw;
+            Area();
         };
         class HttpFile::Mime {
             friend class Rep;
@@ -67,10 +69,15 @@ namespace metaproxy_1 {
                            Z_HTTP_Request *req, mp::Package &package);
             void fetch_file(mp::Session &session,
                             Z_HTTP_Request *req,
-                            std::string &fname, mp::Package &package);
+                            std::string &fname, mp::Package &package,
+                            bool raw);
             std::string get_mime_type(std::string &fname);
         };
     }
+}
+
+yf::HttpFile::Area::Area() : m_raw(false)
+{
 }
 
 yf::HttpFile::Mime::Mime() {}
@@ -126,9 +133,10 @@ std::string yf::HttpFile::Rep::get_mime_type(std::string &fname)
 
 void yf::HttpFile::Rep::fetch_file(mp::Session &session,
                                    Z_HTTP_Request *req,
-                                   std::string &fname, mp::Package &package)
+                                   std::string &fname, mp::Package &package,
+                                   bool raw)
 {
-    mp::odr o;
+    mp::odr o(ODR_ENCODE);
 
     FILE *f = fopen(fname.c_str(), "rb");
     if (!f)
@@ -153,28 +161,42 @@ void yf::HttpFile::Rep::fetch_file(mp::Session &session,
         return;
     }
     rewind(f);
-
-    Z_GDU *gdu = o.create_HTTP_Response(session, req, 200);
-
-    Z_HTTP_Response *hres = gdu->u.HTTP_Response;
-    hres->content_len = sz;
-    if (hres->content_len > 0)
+    char *fbuf = (char*) odr_malloc(o, sz);
+    if (sz > 0)
     {
-        hres->content_buf = (char*) odr_malloc(o, hres->content_len);
-        if (fread(hres->content_buf, hres->content_len, 1, f) != 1)
+        if (fread(fbuf, sz, 1, f) != 1)
         {
-            fclose(f);
             Z_GDU *gdu = o.create_HTTP_Response(session, req, 500);
             package.response() = gdu;
+            fclose(f);
             return;
         }
     }
     fclose(f);
 
-    std::string content_type = get_mime_type(fname);
-
-    z_HTTP_header_add(o, &hres->headers,
+    Z_GDU *gdu = 0;
+    if (raw)
+    {
+        odr_setbuf(o, (char *) fbuf, sz, 0);
+        int r = z_GDU(o, &gdu, 0, 0);
+        if (!r)
+        {
+            Z_GDU *gdu = o.create_HTTP_Response(session, req, 500);
+            package.response() = gdu;
+            fclose(f);
+            return;
+        }
+    }
+    else
+    {
+        gdu = o.create_HTTP_Response(session, req, 200);
+        Z_HTTP_Response *hres = gdu->u.HTTP_Response;
+        hres->content_len = sz;
+        hres->content_buf = fbuf;
+        std::string content_type = get_mime_type(fname);
+        z_HTTP_header_add(o, &hres->headers,
                       "Content-Type", content_type.c_str());
+    }
     package.response() = gdu;
 }
 
@@ -211,7 +233,7 @@ void yf::HttpFile::Rep::fetch_uri(mp::Session &session,
             {
                 std::string fname = it->m_file_root + path.substr(l);
                 package.log("http_file", YLOG_LOG, "%s", fname.c_str());
-                fetch_file(session, req, fname, package);
+                fetch_file(session, req, fname, package, it->m_raw);
                 return;
             }
         }
@@ -259,6 +281,7 @@ void mp::filter::HttpFile::configure(const xmlNode * ptr, bool test_only,
         {
             xmlNode *a_node = ptr->children;
             Area a;
+
             for (; a_node; a_node = a_node->next)
             {
                 if (a_node->type != XML_ELEMENT_NODE)
@@ -268,6 +291,8 @@ void mp::filter::HttpFile::configure(const xmlNode * ptr, bool test_only,
                     a.m_file_root = mp::xml::get_text(a_node);
                 else if (mp::xml::is_element_mp(a_node, "prefix"))
                     a.m_url_path_prefix = mp::xml::get_text(a_node);
+                else if (mp::xml::is_element_mp(a_node, "raw"))
+                    a.m_raw = mp::xml::get_bool(a_node, false);
                 else
                     throw mp::filter::FilterException
                         ("Bad element "
