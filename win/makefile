@@ -228,6 +228,7 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\filter_load_balance.obj \
         $(OBJDIR)\filter_log.obj \
 	$(OBJDIR)\filter_multi.obj \
+	$(OBJDIR)\filter_present_chunk.obj \
 	$(OBJDIR)\filter_query_rewrite.obj \
         $(OBJDIR)\filter_record_transform.obj \
         $(OBJDIR)\filter_sd_remove.obj \

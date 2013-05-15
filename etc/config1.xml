@@ -23,6 +23,9 @@
         <message>log</message>
       </filter>
       <filter type="sd_remove"/>
+      <filter type="present_chunk">
+        <chunk>2</chunk>
+      </filter>
       <filter refid="backend"/>
       <filter type="bounce"/>
     </route>
