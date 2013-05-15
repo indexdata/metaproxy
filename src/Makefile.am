@@ -68,6 +68,8 @@ metaproxy_LDADD = libmetaproxy.la $(YAZPPLALIB) \
 	$(BOOST_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_THREAD_LIB) \
 	$(BOOST_REGEX_LIB) $(USEMARCONLALIB)
 
+tstdl_LDADD = $(metaproxy_LDADD)
+
 LDADD = $(metaproxy_LDADD) $(BOOST_TEST_LIB)
 AM_LDFLAGS = -export-dynamic
 
