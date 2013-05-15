@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
 #include <yaz/zgdu.h>
+#include <yaz/diagbib1.h>
 #include <metaproxy/filter.hpp>
-#include <yaz/querytowrbuf.h>
 
 namespace metaproxy_1 {
     namespace filter {
@@ -62,6 +62,25 @@ void yf::SD_Remove::configure(const xmlNode *xmlnode, bool test_only,
                                                                 ptr->name));
         }
     }
+}
+
+static void diagrec_to_sutrs(WRBUF b, Z_DiagRec *diag)
+{
+    wrbuf_puts(b," ERROR ");
+    if (diag->which != Z_DiagRec_defaultFormat)
+        wrbuf_puts(b, "diag not in default format");
+    else
+    {
+        Z_DefaultDiagFormat *e = diag->u.defaultFormat;
+        wrbuf_printf(b, ODR_INT_PRINTF ": %s", *e->condition,
+                     diagbib1_str(*e->condition));
+        if (e->u.v2Addinfo && *e->u.v2Addinfo) // v3Addinfo is same data
+        {
+            wrbuf_puts(b, " -- ");
+            wrbuf_puts(b, e->u.v2Addinfo);
+        }
+    }
+    wrbuf_puts(b, "\n");
 }
 
 void yf::SD_Remove::process(mp::Package &package) const
@@ -106,7 +125,7 @@ void yf::SD_Remove::process(mp::Package &package) const
                 if (npr->which == Z_NamePlusRecord_surrogateDiagnostic)
                 {
                     WRBUF w = wrbuf_alloc();
-                    wrbuf_diags(w, 1, &npr->u.surrogateDiagnostic);
+                    diagrec_to_sutrs(w, npr->u.surrogateDiagnostic);
                     npr->which = Z_NamePlusRecord_databaseRecord;
                     npr->u.databaseRecord = z_ext_record_sutrs(odr_en,
                                                                wrbuf_buf(w),
