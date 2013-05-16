@@ -92,6 +92,14 @@ void yf::HTTPClient::Rep::proxy(mp::Package &package)
         if (http_response)
         {
             res_gdu = o.create_HTTP_Response(package.session(), hreq, 200);
+            Z_HTTP_Header **hp = &http_response->headers;
+            while (*hp)
+            {
+                if (!yaz_matchstr((*hp)->name, "Transfer-Encoding"))
+                    *hp = (*hp)->next;
+                else
+                    hp = &(*hp)->next;
+            }
             res_gdu->u.HTTP_Response = http_response;
         }
         else
