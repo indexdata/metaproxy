@@ -22,6 +22,7 @@ xmlconfig = $(srcdir)/config-bytarget.xml \
     $(srcdir)/config-cgi.xml \
     $(srcdir)/config-solr.xml \
     $(srcdir)/config-zoom.xml \
+    $(srcdir)/config-proxy.xml \
     $(srcdir)/retrieval-info.xml
 
 config = example.simple-auth example.target-auth pqf2pqf.xsl explain.xml \
