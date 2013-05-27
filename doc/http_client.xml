@@ -23,11 +23,17 @@
 
  <refsect1><title>DESCRIPTION</title>
   <para>
-   This module implements HTTP client functionality. By default,
-   if proxy element is not given, it should be used as an explicit
-   proxy (non-transparent mode). If proxy element is set, requests
-   will be relayed to the proxy given (transparent mode for HTTP clients
-   accessing this module).
+   This module implements HTTP client functionality. Filter rontend_net
+   + http_client in combo - acts as a normal, non-transparent, proxy.
+  </para>
+  <para>
+   The element default-host of configuration specifies the default host
+   in remote URL. If this is set, frontend_net + http_client acts as a
+   transparent HTTP proxy as well.
+  </para>
+  <para>
+   The configuration element, proxy, is optional and enables a remote
+   HTTP proxy to be in use.
   </para>
  </refsect1>
 
