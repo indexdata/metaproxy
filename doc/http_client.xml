@@ -50,7 +50,7 @@
    A typical configuration looks like this:
    <screen><![CDATA[
    <filter type="http_client">
-    <proxy>localhost:9999</proxy>
+    <proxy>localhost:3128</proxy>
    </filter>
 ]]>
    </screen>
