@@ -42,8 +42,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_load_balance.hpp"
 #include "filter_log.hpp"
 #include "filter_multi.hpp"
+#include "filter_present_chunk.hpp"
 #include "filter_query_rewrite.hpp"
 #include "filter_record_transform.hpp"
+#include "filter_sd_remove.hpp"
 #include "filter_session_shared.hpp"
 #include "filter_sort.hpp"
 #include "filter_sru_to_z3950.hpp"
@@ -58,6 +60,7 @@ namespace mp = metaproxy_1;
 
 mp::FactoryStatic::FactoryStatic()
 {
+#ifdef HAVE_DLFCN_H
     struct metaproxy_1_filter_struct *buildins[] = {
         &metaproxy_1_filter_auth_simple,
         &metaproxy_1_filter_backend_test,
@@ -74,8 +77,10 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_load_balance,
         &metaproxy_1_filter_log,
         &metaproxy_1_filter_multi,
+        &metaproxy_1_filter_present_chunk,
         &metaproxy_1_filter_query_rewrite,
         &metaproxy_1_filter_record_transform,
+        &metaproxy_1_filter_sd_remove,
         &metaproxy_1_filter_session_shared,
         &metaproxy_1_filter_sort,
         &metaproxy_1_filter_sru_to_z3950,
@@ -91,6 +96,8 @@ mp::FactoryStatic::FactoryStatic()
 
     for (i = 0; buildins[i]; i++)
         add_creator(buildins[i]->type, buildins[i]->creator);
+// WIN32
+#endif
 }
 
 

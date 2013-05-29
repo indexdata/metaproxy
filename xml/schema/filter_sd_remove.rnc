@@ -1,0 +1,9 @@
+# Metaproxy XML config file schema
+
+namespace mp = "http://indexdata.com/metaproxy"
+
+filter_sd_remove =
+  attribute type { "sd_remove" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?
+

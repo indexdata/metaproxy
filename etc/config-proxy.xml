@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
+  <start route="start"/>
+  <!-- sample config which illustrates the use of http_file filter.. -->
+  <routes>
+    <route id="start">
+      <filter type="frontend_net">
+        <threads>10</threads>
+        <port>tcp:@:9000</port>
+        <port cert_fname="ztest.pem">ssl:@:9001</port>
+      </filter>
+      <filter type="log">
+        <message>M</message>
+        <category apdu="true"/>
+      </filter>
+      <filter type="http_client">
+        <!-- <default-host>https://localhost:9999</default-host> -->
+        <!-- <proxy>localhost:3128</proxy> -->
+      </filter>
+    </route>
+  </routes>
+</metaproxy>
+

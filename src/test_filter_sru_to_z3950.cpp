@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_sru_to_z3950.hpp"
 #include <metaproxy/util.hpp>
 #include "sru_util.hpp"
-#include "router_chain.hpp"
+#include <metaproxy/router_chain.hpp>
 #include <metaproxy/package.hpp>
 
 #include <iostream>

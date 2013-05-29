@@ -18,6 +18,7 @@ filter_log.rnc \
 filter_multi.rnc \
 filter_query_rewrite.rnc \
 filter_record_transform.rnc \
+filter_sd_remove.rnc \
 filter_session_shared.rnc \
 filter_sort.rnc \
 filter_sru_z3950.rnc \

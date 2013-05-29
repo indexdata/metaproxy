@@ -35,8 +35,10 @@ include "filter_limit.rnc"
 include "filter_load_balance.rnc"
 include "filter_log.rnc"
 include "filter_multi.rnc"
+include "filter_present_chunk.rnc"
 include "filter_query_rewrite.rnc"
 include "filter_record_transform.rnc"
+include "filter_sd_remove.rnc"
 include "filter_session_shared.rnc"
 include "filter_sort.rnc"
 include "filter_sru_z3950.rnc"
@@ -85,8 +87,10 @@ filter =
     | filter_load_balance
     | filter_log
     | filter_multi
+    | filter_present_chunk
     | filter_query_rewrite
     | filter_record_transform
+    | filter_sd_remove
     | filter_session_shared
     | filter_sort
     | filter_sru_z3950

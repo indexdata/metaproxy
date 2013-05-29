@@ -118,20 +118,24 @@ bool mp::FactoryFilter::add_creator_dl(const std::string &fi,
     {
         return true;
     }
-
-    std::string full_path = path + "/metaproxy_filter_" + fi + ".so";
-    void *dl_handle = dlopen(full_path.c_str(), RTLD_GLOBAL|RTLD_NOW);
-    if (!dl_handle)
-    {
-        const char *dl = dlerror();
-        std::cout << "dlopen " << full_path << " failed. dlerror=" << dl <<
-            std::endl;
-        return false;
-    }
-
     std::string full_name = "metaproxy_1_filter_" + fi;
 
+    void *dl_handle = dlopen(0, RTLD_GLOBAL|RTLD_NOW);
     void *dlsym_ptr = dlsym(dl_handle, full_name.c_str());
+
+    if (!dlsym_ptr)
+    {
+        std::string full_path = path + "/metaproxy_filter_" + fi + ".so";
+        dl_handle = dlopen(full_path.c_str(), RTLD_GLOBAL|RTLD_NOW);
+        if (!dl_handle)
+        {
+            const char *dl = dlerror();
+            std::cout << "dlopen " << full_path << " failed. dlerror=" << dl <<
+                std::endl;
+            return false;
+        }
+        dlsym_ptr = dlsym(dl_handle, full_name.c_str());
+    }
     if (!dlsym_ptr)
     {
         std::cout << "dlsym " << full_name << " failed\n";
