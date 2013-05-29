@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "config.hpp"
 #include "filter_record_transform.hpp"
 
-#include "router_chain.hpp"
+#include <metaproxy/router_chain.hpp>
 #include <metaproxy/package.hpp>
 
 #define BOOST_AUTO_TEST_MAIN

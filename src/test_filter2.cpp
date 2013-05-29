@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <libxml/tree.h>
 
 #include <metaproxy/filter.hpp>
-#include "router_chain.hpp"
+#include <metaproxy/router_chain.hpp>
 #include <metaproxy/package.hpp>
 
 #include <iostream>

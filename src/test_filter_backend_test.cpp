@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_backend_test.hpp"
 #include "filter_log.hpp"
 
-#include "router_chain.hpp"
+#include <metaproxy/router_chain.hpp>
 #include <metaproxy/package.hpp>
 
 #include <yaz/zgdu.h>

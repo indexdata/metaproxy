@@ -39,7 +39,6 @@ filter_src = \
 	filter_z3950_client.cpp filter_z3950_client.hpp \
 	filter_zeerex_explain.cpp  filter_zeerex_explain.hpp \
 	filter_zoom.cpp filter_zoom.hpp \
-	router_chain.hpp router_chain.cpp \
         router_flexml.hpp router_flexml.cpp
 
 lib_LTLIBRARIES = libmetaproxy.la
@@ -58,6 +57,7 @@ libmetaproxy_la_SOURCES = \
 	torus.cpp torus.hpp \
 	url_recipe.cpp \
 	util.cpp \
+	router_chain.cpp \
 	xmlutil.cpp
 
 libmetaproxy_la_LIBADD = $(YAZPPLALIB) \
