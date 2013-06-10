@@ -60,27 +60,36 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
         std::cout << "Running non-xml config test case" << std::endl;
         mp::RouterChain router;
         mp::filter::HttpRewrite fhr;
-        
-        //configure the filter
-        mp::filter::HttpRewrite::spair_vec vec_req;
-        vec_req.push_back(std::make_pair(
-        "(?<proto>http\\:\\/\\/s?)(?<pxhost>[^\\/?#]+)\\/(?<pxpath>[^\\/]+)"
-        "\\/(?<host>[^\\/]+)(?<path>.*)",
-        "${proto}${host}${path}"
-        ));
-        vec_req.push_back(std::make_pair(
-        "(?:Host\\: )(.*)",
-        "Host: ${host}"
-        ));
+         
+        std::string xmlconf =
+            "<?xml version='1.0'?>\n"
+            "<filter xmlns='http://indexdata.com/metaproxy'\n"
+            "        id='rewrite1' type='http_rewrite'>\n"
+            " <request>\n"
+            "   <rewrite from='"
+    "(?&lt;proto>https?://)(?&lt;pxhost>[^ /?#]+)/(?&lt;pxpath>[^ /]+)"
+    "/(?&lt;host>[^ /]+)(?&lt;path>[^ ]*)'\n"
+            "            to='${proto}${host}${path}' />\n"
+            "   <rewrite from='(?:Host: )(.*)'\n"
+            "            to='Host: ${host}' />\n" 
+            " </request>\n"
+            " <response>\n"
+            "   <rewrite from='"
+    "(?&lt;proto>https?://)(?&lt;host>[^/?# &quot;&apos;>]+)/(?&lt;path>[^  &quot;&apos;>]+)'\n"
+            "            to='${proto}${pxhost}/${pxpath}/${host}/${path}' />\n" 
+            " </response>\n"
+            "</filter>\n"
+        ;
 
-        mp::filter::HttpRewrite::spair_vec vec_res;
-        vec_res.push_back(std::make_pair(
-        "(?<proto>http\\:\\/\\/s?)(?<host>[^\\/?# \"'>]+)\\/(?<path>[^ \"'>]+)",
-        "${proto}${pxhost}/${pxpath}/${host}/${path}"
-        ));
-        
-        fhr.configure(vec_req, vec_res);
-        
+        std::cout << xmlconf;
+
+        // reading and parsing XML conf
+        xmlDocPtr doc = xmlParseMemory(xmlconf.c_str(), xmlconf.size());
+        BOOST_CHECK(doc);
+        xmlNode *root_element = xmlDocGetRootElement(doc);
+        fhr.configure(root_element, true, "");
+        xmlFreeDoc(doc);
+       
         router.append(fhr);
 
         // create an http request

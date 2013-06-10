@@ -20,59 +20,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define FILTER_HTTP_REWRITE_HPP
 
 #include <metaproxy/filter.hpp>
-#include <vector>
-#include <map>
-#include <metaproxy/util.hpp>
+#include <boost/scoped_ptr.hpp>
 
 namespace mp = metaproxy_1;
 
 namespace metaproxy_1 {
     namespace filter {
         class HttpRewrite : public Base {
+            class Rules;
+            class Rule;
+            class RuleScope;
+            boost::scoped_ptr<Rules> req_rules;
+            boost::scoped_ptr<Rules> res_rules;
+            void configure_rules(const xmlNode *ptr, Rules & rules);
         public:
-            typedef std::pair<std::string, std::string> string_pair;
-            typedef std::vector<string_pair> spair_vec;
-            typedef spair_vec::iterator spv_iter;
             HttpRewrite();
             ~HttpRewrite();
             void process(metaproxy_1::Package & package) const;
-            void configure(const xmlNode * ptr, bool test_only,
-                           const char *path);
-            void configure(const spair_vec req_uri_pats,
-                           const spair_vec res_uri_pats); 
-        private:
-            spair_vec req_uri_pats;
-            spair_vec res_uri_pats;
-            std::vector<std::map<int, std::string> > req_groups_bynum;
-            std::vector<std::map<int, std::string> > res_groups_bynum;
-            void rewrite_reqline (mp::odr & o, Z_HTTP_Request *hreq,
-                    std::map<std::string, std::string> & vars) const;
-            void rewrite_headers (mp::odr & o, Z_HTTP_Header *headers,
-                    std::map<std::string, std::string> & vars,
-                    const spair_vec & uri_pats,
-                    const std::vector<std::map<int, std::string> > & groups_bynum_vec) const;
-            void rewrite_body (mp::odr & o, char **content_buf, int *content_len,
-                    std::map<std::string, std::string> & vars,
-                    const spair_vec & uri_pats,
-                    const std::vector<std::map<int, std::string> > 
-                    & groups_bynum) const; 
-            const std::string test_patterns(
-                    std::map<std::string, std::string> & vars,
-                    const std::string & txt, 
-                    const spair_vec & uri_pats,
-                    const std::vector<std::map<int, std::string> > 
-                    & groups_bynum) const;
-            const std::string search_replace(
-                    std::map<std::string, std::string> & vars,
-                    const std::string & txt,
-                    const std::string & uri_re,
-                    const std::string & uri_pat,
-                    const std::map<int, std::string> & groups_bynum) const;
-            static void parse_groups(
-                    const spair_vec & uri_pats,
-                    std::vector<std::map<int, std::string> > & groups_bynum_vec);
-            static std::string sub_vars (const std::string & in, 
-                    const std::map<std::string, std::string> & vars);
+            void configure(const xmlNode * ptr, 
+                    bool test_only, const char *path);
         };
     }
 }
