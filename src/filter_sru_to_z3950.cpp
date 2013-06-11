@@ -94,7 +94,7 @@ namespace metaproxy_1 {
                 Z_SRW_PDU *sru_pdu_res,
                 Z_SRW_searchRetrieveRequest const *sr_req,
                 std::string zurl,
-                const char *db_append
+                std::string db_append
                 ) const;
 
             bool z3950_present_request(
@@ -225,7 +225,7 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
 
     bool enable_package_log = false;
     std::string zurl;
-    const char *dbargs = 0;
+    std::string dbargs;
     Z_SRW_extra_arg *arg;
 
     for ( arg = sru_pdu_req->extra_args; arg; arg = arg->next)
@@ -249,9 +249,13 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
                 package.log_enable();
             }
         }
-        else if (!strcmp(arg->name, "x-dbargs"))
+        else if (!strncmp(arg->name, "x-client-", 9) && arg->value)
         {
-            dbargs = arg->value;
+            if (dbargs.length())
+                dbargs += '&';
+            dbargs += mp_util::uri_encode(arg->name + 9);
+            dbargs += '=';
+            dbargs += mp_util::uri_encode(arg->value);
         }
 
     assert(sru_pdu_req);
@@ -557,7 +561,7 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
                                                 Z_SRW_searchRetrieveRequest
                                                 const *sr_req,
                                                 std::string zurl,
-                                                const char *dbappend) const
+                                                std::string dbappend) const
 {
 
     assert(sru_pdu_res->u.response);
@@ -583,7 +587,7 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
         else
             db = "Default";
 
-        if (dbappend)
+        if (dbappend.length())
         {
             db += ",";
             db += dbappend;
