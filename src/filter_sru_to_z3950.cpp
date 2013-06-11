@@ -93,7 +93,8 @@ namespace metaproxy_1 {
                 mp::odr &odr_en,
                 Z_SRW_PDU *sru_pdu_res,
                 Z_SRW_searchRetrieveRequest const *sr_req,
-                std::string zurl
+                std::string zurl,
+                const char *db_append
                 ) const;
 
             bool z3950_present_request(
@@ -224,6 +225,7 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
 
     bool enable_package_log = false;
     std::string zurl;
+    const char *dbargs = 0;
     Z_SRW_extra_arg *arg;
 
     for ( arg = sru_pdu_req->extra_args; arg; arg = arg->next)
@@ -247,6 +249,11 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
                 package.log_enable();
             }
         }
+        else if (!strcmp(arg->name, "x-dbargs"))
+        {
+            dbargs = arg->value;
+        }
+
     assert(sru_pdu_req);
 
     // filter acts as sink for SRU explain requests
@@ -272,7 +279,7 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
                                      zurl, sru_pdu_res, sru_pdu_req))
         {
             ok = z3950_search_request(package, odr_en,
-                                      sru_pdu_res, sr_req, zurl);
+                                      sru_pdu_res, sr_req, zurl, dbargs);
 
             if (ok
                 && sru_pdu_res->u.response->numberOfRecords
@@ -549,7 +556,8 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
                                                 Z_SRW_PDU *sru_pdu_res,
                                                 Z_SRW_searchRetrieveRequest
                                                 const *sr_req,
-                                                std::string zurl) const
+                                                std::string zurl,
+                                                const char *dbappend) const
 {
 
     assert(sru_pdu_res->u.response);
@@ -568,16 +576,22 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
                                           &z_searchRequest->num_databaseNames,
                                           &z_searchRequest->databaseNames))
     {
+        std::string db;
+
+        if (sr_req->database)
+            db = sr_req->database;
+        else
+            db = "Default";
+
+        if (dbappend)
+        {
+            db += ",";
+            db += dbappend;
+        }
         z_searchRequest->num_databaseNames = 1;
         z_searchRequest->databaseNames = (char**)
             odr_malloc(odr_en, sizeof(char *));
-
-        if (sr_req->database)
-            z_searchRequest->databaseNames[0]
-                = odr_strdup(odr_en, const_cast<char *>(sr_req->database));
-        else
-            z_searchRequest->databaseNames[0]
-                = odr_strdup(odr_en, "Default");
+        z_searchRequest->databaseNames[0] = odr_strdup(odr_en, db.c_str());
     }
 
     Z_Query *z_query = (Z_Query *) odr_malloc(odr_en, sizeof(Z_Query));
