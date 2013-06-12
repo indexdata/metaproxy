@@ -50,8 +50,6 @@ namespace metaproxy_1 {
 
         bool add_creator_dl(const std::string &fi, const std::string &path);
 
-        bool have_dl_support();
-
         class NotFound : public std::runtime_error {
         public:
             NotFound(const std::string msg);

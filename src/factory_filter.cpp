@@ -101,15 +101,6 @@ mp::filter::Base* mp::FactoryFilter::create(std::string fi)
     return (it->second());
 }
 
-bool mp::FactoryFilter::have_dl_support()
-{
-#if HAVE_DLFCN_H
-    return true;
-#else
-    return false;
-#endif
-}
-
 bool mp::FactoryFilter::add_creator_dl(const std::string &fi,
                                         const std::string &path)
 {
