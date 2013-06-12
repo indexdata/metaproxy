@@ -16,50 +16,39 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef FACTORY_FILTER_HPP
-#define FACTORY_FILTER_HPP
+#ifndef ROUTER_XML_HPP
+#define ROUTER_XML_HPP
 
-#include <stdexcept>
-#include <iostream>
-#include <string>
-#include <map>
+#include <metaproxy/router.hpp>
 
-#include <boost/noncopyable.hpp>
+#include <libxml/tree.h>
 #include <boost/scoped_ptr.hpp>
 
-#include <metaproxy/filter.hpp>
-
-namespace metaproxy_1 {
-    class FactoryFilter : public boost::noncopyable
+namespace metaproxy_1
+{
+    class RouterXML : public metaproxy_1::Router
     {
-        typedef metaproxy_1::filter::Base* (*CreateFilterCallback)();
-
         class Rep;
+        class Route;
+        class Pos;
     public:
-        /// true if registration ok
+        RouterXML(xmlDocPtr doc,
+                  bool test_only, const char *file_include_path);
+        RouterXML(std::string xmlconf,
+                  bool test_only);
 
-        FactoryFilter();
-        ~FactoryFilter();
+        ~RouterXML();
 
-        bool add_creator(const std::string &fi, CreateFilterCallback cfc);
-
-        bool drop_creator(std::string fi);
-
-        metaproxy_1::filter::Base* create(std::string fi);
-        bool exist(std::string fi);
-
-        bool add_creator_dl(const std::string &fi, const std::string &path);
-
-        class NotFound : public std::runtime_error {
-        public:
-            NotFound(const std::string msg);
-        };
+        virtual RoutePos *createpos() const;
+        void start();
+        void stop();
     private:
         boost::scoped_ptr<Rep> m_p;
     };
-}
 
+};
 #endif
+
 /*
  * Local variables:
  * c-basic-offset: 4
