@@ -1,3 +1,7 @@
+--- 1.3.58 2013/06/12
+
+Fix loading of filters cql_rpn and sru_z3950 . Was broken by 1.3.57.
+
 --- 1.3.57 2013/06/12
 
 Make RouterChain and RouterXML part of public API (libmetaproxy).
