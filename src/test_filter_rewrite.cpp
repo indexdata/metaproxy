@@ -38,7 +38,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 using namespace boost::unit_test;
 namespace mp = metaproxy_1;
-
+/*
+ * The global testconfig is commented out, as it won't even compile
+ * on old Centos5 machines
 struct TestConfig {
     TestConfig()   
     {
@@ -52,6 +54,7 @@ struct TestConfig {
 };
 
 BOOST_GLOBAL_FIXTURE( TestConfig );
+*/
 
 BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
 {
