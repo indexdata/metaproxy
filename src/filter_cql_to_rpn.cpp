@@ -188,7 +188,7 @@ static mp::filter::Base* filter_creator()
 }
 
 extern "C" {
-    struct metaproxy_1_filter_struct metaproxy_1_filter_cql_to_rpn = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_cql_rpn = {
         0,
         "cql_rpn",
         filter_creator

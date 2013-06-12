@@ -68,7 +68,7 @@ mp::FactoryStatic::FactoryStatic()
 #ifndef WIN32
         &metaproxy_1_filter_cgi,
 #endif
-        &metaproxy_1_filter_cql_to_rpn,
+        &metaproxy_1_filter_cql_rpn,
         &metaproxy_1_filter_frontend_net,
         &metaproxy_1_filter_http_client,
         &metaproxy_1_filter_http_file,
@@ -83,7 +83,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_sd_remove,
         &metaproxy_1_filter_session_shared,
         &metaproxy_1_filter_sort,
-        &metaproxy_1_filter_sru_to_z3950,
+        &metaproxy_1_filter_sru_z3950,
         &metaproxy_1_filter_template,
         &metaproxy_1_filter_virt_db,
         &metaproxy_1_filter_z3950_client,
