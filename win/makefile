@@ -245,6 +245,7 @@ PROJECT_DLL_OBJS = \
 	$(OBJDIR)\plainfile.obj \
         $(OBJDIR)\router_chain.obj \
         $(OBJDIR)\router_flexml.obj \
+        $(OBJDIR)\router_xml.obj \
         $(OBJDIR)\session.obj \
         $(OBJDIR)\sru_util.obj \
 	$(OBJDIR)\thread_pool_observer.obj \

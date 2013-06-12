@@ -58,6 +58,7 @@ libmetaproxy_la_SOURCES = \
 	url_recipe.cpp \
 	util.cpp \
 	router_chain.cpp \
+	router_xml.cpp \
 	xmlutil.cpp
 
 libmetaproxy_la_LIBADD = $(YAZPPLALIB) \

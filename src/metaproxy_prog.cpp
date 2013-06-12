@@ -30,8 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/filter.hpp>
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
-#include "router_flexml.hpp"
-#include "factory_static.hpp"
+#include <metaproxy/router_xml.hpp>
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -45,7 +44,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace mp = metaproxy_1;
 
-mp::RouterFleXML *routerp = 0;
+mp::RouterXML *routerp = 0;
 
 static void set_log_prefix(void)
 {
@@ -84,7 +83,7 @@ static void work_common(void *data)
     signal(SIGTERM, sig_term_handler);
     signal(SIGUSR1, sig_usr1_handler);
 #endif
-    routerp = (mp::RouterFleXML*) data;
+    routerp = (mp::RouterXML*) data;
     routerp->start();
 
     mp::Package pack;
@@ -247,9 +246,8 @@ static int sc_main(
         wrbuf_puts(base_path, ".");
     ret = 0;
     try {
-        mp::FactoryStatic factory;
-        mp::RouterFleXML *router =
-            new mp::RouterFleXML(doc, factory, test_config, wrbuf_cstr(base_path));
+        mp::RouterXML *router =
+            new mp::RouterXML(doc, test_config, wrbuf_cstr(base_path));
         if (!test_config)
         {
 
