@@ -12,8 +12,6 @@ AM_CPPFLAGS = -I$(top_srcdir)/include $(USEMARCONINC)
 bin_SCRIPTS = metaproxy-config
 
 filter_src = \
-	factory_filter.cpp factory_filter.hpp \
-	factory_static.cpp factory_static.hpp \
 	filter_auth_simple.cpp filter_auth_simple.hpp \
 	filter_backend_test.cpp filter_backend_test.hpp \
 	filter_bounce.cpp filter_bounce.hpp \
@@ -38,13 +36,14 @@ filter_src = \
 	filter_virt_db.cpp filter_virt_db.hpp \
 	filter_z3950_client.cpp filter_z3950_client.hpp \
 	filter_zeerex_explain.cpp  filter_zeerex_explain.hpp \
-	filter_zoom.cpp filter_zoom.hpp \
-        router_flexml.hpp router_flexml.cpp
+	filter_zoom.cpp filter_zoom.hpp
 
 lib_LTLIBRARIES = libmetaproxy.la
 libmetaproxy_la_LDFLAGS = -version-info 4:0:0 -export-dynamic
 
 libmetaproxy_la_SOURCES = \
+	factory_filter.cpp factory_filter.hpp \
+	factory_static.cpp factory_static.hpp \
 	filter.cpp \
 	gduutil.cpp gduutil.hpp \
 	origin.cpp \
@@ -58,6 +57,7 @@ libmetaproxy_la_SOURCES = \
 	url_recipe.cpp \
 	util.cpp \
 	router_chain.cpp \
+        router_flexml.hpp router_flexml.cpp \
 	router_xml.cpp \
 	xmlutil.cpp
 
