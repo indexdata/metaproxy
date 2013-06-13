@@ -42,7 +42,7 @@ namespace metaproxy_1 {
 }
 
 extern "C" {
-    extern struct metaproxy_1_filter_struct metaproxy_1_filter_sru_to_z3950;
+    extern struct metaproxy_1_filter_struct metaproxy_1_filter_sru_z3950;
 }
 
 #endif

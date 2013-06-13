@@ -43,6 +43,7 @@ lib_LTLIBRARIES = libmetaproxy.la
 libmetaproxy_la_LDFLAGS = -version-info 4:0:0 -export-dynamic
 
 libmetaproxy_la_SOURCES = \
+	$(filter_src) \
 	factory_filter.cpp factory_filter.hpp \
 	factory_static.cpp factory_static.hpp \
 	filter.cpp \
@@ -80,7 +81,7 @@ bin_PROGRAMS = metaproxy
 noinst_PROGRAMS = tstdl
 
 tstdl_SOURCES = tstdl.cpp
-metaproxy_SOURCES = metaproxy_prog.cpp $(filter_src)
+metaproxy_SOURCES = metaproxy_prog.cpp
 
 # Rules for dl programs
 pkglib_LTLIBRARIES = metaproxy_filter_dl.la
@@ -120,27 +121,26 @@ TESTS=$(check_PROGRAMS)
 
 test_package1_SOURCES=test_package1.cpp
 test_pipe_SOURCES=test_pipe.cpp
-test_filter1_SOURCES=test_filter1.cpp $(filter_src)
-test_filter2_SOURCES=test_filter2.cpp $(filter_src)
+test_filter1_SOURCES=test_filter1.cpp
+test_filter2_SOURCES=test_filter2.cpp
 test_session1_SOURCES=test_session1.cpp
 test_session2_SOURCES=test_session2.cpp
 test_boost_threads_SOURCES=test_boost_threads.cpp
 test_thread_pool_observer_SOURCES = test_thread_pool_observer.cpp
-test_filter_auth_simple_SOURCES = test_filter_auth_simple.cpp $(filter_src)
-test_filter_factory_SOURCES = test_filter_factory.cpp $(filter_src)
-test_filter_frontend_net_SOURCES = test_filter_frontend_net.cpp $(filter_src)
-test_filter_log_SOURCES = test_filter_log.cpp $(filter_src)
-test_filter_multi_SOURCES = test_filter_multi.cpp $(filter_src)
-test_filter_query_rewrite_SOURCES = test_filter_query_rewrite.cpp $(filter_src)
-test_filter_z3950_client_SOURCES = test_filter_z3950_client.cpp $(filter_src)
-test_filter_backend_test_SOURCES = test_filter_backend_test.cpp $(filter_src)
-test_filter_bounce_SOURCES = test_filter_bounce.cpp $(filter_src)
-test_filter_record_transform_SOURCES = test_filter_record_transform.cpp \
-	$(filter_src)
-test_filter_sru_to_z3950_SOURCES = test_filter_sru_to_z3950.cpp $(filter_src)
-test_filter_virt_db_SOURCES = test_filter_virt_db.cpp $(filter_src)
+test_filter_auth_simple_SOURCES = test_filter_auth_simple.cpp 
+test_filter_factory_SOURCES = test_filter_factory.cpp 
+test_filter_frontend_net_SOURCES = test_filter_frontend_net.cpp 
+test_filter_log_SOURCES = test_filter_log.cpp 
+test_filter_multi_SOURCES = test_filter_multi.cpp 
+test_filter_query_rewrite_SOURCES = test_filter_query_rewrite.cpp
+test_filter_z3950_client_SOURCES = test_filter_z3950_client.cpp
+test_filter_backend_test_SOURCES = test_filter_backend_test.cpp
+test_filter_bounce_SOURCES = test_filter_bounce.cpp
+test_filter_record_transform_SOURCES = test_filter_record_transform.cpp 
+test_filter_sru_to_z3950_SOURCES = test_filter_sru_to_z3950.cpp
+test_filter_virt_db_SOURCES = test_filter_virt_db.cpp 
 test_ses_map_SOURCES = test_ses_map.cpp
-test_router_flexml_SOURCES = test_router_flexml.cpp $(filter_src)
+test_router_flexml_SOURCES = test_router_flexml.cpp
 test_xmlutil_SOURCES = test_xmlutil.cpp
 
 test_html_parser_SOURCES = test_html_parser.cpp $(filter_src)

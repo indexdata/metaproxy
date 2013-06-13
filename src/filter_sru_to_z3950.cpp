@@ -946,7 +946,7 @@ static mp::filter::Base* filter_creator()
 }
 
 extern "C" {
-    struct metaproxy_1_filter_struct metaproxy_1_filter_sru_to_z3950 = {
+    struct metaproxy_1_filter_struct metaproxy_1_filter_sru_z3950 = {
         0,
         "sru_z3950",
         filter_creator
