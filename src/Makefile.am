@@ -143,8 +143,8 @@ test_ses_map_SOURCES = test_ses_map.cpp
 test_router_flexml_SOURCES = test_router_flexml.cpp
 test_xmlutil_SOURCES = test_xmlutil.cpp
 
-test_html_parser_SOURCES = test_html_parser.cpp $(filter_src)
-test_filter_rewrite_SOURCES = test_filter_rewrite.cpp $(filter_src)
+test_html_parser_SOURCES = test_html_parser.cpp 
+test_filter_rewrite_SOURCES = test_filter_rewrite.cpp 
 
 # doxygen target
 dox:
