@@ -59,8 +59,6 @@ namespace mp = metaproxy_1;
 
 mp::FactoryStatic::FactoryStatic()
 {
-#ifdef HAVE_DLFCN_H
-#else
     struct metaproxy_1_filter_struct *buildins[] = {
         &metaproxy_1_filter_auth_simple,
         &metaproxy_1_filter_backend_test,
@@ -95,8 +93,6 @@ mp::FactoryStatic::FactoryStatic()
 
     for (i = 0; buildins[i]; i++)
         add_creator(buildins[i]->type, buildins[i]->creator);
-// WIN32
-#endif
 }
 
 
