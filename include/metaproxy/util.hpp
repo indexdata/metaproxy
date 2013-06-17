@@ -104,6 +104,9 @@ namespace metaproxy_1 {
         void get_default_diag(Z_DefaultDiagFormat *r,
                               int &error_code, std::string &addinfo);
 
+        Z_RecordComposition *piggyback_to_RecordComposition(
+            ODR odr, Odr_int result_set_size, Z_SearchRequest *sreq);
+ 
         void piggyback(int smallSetUpperBound,
                        int largeSetLowerBound,
                        int mediumSetPresentNumber,
