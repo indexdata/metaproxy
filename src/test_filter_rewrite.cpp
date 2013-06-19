@@ -191,7 +191,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
         resp_result = odr_getbuf(enc, &resp_result_len, 0);
         
         BOOST_CHECK(resp_result);
-        BOOST_CHECK_EQUAL(resp_result_len, strlen(resp_expected));
+        BOOST_CHECK_EQUAL((size_t) resp_result_len, strlen(resp_expected));
 
         std::cout << "Rewriten result:\n" << resp_result << std::endl;
         std::cout << "Rewriten result buf len: " << resp_result_len 
