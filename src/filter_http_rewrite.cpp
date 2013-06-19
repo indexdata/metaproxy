@@ -68,7 +68,7 @@ namespace metaproxy_1 {
                 std::map<std::string, std::string> & vars) const;
             void rewrite_headers(mp::odr & o, Z_HTTP_Header *headers,
                 std::map<std::string, std::string> & vars) const;
-            void rewrite_body (mp::odr & o, 
+            void rewrite_body (mp::odr & o,
                 char **content_buf, int *content_len,
                 std::map<std::string, std::string> & vars) const;
             const std::string test_patterns(
@@ -86,7 +86,7 @@ yf::HttpRewrite::~HttpRewrite()
 {
 }
 
-void yf::HttpRewrite::process(mp::Package & package) const 
+void yf::HttpRewrite::process(mp::Package & package) const
 {
     yaz_log(YLOG_LOG, "HttpRewrite begins....");
     Z_GDU *gdu = package.request().get();
@@ -100,8 +100,8 @@ void yf::HttpRewrite::process(mp::Package & package) const
         req_rules->rewrite_reqline(o, hreq, vars);
         yaz_log(YLOG_LOG, ">> Request headers");
         req_rules->rewrite_headers(o, hreq->headers, vars);
-        req_rules->rewrite_body(o, 
-                &hreq->content_buf, &hreq->content_len, 
+        req_rules->rewrite_body(o,
+                &hreq->content_buf, &hreq->content_len,
                 vars);
         package.request() = gdu;
     }
@@ -114,21 +114,21 @@ void yf::HttpRewrite::process(mp::Package & package) const
         mp::odr o;
         yaz_log(YLOG_LOG, "<< Respose headers");
         res_rules->rewrite_headers(o, hres->headers, vars);
-        res_rules->rewrite_body(o, &hres->content_buf, 
+        res_rules->rewrite_body(o, &hres->content_buf,
                 &hres->content_len, vars);
         package.response() = gdu;
     }
 }
 
-void yf::HttpRewrite::Rules::rewrite_reqline (mp::odr & o, 
+void yf::HttpRewrite::Rules::rewrite_reqline (mp::odr & o,
         Z_HTTP_Request *hreq,
-        std::map<std::string, std::string> & vars) const 
+        std::map<std::string, std::string> & vars) const
 {
     //rewrite the request line
     std::string path;
     if (strstr(hreq->path, "http://") == hreq->path)
     {
-        yaz_log(YLOG_LOG, "Path in the method line is absolute, " 
+        yaz_log(YLOG_LOG, "Path in the method line is absolute, "
             "possibly a proxy request");
         path += hreq->path;
     }
@@ -137,10 +137,10 @@ void yf::HttpRewrite::Rules::rewrite_reqline (mp::odr & o,
         //TODO what about proto
         path += "http://";
         path += z_HTTP_header_lookup(hreq->headers, "Host");
-        path += hreq->path; 
+        path += hreq->path;
     }
     yaz_log(YLOG_LOG, "Proxy request URL is %s", path.c_str());
-    std::string npath = 
+    std::string npath =
         test_patterns(vars, path);
     if (!npath.empty())
     {
@@ -149,20 +149,20 @@ void yf::HttpRewrite::Rules::rewrite_reqline (mp::odr & o,
     }
 }
 
-void yf::HttpRewrite::Rules::rewrite_headers(mp::odr & o, 
+void yf::HttpRewrite::Rules::rewrite_headers(mp::odr & o,
         Z_HTTP_Header *headers,
-        std::map<std::string, std::string> & vars) const 
+        std::map<std::string, std::string> & vars) const
 {
     for (Z_HTTP_Header *header = headers;
-            header != 0; 
-            header = header->next) 
+            header != 0;
+            header = header->next)
     {
         std::string sheader(header->name);
         sheader += ": ";
         sheader += header->value;
         yaz_log(YLOG_LOG, "%s: %s", header->name, header->value);
         std::string out = test_patterns(vars, sheader);
-        if (!out.empty()) 
+        if (!out.empty())
         {
             size_t pos = out.find(": ");
             if (pos == std::string::npos)
@@ -171,21 +171,21 @@ void yf::HttpRewrite::Rules::rewrite_headers(mp::odr & o,
                 continue;
             }
             header->name = odr_strdup(o, out.substr(0, pos).c_str());
-            header->value = odr_strdup(o, out.substr(pos+2, 
+            header->value = odr_strdup(o, out.substr(pos+2,
                         std::string::npos).c_str());
         }
     }
 }
 
-void yf::HttpRewrite::Rules::rewrite_body (mp::odr & o, 
-        char **content_buf, 
+void yf::HttpRewrite::Rules::rewrite_body (mp::odr & o,
+        char **content_buf,
         int *content_len,
-        std::map<std::string, std::string> & vars) const 
+        std::map<std::string, std::string> & vars) const
 {
     if (*content_buf)
     {
         std::string body(*content_buf);
-        std::string nbody = 
+        std::string nbody =
             test_patterns(vars, body);
         if (!nbody.empty())
         {
@@ -203,7 +203,7 @@ const std::string yf::HttpRewrite::Rules::test_patterns(
         std::map<std::string, std::string> & vars,
         const std::string & txt) const
 {
-    for (size_t i = 0; i < rules.size(); i++) 
+    for (size_t i = 0; i < rules.size(); i++)
     {
         std::string out = rules[i].search_replace(vars, txt);
         if (!out.empty()) return out;
@@ -230,7 +230,7 @@ const std::string yf::HttpRewrite::Rule::search_replace(
             //check if the group is named
             std::map<int, std::string>::const_iterator it
                 = group_index.find(i);
-            if (it != group_index.end()) 
+            if (it != group_index.end())
             {   //it is
                 if (!what[i].str().empty())
                     vars[it->second] = what[i];
@@ -239,7 +239,7 @@ const std::string yf::HttpRewrite::Rule::search_replace(
         }
         //prepare replacement string
         std::string rvalue = sub_vars(vars);
-        yaz_log(YLOG_LOG, "! Rewritten '%s' to '%s'", 
+        yaz_log(YLOG_LOG, "! Rewritten '%s' to '%s'",
                 what.str(0).c_str(), rvalue.c_str());
         out.append(start, what[0].first);
         out.append(rvalue);
@@ -267,9 +267,9 @@ void yf::HttpRewrite::Rule::parse_groups()
         if (!esc && str[i] == '(') //group starts
         {
             gnum++;
-            if (i+1 < str.size() && str[i+1] == '?') //group with attrs 
+            if (i+1 < str.size() && str[i+1] == '?') //group with attrs
             {
-                i++; 
+                i++;
                 if (i+1 < str.size() && str[i+1] == ':') //non-capturing
                 {
                     if (gnum > 0) gnum--;
@@ -286,18 +286,18 @@ void yf::HttpRewrite::Rule::parse_groups()
                     while (++i < str.size())
                     {
                         if (str[i] == '>') { term = true; break; }
-                        if (!isalnum(str[i])) 
+                        if (!isalnum(str[i]))
                             throw mp::filter::FilterException
                                 ("Only alphanumeric chars allowed, found "
-                                 " in '" 
-                                 + str 
-                                 + "' at " 
-                                 + boost::lexical_cast<std::string>(i)); 
+                                 " in '"
+                                 + str
+                                 + "' at "
+                                 + boost::lexical_cast<std::string>(i));
                         gname += str[i];
                     }
                     if (!term)
                         throw mp::filter::FilterException
-                            ("Unterminated group name '" + gname 
+                            ("Unterminated group name '" + gname
                              + " in '" + str +"'");
                     group_index[gnum] = gname;
                     yaz_log(YLOG_LOG, "Found named group '%s' at $%d",
@@ -329,7 +329,7 @@ std::string yf::HttpRewrite::Rule::sub_vars (
                 ++i;
                 std::string name;
                 bool term = false;
-                while (++i < in.size()) 
+                while (++i < in.size())
                 {
                     if (in[i] == '}') { term = true; break; }
                     name += in[i];
@@ -348,7 +348,7 @@ std::string yf::HttpRewrite::Rule::sub_vars (
             {
                 throw mp::filter::FilterException
                     ("Malformed or trimmed var ref in '"
-                     +in+"' at "+boost::lexical_cast<std::string>(i)); 
+                     +in+"' at "+boost::lexical_cast<std::string>(i));
             }
             continue;
         }
@@ -359,7 +359,7 @@ std::string yf::HttpRewrite::Rule::sub_vars (
     return out;
 }
 
-void yf::HttpRewrite::configure_rules(const xmlNode *ptr, 
+void yf::HttpRewrite::configure_rules(const xmlNode *ptr,
         Rules & rules)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
@@ -382,7 +382,7 @@ void yf::HttpRewrite::configure_rules(const xmlNode *ptr,
                          + std::string((const char *) attr->name)
                          + " in rewrite section of http_rewrite");
             }
-            yaz_log(YLOG_LOG, "Found rewrite rule from '%s' to '%s'", 
+            yaz_log(YLOG_LOG, "Found rewrite rule from '%s' to '%s'",
                     rule.regex.c_str(), rule.recipe.c_str());
             rule.parse_groups();
             if (!rule.regex.empty())
