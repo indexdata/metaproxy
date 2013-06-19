@@ -203,7 +203,7 @@ const std::string yf::HttpRewrite::Rules::test_patterns(
         std::map<std::string, std::string> & vars,
         const std::string & txt) const
 {
-    for (unsigned i = 0; i < rules.size(); i++) 
+    for (size_t i = 0; i < rules.size(); i++) 
     {
         std::string out = rules[i].search_replace(vars, txt);
         if (!out.empty()) return out;
@@ -224,7 +224,7 @@ const std::string yf::HttpRewrite::Rule::search_replace(
     std::string out;
     while (regex_search(start, end, what, re)) //find next full match
     {
-        unsigned i;
+        size_t i;
         for (i = 1; i < what.size(); ++i)
         {
             //check if the group is named
@@ -257,7 +257,7 @@ void yf::HttpRewrite::Rule::parse_groups()
     bool esc = false;
     const std::string & str = regex;
     yaz_log(YLOG_LOG, "Parsing groups from '%s'", str.c_str());
-    for (unsigned i = 0; i < str.size(); ++i)
+    for (size_t i = 0; i < str.size(); ++i)
     {
         if (!esc && str[i] == '\\')
         {
@@ -315,7 +315,7 @@ std::string yf::HttpRewrite::Rule::sub_vars (
     std::string out;
     bool esc = false;
     const std::string & in = recipe;
-    for (unsigned i = 0; i < in.size(); ++i)
+    for (size_t i = 0; i < in.size(); ++i)
     {
         if (!esc && in[i] == '\\')
         {
