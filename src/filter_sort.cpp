@@ -111,6 +111,7 @@ namespace metaproxy_1 {
                                 Odr_int start_pos,
                                 ResultSetPtr s,
                                 Odr_oid *syntax,
+                                Z_RecordComposition *comp,
                                 const char *resultSetId);
         public:
             Frontend(Impl *impl);
@@ -500,6 +501,7 @@ void yf::Sort::Frontend::handle_records(mp::Package &package,
                                         Odr_int start_pos,
                                         ResultSetPtr s,
                                         Odr_oid *syntax,
+                                        Z_RecordComposition *comp,
                                         const char *resultSetId)
 {
     if (records && records->which == Z_Records_DBOSD && start_pos == 1)
@@ -539,6 +541,7 @@ void yf::Sort::Frontend::handle_records(mp::Package &package,
             *p_req->numberOfRecordsRequested = end_pos - pos + 1;
             p_req->preferredRecordSyntax = syntax;
             p_req->resultSetId = odr_strdup(odr, resultSetId);
+            p_req->recordComposition = comp;
 
             present_package.request() = p_apdu;
             present_package.move();
@@ -604,9 +607,12 @@ void yf::Sort::Frontend::handle_search(mp::Package &package, Z_APDU *apdu_req)
         Z_APDU_searchResponse)
     {
         Z_SearchResponse *res = gdu_res->u.z3950->u.searchResponse;
+        Z_RecordComposition *record_comp = 
+            mp::util::piggyback_to_RecordComposition(odr,
+                                                     *res->resultCount, req);
         s->hit_count = *res->resultCount;
         handle_records(b_package, apdu_req, res->records, 1, s,
-                       syntax, resultSetId.c_str());
+                       syntax, record_comp, resultSetId.c_str());
         package.response() = gdu_res;
     }
 }
@@ -677,7 +683,8 @@ void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
     {
         Z_PresentResponse *res = gdu_res->u.z3950->u.presentResponse;
         handle_records(b_package, apdu_req, res->records,
-                       start, rset, syntax, resultSetId.c_str());
+                       start, rset, syntax, req->recordComposition,
+                       resultSetId.c_str());
         package.response() = gdu_res;
     }
 }
