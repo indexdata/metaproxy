@@ -41,7 +41,7 @@ namespace metaproxy_1 {
 }
 
 extern "C" {
-    extern struct metaproxy_1_filter_struct metaproxy_1_filter_cql_to_rpn;
+    extern struct metaproxy_1_filter_struct metaproxy_1_filter_cql_rpn;
 }
 
 #endif

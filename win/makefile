@@ -7,7 +7,7 @@
 DEBUG=0   # 0 for release, 1 for debug
 
 # Metaproxy version
-VERSION=1.3.55
+VERSION=1.3.58
 
 # YAZ and YAZ++ directories
 YAZ_DIR=..\..\yaz
@@ -245,6 +245,7 @@ PROJECT_DLL_OBJS = \
 	$(OBJDIR)\plainfile.obj \
         $(OBJDIR)\router_chain.obj \
         $(OBJDIR)\router_flexml.obj \
+        $(OBJDIR)\router_xml.obj \
         $(OBJDIR)\session.obj \
         $(OBJDIR)\sru_util.obj \
 	$(OBJDIR)\thread_pool_observer.obj \

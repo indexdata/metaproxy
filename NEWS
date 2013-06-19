@@ -1,3 +1,41 @@
+--- 1.3.58 2013/06/12
+
+Fix loading of filters cql_rpn and sru_z3950 . Was broken by 1.3.57.
+
+--- 1.3.57 2013/06/12
+
+Make RouterChain and RouterXML part of public API (libmetaproxy).
+
+http_client: honor X-Metaproxy-Proxy as an alternative to
+the "proxy" configuration. Allows proxy to be set per HTTP request.
+
+sru_z3950: For SRU requests recognize x-client prefixes as a way
+to ingest "database parameters".. The suffix of x-client- serves
+as database argument name. Multiple may be given. For example:
+  http://path/db/?operation=searchRetrieve&x-client-user=a&x-client-password=b
+is turned into Z39.50 database
+  db,user=a&password=b
+
+--- 1.3.56 2013/05/27
+
+New filter present_chunk. This filter allows splitting of present requests into smaller chunks.
+
+New filter sd_remove, which replaces surrogate diagnostics with
+SUTRS records. This filter tries to deal with clients that breaks
+when receiving surrogate diagnostics.
+
+new filter http_client. Same role as z3950_client, but just for
+HTTP. Allows Metaproxy to operate as a HTTP proxy.
+
+New filter http_rewrite1, which serves as purpose on how to rewrite
+HTTP content with Metaproxy.
+
+Use libboost-system if available, because newer versions of libboost-threads
+requires libboost-system.
+
+Allow frontend_net to serve SSL/HTTPS, because we can specify a server
+certificate now.
+
 --- 1.3.55 2013/04/10
 
 zoom: Torus setting: authenticationMode which may hold values "basic"

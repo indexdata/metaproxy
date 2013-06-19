@@ -54,12 +54,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filter_z3950_client.hpp"
 #include "filter_zeerex_explain.hpp"
 #include "filter_zoom.hpp"
+#include "filter_http_rewrite.hpp"
 
 namespace mp = metaproxy_1;
 
 mp::FactoryStatic::FactoryStatic()
 {
-#ifdef HAVE_DLFCN_H
     struct metaproxy_1_filter_struct *buildins[] = {
         &metaproxy_1_filter_auth_simple,
         &metaproxy_1_filter_backend_test,
@@ -67,10 +67,11 @@ mp::FactoryStatic::FactoryStatic()
 #ifndef WIN32
         &metaproxy_1_filter_cgi,
 #endif
-        &metaproxy_1_filter_cql_to_rpn,
+        &metaproxy_1_filter_cql_rpn,
         &metaproxy_1_filter_frontend_net,
         &metaproxy_1_filter_http_client,
         &metaproxy_1_filter_http_file,
+        &metaproxy_1_filter_http_rewrite,
         &metaproxy_1_filter_http_rewrite1,
         &metaproxy_1_filter_limit,
         &metaproxy_1_filter_load_balance,
@@ -82,7 +83,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_sd_remove,
         &metaproxy_1_filter_session_shared,
         &metaproxy_1_filter_sort,
-        &metaproxy_1_filter_sru_to_z3950,
+        &metaproxy_1_filter_sru_z3950,
         &metaproxy_1_filter_template,
         &metaproxy_1_filter_virt_db,
         &metaproxy_1_filter_z3950_client,
@@ -94,8 +95,6 @@ mp::FactoryStatic::FactoryStatic()
 
     for (i = 0; buildins[i]; i++)
         add_creator(buildins[i]->type, buildins[i]->creator);
-// WIN32
-#endif
 }
 
 

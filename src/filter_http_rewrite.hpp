@@ -16,33 +16,35 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef FILTER_SRU_TO_Z3950_HPP
-#define FILTER_SRU_TO_Z3950_HPP
-
-#include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
+#ifndef FILTER_HTTP_REWRITE_HPP
+#define FILTER_HTTP_REWRITE_HPP
 
 #include <metaproxy/filter.hpp>
+#include <boost/scoped_ptr.hpp>
+
+namespace mp = metaproxy_1;
 
 namespace metaproxy_1 {
     namespace filter {
-        class SRUtoZ3950 : public Base {
-            class Frontend;
-            class Impl;
-            boost::scoped_ptr<Impl> m_p;
-            typedef boost::shared_ptr<Frontend> FrontendPtr;
+        class HttpRewrite : public Base {
+            class Rules;
+            class Rule;
+            class RuleScope;
+            boost::scoped_ptr<Rules> req_rules;
+            boost::scoped_ptr<Rules> res_rules;
+            void configure_rules(const xmlNode *ptr, Rules & rules);
         public:
-            SRUtoZ3950();
-            ~SRUtoZ3950();
-            void configure(const xmlNode *xmlnode, bool test_only,
-                           const char *path);
+            HttpRewrite();
+            ~HttpRewrite();
             void process(metaproxy_1::Package & package) const;
+            void configure(const xmlNode * ptr, 
+                    bool test_only, const char *path);
         };
     }
 }
 
 extern "C" {
-    extern struct metaproxy_1_filter_struct metaproxy_1_filter_sru_z3950;
+    extern struct metaproxy_1_filter_struct metaproxy_1_filter_http_rewrite;
 }
 
 #endif

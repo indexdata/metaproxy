@@ -71,11 +71,16 @@ void yf::HTTPClient::Rep::proxy(mp::Package &package)
         Z_GDU *res_gdu = 0;
         mp::odr o;
         yaz_url_t yaz_url = yaz_url_create();
+        const char *http_proxy =
+            z_HTTP_header_remove(&hreq->headers, "X-Metaproxy-Proxy");
+
+        if (!http_proxy)
+            http_proxy = proxy_host.c_str();
+
+        if (*http_proxy)
+            yaz_url_set_proxy(yaz_url, http_proxy);
+
         std::string uri;
-
-        if (proxy_host.length())
-            yaz_url_set_proxy(yaz_url, proxy_host.c_str());
-
         if (hreq->path[0] == '/')
         {
             if (default_host.length())
@@ -92,6 +97,7 @@ void yf::HTTPClient::Rep::proxy(mp::Package &package)
         if (http_response)
         {
             res_gdu = o.create_HTTP_Response(package.session(), hreq, 200);
+            z_HTTP_header_remove(&http_response->headers, "Transfer-Encoding");
             res_gdu->u.HTTP_Response = http_response;
         }
         else

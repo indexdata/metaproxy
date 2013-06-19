@@ -16,36 +16,32 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef FILTER_SRU_TO_Z3950_HPP
-#define FILTER_SRU_TO_Z3950_HPP
+#include <yaz/log.h>
+#include <yaz/diagbib1.h>
 
-#include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
+#include <metaproxy/router_chain.hpp>
+#include <yaz/test.h>
 
-#include <metaproxy/filter.hpp>
+namespace mp = metaproxy_1;
 
-namespace metaproxy_1 {
-    namespace filter {
-        class SRUtoZ3950 : public Base {
-            class Frontend;
-            class Impl;
-            boost::scoped_ptr<Impl> m_p;
-            typedef boost::shared_ptr<Frontend> FrontendPtr;
-        public:
-            SRUtoZ3950();
-            ~SRUtoZ3950();
-            void configure(const xmlNode *xmlnode, bool test_only,
-                           const char *path);
-            void process(metaproxy_1::Package & package) const;
-        };
+void tst(void)
+{
+    try {
+        mp::RouterChain router;
     }
+    catch ( ... ) {
+        YAZ_CHECK(0);
+    }
+
 }
 
-extern "C" {
-    extern struct metaproxy_1_filter_struct metaproxy_1_filter_sru_z3950;
+int main(int argc, char **argv)
+{
+    YAZ_CHECK_INIT(argc, argv);
+    tst();
+    YAZ_CHECK_TERM;
 }
 
-#endif
 /*
  * Local variables:
  * c-basic-offset: 4

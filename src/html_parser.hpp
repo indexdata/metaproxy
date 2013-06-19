@@ -16,33 +16,29 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef FILTER_SRU_TO_Z3950_HPP
-#define FILTER_SRU_TO_Z3950_HPP
+#ifndef HTML_PARSER_HPP
+#define HTML_PARSER_HPP
 
 #include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
-
-#include <metaproxy/filter.hpp>
 
 namespace metaproxy_1 {
-    namespace filter {
-        class SRUtoZ3950 : public Base {
-            class Frontend;
-            class Impl;
-            boost::scoped_ptr<Impl> m_p;
-            typedef boost::shared_ptr<Frontend> FrontendPtr;
+        class HTMLParserEvent {
         public:
-            SRUtoZ3950();
-            ~SRUtoZ3950();
-            void configure(const xmlNode *xmlnode, bool test_only,
-                           const char *path);
-            void process(metaproxy_1::Package & package) const;
+            virtual void openTagStart(const char *name) = 0;
+            virtual void anyTagEnd(const char *name) = 0;
+            virtual void attribute(const char *tagName, 
+                    const char *name, 
+                    const char *value,
+                    int val_len) = 0;
+            virtual void closeTag(const char *name) = 0;
+            virtual void text(const char *value, int len) = 0;
         };
-    }
-}
-
-extern "C" {
-    extern struct metaproxy_1_filter_struct metaproxy_1_filter_sru_z3950;
+        class HTMLParser {
+        public:
+            HTMLParser();
+            ~HTMLParser();
+            void parse(HTMLParserEvent & event, const char *str) const;
+        };
 }
 
 #endif

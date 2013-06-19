@@ -163,6 +163,26 @@ std::string mp_util::database_name_normalize(const std::string &s)
 
 }
 
+Z_RecordComposition *mp_util::piggyback_to_RecordComposition(
+    ODR odr, Odr_int result_set_size, Z_SearchRequest *sreq)
+{
+    Z_RecordComposition *comp = 0;
+    Odr_int present_dummy;
+    const char *element_set_name = 0;
+    mp::util::piggyback_sr(sreq, result_set_size,
+                           present_dummy, &element_set_name);
+    if (element_set_name)
+    {
+        comp  = (Z_RecordComposition *) odr_malloc(odr, sizeof(*comp));
+        comp->which = Z_RecordComp_simple;
+        comp->u.simple = (Z_ElementSetNames *)
+            odr_malloc(odr, sizeof(Z_ElementSetNames));
+        comp->u.simple->which = Z_ElementSetNames_generic;
+        comp->u.simple->u.generic = odr_strdup(odr, element_set_name);
+    }
+    return comp;
+}
+
 void mp_util::piggyback_sr(Z_SearchRequest *sreq,
                            Odr_int result_set_size,
                            Odr_int &number_to_present,

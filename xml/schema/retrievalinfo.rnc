@@ -32,8 +32,6 @@ retrievalinfo =
       attribute syntax { xsd:string },
       attribute name { xsd:string }?,
       attribute identifier { xsd:string }?,
-      #attribute backendsyntax { xsd:string }?,
-      #attribute backendname { xsd:string }?,
       element y:backend {
       attribute syntax { xsd:string },
       attribute name { xsd:string }?,

@@ -16,36 +16,39 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef FILTER_SRU_TO_Z3950_HPP
-#define FILTER_SRU_TO_Z3950_HPP
+#ifndef ROUTER_XML_HPP
+#define ROUTER_XML_HPP
 
+#include <metaproxy/router.hpp>
+
+#include <libxml/tree.h>
 #include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
 
-#include <metaproxy/filter.hpp>
+namespace metaproxy_1
+{
+    class RouterXML : public metaproxy_1::Router
+    {
+        class Rep;
+        class Route;
+        class Pos;
+    public:
+        RouterXML(xmlDocPtr doc,
+                  bool test_only, const char *file_include_path);
+        RouterXML(std::string xmlconf,
+                  bool test_only);
 
-namespace metaproxy_1 {
-    namespace filter {
-        class SRUtoZ3950 : public Base {
-            class Frontend;
-            class Impl;
-            boost::scoped_ptr<Impl> m_p;
-            typedef boost::shared_ptr<Frontend> FrontendPtr;
-        public:
-            SRUtoZ3950();
-            ~SRUtoZ3950();
-            void configure(const xmlNode *xmlnode, bool test_only,
-                           const char *path);
-            void process(metaproxy_1::Package & package) const;
-        };
-    }
-}
+        ~RouterXML();
 
-extern "C" {
-    extern struct metaproxy_1_filter_struct metaproxy_1_filter_sru_z3950;
-}
+        virtual RoutePos *createpos() const;
+        void start();
+        void stop();
+    private:
+        boost::scoped_ptr<Rep> m_p;
+    };
 
+};
 #endif
+
 /*
  * Local variables:
  * c-basic-offset: 4
