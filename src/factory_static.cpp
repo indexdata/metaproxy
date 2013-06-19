@@ -71,6 +71,7 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_frontend_net,
         &metaproxy_1_filter_http_client,
         &metaproxy_1_filter_http_file,
+        &metaproxy_1_filter_http_rewrite,
         &metaproxy_1_filter_http_rewrite1,
         &metaproxy_1_filter_limit,
         &metaproxy_1_filter_load_balance,
@@ -88,7 +89,6 @@ mp::FactoryStatic::FactoryStatic()
         &metaproxy_1_filter_z3950_client,
         &metaproxy_1_filter_zeerex_explain,
         &metaproxy_1_filter_zoom,
-        &metaproxy_1_filter_http_rewrite,
         0
     };
     int i;
