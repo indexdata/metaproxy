@@ -256,9 +256,11 @@ void yf::HttpRewrite::Rule::parse_groups()
     int gnum = 0;
     bool esc = false;
     const std::string & str = regex;
+    std::string res;
     yaz_log(YLOG_LOG, "Parsing groups from '%s'", str.c_str());
     for (size_t i = 0; i < str.size(); ++i)
     {
+        res += str[i];
         if (!esc && str[i] == '\\')
         {
             esc = true;
@@ -273,7 +275,9 @@ void yf::HttpRewrite::Rule::parse_groups()
                 if (i+1 < str.size() && str[i+1] == ':') //non-capturing
                 {
                     if (gnum > 0) gnum--;
+                    res += str[i];
                     i++;
+                    res += str[i];
                     continue;
                 }
                 if (i+1 < str.size() && str[i+1] == 'P') //optional, python
@@ -307,6 +311,7 @@ void yf::HttpRewrite::Rule::parse_groups()
         }
         esc = false;
     }
+    regex = res;
 }
 
 std::string yf::HttpRewrite::Rule::sub_vars (
