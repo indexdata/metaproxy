@@ -13,11 +13,16 @@
         <message>M</message>
       </filter>
       <filter type="http_file">
-      <mimetypes>/etc/mime.types</mimetypes>
-      <area>
-        <documentroot>.</documentroot>
-	<prefix>/etc</prefix>
-      </area>
+        <mimetypes>/etc/mime.types</mimetypes>
+        <area>
+          <documentroot>.</documentroot>
+	  <prefix>/etc</prefix>
+        </area>
+        <area>
+          <documentroot>.</documentroot>
+          <prefix>/raw</prefix>
+	  <raw>true</raw>
+        </area>
       </filter>
       <filter type="http_rewrite1">
         <replace content-type="text/html" pattern="YAZ" replacement="yaz"/>

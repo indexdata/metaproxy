@@ -175,16 +175,14 @@ void yf::HttpFile::Rep::fetch_file(mp::Session &session,
     fclose(f);
 
     Z_GDU *gdu = 0;
+    mp::odr decode(ODR_DECODE);
     if (raw)
     {
-        odr_setbuf(o, (char *) fbuf, sz, 0);
-        int r = z_GDU(o, &gdu, 0, 0);
+        odr_setbuf(decode, (char *) fbuf, sz, 0);
+        int r = z_GDU(decode, &gdu, 0, 0);
         if (!r)
         {
-            Z_GDU *gdu = o.create_HTTP_Response(session, req, 500);
-            package.response() = gdu;
-            fclose(f);
-            return;
+            gdu = o.create_HTTP_Response(session, req, 500);
         }
     }
     else

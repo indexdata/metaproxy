@@ -9,6 +9,7 @@ filter_http_file =
   element mp:mimetypes { xsd:string },
   element mp:area {
     element mp:documentroot { xsd:string },
-    element mp:prefix { xsd:string }
+    element mp:prefix { xsd:string },
+    element mp:raw { xsd:boolean }?
   }*
 
