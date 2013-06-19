@@ -221,6 +221,7 @@ PROJECT_DLL_OBJS = \
 	$(OBJDIR)\filter_frontend_net.obj \
 	$(OBJDIR)\filter_http_client.obj \
 	$(OBJDIR)\filter_http_file.obj \
+	$(OBJDIR)\filter_http_rewrite.obj \
 	$(OBJDIR)\filter_http_rewrite1.obj \
         $(OBJDIR)\filter_limit.obj \
         $(OBJDIR)\filter_load_balance.obj \
@@ -239,6 +240,7 @@ PROJECT_DLL_OBJS = \
         $(OBJDIR)\filter_zeerex_explain.obj \
         $(OBJDIR)\filter_zoom.obj \
 	$(OBJDIR)\gduutil.obj \
+	$(OBJDIR)\html_parser.obj \
 	$(OBJDIR)\origin.obj \
 	$(OBJDIR)\package.obj \
 	$(OBJDIR)\pipe.obj \
