@@ -21,18 +21,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <metaproxy/filter.hpp>
 #include <boost/scoped_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 
 namespace mp = metaproxy_1;
 
 namespace metaproxy_1 {
     namespace filter {
         class HttpRewrite : public Base {
-            class Rules;
+            class Section;
+            class Replace;
             class Rule;
-            class RuleScope;
-            boost::scoped_ptr<Rules> req_rules;
-            boost::scoped_ptr<Rules> res_rules;
-            void configure_rules(const xmlNode *ptr, Rules & rules);
+            class Within;
+            typedef boost::shared_ptr<Rule> RulePtr;
+            boost::scoped_ptr<Section> req_section;
+            boost::scoped_ptr<Section> res_section;
+            void configure_section(const xmlNode *ptr, Section &section);
         public:
             HttpRewrite();
             ~HttpRewrite();

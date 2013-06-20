@@ -28,7 +28,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <vector>
 #include <map>
 
 #if HAVE_SYS_TYPES_H
@@ -40,20 +39,11 @@ namespace yf = mp::filter;
 
 namespace metaproxy_1 {
     namespace filter {
-        class HttpRewrite::RuleScope {
+        class HttpRewrite::Replace {
         public:
-            std::vector<std::string> tags;
-            std::vector<std::string> attrs;
-            std::string content_type;
-        };
-        class HttpRewrite::Rule {
-        public:
-            enum Section { METHOD, HEADER, BODY };
             std::string regex;
             std::string recipe;
             std::map<int, std::string> group_index;
-            std::vector<RuleScope> scopes;
-            Section section;
             const std::string search_replace(
                 std::map<std::string, std::string> & vars,
                 const std::string & txt) const;
@@ -61,24 +51,38 @@ namespace metaproxy_1 {
                 const std::map<std::string, std::string> & vars) const;
             void parse_groups();
         };
-        class HttpRewrite::Rules {
+
+        class HttpRewrite::Rule {
         public:
-            std::vector<Rule> rules;
-            void rewrite_reqline (mp::odr & o, Z_HTTP_Request *hreq,
-                std::map<std::string, std::string> & vars) const;
-            void rewrite_headers(mp::odr & o, Z_HTTP_Header *headers,
-                std::map<std::string, std::string> & vars) const;
-            void rewrite_body (mp::odr & o,
-                char **content_buf, int *content_len,
-                std::map<std::string, std::string> & vars) const;
+            std::list<Replace> replace_list;
             const std::string test_patterns(
                 std::map<std::string, std::string> & vars,
                 const std::string & txt) const;
         };
+        class HttpRewrite::Within {
+        public:
+            std::string header;
+            std::string attr;
+            std::string tag;
+            RulePtr rule;
+        };
+
+        class HttpRewrite::Section {
+        public:
+            std::list<Within> within_list;
+            void rewrite_reqline(mp::odr & o, Z_HTTP_Request *hreq,
+                std::map<std::string, std::string> & vars) const;
+            void rewrite_headers(mp::odr & o, Z_HTTP_Header *headers,
+                std::map<std::string, std::string> & vars) const;
+            void rewrite_body(mp::odr & o,
+                char **content_buf, int *content_len,
+                std::map<std::string, std::string> & vars) const;
+        };
     }
 }
 
-yf::HttpRewrite::HttpRewrite() : req_rules(new Rules), res_rules(new Rules)
+yf::HttpRewrite::HttpRewrite() :
+    req_section(new Section), res_section(new Section)
 {
 }
 
@@ -97,12 +101,11 @@ void yf::HttpRewrite::process(mp::Package & package) const
     {
         Z_HTTP_Request *hreq = gdu->u.HTTP_Request;
         mp::odr o;
-        req_rules->rewrite_reqline(o, hreq, vars);
+        req_section->rewrite_reqline(o, hreq, vars);
         yaz_log(YLOG_LOG, ">> Request headers");
-        req_rules->rewrite_headers(o, hreq->headers, vars);
-        req_rules->rewrite_body(o,
-                &hreq->content_buf, &hreq->content_len,
-                vars);
+        req_section->rewrite_headers(o, hreq->headers, vars);
+        req_section->rewrite_body(o,
+                &hreq->content_buf, &hreq->content_len, vars);
         package.request() = gdu;
     }
     package.move();
@@ -113,14 +116,14 @@ void yf::HttpRewrite::process(mp::Package & package) const
         yaz_log(YLOG_LOG, "Response code %d", hres->code);
         mp::odr o;
         yaz_log(YLOG_LOG, "<< Respose headers");
-        res_rules->rewrite_headers(o, hres->headers, vars);
-        res_rules->rewrite_body(o, &hres->content_buf,
+        res_section->rewrite_headers(o, hres->headers, vars);
+        res_section->rewrite_body(o, &hres->content_buf,
                 &hres->content_len, vars);
         package.response() = gdu;
     }
 }
 
-void yf::HttpRewrite::Rules::rewrite_reqline (mp::odr & o,
+void yf::HttpRewrite::Section::rewrite_reqline (mp::odr & o,
         Z_HTTP_Request *hreq,
         std::map<std::string, std::string> & vars) const
 {
@@ -139,17 +142,23 @@ void yf::HttpRewrite::Rules::rewrite_reqline (mp::odr & o,
         path += z_HTTP_header_lookup(hreq->headers, "Host");
         path += hreq->path;
     }
-    yaz_log(YLOG_LOG, "Proxy request URL is %s", path.c_str());
-    std::string npath =
-        test_patterns(vars, path);
-    if (!npath.empty())
+
+    std::list<Within>::const_iterator it = within_list.begin();
+    if (it != within_list.end())
     {
-        yaz_log(YLOG_LOG, "Rewritten request URL is %s", npath.c_str());
-        hreq->path = odr_strdup(o, npath.c_str());
+        RulePtr rule = it->rule;
+
+        yaz_log(YLOG_LOG, "Proxy request URL is %s", path.c_str());
+        std::string npath = rule->test_patterns(vars, path);
+        if (!npath.empty())
+        {
+            yaz_log(YLOG_LOG, "Rewritten request URL is %s", npath.c_str());
+            hreq->path = odr_strdup(o, npath.c_str());
+        }
     }
 }
 
-void yf::HttpRewrite::Rules::rewrite_headers(mp::odr & o,
+void yf::HttpRewrite::Section::rewrite_headers(mp::odr & o,
         Z_HTTP_Header *headers,
         std::map<std::string, std::string> & vars) const
 {
@@ -161,7 +170,13 @@ void yf::HttpRewrite::Rules::rewrite_headers(mp::odr & o,
         sheader += ": ";
         sheader += header->value;
         yaz_log(YLOG_LOG, "%s: %s", header->name, header->value);
-        std::string out = test_patterns(vars, sheader);
+
+        std::list<Within>::const_iterator it = within_list.begin();
+        if (it == within_list.end())
+            continue;
+        RulePtr rule = it->rule;
+
+        std::string out = rule->test_patterns(vars, sheader);
         if (!out.empty())
         {
             size_t pos = out.find(": ");
@@ -172,25 +187,31 @@ void yf::HttpRewrite::Rules::rewrite_headers(mp::odr & o,
             }
             header->name = odr_strdup(o, out.substr(0, pos).c_str());
             header->value = odr_strdup(o, out.substr(pos+2,
-                        std::string::npos).c_str());
+                                                     std::string::npos).c_str());
         }
     }
 }
 
-void yf::HttpRewrite::Rules::rewrite_body (mp::odr & o,
+void yf::HttpRewrite::Section::rewrite_body(mp::odr & o,
         char **content_buf,
         int *content_len,
         std::map<std::string, std::string> & vars) const
 {
     if (*content_buf)
     {
-        std::string body(*content_buf);
-        std::string nbody =
-            test_patterns(vars, body);
-        if (!nbody.empty())
+
+        std::list<Within>::const_iterator it = within_list.begin();
+        if (it != within_list.end())
         {
-            *content_buf = odr_strdup(o, nbody.c_str());
-            *content_len = nbody.size();
+            RulePtr rule = it->rule;
+
+            std::string body(*content_buf);
+            std::string nbody = rule->test_patterns(vars, body);
+            if (!nbody.empty())
+            {
+                *content_buf = odr_strdup(o, nbody.c_str());
+                *content_len = nbody.size();
+            }
         }
     }
 }
@@ -199,19 +220,21 @@ void yf::HttpRewrite::Rules::rewrite_body (mp::odr & o,
  * Tests pattern from the vector in order and executes recipe on
  the first match.
  */
-const std::string yf::HttpRewrite::Rules::test_patterns(
+const std::string yf::HttpRewrite::Rule::test_patterns(
         std::map<std::string, std::string> & vars,
         const std::string & txt) const
 {
-    for (size_t i = 0; i < rules.size(); i++)
+    std::list<Replace>::const_iterator it = replace_list.begin();
+
+    for (; it != replace_list.end(); it++)
     {
-        std::string out = rules[i].search_replace(vars, txt);
+        std::string out = it->search_replace(vars, txt);
         if (!out.empty()) return out;
     }
     return "";
 }
 
-const std::string yf::HttpRewrite::Rule::search_replace(
+const std::string yf::HttpRewrite::Replace::search_replace(
         std::map<std::string, std::string> & vars,
         const std::string & txt) const
 {
@@ -251,7 +274,7 @@ const std::string yf::HttpRewrite::Rule::search_replace(
     return out;
 }
 
-void yf::HttpRewrite::Rule::parse_groups()
+void yf::HttpRewrite::Replace::parse_groups()
 {
     int gnum = 0;
     bool esc = false;
@@ -314,7 +337,7 @@ void yf::HttpRewrite::Rule::parse_groups()
     regex = res;
 }
 
-std::string yf::HttpRewrite::Rule::sub_vars (
+std::string yf::HttpRewrite::Replace::sub_vars (
         const std::map<std::string, std::string> & vars) const
 {
     std::string out;
@@ -364,41 +387,83 @@ std::string yf::HttpRewrite::Rule::sub_vars (
     return out;
 }
 
-void yf::HttpRewrite::configure_rules(const xmlNode *ptr,
-        Rules & rules)
+
+void yf::HttpRewrite::configure_section(const xmlNode *ptr,
+        Section &section)
 {
+    std::map<std::string, RulePtr > rules;
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
         if (ptr->type != XML_ELEMENT_NODE)
             continue;
-        else if (!strcmp((const char *) ptr->name, "rewrite"))
+        else if (!strcmp((const char *) ptr->name, "rule"))
         {
-            Rule rule;
-            const struct _xmlAttr *attr;
-            for (attr = ptr->properties; attr; attr = attr->next)
+            static const char *names[2] = { "name", 0 };
+            std::string values[1];
+            values[0] = "default";
+            mp::xml::parse_attr(ptr, names, values);
+
+            RulePtr rule(new Rule);
+            for (xmlNode *p = ptr->children; p; p = p->next)
             {
-                if (!strcmp((const char *) attr->name,  "from"))
-                    rule.regex = mp::xml::get_text(attr->children);
-                else if (!strcmp((const char *) attr->name,  "to"))
-                    rule.recipe = mp::xml::get_text(attr->children);
+                if (p->type != XML_ELEMENT_NODE)
+                    continue;
+                if (!strcmp((const char *) p->name, "rewrite"))
+                {
+                    Replace replace;
+                    const struct _xmlAttr *attr;
+                    for (attr = p->properties; attr; attr = attr->next)
+                    {
+                        if (!strcmp((const char *) attr->name,  "from"))
+                            replace.regex = mp::xml::get_text(attr->children);
+                        else if (!strcmp((const char *) attr->name,  "to"))
+                            replace.recipe = mp::xml::get_text(attr->children);
+                        else
+                            throw mp::filter::FilterException
+                                ("Bad attribute "
+                                 + std::string((const char *) attr->name)
+                                 + " in rewrite section of http_rewrite");
+                    }
+                    yaz_log(YLOG_LOG, "Found rewrite rule from '%s' to '%s'",
+                            replace.regex.c_str(), replace.recipe.c_str());
+                    replace.parse_groups();
+                    if (!replace.regex.empty())
+                        rule->replace_list.push_back(replace);
+                }
                 else
                     throw mp::filter::FilterException
-                        ("Bad attribute "
-                         + std::string((const char *) attr->name)
-                         + " in rewrite section of http_rewrite");
+                        ("Bad element "
+                         + std::string((const char *) p->name)
+                         + " in http_rewrite filter");
             }
-            yaz_log(YLOG_LOG, "Found rewrite rule from '%s' to '%s'",
-                    rule.regex.c_str(), rule.recipe.c_str());
-            rule.parse_groups();
-            if (!rule.regex.empty())
-                rules.rules.push_back(rule);
+            if (!rule->replace_list.empty())
+                rules[values[0]] = rule;
+        }
+        else if (!strcmp((const char *) ptr->name, "within"))
+        {
+            static const char *names[5] =
+                { "header", "attr", "tag", "rule", 0 };
+            std::string values[4];
+            mp::xml::parse_attr(ptr, names, values);
+            Within w;
+            w.header = values[0];
+            w.attr = values[1];
+            w.tag = values[2];
+            std::map<std::string,RulePtr>::const_iterator it =
+                rules.find(values[3]);
+            if (it == rules.end())
+                throw mp::filter::FilterException
+                    ("Reference to non-existing rule '" + values[3] +
+                     "' in http_rewrite filter");
+            w.rule = it->second;
+            section.within_list.push_back(w);
         }
         else
         {
             throw mp::filter::FilterException
-                ("Bad element o"
+                ("Bad element "
                  + std::string((const char *) ptr->name)
-                 + " in http_rewrite1 filter");
+                 + " in http_rewrite filter");
         }
     }
 }
@@ -412,11 +477,11 @@ void yf::HttpRewrite::configure(const xmlNode * ptr, bool test_only,
             continue;
         else if (!strcmp((const char *) ptr->name, "request"))
         {
-            configure_rules(ptr, *req_rules);
+            configure_section(ptr, *req_section);
         }
         else if (!strcmp((const char *) ptr->name, "response"))
         {
-            configure_rules(ptr, *res_rules);
+            configure_section(ptr, *res_section);
         }
         else
         {
