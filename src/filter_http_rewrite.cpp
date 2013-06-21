@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
 #include "filter_http_rewrite.hpp"
+#include "html_parser.hpp"
 
 #include <yaz/zgdu.h>
 #include <yaz/log.h>
@@ -63,7 +64,7 @@ namespace metaproxy_1 {
             RulePtr rule;
         };
 
-        class HttpRewrite::Phase {
+        class HttpRewrite::Phase : public HTMLParserEvent {
         public:
             std::list<Within> within_list;
             void rewrite_reqline(mp::odr & o, Z_HTTP_Request *hreq,
@@ -73,6 +74,14 @@ namespace metaproxy_1 {
             void rewrite_body(mp::odr & o,
                 char **content_buf, int *content_len,
                 std::map<std::string, std::string> & vars) const;
+            void openTagStart(const char *name);
+            void anyTagEnd(const char *name);
+            void attribute(const char *tagName, 
+                           const char *name, 
+                           const char *value,
+                           int val_len);
+            void closeTag(const char *name);
+            void text(const char *value, int len);
         };
     }
 }
@@ -211,6 +220,32 @@ void yf::HttpRewrite::Phase::rewrite_body(mp::odr & o,
         }
     }
 }
+
+
+void yf::HttpRewrite::Phase::openTagStart(const char *name)
+{
+}
+
+void yf::HttpRewrite::Phase::anyTagEnd(const char *name)
+{
+}
+
+void yf::HttpRewrite::Phase::attribute(const char *tagName,
+                                       const char *name,
+                                       const char *value,
+                                       int val_len)
+{
+}
+
+
+void yf::HttpRewrite::Phase::closeTag(const char *name)
+{
+}
+
+void yf::HttpRewrite::Phase::text(const char *value, int len)
+{
+}
+
 
 /**
  * Tests pattern from the vector in order and executes recipe on
