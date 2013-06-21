@@ -30,10 +30,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <map>
 
-#if HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
 
