@@ -28,19 +28,19 @@ namespace mp = metaproxy_1;
 namespace metaproxy_1 {
     namespace filter {
         class HttpRewrite : public Base {
-            class Section;
+            class Phase;
             class Replace;
             class Rule;
             class Within;
             typedef boost::shared_ptr<Rule> RulePtr;
-            boost::scoped_ptr<Section> req_section;
-            boost::scoped_ptr<Section> res_section;
-            void configure_section(const xmlNode *ptr, Section &section);
+            boost::scoped_ptr<Phase> req_phase;
+            boost::scoped_ptr<Phase> res_phase;
+            void configure_phase(const xmlNode *ptr, Phase &phase);
         public:
             HttpRewrite();
             ~HttpRewrite();
             void process(metaproxy_1::Package & package) const;
-            void configure(const xmlNode * ptr, 
+            void configure(const xmlNode * ptr,
                     bool test_only, const char *path);
         };
     }

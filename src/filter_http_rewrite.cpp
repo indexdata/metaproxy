@@ -67,7 +67,7 @@ namespace metaproxy_1 {
             RulePtr rule;
         };
 
-        class HttpRewrite::Section {
+        class HttpRewrite::Phase {
         public:
             std::list<Within> within_list;
             void rewrite_reqline(mp::odr & o, Z_HTTP_Request *hreq,
@@ -82,7 +82,7 @@ namespace metaproxy_1 {
 }
 
 yf::HttpRewrite::HttpRewrite() :
-    req_section(new Section), res_section(new Section)
+    req_phase(new Phase), res_phase(new Phase)
 {
 }
 
@@ -101,10 +101,10 @@ void yf::HttpRewrite::process(mp::Package & package) const
     {
         Z_HTTP_Request *hreq = gdu->u.HTTP_Request;
         mp::odr o;
-        req_section->rewrite_reqline(o, hreq, vars);
+        req_phase->rewrite_reqline(o, hreq, vars);
         yaz_log(YLOG_LOG, ">> Request headers");
-        req_section->rewrite_headers(o, hreq->headers, vars);
-        req_section->rewrite_body(o,
+        req_phase->rewrite_headers(o, hreq->headers, vars);
+        req_phase->rewrite_body(o,
                 &hreq->content_buf, &hreq->content_len, vars);
         package.request() = gdu;
     }
@@ -116,14 +116,14 @@ void yf::HttpRewrite::process(mp::Package & package) const
         yaz_log(YLOG_LOG, "Response code %d", hres->code);
         mp::odr o;
         yaz_log(YLOG_LOG, "<< Respose headers");
-        res_section->rewrite_headers(o, hres->headers, vars);
-        res_section->rewrite_body(o, &hres->content_buf,
+        res_phase->rewrite_headers(o, hres->headers, vars);
+        res_phase->rewrite_body(o, &hres->content_buf,
                 &hres->content_len, vars);
         package.response() = gdu;
     }
 }
 
-void yf::HttpRewrite::Section::rewrite_reqline (mp::odr & o,
+void yf::HttpRewrite::Phase::rewrite_reqline (mp::odr & o,
         Z_HTTP_Request *hreq,
         std::map<std::string, std::string> & vars) const
 {
@@ -158,7 +158,7 @@ void yf::HttpRewrite::Section::rewrite_reqline (mp::odr & o,
     }
 }
 
-void yf::HttpRewrite::Section::rewrite_headers(mp::odr & o,
+void yf::HttpRewrite::Phase::rewrite_headers(mp::odr & o,
         Z_HTTP_Header *headers,
         std::map<std::string, std::string> & vars) const
 {
@@ -192,7 +192,7 @@ void yf::HttpRewrite::Section::rewrite_headers(mp::odr & o,
     }
 }
 
-void yf::HttpRewrite::Section::rewrite_body(mp::odr & o,
+void yf::HttpRewrite::Phase::rewrite_body(mp::odr & o,
         char **content_buf,
         int *content_len,
         std::map<std::string, std::string> & vars) const
@@ -388,8 +388,7 @@ std::string yf::HttpRewrite::Replace::sub_vars (
 }
 
 
-void yf::HttpRewrite::configure_section(const xmlNode *ptr,
-        Section &section)
+void yf::HttpRewrite::configure_phase(const xmlNode *ptr, Phase &phase)
 {
     std::map<std::string, RulePtr > rules;
     for (ptr = ptr->children; ptr; ptr = ptr->next)
@@ -456,7 +455,7 @@ void yf::HttpRewrite::configure_section(const xmlNode *ptr,
                     ("Reference to non-existing rule '" + values[3] +
                      "' in http_rewrite filter");
             w.rule = it->second;
-            section.within_list.push_back(w);
+            phase.within_list.push_back(w);
         }
         else
         {
@@ -477,11 +476,11 @@ void yf::HttpRewrite::configure(const xmlNode * ptr, bool test_only,
             continue;
         else if (!strcmp((const char *) ptr->name, "request"))
         {
-            configure_section(ptr, *req_section);
+            configure_phase(ptr, *req_phase);
         }
         else if (!strcmp((const char *) ptr->name, "response"))
         {
-            configure_section(ptr, *res_section);
+            configure_phase(ptr, *res_phase);
         }
         else
         {
