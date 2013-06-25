@@ -64,7 +64,7 @@ namespace metaproxy_1 {
             RulePtr rule;
         };
 
-        class HttpRewrite::Phase : public HTMLParserEvent {
+        class HttpRewrite::Phase {
         public:
             std::list<Within> within_list;
             void rewrite_reqline(mp::odr & o, Z_HTTP_Request *hreq,
@@ -74,6 +74,9 @@ namespace metaproxy_1 {
             void rewrite_body(mp::odr & o,
                 char **content_buf, int *content_len,
                 std::map<std::string, std::string> & vars) const;
+        };
+        class HttpRewrite::Event : public HTMLParserEvent {
+        public:
             void openTagStart(const char *name);
             void anyTagEnd(const char *name);
             void attribute(const char *tagName, 
@@ -204,7 +207,11 @@ void yf::HttpRewrite::Phase::rewrite_body(mp::odr & o,
 {
     if (*content_buf)
     {
+        HTMLParser parser;
+        Event ev;
+        std::string buf(*content_buf, *content_len);
 
+        parser.parse(ev, buf.c_str());
         std::list<Within>::const_iterator it = within_list.begin();
         if (it != within_list.end())
         {
@@ -222,27 +229,27 @@ void yf::HttpRewrite::Phase::rewrite_body(mp::odr & o,
 }
 
 
-void yf::HttpRewrite::Phase::openTagStart(const char *name)
+void yf::HttpRewrite::Event::openTagStart(const char *name)
 {
 }
 
-void yf::HttpRewrite::Phase::anyTagEnd(const char *name)
+void yf::HttpRewrite::Event::anyTagEnd(const char *name)
 {
 }
 
-void yf::HttpRewrite::Phase::attribute(const char *tagName,
-                                       const char *name,
-                                       const char *value,
-                                       int val_len)
+void yf::HttpRewrite::Event::attribute(const char *tagName,
+                                         const char *name,
+                                         const char *value,
+                                         int val_len)
 {
 }
 
 
-void yf::HttpRewrite::Phase::closeTag(const char *name)
+void yf::HttpRewrite::Event::closeTag(const char *name)
 {
 }
 
-void yf::HttpRewrite::Phase::text(const char *value, int len)
+void yf::HttpRewrite::Event::text(const char *value, int len)
 {
 }
 

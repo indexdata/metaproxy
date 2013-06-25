@@ -32,6 +32,7 @@ namespace metaproxy_1 {
             class Replace;
             class Rule;
             class Within;
+            class Event;
             typedef boost::shared_ptr<Rule> RulePtr;
             boost::scoped_ptr<Phase> req_phase;
             boost::scoped_ptr<Phase> res_phase;
