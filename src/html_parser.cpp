@@ -75,7 +75,7 @@ static int skipName(const char *cp, char *dst)
 {
     int i;
     int j = 0;
-    for (i=0; cp[i] && !strchr(SPACECHR "/>=", cp[i]); i++)
+    for (i = 0; cp[i] && !strchr(SPACECHR "/>=", cp[i]); i++)
 	if (j < TAG_MAX_LEN-1)
 	{
 	    dst[j] = tolower(cp[j]);
