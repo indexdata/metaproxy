@@ -54,28 +54,28 @@ void mp::HTMLParser::parse(mp::HTMLParserEvent & event, const char *str) const
 
 //static C functions follow would probably make sense to wrap this in PIMPL?
 
-static char* dupe (const char *buff, int len)
+static char* dupe(const char *buff, int len)
 {
-    char *value = (char *) malloc (len + 1);
-    assert (value);
-    memcpy (value, buff, len);
+    char *value = (char *) malloc(len + 1);
+    assert(value);
+    memcpy(value, buff, len);
     value[len] = '\0';
     return value;
 }
 
-static int skipSpace (const char *cp)
+static int skipSpace(const char *cp)
 {
     int i = 0;
-    while (cp[i] && strchr (SPACECHR, cp[i]))
+    while (cp[i] && strchr(SPACECHR, cp[i]))
         i++;
     return i;
 }
 
-static int skipName (const char *cp, char *dst)
+static int skipName(const char *cp, char *dst)
 {
     int i;
     int j = 0;
-    for (i=0; cp[i] && !strchr (SPACECHR "/>=", cp[i]); i++)
+    for (i=0; cp[i] && !strchr(SPACECHR "/>=", cp[i]); i++)
 	if (j < TAG_MAX_LEN-1)
 	{
 	    dst[j] = tolower(cp[j]);
@@ -85,24 +85,24 @@ static int skipName (const char *cp, char *dst)
     return i;
 }
 
-static int skipAttribute (const char *cp, char *name, const char **value, int *val_len)
+static int skipAttribute(const char *cp, char *name, const char **value, int *val_len)
 {
-    int i = skipName (cp, name);   
+    int i = skipName(cp, name);
     *value = NULL;
     if (!i)
-        return skipSpace (cp);
-    i += skipSpace (cp + i);
+        return skipSpace(cp);
+    i += skipSpace(cp + i);
     if (cp[i] == '=')
     {
         int v0, v1;
         i++;
-        i += skipSpace (cp + i);
+        i += skipSpace(cp + i);
         if (cp[i] == '\"' || cp[i] == '\'')
         {
             char tr = cp[i];
             v0 = ++i;
             while (cp[i] != tr && cp[i])
-                i++; 
+                i++;
             v1 = i;
             if (cp[i])
                 i++;
@@ -110,29 +110,28 @@ static int skipAttribute (const char *cp, char *name, const char **value, int *v
         else
         {
             v0 = i;
-            while (cp[i] && !strchr (SPACECHR ">", cp[i]))
+            while (cp[i] && !strchr(SPACECHR ">", cp[i]))
                 i++;
             v1 = i;
         }
         *value = cp + v0;
         *val_len = v1 - v0;
     }
-    i += skipSpace (cp + i);
+    i += skipSpace(cp + i);
     return i;
 }
 
-static int tagAttrs (mp::HTMLParserEvent & event, 
+static int tagAttrs(mp::HTMLParserEvent & event,
                      const char *tagName,
                      const char *cp)
 {
-    int i;
     char attr_name[TAG_MAX_LEN];
     const char *attr_value;
     int val_len;
-    i = skipSpace (cp);
+    int i = skipSpace(cp);
     while (cp[i] && cp[i] != '>' && cp[i] != '/')
     {
-        int nor = skipAttribute (cp+i, attr_name, &attr_value, &val_len);
+        int nor = skipAttribute(cp+i, attr_name, &attr_value, &val_len);
         i += nor;
 	if (nor)
 	{
@@ -148,32 +147,31 @@ static int tagAttrs (mp::HTMLParserEvent & event,
     return i;
 }
 
-static int tagStart (mp::HTMLParserEvent & event,
+static int tagStart(mp::HTMLParserEvent & event,
         char *tagName, const char *cp, const char which)
 {
-    int i = 0;
-    i = skipName (cp, tagName);
-    switch (which) 
+    int i = skipName(cp, tagName);
+    switch (which)
     {
-        case '/' : 
-            DEBUG(printf ("------ tag close %s\n", tagName));
-            event.closeTag(tagName);
-            break;
-        case '!' : 
-            DEBUG(printf ("------ dtd %s\n", tagName)); 
-            break;
-        case '?' : 
-            DEBUG(printf ("------ pi %s\n", tagName)); 
-            break;
-        default :  
-            DEBUG(printf ("------ tag open %s\n", tagName));
-            event.openTagStart(tagName);
-            break;
+    case '/' :
+        DEBUG(printf("------ tag close %s\n", tagName));
+        event.closeTag(tagName);
+        break;
+    case '!' :
+        DEBUG(printf("------ dtd %s\n", tagName));
+        break;
+    case '?' :
+        DEBUG(printf("------ pi %s\n", tagName));
+        break;
+    default :
+        DEBUG(printf("------ tag open %s\n", tagName));
+        event.openTagStart(tagName);
+        break;
     }
     return i;
 }
 
-static int tagEnd (mp::HTMLParserEvent & event, const char *tagName, const char *cp)
+static int tagEnd(mp::HTMLParserEvent & event, const char *tagName, const char *cp)
 {
     int i = 0;
     int close_it = 0;
@@ -191,16 +189,16 @@ static int tagEnd (mp::HTMLParserEvent & event, const char *tagName, const char 
     return i;
 }
 
-static void tagText (mp::HTMLParserEvent & event, const char *text_start, const char *text_end)
+static void tagText(mp::HTMLParserEvent & event, const char *text_start, const char *text_end)
 {
     if (text_end - text_start) //got text to flush
     {
-        DEBUG(printf ("------ text %s\n", dupe(text_start, text_end-text_start)));
+        DEBUG(printf("------ text %s\n", dupe(text_start, text_end-text_start)));
         event.text(text_start, text_end-text_start);
     }
 }
 
-static void parse_str (mp::HTMLParserEvent & event, const char *cp)
+static void parse_str(mp::HTMLParserEvent & event, const char *cp)
 {
     const char *text_start = cp;
     const char *text_end = cp;
@@ -209,27 +207,28 @@ static void parse_str (mp::HTMLParserEvent & event, const char *cp)
         if (cp[0] == '<' && cp[1])  //tag?
         {
             char which = cp[1];
-            if (which == '/') cp++;
-            if (!strchr (SPACECHR, cp[1])) //valid tag starts
+            if (which == '/')
+                cp++;
+            if (!strchr(SPACECHR, cp[1])) //valid tag starts
             {
-                tagText (event, text_start, text_end); //flush any text
+                tagText(event, text_start, text_end); //flush any text
                 char tagName[TAG_MAX_LEN];
                 cp++;
                 if (which == '/')
                 {
-                    cp += tagStart (event, tagName, cp, which);
+                    cp += tagStart(event, tagName, cp, which);
                 }
                 else if (which == '!' || which == '?') //pi or dtd
                 {
                     cp++;
-                    cp += tagStart (event, tagName, cp, which);
+                    cp += tagStart(event, tagName, cp, which);
                 }
                 else
                 {
-                    cp += tagStart (event, tagName, cp, which);
-                    cp += tagAttrs (event, tagName, cp);
+                    cp += tagStart(event, tagName, cp, which);
+                    cp += tagAttrs(event, tagName, cp);
                 }
-                cp += tagEnd (event, tagName, cp);
+                cp += tagEnd(event, tagName, cp);
                 text_start = cp;
                 text_end = cp;
                 continue;
@@ -239,7 +238,7 @@ static void parse_str (mp::HTMLParserEvent & event, const char *cp)
         cp++;
         text_end = cp;
     }
-    tagText (event, text_start, text_end); //flush any text
+    tagText(event, text_start, text_end); //flush any text
 }
 
 /*
