@@ -52,17 +52,6 @@ void mp::HTMLParser::parse(mp::HTMLParserEvent & event, const char *str) const
     parse_str(event, str);
 }
 
-//static C functions follow would probably make sense to wrap this in PIMPL?
-
-static char* dupe(const char *buff, int len)
-{
-    char *value = (char *) malloc(len + 1);
-    assert(value);
-    memcpy(value, buff, len);
-    value[len] = '\0';
-    return value;
-}
-
 static int skipSpace(const char *cp)
 {
     int i = 0;
@@ -135,7 +124,7 @@ static int tagAttrs(mp::HTMLParserEvent & event,
         i += nor;
 	if (nor)
 	{
-	    DEBUG(printf ("------ attr %s=%s\n", attr_name, dupe(attr_value, val_len)));
+	    DEBUG(printf ("------ attr %s=%.*s\n", attr_name, val_len, attr_value));
             event.attribute(tagName, attr_name, attr_value, val_len);
 	}
         else
@@ -193,7 +182,8 @@ static void tagText(mp::HTMLParserEvent & event, const char *text_start, const c
 {
     if (text_end - text_start) //got text to flush
     {
-        DEBUG(printf("------ text %s\n", dupe(text_start, text_end-text_start)));
+        DEBUG(printf("------ text %.*s\n",
+                     (int) (text_end - text_start), text_start));
         event.text(text_start, text_end-text_start);
     }
 }
