@@ -24,19 +24,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace metaproxy_1 {
         class HTMLParserEvent {
         public:
-            virtual void openTagStart(const char *name) = 0;
-            virtual void anyTagEnd(const char *name, int close_it) = 0;
-            virtual void attribute(const char *tagName, const char *name,
-                                   const char *value,
-                                   int val_len) = 0;
-            virtual void closeTag(const char *name) = 0;
+            virtual void openTagStart(const char *tag, int tag_len) = 0;
+            virtual void anyTagEnd(const char *tag, int tag_len,
+                                   int close_it) = 0;
+            virtual void attribute(const char *tag, int tag_len,
+                                   const char *attr, int attr_len,
+                                   const char *value, int val_len) = 0;
+            virtual void closeTag(const char *tag, int tag_len) = 0;
             virtual void text(const char *value, int len) = 0;
         };
         class HTMLParser {
+            class Rep;
         public:
             HTMLParser();
             ~HTMLParser();
             void parse(HTMLParserEvent &event, const char *str) const;
+        private:
+            boost::scoped_ptr<Rep> m_p;
         };
 }
 

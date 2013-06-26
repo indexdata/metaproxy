@@ -35,42 +35,36 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using namespace boost::unit_test;
 namespace mp = metaproxy_1;
 
-class MyEvent : public mp::HTMLParserEvent {
-    public:
-        std::string out;
-        void openTagStart(const char *name)
-        {
-            out += "<";
-            out += name;
-        } 
-        
-        void attribute(const char *tagName, 
-                const char *name, const char *value, int val_len)
-        {
-            out += " ";
-            out += name;
-            out += "=\"";
-            out.append(value, val_len);
-            out += "\"";
-        }
-
-        void anyTagEnd(const char *name, int close_it)
-        {
-            if (close_it)
-                out += "/";
-            out += ">";
-        }
-        
-        void closeTag(const char *name)
-        {
-            out += "</";
-            out += name;
-        }
-        
-        void text(const char *value, int len)
-        {
-            out.append(value, len);
-        }
+class MyEvent : public mp::HTMLParserEvent
+{
+public:
+    std::string out;
+    void openTagStart(const char *tag, int tag_len) {
+        out += "<";
+        out.append(tag, tag_len);
+    } 
+    
+    void attribute(const char *tag, int tag_len,
+                   const char *attr, int attr_len,
+                   const char *value, int val_len) {
+        out += " ";
+        out.append(attr, attr_len);
+        out += "=\"";
+        out.append(value, val_len);
+        out += "\"";
+    }
+    void anyTagEnd(const char *tag, int tag_len, int close_it) {
+        if (close_it)
+            out += "/";
+        out += ">";
+    }
+    void closeTag(const char *tag, int tag_len) {
+        out += "</";
+        out.append(tag, tag_len);
+    }
+    void text(const char *value, int len) {
+        out.append(value, len);
+    }
 };
 
 
@@ -88,8 +82,47 @@ BOOST_AUTO_TEST_CASE( test_html_parser_1 )
         MyEvent e;
         hp.parse(e, html);
 
+        std::cout << "Expected" << std::endl;
         std::cout << expected << std::endl;
+        std::cout << "Got" << std::endl;
         std::cout << e.out << std::endl;
+        BOOST_CHECK_EQUAL(std::string(expected), e.out);
+    }
+    catch (std::exception & e) 
+    {
+        std::cout << e.what();
+        std::cout << std::endl;
+        BOOST_CHECK (false);
+    }
+}
+
+BOOST_AUTO_TEST_CASE( test_html_parser_2 )
+{
+    try
+    {
+        mp::HTMLParser hp;
+        const char* html = 
+            "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n"
+            "<HTML>\n"
+            " <HEAD>\n"
+            "  <TITLE>YAZ 4.2.60</TITLE>\n"
+            " </HEAD>\n"
+            " <BODY>\n"
+            "  <P><A HREF=\"http://www.indexdata.com/yaz/\">YAZ</A> 4.2.60</P>\n"
+            "  <P>Error: 404</P>\n"
+            "  <P>Description: Not Found</P>\n"
+            " </BODY>\n"
+            "</HTML>";
+
+        const char* expected = html;
+        MyEvent e;
+        hp.parse(e, html);
+
+        std::cout << "Expected" << std::endl;
+        std::cout << expected << std::endl;
+        std::cout << "Got" << std::endl;
+        std::cout << e.out << std::endl;
+
         BOOST_CHECK_EQUAL(std::string(expected), e.out);
     }
     catch (std::exception & e) 

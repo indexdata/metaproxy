@@ -78,13 +78,12 @@ namespace metaproxy_1 {
                 std::map<std::string, std::string> & vars) const;
         };
         class HttpRewrite::Event : public HTMLParserEvent {
-            void openTagStart(const char *name);
-            void anyTagEnd(const char *name, int close_it);
-            void attribute(const char *tagName, 
-                           const char *name, 
-                           const char *value,
-                           int val_len);
-            void closeTag(const char *name);
+            void openTagStart(const char *tag, int tag_len);
+            void anyTagEnd(const char *tag, int tag_len, int close_it);
+            void attribute(const char *tag, int tag_len,
+                           const char *attr, int attr_len,
+                           const char *value, int val_len);
+            void closeTag(const char *tag, int tag_len);
             void text(const char *value, int len);
             const Phase *m_phase;
             WRBUF m_w;
@@ -253,33 +252,37 @@ const char *yf::HttpRewrite::Event::result()
     return wrbuf_cstr(m_w);
 }
 
-void yf::HttpRewrite::Event::openTagStart(const char *name)
+void yf::HttpRewrite::Event::openTagStart(const char *tag, int tag_len)
 {
     // check if there is <within tag="x" .. />
     if (enabled_within == m_phase->within_list.end())
     {
+        std::string t(tag, tag_len);
         std::list<Within>::const_iterator it =
             m_phase->within_list.begin();
         for (; it != m_phase->within_list.end(); it++)
         {
-            if (it->tag.length() > 0 && it->tag.compare(name) == 0)
+            if (it->tag.length() > 0 && yaz_strcasecmp(it->tag.c_str(),
+                                                       t.c_str()) == 0)
             {
                 enabled_within = it;
             }
         }
     }
     wrbuf_putc(m_w, '<');
-    wrbuf_puts(m_w, name);
+    wrbuf_write(m_w, tag, tag_len);
 }
 
-void yf::HttpRewrite::Event::anyTagEnd(const char *name, int close_it)
+void yf::HttpRewrite::Event::anyTagEnd(const char *tag, int tag_len,
+                                       int close_it)
 {
     if (close_it)
     {
         std::list<Within>::const_iterator it = enabled_within;
         if (it != m_phase->within_list.end())
         {
-            if (it->tag.compare(name) == 0)
+            std::string t(tag, tag_len);
+            if (yaz_strcasecmp(it->tag.c_str(), t.c_str()) == 0)
             {
                 enabled_within = m_phase->within_list.end();
             }
@@ -290,24 +293,27 @@ void yf::HttpRewrite::Event::anyTagEnd(const char *name, int close_it)
     wrbuf_putc(m_w, '>');
 }
 
-void yf::HttpRewrite::Event::attribute(const char *tagName,
-                                         const char *name,
-                                         const char *value,
-                                         int val_len)
+void yf::HttpRewrite::Event::attribute(const char *tag, int tag_len,
+                                       const char *attr, int attr_len,
+                                       const char *value, int val_len)
 {
     std::list<Within>::const_iterator it = m_phase->within_list.begin();
     bool subst = false;
 
     for (; it != m_phase->within_list.end(); it++)
     {
-        if (it->tag.length() == 0 || it->tag.compare(tagName) == 0)
+        std::string t(tag, tag_len);
+        if (it->tag.length() == 0 ||
+            yaz_strcasecmp(it->tag.c_str(), t.c_str()) == 0)
         {
+            std::string a(attr, attr_len);
             std::vector<std::string> attr;
             boost::split(attr, it->attr, boost::is_any_of(","));
             size_t i;
             for (i = 0; i < attr.size(); i++)
             {
-                if (attr[i].compare("#text") && attr[i].compare(name) == 0)
+                if (attr[i].compare("#text") &&
+                    yaz_strcasecmp(attr[i].c_str(), a.c_str()) == 0)
                     subst = true;
             }
         }
@@ -316,7 +322,7 @@ void yf::HttpRewrite::Event::attribute(const char *tagName,
     }
 
     wrbuf_putc(m_w, ' ');
-    wrbuf_puts(m_w, name);
+    wrbuf_write(m_w, attr, attr_len);
     wrbuf_puts(m_w, "=\"");
 
     std::string output;
@@ -332,18 +338,19 @@ void yf::HttpRewrite::Event::attribute(const char *tagName,
     wrbuf_puts(m_w, "\"");
 }
 
-void yf::HttpRewrite::Event::closeTag(const char *name)
+void yf::HttpRewrite::Event::closeTag(const char *tag, int tag_len)
 {
     std::list<Within>::const_iterator it = enabled_within;
     if (it != m_phase->within_list.end())
     {
-        if (it->tag.compare(name) == 0)
+        std::string t(tag, tag_len);
+        if (yaz_strcasecmp(it->tag.c_str(), t.c_str()) == 0)
         {
             enabled_within = m_phase->within_list.end();
         }
     }
     wrbuf_puts(m_w, "</");
-    wrbuf_puts(m_w, name);
+    wrbuf_write(m_w, tag, tag_len);
 }
 
 void yf::HttpRewrite::Event::text(const char *value, int len)

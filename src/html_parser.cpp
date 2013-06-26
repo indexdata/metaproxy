@@ -25,19 +25,41 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <ctype.h>
 #include <stdio.h>
 
-#define TAG_MAX_LEN 64
-
 #define SPACECHR " \t\r\n\f"
 
-#define DEBUG(x) x
 
-#if HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
+namespace metaproxy_1 {
+    class HTMLParser::Rep {
+        friend class HTMLParser;
+    public:
+        void parse_str(HTMLParserEvent &event, const char *cp);
+        void tagText(HTMLParserEvent &event,
+                     const char *text_start, const char *text_end);
+        int tagEnd(HTMLParserEvent &event,
+                   const char *tag, int tag_len, const char *cp);
+        int tagStart(HTMLParserEvent &event,
+                     int *tag_len, const char *cp, const char which);
+        int tagAttrs(HTMLParserEvent &event,
+                     const char *name, int len,
+                     const char *cp);
+        Rep();
+        ~Rep();
+        int m_verbose;
+    };
+}
 
 namespace mp = metaproxy_1;
 
-mp::HTMLParser::HTMLParser()
+mp::HTMLParser::Rep::Rep()
+{
+    m_verbose = 0;
+}
+
+mp::HTMLParser::Rep::~Rep()
+{
+}
+
+mp::HTMLParser::HTMLParser() : m_p(new Rep)
 {
 }
 
@@ -45,11 +67,9 @@ mp::HTMLParser::~HTMLParser()
 {
 }
 
-static void parse_str(mp::HTMLParserEvent & event, const char * str);
-
 void mp::HTMLParser::parse(mp::HTMLParserEvent & event, const char *str) const
 {
-    parse_str(event, str);
+    m_p->parse_str(event, str);
 }
 
 static int skipSpace(const char *cp)
@@ -60,23 +80,19 @@ static int skipSpace(const char *cp)
     return i;
 }
 
-static int skipName(const char *cp, char *dst)
+static int skipName(const char *cp)
 {
     int i;
-    int j = 0;
     for (i = 0; cp[i] && !strchr(SPACECHR "/>=", cp[i]); i++)
-	if (j < TAG_MAX_LEN-1)
-	{
-	    dst[j] = tolower(cp[j]);
-	    j++;
-	}
-    dst[j] = '\0';
+        ;
     return i;
 }
 
-static int skipAttribute(const char *cp, char *name, const char **value, int *val_len)
+static int skipAttribute(const char *cp, int *attr_len,
+                         const char **value, int *val_len)
 {
-    int i = skipName(cp, name);
+    int i = skipName(cp);
+    *attr_len = i;
     *value = NULL;
     if (!i)
         return skipSpace(cp);
@@ -110,57 +126,80 @@ static int skipAttribute(const char *cp, char *name, const char **value, int *va
     return i;
 }
 
-static int tagAttrs(mp::HTMLParserEvent & event,
-                     const char *tagName,
-                     const char *cp)
+int mp::HTMLParser::Rep::tagAttrs(HTMLParserEvent &event,
+                                  const char *name, int len,
+                                  const char *cp)
 {
-    char attr_name[TAG_MAX_LEN];
-    const char *attr_value;
-    int val_len;
     int i = skipSpace(cp);
     while (cp[i] && cp[i] != '>' && cp[i] != '/')
     {
-        int nor = skipAttribute(cp+i, attr_name, &attr_value, &val_len);
+        const char *attr_name = cp + i;
+        int attr_len;
+        const char *value;
+        int val_len;
+        int nor = skipAttribute(cp+i, &attr_len, &value, &val_len);
         i += nor;
 	if (nor)
 	{
-	    DEBUG(printf ("------ attr %s=%.*s\n", attr_name, val_len, attr_value));
-            event.attribute(tagName, attr_name, attr_value, val_len);
+            if (m_verbose)
+                printf ("------ attr %.*s=%.*s\n", attr_len, attr_name,
+                        val_len, value);
+            event.attribute(name, len, attr_name, attr_len, value, val_len);
 	}
         else
         {
-            if (!nor)
-                i++;
+            i++;
         }
     }
     return i;
 }
 
-static int tagStart(mp::HTMLParserEvent & event,
-        char *tagName, const char *cp, const char which)
+int mp::HTMLParser::Rep::tagStart(HTMLParserEvent &event,
+                                  int *tag_len,
+                                  const char *cp, const char which)
 {
-    int i = skipName(cp, tagName);
+    int i;
     switch (which)
     {
-    case '/' :
-        DEBUG(printf("------ tag close %s\n", tagName));
-        event.closeTag(tagName);
+    case '/':
+        i = skipName(cp);
+        *tag_len = i;
+        if (m_verbose)
+            printf("------ tag close %.*s\n", i, cp);
+        event.closeTag(cp, i);
         break;
-    case '!' :
-        DEBUG(printf("------ dtd %s\n", tagName));
+    case '!':
+        for (i = 0; cp[i] && cp[i] != '>'; i++)
+            ;
+        *tag_len = i;
+        event.openTagStart(cp, i);
+        if (m_verbose)
+            printf("------ dtd %.*s\n", i, cp);
         break;
-    case '?' :
-        DEBUG(printf("------ pi %s\n", tagName));
+    case '?':
+        for (i = 0; cp[i] && cp[i] != '>'; i++)
+            ;
+        *tag_len = i;
+        event.openTagStart(cp, i);
+        if (m_verbose)
+            printf("------ pi %.*s\n", i, cp);
         break;
-    default :
-        DEBUG(printf("------ tag open %s\n", tagName));
-        event.openTagStart(tagName);
+    default:
+        i = skipName(cp);
+        *tag_len = i;
+        if (m_verbose)
+            printf("------ tag open %.*s\n", i, cp);
+        event.openTagStart(cp, i);
+
+        i += tagAttrs(event, cp, i, cp + i);
+
         break;
     }
     return i;
 }
 
-static int tagEnd(mp::HTMLParserEvent & event, const char *tagName, const char *cp)
+int mp::HTMLParser::Rep::tagEnd(HTMLParserEvent &event,
+                                const char *tag, int tag_len, const char *cp)
 {
     int i = 0;
     int close_it = 0;
@@ -172,23 +211,25 @@ static int tagEnd(mp::HTMLParserEvent & event, const char *tagName, const char *
     }
     if (cp[i] == '>')
     {
-        event.anyTagEnd(tagName, close_it);
+        event.anyTagEnd(tag, tag_len, close_it);
         i++;
     }
     return i;
 }
 
-static void tagText(mp::HTMLParserEvent & event, const char *text_start, const char *text_end)
+void mp::HTMLParser::Rep::tagText(HTMLParserEvent &event,
+                                  const char *text_start, const char *text_end)
 {
     if (text_end - text_start) //got text to flush
     {
-        DEBUG(printf("------ text %.*s\n",
-                     (int) (text_end - text_start), text_start));
+        if (m_verbose)
+            printf("------ text %.*s\n",
+                   (int) (text_end - text_start), text_start);
         event.text(text_start, text_end-text_start);
     }
 }
 
-static void parse_str(mp::HTMLParserEvent & event, const char *cp)
+void mp::HTMLParser::Rep::parse_str(HTMLParserEvent &event, const char *cp)
 {
     const char *text_start = cp;
     const char *text_end = cp;
@@ -201,24 +242,14 @@ static void parse_str(mp::HTMLParserEvent & event, const char *cp)
                 cp++;
             if (!strchr(SPACECHR, cp[1])) //valid tag starts
             {
+                int i = 0;
+                int tag_len;
+
                 tagText(event, text_start, text_end); //flush any text
-                char tagName[TAG_MAX_LEN];
                 cp++;
-                if (which == '/')
-                {
-                    cp += tagStart(event, tagName, cp, which);
-                }
-                else if (which == '!' || which == '?') //pi or dtd
-                {
-                    cp++;
-                    cp += tagStart(event, tagName, cp, which);
-                }
-                else
-                {
-                    cp += tagStart(event, tagName, cp, which);
-                    cp += tagAttrs(event, tagName, cp);
-                }
-                cp += tagEnd(event, tagName, cp);
+                i += tagStart(event, &tag_len, cp, which);
+                i += tagEnd(event, cp, tag_len, cp + i);
+                cp += i;
                 text_start = cp;
                 text_end = cp;
                 continue;
