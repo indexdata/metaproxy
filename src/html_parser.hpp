@@ -25,7 +25,7 @@ namespace metaproxy_1 {
         class HTMLParserEvent {
         public:
             virtual void openTagStart(const char *name) = 0;
-            virtual void anyTagEnd(const char *name) = 0;
+            virtual void anyTagEnd(const char *name, int close_it) = 0;
             virtual void attribute(const char *tagName, 
                     const char *name, 
                     const char *value,

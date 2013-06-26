@@ -130,7 +130,7 @@ static int tagAttrs (mp::HTMLParserEvent & event,
     const char *attr_value;
     int val_len;
     i = skipSpace (cp);
-    while (cp[i] && cp[i] != '>')
+    while (cp[i] && cp[i] != '>' && cp[i] != '/')
     {
         int nor = skipAttribute (cp+i, attr_name, &attr_value, &val_len);
         i += nor;
@@ -176,11 +176,16 @@ static int tagStart (mp::HTMLParserEvent & event,
 static int tagEnd (mp::HTMLParserEvent & event, const char *tagName, const char *cp)
 {
     int i = 0;
+    int close_it = 0;
     while (cp[i] && cp[i] != '>')
+    {
+        if (cp[i] == '/')
+            close_it = 1;
         i++;
+    }
     if (cp[i] == '>')
     {
-        event.anyTagEnd(tagName);
+        event.anyTagEnd(tagName, close_it);
         i++;
     }
     return i;

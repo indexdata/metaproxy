@@ -62,6 +62,7 @@ namespace metaproxy_1 {
             std::string header;
             std::string attr;
             std::string tag;
+            bool reqline;
             RulePtr rule;
         };
 
@@ -78,7 +79,7 @@ namespace metaproxy_1 {
         };
         class HttpRewrite::Event : public HTMLParserEvent {
             void openTagStart(const char *name);
-            void anyTagEnd(const char *name);
+            void anyTagEnd(const char *name, int close_it);
             void attribute(const char *tagName, 
                            const char *name, 
                            const char *value,
@@ -88,8 +89,9 @@ namespace metaproxy_1 {
             const Phase *m_phase;
             WRBUF m_w;
             std::list<Within>::const_iterator enabled_within;
+            std::map<std::string, std::string> &m_vars;
         public:
-            Event(const Phase *p);
+            Event(const Phase *p, std::map<std::string, std::string> &vars);
             ~Event();
             const char *result();
         };
@@ -158,51 +160,54 @@ void yf::HttpRewrite::Phase::rewrite_reqline (mp::odr & o,
         path += hreq->path;
     }
 
-    std::list<Within>::const_iterator it = within_list.begin();
-    if (it != within_list.end())
-    {
-        RulePtr rule = it->rule;
 
-        yaz_log(YLOG_LOG, "Proxy request URL is %s", path.c_str());
-        std::string npath = rule->test_patterns(vars, path);
-        if (!npath.empty())
+    std::list<Within>::const_iterator it = within_list.begin();
+    for (; it != within_list.end(); it++)
+        if (it->reqline)
         {
-            yaz_log(YLOG_LOG, "Rewritten request URL is %s", npath.c_str());
-            hreq->path = odr_strdup(o, npath.c_str());
+            RulePtr rule = it->rule;
+            yaz_log(YLOG_LOG, "Proxy request URL is %s", path.c_str());
+            std::string npath = rule->test_patterns(vars, path);
+            if (!npath.empty())
+            {
+                yaz_log(YLOG_LOG, "Rewritten request URL is %s", npath.c_str());
+                hreq->path = odr_strdup(o, npath.c_str());
+            }
         }
-    }
 }
 
 void yf::HttpRewrite::Phase::rewrite_headers(mp::odr & o,
         Z_HTTP_Header *headers,
         std::map<std::string, std::string> & vars) const
 {
-    for (Z_HTTP_Header *header = headers;
-            header != 0;
-            header = header->next)
+    for (Z_HTTP_Header *header = headers; header; header = header->next)
     {
-        std::string sheader(header->name);
-        sheader += ": ";
-        sheader += header->value;
-        yaz_log(YLOG_LOG, "%s: %s", header->name, header->value);
-
         std::list<Within>::const_iterator it = within_list.begin();
-        if (it == within_list.end())
-            continue;
-        RulePtr rule = it->rule;
-
-        std::string out = rule->test_patterns(vars, sheader);
-        if (!out.empty())
+        for (; it != within_list.end(); it++)
         {
-            size_t pos = out.find(": ");
-            if (pos == std::string::npos)
+            if (it->header.length() > 0 &&
+                yaz_strcasecmp(it->header.c_str(), header->name) == 0)
             {
-                yaz_log(YLOG_LOG, "Header malformed during rewrite, ignoring");
-                continue;
+                std::string sheader(header->name);
+                sheader += ": ";
+                sheader += header->value;
+
+                RulePtr rule = it->rule;
+                std::string out = rule->test_patterns(vars, sheader);
+                if (!out.empty())
+                {
+                    size_t pos = out.find(": ");
+                    if (pos == std::string::npos)
+                    {
+                        yaz_log(YLOG_LOG, "Header malformed during rewrite, ignoring");
+                        continue;
+                    }
+                    header->name = odr_strdup(o, out.substr(0, pos).c_str());
+                    header->value = odr_strdup(o,
+                                               out.substr(pos + 2,
+                                                          std::string::npos).c_str());
+                }
             }
-            header->name = odr_strdup(o, out.substr(0, pos).c_str());
-            header->value = odr_strdup(o, out.substr(pos+2,
-                                                     std::string::npos).c_str());
         }
     }
 }
@@ -214,32 +219,25 @@ void yf::HttpRewrite::Phase::rewrite_body(mp::odr & o,
 {
     if (*content_buf)
     {
+        int i;
+        for (i = 0; i < *content_len; i++)
+            if ((*content_buf)[i] == 0)
+                return;  // binary content. skip
+
         HTMLParser parser;
-        Event ev(this);
+        Event ev(this, vars);
         std::string buf(*content_buf, *content_len);
 
         parser.parse(ev, buf.c_str());
-        std::cout << "RES\n" << ev.result() << std::endl;
-        std::cout << "-----" << std::endl;
-
-
-        std::list<Within>::const_iterator it = within_list.begin();
-        if (it != within_list.end())
-        {
-            RulePtr rule = it->rule;
-
-            std::string body(*content_buf);
-            std::string nbody = rule->test_patterns(vars, body);
-            if (!nbody.empty())
-            {
-                *content_buf = odr_strdup(o, nbody.c_str());
-                *content_len = nbody.size();
-            }
-        }
+        const char *res = ev.result();
+        *content_buf = odr_strdup(o, res);
+        *content_len = strlen(res);
     }
 }
 
-yf::HttpRewrite::Event::Event(const Phase *p) : m_phase(p)
+yf::HttpRewrite::Event::Event(const Phase *p,
+                              std::map<std::string, std::string> & vars
+    ) : m_phase(p), m_vars(vars)
 {
     m_w = wrbuf_alloc();
     enabled_within = m_phase->within_list.end();
@@ -274,16 +272,21 @@ void yf::HttpRewrite::Event::openTagStart(const char *name)
     wrbuf_puts(m_w, name);
 }
 
-void yf::HttpRewrite::Event::anyTagEnd(const char *name)
+void yf::HttpRewrite::Event::anyTagEnd(const char *name, int close_it)
 {
-    std::list<Within>::const_iterator it = enabled_within;
-    if (it != m_phase->within_list.end())
+    if (close_it)
     {
-        if (it->tag.compare(name) == 0)
+        std::list<Within>::const_iterator it = enabled_within;
+        if (it != m_phase->within_list.end())
         {
-            enabled_within = m_phase->within_list.end();
+            if (it->tag.compare(name) == 0)
+            {
+                enabled_within = m_phase->within_list.end();
+            }
         }
     }
+    if (close_it)
+        wrbuf_putc(m_w, '/');
     wrbuf_putc(m_w, '>');
 }
 
@@ -292,39 +295,40 @@ void yf::HttpRewrite::Event::attribute(const char *tagName,
                                          const char *value,
                                          int val_len)
 {
-    std::list<Within>::const_iterator it = enabled_within;
+    std::list<Within>::const_iterator it = m_phase->within_list.begin();
     bool subst = false;
 
-    if (it == m_phase->within_list.end())
+    for (; it != m_phase->within_list.end(); it++)
     {
-        // no active within tag.. see if a attr rule without tag applies
-        it = m_phase->within_list.begin();
-        for (; it != m_phase->within_list.end(); it++)
+        if (it->tag.length() == 0 || it->tag.compare(tagName) == 0)
         {
-            if (it->attr.length() > 0 && it->tag.length() == 0)
-                break;
-        }
-    }
-    if (it != m_phase->within_list.end())
-    {
-        std::vector<std::string> attr;
-        boost::split(attr, it->attr, boost::is_any_of(","));
-        size_t i;
-        for (i = 0; i < attr.size(); i++)
-        {
-            if (attr[i].compare("#text") && attr[i].compare(tagName) == 0)
+            std::vector<std::string> attr;
+            boost::split(attr, it->attr, boost::is_any_of(","));
+            size_t i;
+            for (i = 0; i < attr.size(); i++)
             {
-                subst = true;
+                if (attr[i].compare("#text") && attr[i].compare(name) == 0)
+                    subst = true;
             }
         }
+        if (subst)
+            break;
     }
 
     wrbuf_putc(m_w, ' ');
     wrbuf_puts(m_w, name);
-    wrbuf_puts(m_w, "\"");
-    wrbuf_write(m_w, value, val_len);
+    wrbuf_puts(m_w, "=\"");
+
+    std::string output;
     if (subst)
-        wrbuf_puts(m_w, " SUBST");
+    {
+        std::string input(value, val_len);
+        output = it->rule->test_patterns(m_vars, input);
+    }
+    if (output.empty())
+        wrbuf_write(m_w, value, val_len);
+    else
+        wrbuf_puts(m_w, output.c_str());
     wrbuf_puts(m_w, "\"");
 }
 
@@ -365,9 +369,16 @@ void yf::HttpRewrite::Event::text(const char *value, int len)
             }
         }
     }
-    wrbuf_write(m_w, value, len);
+    std::string output;
     if (subst)
-        wrbuf_puts(m_w, "<!-- SUBST -->");
+    {
+        std::string input(value, len);
+        output = it->rule->test_patterns(m_vars, input);
+    }
+    if (output.empty())
+        wrbuf_write(m_w, value, len);
+    else
+        wrbuf_puts(m_w, output.c_str());
 }
 
 
@@ -590,14 +601,13 @@ void yf::HttpRewrite::configure_phase(const xmlNode *ptr, Phase &phase)
                          + std::string((const char *) p->name)
                          + " in http_rewrite filter");
             }
-            if (!rule->replace_list.empty())
-                rules[values[0]] = rule;
+            rules[values[0]] = rule;
         }
         else if (!strcmp((const char *) ptr->name, "within"))
         {
-            static const char *names[5] =
-                { "header", "attr", "tag", "rule", 0 };
-            std::string values[4];
+            static const char *names[6] =
+                { "header", "attr", "tag", "rule", "reqline", 0 };
+            std::string values[5];
             mp::xml::parse_attr(ptr, names, values);
             Within w;
             w.header = values[0];
@@ -610,6 +620,7 @@ void yf::HttpRewrite::configure_phase(const xmlNode *ptr, Phase &phase)
                     ("Reference to non-existing rule '" + values[3] +
                      "' in http_rewrite filter");
             w.rule = it->second;
+            w.reqline = values[4] == "1";
             phase.within_list.push_back(w);
         }
         else

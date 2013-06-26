@@ -54,8 +54,10 @@ class MyEvent : public mp::HTMLParserEvent {
             out += "\"";
         }
 
-        void anyTagEnd(const char *name)
+        void anyTagEnd(const char *name, int close_it)
         {
+            if (close_it)
+                out += "/";
             out += ">";
         }
         
@@ -79,12 +81,15 @@ BOOST_AUTO_TEST_CASE( test_html_parser_1 )
         mp::HTMLParser hp;
         const char* html = 
             "<html><body><a t1=v1 t2='v2' t3=\"v3\">some text</a>"
-            "<hr><table ></table  ></body></html";
+            "<hr><table ></table  ><a href=\"x\"/></body></html>";
         const char* expected = 
             "<html><body><a t1=\"v1\" t2=\"v2\" t3=\"v3\">some text</a>"
-            "<hr><table></table></body></html";
+            "<hr><table></table><a href=\"x\"/></body></html>";
         MyEvent e;
         hp.parse(e, html);
+
+        std::cout << expected << std::endl;
+        std::cout << e.out << std::endl;
         BOOST_CHECK_EQUAL(std::string(expected), e.out);
     }
     catch (std::exception & e) 
