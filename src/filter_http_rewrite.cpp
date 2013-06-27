@@ -68,7 +68,9 @@ namespace metaproxy_1 {
 
         class HttpRewrite::Phase {
         public:
+            Phase();
             std::list<Within> within_list;
+            int m_verbose;
             void rewrite_reqline(mp::odr & o, Z_HTTP_Request *hreq,
                 std::map<std::string, std::string> & vars) const;
             void rewrite_headers(mp::odr & o, Z_HTTP_Header *headers,
@@ -225,6 +227,9 @@ void yf::HttpRewrite::Phase::rewrite_body(mp::odr & o,
 
         HTMLParser parser;
         Event ev(this, vars);
+
+        parser.set_verbose(m_verbose);
+
         std::string buf(*content_buf, *content_len);
 
         parser.parse(ev, buf.c_str());
@@ -265,7 +270,17 @@ void yf::HttpRewrite::Event::openTagStart(const char *tag, int tag_len)
             if (it->tag.length() > 0 && yaz_strcasecmp(it->tag.c_str(),
                                                        t.c_str()) == 0)
             {
-                enabled_within = it;
+                std::vector<std::string> attr;
+                boost::split(attr, it->attr, boost::is_any_of(","));
+                size_t i;
+                for (i = 0; i < attr.size(); i++)
+                {
+                    if (attr[i].compare("#text") == 0)
+                    {
+                        enabled_within = it;
+                        break;
+                    }
+                }
             }
         }
     }
@@ -560,9 +575,19 @@ std::string yf::HttpRewrite::Replace::sub_vars (
     return out;
 }
 
+yf::HttpRewrite::Phase::Phase() : m_verbose(0)
+{
+}
 
 void yf::HttpRewrite::configure_phase(const xmlNode *ptr, Phase &phase)
 {
+    static const char *names[2] = { "verbose", 0 };
+    std::string values[1];
+    values[0] = "0";
+    mp::xml::parse_attr(ptr, names, values);
+
+    phase.m_verbose = atoi(values[0].c_str());
+
     std::map<std::string, RulePtr > rules;
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
