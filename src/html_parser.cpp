@@ -42,6 +42,9 @@ namespace metaproxy_1 {
         int tagAttrs(HTMLParserEvent &event,
                      const char *name, int len,
                      const char *cp);
+        int skipAttribute(HTMLParserEvent &event,
+                          const char *cp, int *attr_len,
+                          const char **value, int *val_len);
         Rep();
         ~Rep();
         int m_verbose;
@@ -94,8 +97,9 @@ static int skipName(const char *cp)
     return i;
 }
 
-static int skipAttribute(const char *cp, int *attr_len,
-                         const char **value, int *val_len)
+int mp::HTMLParser::Rep::skipAttribute(HTMLParserEvent &event,
+                                       const char *cp, int *attr_len,
+                                       const char **value, int *val_len)
 {
     int i = skipName(cp);
     *attr_len = i;
@@ -143,7 +147,7 @@ int mp::HTMLParser::Rep::tagAttrs(HTMLParserEvent &event,
         int attr_len;
         const char *value;
         int val_len;
-        int nor = skipAttribute(cp+i, &attr_len, &value, &val_len);
+        int nor = skipAttribute(event, cp+i, &attr_len, &value, &val_len);
         i += nor;
 	if (nor)
 	{
@@ -209,10 +213,13 @@ int mp::HTMLParser::Rep::tagEnd(HTMLParserEvent &event,
 {
     int i = 0;
     int close_it = 0;
-    while (cp[i] && cp[i] != '>')
+    for (; cp[i] && cp[i] != '/' && cp[i] != '>'; i++)
+        ;
+    if (i > 0)
+        event.text(cp, i);
+    if (cp[i] == '/')
     {
-        if (cp[i] == '/')
-            close_it = 1;
+        close_it = 1;
         i++;
     }
     if (cp[i] == '>')

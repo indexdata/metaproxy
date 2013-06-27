@@ -67,18 +67,17 @@ public:
     }
 };
 
-
 BOOST_AUTO_TEST_CASE( test_html_parser_1 )
 {
     try
     {
         mp::HTMLParser hp;
-        const char* html = 
+        const char* html =
             "<html><body><a t1=v1 t2='v2' t3=\"v3\">some text</a>"
             "<hr><table ></table  ><a href=\"x\"/></body></html>";
-        const char* expected = 
+        const char* expected =
             "<html><body><a t1=\"v1\" t2=\"v2\" t3=\"v3\">some text</a>"
-            "<hr><table></table><a href=\"x\"/></body></html>";
+            "<hr><table></table  ><a href=\"x\"/></body></html>";
         MyEvent e;
         hp.set_verbose(1);
         hp.parse(e, html);
