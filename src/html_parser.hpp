@@ -39,6 +39,7 @@ namespace metaproxy_1 {
             HTMLParser();
             ~HTMLParser();
             void parse(HTMLParserEvent &event, const char *str) const;
+            void set_verbose(int v);
         private:
             boost::scoped_ptr<Rep> m_p;
         };

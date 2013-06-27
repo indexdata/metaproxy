@@ -67,6 +67,12 @@ mp::HTMLParser::~HTMLParser()
 {
 }
 
+void mp::HTMLParser::set_verbose(int v)
+{
+    m_p->m_verbose = v;
+}
+
+
 void mp::HTMLParser::parse(mp::HTMLParserEvent & event, const char *str) const
 {
     m_p->parse_str(event, str);
