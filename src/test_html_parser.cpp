@@ -80,14 +80,17 @@ BOOST_AUTO_TEST_CASE( test_html_parser_1 )
             "<html><body><a t1=v1 t2='v2' t3=\"v3\">some text</a>"
             "<hr><table></table  ><a href=\"x\"/></body></html>";
         MyEvent e;
-        hp.set_verbose(1);
+        hp.set_verbose(0);
         hp.parse(e, html);
 
-        std::cout << "Expected" << std::endl;
-        std::cout << expected << std::endl;
-        std::cout << "Got" << std::endl;
-        std::cout << e.out << std::endl;
         BOOST_CHECK_EQUAL(std::string(expected), e.out);
+        if (std::string(expected) != e.out)
+        {
+            std::cout << "Expected" << std::endl;
+            std::cout << expected << std::endl;
+            std::cout << "Got" << std::endl;
+            std::cout << e.out << std::endl;
+        }
     }
     catch (std::exception & e)
     {
@@ -117,15 +120,17 @@ BOOST_AUTO_TEST_CASE( test_html_parser_2 )
 
         const char* expected = html;
         MyEvent e;
-        hp.set_verbose(1);
+        hp.set_verbose(0);
         hp.parse(e, html);
 
-        std::cout << "Expected" << std::endl;
-        std::cout << expected << std::endl;
-        std::cout << "Got" << std::endl;
-        std::cout << e.out << std::endl;
-
         BOOST_CHECK_EQUAL(std::string(expected), e.out);
+        if (std::string(expected) != e.out)
+        {
+            std::cout << "Expected" << std::endl;
+            std::cout << expected << std::endl;
+            std::cout << "Got" << std::endl;
+            std::cout << e.out << std::endl;
+        }
     }
     catch (std::exception & e) 
     {
@@ -152,15 +157,17 @@ BOOST_AUTO_TEST_CASE( test_html_parser_3 )
 
         const char* expected = html;
         MyEvent e;
-        hp.set_verbose(1);
+        hp.set_verbose(0);
         hp.parse(e, html);
 
-        std::cout << "Expected" << std::endl;
-        std::cout << expected << std::endl;
-        std::cout << "Got" << std::endl;
-        std::cout << e.out << std::endl;
-
         BOOST_CHECK_EQUAL(std::string(expected), e.out);
+        if (std::string(expected) != e.out)
+        {
+            std::cout << "Expected" << std::endl;
+            std::cout << expected << std::endl;
+            std::cout << "Got" << std::endl;
+            std::cout << e.out << std::endl;
+        }
     }
     catch (std::exception & e) 
     {
@@ -170,28 +177,28 @@ BOOST_AUTO_TEST_CASE( test_html_parser_3 )
     }
 }
 
-#if 0
-// null ptr exception
 BOOST_AUTO_TEST_CASE( test_html_parser_4 )
 {
     try
     {
         mp::HTMLParser hp;
         const char* html =
-            "<\"?xml version=\"1.0\" strandalone=\"no\"?>\n"
-            "<book></book>";
+            "<\"?xml version=\"1.0\" strandalone=\"no\"?  ax>\n"
+            "<book></book>";  // <book badboy></book> does not work
 
         const char* expected = html;
         MyEvent e;
         hp.set_verbose(1);
         hp.parse(e, html);
 
-        std::cout << "Expected" << std::endl;
-        std::cout << expected << std::endl;
-        std::cout << "Got" << std::endl;
-        std::cout << e.out << std::endl;
-
         BOOST_CHECK_EQUAL(std::string(expected), e.out);
+        if (std::string(expected) != e.out)
+        {
+            std::cout << "Expected" << std::endl;
+            std::cout << expected << std::endl;
+            std::cout << "Got" << std::endl;
+            std::cout << e.out << std::endl;
+        }
     }
     catch (std::exception & e) 
     {
@@ -200,7 +207,6 @@ BOOST_AUTO_TEST_CASE( test_html_parser_4 )
         BOOST_CHECK (false);
     }
 }
-#endif
 
 /*
  * Local variables:

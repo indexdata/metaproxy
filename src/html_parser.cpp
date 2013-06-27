@@ -102,38 +102,39 @@ int mp::HTMLParser::Rep::skipAttribute(HTMLParserEvent &event,
                                        const char **value, int *val_len,
                                        int *tr)
 {
+    int v0, v1;
     int i = skipName(cp);
     *attr_len = i;
     *value = NULL;
     if (!i)
         return skipSpace(cp);
     i += skipSpace(cp + i);
-    if (cp[i] == '=')
+    if (cp[i] != '=')
+        return 0;
+
+    i++;
+    i += skipSpace(cp + i);
+    if (cp[i] == '\"' || cp[i] == '\'')
     {
-        int v0, v1;
-        i++;
-        i += skipSpace(cp + i);
-        if (cp[i] == '\"' || cp[i] == '\'')
-        {
-            *tr = cp[i];
-            v0 = ++i;
-            while (cp[i] != *tr && cp[i])
-                i++;
-            v1 = i;
-            if (cp[i])
-                i++;
-        }
-        else
-        {
-            *tr = 0;
-            v0 = i;
-            while (cp[i] && !strchr(SPACECHR ">", cp[i]))
-                i++;
-            v1 = i;
-        }
-        *value = cp + v0;
-        *val_len = v1 - v0;
+        *tr = cp[i];
+        v0 = ++i;
+        while (cp[i] != *tr && cp[i])
+            i++;
+        v1 = i;
+        if (cp[i])
+            i++;
     }
+    else
+    {
+        *tr = 0;
+        v0 = i;
+        while (cp[i] && !strchr(SPACECHR ">", cp[i]))
+            i++;
+        v1 = i;
+    }
+    *value = cp + v0;
+    *val_len = v1 - v0;
+
     i += skipSpace(cp + i);
     return i;
 }
@@ -150,22 +151,18 @@ int mp::HTMLParser::Rep::tagAttrs(HTMLParserEvent &event,
         const char *value;
         int val_len;
         int tr;
+        char x[2];
         int nor = skipAttribute(event, cp+i, &attr_len, &value, &val_len, &tr);
+        if (!nor)
+            break;
         i += nor;
-	if (nor)
-	{
-            char x[2];
-            x[0] = tr;
-            x[1] = 0;
-            if (m_verbose)
-                printf ("------ attr %.*s=%.*s\n", attr_len, attr_name,
-                        val_len, value);
-            event.attribute(name, len, attr_name, attr_len, value, val_len, x);
-	}
-        else
-        {
-            i++;
-        }
+
+        x[0] = tr;
+        x[1] = 0;
+        if (m_verbose)
+            printf ("------ attr %.*s=%.*s\n", attr_len, attr_name,
+                    val_len, value);
+        event.attribute(name, len, attr_name, attr_len, value, val_len, x);
     }
     return i;
 }
@@ -222,7 +219,11 @@ int mp::HTMLParser::Rep::tagEnd(HTMLParserEvent &event,
     for (; cp[i] && cp[i] != '/' && cp[i] != '>'; i++)
         ;
     if (i > 0)
+    {
+        if (m_verbose)
+            printf("------ text %.*s\n", i, cp);
         event.text(cp, i);
+    }
     if (cp[i] == '/')
     {
         close_it = 1;
@@ -230,6 +231,9 @@ int mp::HTMLParser::Rep::tagEnd(HTMLParserEvent &event,
     }
     if (cp[i] == '>')
     {
+        if (m_verbose)
+            printf("------ any tag %s %.*s\n",
+                   close_it ? " close" : "end", tag_len, tag);
         event.anyTagEnd(tag, tag_len, close_it);
         i++;
     }
