@@ -417,8 +417,7 @@ const std::string yf::HttpRewrite::Replace::search_replace(
                 = group_index.find(i);
             if (it != group_index.end())
             {   //it is
-                if (!what[i].str().empty())
-                    vars[it->second] = what[i];
+                vars[it->second] = what[i];
             }
 
         }
