@@ -46,7 +46,7 @@ namespace metaproxy_1 {
             const std::string search_replace(
                 std::map<std::string, std::string> & vars,
                 const std::string & txt) const;
-            std::string sub_vars (
+            std::string sub_vars(
                 const std::map<std::string, std::string> & vars) const;
             void parse_groups();
         };
@@ -499,8 +499,8 @@ void yf::HttpRewrite::Replace::parse_groups()
     regex = res;
 }
 
-std::string yf::HttpRewrite::Replace::sub_vars (
-        const std::map<std::string, std::string> & vars) const
+std::string yf::HttpRewrite::Replace::sub_vars(
+    const std::map<std::string, std::string> & vars) const
 {
     std::string out;
     bool esc = false;
