@@ -80,6 +80,7 @@ BOOST_AUTO_TEST_CASE( test_html_parser_1 )
             "<html><body><a t1=\"v1\" t2=\"v2\" t3=\"v3\">some text</a>"
             "<hr><table></table><a href=\"x\"/></body></html>";
         MyEvent e;
+        hp.set_verbose(1);
         hp.parse(e, html);
 
         std::cout << "Expected" << std::endl;
@@ -116,6 +117,7 @@ BOOST_AUTO_TEST_CASE( test_html_parser_2 )
 
         const char* expected = html;
         MyEvent e;
+        hp.set_verbose(1);
         hp.parse(e, html);
 
         std::cout << "Expected" << std::endl;
@@ -133,6 +135,72 @@ BOOST_AUTO_TEST_CASE( test_html_parser_2 )
     }
 }
 
+BOOST_AUTO_TEST_CASE( test_html_parser_3 )
+{
+    try
+    {
+        mp::HTMLParser hp;
+        const char* html =
+            "<?xml version=\"1.0\" strandalone=\"no\"?>\n"
+            "<!DOCTYPE book PUBLIC \"-//OASIS//DTD DocBook XML V4.4//EN\"\n"
+            "  \"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd\"\n"
+            "[\n"
+            " <!ENTITY % local SYSTEM \"local.ent\">\n"
+            " %local;\n"
+            "]>\n"
+            "<book></book>";
+
+        const char* expected = html;
+        MyEvent e;
+        hp.set_verbose(1);
+        hp.parse(e, html);
+
+        std::cout << "Expected" << std::endl;
+        std::cout << expected << std::endl;
+        std::cout << "Got" << std::endl;
+        std::cout << e.out << std::endl;
+
+        BOOST_CHECK_EQUAL(std::string(expected), e.out);
+    }
+    catch (std::exception & e) 
+    {
+        std::cout << e.what();
+        std::cout << std::endl;
+        BOOST_CHECK (false);
+    }
+}
+
+#if 0
+// null ptr exception
+BOOST_AUTO_TEST_CASE( test_html_parser_4 )
+{
+    try
+    {
+        mp::HTMLParser hp;
+        const char* html =
+            "<\"?xml version=\"1.0\" strandalone=\"no\"?>\n"
+            "<book></book>";
+
+        const char* expected = html;
+        MyEvent e;
+        hp.set_verbose(1);
+        hp.parse(e, html);
+
+        std::cout << "Expected" << std::endl;
+        std::cout << expected << std::endl;
+        std::cout << "Got" << std::endl;
+        std::cout << e.out << std::endl;
+
+        BOOST_CHECK_EQUAL(std::string(expected), e.out);
+    }
+    catch (std::exception & e) 
+    {
+        std::cout << e.what();
+        std::cout << std::endl;
+        BOOST_CHECK (false);
+    }
+}
+#endif
 
 /*
  * Local variables:
