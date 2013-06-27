@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/zgdu.h>
 #include <yaz/log.h>
 
+#include <stack>
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
@@ -89,7 +90,7 @@ namespace metaproxy_1 {
             void text(const char *value, int len);
             const Phase *m_phase;
             WRBUF m_w;
-            std::list<Within>::const_iterator enabled_within;
+            std::stack<std::list<Within>::const_iterator> s_within;
             std::map<std::string, std::string> &m_vars;
         public:
             Event(const Phase *p, std::map<std::string, std::string> &vars);
@@ -244,7 +245,6 @@ yf::HttpRewrite::Event::Event(const Phase *p,
     ) : m_phase(p), m_vars(vars)
 {
     m_w = wrbuf_alloc();
-    enabled_within = m_phase->within_list.end();
 }
 
 yf::HttpRewrite::Event::~Event()
@@ -259,33 +259,29 @@ const char *yf::HttpRewrite::Event::result()
 
 void yf::HttpRewrite::Event::openTagStart(const char *tag, int tag_len)
 {
-    // check if there is <within tag="x" .. />
-    if (enabled_within == m_phase->within_list.end())
+    wrbuf_putc(m_w, '<');
+    wrbuf_write(m_w, tag, tag_len);
+
+    std::string t(tag, tag_len);
+    std::list<Within>::const_iterator it = m_phase->within_list.begin();
+    for (; it != m_phase->within_list.end(); it++)
     {
-        std::string t(tag, tag_len);
-        std::list<Within>::const_iterator it =
-            m_phase->within_list.begin();
-        for (; it != m_phase->within_list.end(); it++)
+        if (it->tag.length() > 0 && yaz_strcasecmp(it->tag.c_str(),
+                                                   t.c_str()) == 0)
         {
-            if (it->tag.length() > 0 && yaz_strcasecmp(it->tag.c_str(),
-                                                       t.c_str()) == 0)
+            std::vector<std::string> attr;
+            boost::split(attr, it->attr, boost::is_any_of(","));
+            size_t i;
+            for (i = 0; i < attr.size(); i++)
             {
-                std::vector<std::string> attr;
-                boost::split(attr, it->attr, boost::is_any_of(","));
-                size_t i;
-                for (i = 0; i < attr.size(); i++)
+                if (attr[i].compare("#text") == 0)
                 {
-                    if (attr[i].compare("#text") == 0)
-                    {
-                        enabled_within = it;
-                        break;
-                    }
+                    s_within.push(it);
+                    return;
                 }
             }
         }
     }
-    wrbuf_putc(m_w, '<');
-    wrbuf_write(m_w, tag, tag_len);
 }
 
 void yf::HttpRewrite::Event::anyTagEnd(const char *tag, int tag_len,
@@ -293,14 +289,12 @@ void yf::HttpRewrite::Event::anyTagEnd(const char *tag, int tag_len,
 {
     if (close_it)
     {
-        std::list<Within>::const_iterator it = enabled_within;
-        if (it != m_phase->within_list.end())
+        if (!s_within.empty())
         {
+            std::list<Within>::const_iterator it = s_within.top();
             std::string t(tag, tag_len);
             if (yaz_strcasecmp(it->tag.c_str(), t.c_str()) == 0)
-            {
-                enabled_within = m_phase->within_list.end();
-            }
+                s_within.pop();
         }
     }
     if (close_it)
@@ -355,14 +349,12 @@ void yf::HttpRewrite::Event::attribute(const char *tag, int tag_len,
 
 void yf::HttpRewrite::Event::closeTag(const char *tag, int tag_len)
 {
-    std::list<Within>::const_iterator it = enabled_within;
-    if (it != m_phase->within_list.end())
+    if (!s_within.empty())
     {
+        std::list<Within>::const_iterator it = s_within.top();
         std::string t(tag, tag_len);
         if (yaz_strcasecmp(it->tag.c_str(), t.c_str()) == 0)
-        {
-            enabled_within = m_phase->within_list.end();
-        }
+            s_within.pop();
     }
     wrbuf_puts(m_w, "</");
     wrbuf_write(m_w, tag, tag_len);
@@ -370,29 +362,11 @@ void yf::HttpRewrite::Event::closeTag(const char *tag, int tag_len)
 
 void yf::HttpRewrite::Event::text(const char *value, int len)
 {
-    std::list<Within>::const_iterator it = enabled_within;
-    bool subst = false;
-
-    if (it != m_phase->within_list.end())
-    {
-        subst = true;
-        if (it->attr.length() > 0)
-        {
-            subst = false;
-            std::vector<std::string> attr;
-            boost::split(attr, it->attr, boost::is_any_of(","));
-            size_t i;
-            for (i = 0; i < attr.size(); i++)
-            {
-                if (attr[i].compare("#text") == 0)
-                {
-                    subst = true;
-                }
-            }
-        }
-    }
+    std::list<Within>::const_iterator it = m_phase->within_list.end();
+    if (!s_within.empty())
+        it = s_within.top();
     std::string output;
-    if (subst)
+    if (it != m_phase->within_list.end())
     {
         std::string input(value, len);
         output = it->rule->test_patterns(m_vars, input);
