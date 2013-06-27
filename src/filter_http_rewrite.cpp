@@ -85,7 +85,8 @@ namespace metaproxy_1 {
             void anyTagEnd(const char *tag, int tag_len, int close_it);
             void attribute(const char *tag, int tag_len,
                            const char *attr, int attr_len,
-                           const char *value, int val_len);
+                           const char *value, int val_len,
+                           const char *sep);
             void closeTag(const char *tag, int tag_len);
             void text(const char *value, int len);
             const Phase *m_phase;
@@ -304,7 +305,8 @@ void yf::HttpRewrite::Event::anyTagEnd(const char *tag, int tag_len,
 
 void yf::HttpRewrite::Event::attribute(const char *tag, int tag_len,
                                        const char *attr, int attr_len,
-                                       const char *value, int val_len)
+                                       const char *value, int val_len,
+                                       const char *sep)
 {
     std::list<Within>::const_iterator it = m_phase->within_list.begin();
     bool subst = false;
@@ -332,7 +334,8 @@ void yf::HttpRewrite::Event::attribute(const char *tag, int tag_len,
 
     wrbuf_putc(m_w, ' ');
     wrbuf_write(m_w, attr, attr_len);
-    wrbuf_puts(m_w, "=\"");
+    wrbuf_puts(m_w, "=");
+    wrbuf_puts(m_w, sep);
 
     std::string output;
     if (subst)
@@ -344,7 +347,7 @@ void yf::HttpRewrite::Event::attribute(const char *tag, int tag_len,
         wrbuf_write(m_w, value, val_len);
     else
         wrbuf_puts(m_w, output.c_str());
-    wrbuf_puts(m_w, "\"");
+    wrbuf_puts(m_w, sep);
 }
 
 void yf::HttpRewrite::Event::closeTag(const char *tag, int tag_len)

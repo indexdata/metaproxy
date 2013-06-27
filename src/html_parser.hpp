@@ -29,7 +29,8 @@ namespace metaproxy_1 {
                                    int close_it) = 0;
             virtual void attribute(const char *tag, int tag_len,
                                    const char *attr, int attr_len,
-                                   const char *value, int val_len) = 0;
+                                   const char *value, int val_len,
+                                   const char *sep) = 0;
             virtual void closeTag(const char *tag, int tag_len) = 0;
             virtual void text(const char *value, int len) = 0;
         };

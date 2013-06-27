@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
 
         const char *resp_expected =
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 522\r\n"
+            "Content-Length: 520\r\n"
             "Content-Type: text/html\r\n"
             "Link: <http://proxyhost/proxypath/targetsite/file.xml>; rel=absolute\r\n"
             "Link: </dir/file.xml>; rel=relative\r\n"
@@ -164,7 +164,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "xified"
             "<a href=\"http://proxyhost/proxypath/targetsite/page2.html\">"
             "  An absolute link</a>"
-            "<a target=\"_blank\" href=\"http://proxyhost/proxypath/targetsite/page3.html\">"
+            "<a target=_blank href=\"http://proxyhost/proxypath/targetsite/page3.html\">"
             "  Another abs link</a>"
             "<a href=\"/docs/page4.html\"/>"
             "</body></html>";

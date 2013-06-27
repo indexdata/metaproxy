@@ -44,7 +44,7 @@ namespace metaproxy_1 {
                      const char *cp);
         int skipAttribute(HTMLParserEvent &event,
                           const char *cp, int *attr_len,
-                          const char **value, int *val_len);
+                          const char **value, int *val_len, int *tr);
         Rep();
         ~Rep();
         int m_verbose;
@@ -99,7 +99,8 @@ static int skipName(const char *cp)
 
 int mp::HTMLParser::Rep::skipAttribute(HTMLParserEvent &event,
                                        const char *cp, int *attr_len,
-                                       const char **value, int *val_len)
+                                       const char **value, int *val_len,
+                                       int *tr)
 {
     int i = skipName(cp);
     *attr_len = i;
@@ -114,9 +115,9 @@ int mp::HTMLParser::Rep::skipAttribute(HTMLParserEvent &event,
         i += skipSpace(cp + i);
         if (cp[i] == '\"' || cp[i] == '\'')
         {
-            char tr = cp[i];
+            *tr = cp[i];
             v0 = ++i;
-            while (cp[i] != tr && cp[i])
+            while (cp[i] != *tr && cp[i])
                 i++;
             v1 = i;
             if (cp[i])
@@ -124,6 +125,7 @@ int mp::HTMLParser::Rep::skipAttribute(HTMLParserEvent &event,
         }
         else
         {
+            *tr = 0;
             v0 = i;
             while (cp[i] && !strchr(SPACECHR ">", cp[i]))
                 i++;
@@ -147,14 +149,18 @@ int mp::HTMLParser::Rep::tagAttrs(HTMLParserEvent &event,
         int attr_len;
         const char *value;
         int val_len;
-        int nor = skipAttribute(event, cp+i, &attr_len, &value, &val_len);
+        int tr;
+        int nor = skipAttribute(event, cp+i, &attr_len, &value, &val_len, &tr);
         i += nor;
 	if (nor)
 	{
+            char x[2];
+            x[0] = tr;
+            x[1] = 0;
             if (m_verbose)
                 printf ("------ attr %.*s=%.*s\n", attr_len, attr_name,
                         val_len, value);
-            event.attribute(name, len, attr_name, attr_len, value, val_len);
+            event.attribute(name, len, attr_name, attr_len, value, val_len, x);
 	}
         else
         {

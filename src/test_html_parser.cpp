@@ -42,16 +42,17 @@ public:
     void openTagStart(const char *tag, int tag_len) {
         out += "<";
         out.append(tag, tag_len);
-    } 
-    
+    }
+
     void attribute(const char *tag, int tag_len,
                    const char *attr, int attr_len,
-                   const char *value, int val_len) {
+                   const char *value, int val_len, const char *sep) {
         out += " ";
         out.append(attr, attr_len);
-        out += "=\"";
+        out += "=";
+        out += sep;
         out.append(value, val_len);
-        out += "\"";
+        out += sep;
     }
     void anyTagEnd(const char *tag, int tag_len, int close_it) {
         if (close_it)
@@ -76,7 +77,7 @@ BOOST_AUTO_TEST_CASE( test_html_parser_1 )
             "<html><body><a t1=v1 t2='v2' t3=\"v3\">some text</a>"
             "<hr><table ></table  ><a href=\"x\"/></body></html>";
         const char* expected =
-            "<html><body><a t1=\"v1\" t2=\"v2\" t3=\"v3\">some text</a>"
+            "<html><body><a t1=v1 t2='v2' t3=\"v3\">some text</a>"
             "<hr><table></table  ><a href=\"x\"/></body></html>";
         MyEvent e;
         hp.set_verbose(1);
@@ -88,7 +89,7 @@ BOOST_AUTO_TEST_CASE( test_html_parser_1 )
         std::cout << e.out << std::endl;
         BOOST_CHECK_EQUAL(std::string(expected), e.out);
     }
-    catch (std::exception & e) 
+    catch (std::exception & e)
     {
         std::cout << e.what();
         std::cout << std::endl;
