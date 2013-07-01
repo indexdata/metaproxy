@@ -109,33 +109,32 @@ int mp::HTMLParser::Rep::skipAttribute(HTMLParserEvent &event,
     if (!i)
         return skipSpace(cp);
     i += skipSpace(cp + i);
-    if (cp[i] != '=')
-        return 0;
-
-    i++;
-    i += skipSpace(cp + i);
-    if (cp[i] == '\"' || cp[i] == '\'')
+    if (cp[i] == '=')
     {
-        *tr = cp[i];
-        v0 = ++i;
-        while (cp[i] != *tr && cp[i])
-            i++;
-        v1 = i;
-        if (cp[i])
-            i++;
+        i++;
+        i += skipSpace(cp + i);
+        if (cp[i] == '\"' || cp[i] == '\'')
+        {
+            *tr = cp[i];
+            v0 = ++i;
+            while (cp[i] != *tr && cp[i])
+                i++;
+            v1 = i;
+            if (cp[i])
+                i++;
+        }
+        else
+        {
+            *tr = 0;
+            v0 = i;
+            while (cp[i] && !strchr(SPACECHR ">", cp[i]))
+                i++;
+            v1 = i;
+        }
+        *value = cp + v0;
+        *val_len = v1 - v0;
+        i += skipSpace(cp + i);
     }
-    else
-    {
-        *tr = 0;
-        v0 = i;
-        while (cp[i] && !strchr(SPACECHR ">", cp[i]))
-            i++;
-        v1 = i;
-    }
-    *value = cp + v0;
-    *val_len = v1 - v0;
-
-    i += skipSpace(cp + i);
     return i;
 }
 

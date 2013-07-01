@@ -49,10 +49,13 @@ public:
                    const char *value, int val_len, const char *sep) {
         out += " ";
         out.append(attr, attr_len);
-        out += "=";
-        out += sep;
-        out.append(value, val_len);
-        out += sep;
+        if (value)
+        {
+            out += "=";
+            out += sep;
+            out.append(value, val_len);
+            out += sep;
+        }
     }
     void anyTagEnd(const char *tag, int tag_len, int close_it) {
         if (close_it)
@@ -183,12 +186,12 @@ BOOST_AUTO_TEST_CASE( test_html_parser_4 )
     {
         mp::HTMLParser hp;
         const char* html =
-            "<\"?xml version=\"1.0\" strandalone=\"no\"?  ax>\n"
-            "<book></book>";  // <book badboy></book> does not work
+            "<?xml version=\"1.0\" strandalone=\"no\"?  ax>\n"
+            "<book><x ? href/></book>";
 
         const char* expected = html;
         MyEvent e;
-        hp.set_verbose(1);
+        hp.set_verbose(0);
         hp.parse(e, html);
 
         BOOST_CHECK_EQUAL(std::string(expected), e.out);
@@ -200,13 +203,44 @@ BOOST_AUTO_TEST_CASE( test_html_parser_4 )
             std::cout << e.out << std::endl;
         }
     }
-    catch (std::exception & e) 
+    catch (std::exception & e)
     {
         std::cout << e.what();
         std::cout << std::endl;
         BOOST_CHECK (false);
     }
 }
+
+BOOST_AUTO_TEST_CASE( test_html_parser_5 )
+{
+    try
+    {
+        mp::HTMLParser hp;
+        const char* html =
+            "<x link/>";
+
+        const char* expected = html;
+        MyEvent e;
+        hp.set_verbose(0);
+        hp.parse(e, html);
+
+        BOOST_CHECK_EQUAL(std::string(expected), e.out);
+        if (std::string(expected) != e.out)
+        {
+            std::cout << "Expected" << std::endl;
+            std::cout << expected << std::endl;
+            std::cout << "Got" << std::endl;
+            std::cout << e.out << std::endl;
+        }
+    }
+    catch (std::exception & e)
+    {
+        std::cout << e.what();
+        std::cout << std::endl;
+        BOOST_CHECK (false);
+    }
+}
+
 
 /*
  * Local variables:

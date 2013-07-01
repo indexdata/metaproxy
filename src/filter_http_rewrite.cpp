@@ -334,20 +334,23 @@ void yf::HttpRewrite::Event::attribute(const char *tag, int tag_len,
 
     wrbuf_putc(m_w, ' ');
     wrbuf_write(m_w, attr, attr_len);
-    wrbuf_puts(m_w, "=");
-    wrbuf_puts(m_w, sep);
-
-    std::string output;
-    if (subst)
+    if (value)
     {
-        std::string input(value, val_len);
-        output = it->rule->test_patterns(m_vars, input);
+        wrbuf_puts(m_w, "=");
+        wrbuf_puts(m_w, sep);
+
+        std::string output;
+        if (subst)
+        {
+            std::string input(value, val_len);
+            output = it->rule->test_patterns(m_vars, input);
+        }
+        if (output.empty())
+            wrbuf_write(m_w, value, val_len);
+        else
+            wrbuf_puts(m_w, output.c_str());
+        wrbuf_puts(m_w, sep);
     }
-    if (output.empty())
-        wrbuf_write(m_w, value, val_len);
-    else
-        wrbuf_puts(m_w, output.c_str());
-    wrbuf_puts(m_w, sep);
 }
 
 void yf::HttpRewrite::Event::closeTag(const char *tag, int tag_len)
