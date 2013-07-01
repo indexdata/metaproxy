@@ -44,9 +44,6 @@ namespace metaproxy_1 {
             boost::smatch what;
             std::string recipe;
             std::map<int, std::string> group_index;
-            const std::string search_replace(
-                std::map<std::string, std::string> & vars,
-                const std::string & txt);
             std::string sub_vars(
                 const std::map<std::string, std::string> & vars) const;
             void parse_groups(std::string pattern);
@@ -384,55 +381,55 @@ void yf::HttpRewrite::Event::text(const char *value, int len)
         wrbuf_puts(m_w, output.c_str());
 }
 
-/**
- * Tests pattern from the vector in order and executes recipe on
- the first match.
- */
 const std::string yf::HttpRewrite::Rule::test_patterns(
         std::map<std::string, std::string> & vars,
         const std::string & txt)
 {
-    std::list<Replace>::iterator it = replace_list.begin();
-
-    for (; it != replace_list.end(); it++)
-    {
-        std::string out = it->search_replace(vars, txt);
-        if (!out.empty()) return out;
-    }
-    return "";
-}
-
-const std::string yf::HttpRewrite::Replace::search_replace(
-        std::map<std::string, std::string> & vars,
-        const std::string & txt)
-{
+    std::string out;
     std::string::const_iterator start, end;
     start = txt.begin();
     end = txt.end();
-    std::string out;
-    while (regex_search(start, end, what, re)) //find next full match
+    while (1)
     {
+        std::list<Replace>::iterator bit = replace_list.end();
+        {
+            std::string::const_iterator best_pos = txt.end();
+            std::list<Replace>::iterator it = replace_list.begin();
+            for (; it != replace_list.end(); it++)
+            {
+                if (regex_search(start, end, it->what, it->re))
+                {
+                    if (it->what[0].first < best_pos)
+                    {
+                        best_pos = it->what[0].first;
+                        bit = it;
+                    }
+                }
+            }
+            if (bit == replace_list.end())
+                break;
+        }
+
         size_t i;
-        for (i = 1; i < what.size(); ++i)
+        for (i = 1; i < bit->what.size(); ++i)
         {
             //check if the group is named
-            std::map<int, std::string>::const_iterator it
-                = group_index.find(i);
-            if (it != group_index.end())
+            std::map<int, std::string>::const_iterator git
+                = bit->group_index.find(i);
+            if (git != bit->group_index.end())
             {   //it is
-                vars[it->second] = what[i];
+                vars[git->second] = bit->what[i];
             }
 
         }
         //prepare replacement string
-        std::string rvalue = sub_vars(vars);
+        std::string rvalue = bit->sub_vars(vars);
         yaz_log(YLOG_LOG, "! Rewritten '%s' to '%s'",
-                what.str(0).c_str(), rvalue.c_str());
-        out.append(start, what[0].first);
+                bit->what.str(0).c_str(), rvalue.c_str());
+        out.append(start, bit->what[0].first);
         out.append(rvalue);
-        start = what[0].second; //move search forward
+        start = bit->what[0].second; //move search forward
     }
-    //if we had a match cat the last part
     if (start != txt.begin())
         out.append(start, end);
     return out;
