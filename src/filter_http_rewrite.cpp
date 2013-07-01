@@ -156,8 +156,12 @@ void yf::HttpRewrite::Phase::rewrite_reqline (mp::odr & o,
     else
     {
         //TODO what about proto
+        const char *host = z_HTTP_header_lookup(hreq->headers, "Host");
+        if (!host)
+            return;
+
         path += "http://";
-        path += z_HTTP_header_lookup(hreq->headers, "Host");
+        path += host;
         path += hreq->path;
     }
 
