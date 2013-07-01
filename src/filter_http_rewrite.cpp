@@ -41,11 +41,12 @@ namespace metaproxy_1 {
         class HttpRewrite::Replace {
         public:
             boost::regex re;
+            boost::smatch what;
             std::string recipe;
             std::map<int, std::string> group_index;
             const std::string search_replace(
                 std::map<std::string, std::string> & vars,
-                const std::string & txt) const;
+                const std::string & txt);
             std::string sub_vars(
                 const std::map<std::string, std::string> & vars) const;
             void parse_groups(std::string pattern);
@@ -56,7 +57,7 @@ namespace metaproxy_1 {
             std::list<Replace> replace_list;
             const std::string test_patterns(
                 std::map<std::string, std::string> & vars,
-                const std::string & txt) const;
+                const std::string & txt);
         };
         class HttpRewrite::Within {
         public:
@@ -389,9 +390,9 @@ void yf::HttpRewrite::Event::text(const char *value, int len)
  */
 const std::string yf::HttpRewrite::Rule::test_patterns(
         std::map<std::string, std::string> & vars,
-        const std::string & txt) const
+        const std::string & txt)
 {
-    std::list<Replace>::const_iterator it = replace_list.begin();
+    std::list<Replace>::iterator it = replace_list.begin();
 
     for (; it != replace_list.end(); it++)
     {
@@ -403,9 +404,8 @@ const std::string yf::HttpRewrite::Rule::test_patterns(
 
 const std::string yf::HttpRewrite::Replace::search_replace(
         std::map<std::string, std::string> & vars,
-        const std::string & txt) const
+        const std::string & txt)
 {
-    boost::smatch what;
     std::string::const_iterator start, end;
     start = txt.begin();
     end = txt.end();
