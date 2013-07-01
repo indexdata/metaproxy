@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE( test_html_parser_2 )
     try
     {
         mp::HTMLParser hp;
-        const char* html = 
+        const char* html =
             "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n"
             "<HTML>\n"
             " <HEAD>\n"
@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE( test_html_parser_2 )
             std::cout << e.out << std::endl;
         }
     }
-    catch (std::exception & e) 
+    catch (std::exception & e)
     {
         std::cout << e.what();
         std::cout << std::endl;
@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE( test_html_parser_3 )
             std::cout << e.out << std::endl;
         }
     }
-    catch (std::exception & e) 
+    catch (std::exception & e)
     {
         std::cout << e.what();
         std::cout << std::endl;
