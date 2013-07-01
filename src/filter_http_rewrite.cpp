@@ -40,7 +40,7 @@ namespace metaproxy_1 {
     namespace filter {
         class HttpRewrite::Replace {
         public:
-            std::string regex;
+            boost::regex re;
             std::string recipe;
             std::map<int, std::string> group_index;
             const std::string search_replace(
@@ -48,7 +48,7 @@ namespace metaproxy_1 {
                 const std::string & txt) const;
             std::string sub_vars(
                 const std::map<std::string, std::string> & vars) const;
-            void parse_groups();
+            void parse_groups(std::string pattern);
         };
 
         class HttpRewrite::Rule {
@@ -383,7 +383,6 @@ void yf::HttpRewrite::Event::text(const char *value, int len)
         wrbuf_puts(m_w, output.c_str());
 }
 
-
 /**
  * Tests pattern from the vector in order and executes recipe on
  the first match.
@@ -406,8 +405,6 @@ const std::string yf::HttpRewrite::Replace::search_replace(
         std::map<std::string, std::string> & vars,
         const std::string & txt) const
 {
-    //exec regex against value
-    boost::regex re(regex);
     boost::smatch what;
     std::string::const_iterator start, end;
     start = txt.begin();
@@ -441,11 +438,11 @@ const std::string yf::HttpRewrite::Replace::search_replace(
     return out;
 }
 
-void yf::HttpRewrite::Replace::parse_groups()
+void yf::HttpRewrite::Replace::parse_groups(std::string pattern)
 {
     int gnum = 0;
     bool esc = false;
-    const std::string & str = regex;
+    const std::string &str = pattern;
     std::string res;
     yaz_log(YLOG_LOG, "Parsing groups from '%s'", str.c_str());
     for (size_t i = 0; i < str.size(); ++i)
@@ -501,7 +498,7 @@ void yf::HttpRewrite::Replace::parse_groups()
         }
         esc = false;
     }
-    regex = res;
+    re = res;
 }
 
 std::string yf::HttpRewrite::Replace::sub_vars(
@@ -587,11 +584,12 @@ void yf::HttpRewrite::configure_phase(const xmlNode *ptr, Phase &phase)
                 if (!strcmp((const char *) p->name, "rewrite"))
                 {
                     Replace replace;
+                    std::string from;
                     const struct _xmlAttr *attr;
                     for (attr = p->properties; attr; attr = attr->next)
                     {
                         if (!strcmp((const char *) attr->name,  "from"))
-                            replace.regex = mp::xml::get_text(attr->children);
+                            from = mp::xml::get_text(attr->children);
                         else if (!strcmp((const char *) attr->name,  "to"))
                             replace.recipe = mp::xml::get_text(attr->children);
                         else
@@ -601,10 +599,12 @@ void yf::HttpRewrite::configure_phase(const xmlNode *ptr, Phase &phase)
                                  + " in rewrite section of http_rewrite");
                     }
                     yaz_log(YLOG_LOG, "Found rewrite rule from '%s' to '%s'",
-                            replace.regex.c_str(), replace.recipe.c_str());
-                    replace.parse_groups();
-                    if (!replace.regex.empty())
+                            from.c_str(), replace.recipe.c_str());
+                    if (!from.empty())
+                    {
+                        replace.parse_groups(from);
                         rule->replace_list.push_back(replace);
+                    }
                 }
                 else
                     throw mp::filter::FilterException
