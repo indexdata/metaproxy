@@ -37,8 +37,6 @@ namespace metaproxy_1 {
                      const char *text_start, const char *text_end);
         int tagEnd(HTMLParserEvent &event,
                    const char *tag, int tag_len, const char *cp);
-        int tagStart(HTMLParserEvent &event,
-                     int *tag_len, const char *cp, const char which);
         int tagAttrs(HTMLParserEvent &event,
                      const char *name, int len,
                      const char *cp);
@@ -79,6 +77,11 @@ void mp::HTMLParser::set_verbose(int v)
 void mp::HTMLParser::parse(mp::HTMLParserEvent & event, const char *str) const
 {
     m_p->parse_str(event, str);
+}
+
+static int isAlpha(int c)
+{
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
 static int skipSpace(const char *cp)
@@ -166,50 +169,6 @@ int mp::HTMLParser::Rep::tagAttrs(HTMLParserEvent &event,
     return i;
 }
 
-int mp::HTMLParser::Rep::tagStart(HTMLParserEvent &event,
-                                  int *tag_len,
-                                  const char *cp, const char which)
-{
-    int i;
-    switch (which)
-    {
-    case '/':
-        i = skipName(cp);
-        *tag_len = i;
-        if (m_verbose)
-            printf("------ tag close %.*s\n", i, cp);
-        event.closeTag(cp, i);
-        break;
-    case '!':
-        for (i = 0; cp[i] && cp[i] != '>'; i++)
-            ;
-        *tag_len = i;
-        event.openTagStart(cp, i);
-        if (m_verbose)
-            printf("------ dtd %.*s\n", i, cp);
-        break;
-    case '?':
-        for (i = 0; cp[i] && cp[i] != '>'; i++)
-            ;
-        *tag_len = i;
-        event.openTagStart(cp, i);
-        if (m_verbose)
-            printf("------ pi %.*s\n", i, cp);
-        break;
-    default:
-        i = skipName(cp);
-        *tag_len = i;
-        if (m_verbose)
-            printf("------ tag open %.*s\n", i, cp);
-        event.openTagStart(cp, i);
-
-        i += tagAttrs(event, cp, i, cp + i);
-
-        break;
-    }
-    return i;
-}
-
 int mp::HTMLParser::Rep::tagEnd(HTMLParserEvent &event,
                                 const char *tag, int tag_len, const char *cp)
 {
@@ -254,34 +213,65 @@ void mp::HTMLParser::Rep::tagText(HTMLParserEvent &event,
 void mp::HTMLParser::Rep::parse_str(HTMLParserEvent &event, const char *cp)
 {
     const char *text_start = cp;
-    const char *text_end = cp;
     while (*cp)
     {
-        if (cp[0] == '<' && cp[1])  //tag?
-        {
-            char which = cp[1];
-            if (which == '/')
-                cp++;
-            if (!strchr(SPACECHR, cp[1])) //valid tag starts
-            {
-                int i = 0;
-                int tag_len;
+        if (*cp++ != '<')
+            continue;
 
-                tagText(event, text_start, text_end); //flush any text
-                cp++;
-                i += tagStart(event, &tag_len, cp, which);
-                i += tagEnd(event, cp, tag_len, cp + i);
-                cp += i;
-                text_start = cp;
-                text_end = cp;
-                continue;
-            }
+        if (*cp == '!')
+        {
+            int i;
+            tagText(event, text_start, cp - 1);
+            for (i = 1; cp[i] && cp[i] != '>'; i++)
+                ;
+            event.openTagStart(cp, i);
+            if (m_verbose)
+                printf("------ dtd %.*s\n", i, cp);
+            i += tagEnd(event, cp, i, cp + i);
+            cp += i;
+            text_start = cp;
         }
-        //text
-        cp++;
-        text_end = cp;
+        else if (*cp == '?')
+        {
+            int i;
+            tagText(event, text_start, cp - 1);
+            for (i = 1; cp[i] && cp[i] != '>'; i++)
+                ;
+            event.openTagStart(cp, i);
+            if (m_verbose)
+                printf("------ pi %.*s\n", i, cp);
+            i += tagEnd(event, cp, i, cp + i);
+            cp += i;
+            text_start = cp;
+        }
+        else if (*cp == '/' && isAlpha(cp[1]))
+        {
+            int i;
+            tagText(event, text_start, cp - 1);
+
+            i = skipName(++cp);
+            event.closeTag(cp, i);
+            if (m_verbose)
+                printf("------ tag close %.*s\n", i, cp);
+            i += tagEnd(event, cp, i, cp + i);
+            cp += i;
+            text_start = cp;
+        }
+        else if (isAlpha(*cp))
+        {
+            int i, j;
+            tagText(event, text_start, cp - 1);
+            i = skipName(cp);
+            event.openTagStart(cp, i);
+            if (m_verbose)
+                printf("------ tag open %.*s\n", i, cp);
+            j = tagAttrs(event, cp, i, cp + i);
+            j += tagEnd(event, cp, i, cp + i + j);
+            cp += i + j;
+            text_start = cp;
+        }
     }
-    tagText(event, text_start, text_end); //flush any text
+    tagText(event, text_start, cp);
 }
 
 /*
