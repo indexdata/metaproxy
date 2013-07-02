@@ -55,7 +55,7 @@ namespace metaproxy_1 {
             std::list<Replace> replace_list;
             const std::string test_patterns(
                 std::map<std::string, std::string> & vars,
-                const std::string & txt);
+                const std::string & txt, bool anchor);
         };
         class HttpRewrite::Within {
         public:
@@ -173,7 +173,7 @@ void yf::HttpRewrite::Phase::rewrite_reqline (mp::odr & o,
         {
             RulePtr rule = it->rule;
             yaz_log(YLOG_LOG, "Proxy request URL is %s", path.c_str());
-            std::string npath = rule->test_patterns(vars, path);
+            std::string npath = rule->test_patterns(vars, path, true);
             if (!npath.empty())
             {
                 yaz_log(YLOG_LOG, "Rewritten request URL is %s", npath.c_str());
@@ -199,7 +199,7 @@ void yf::HttpRewrite::Phase::rewrite_headers(mp::odr & o,
                 sheader += header->value;
 
                 RulePtr rule = it->rule;
-                std::string out = rule->test_patterns(vars, sheader);
+                std::string out = rule->test_patterns(vars, sheader, true);
                 if (!out.empty())
                 {
                     size_t pos = out.find(": ");
@@ -346,7 +346,7 @@ void yf::HttpRewrite::Event::attribute(const char *tag, int tag_len,
         if (subst)
         {
             std::string input(value, val_len);
-            output = it->rule->test_patterns(m_vars, input);
+            output = it->rule->test_patterns(m_vars, input, true);
         }
         if (output.empty())
             wrbuf_write(m_w, value, val_len);
@@ -378,7 +378,7 @@ void yf::HttpRewrite::Event::text(const char *value, int len)
     if (it != m_phase->within_list.end())
     {
         std::string input(value, len);
-        output = it->rule->test_patterns(m_vars, input);
+        output = it->rule->test_patterns(m_vars, input, false);
     }
     if (output.empty())
         wrbuf_write(m_w, value, len);
@@ -388,9 +388,9 @@ void yf::HttpRewrite::Event::text(const char *value, int len)
 
 const std::string yf::HttpRewrite::Rule::test_patterns(
         std::map<std::string, std::string> & vars,
-        const std::string & txt)
+        const std::string & txt, bool anchor)
 {
-    bool first = true;
+    bool first = anchor;
     std::string out;
     std::string::const_iterator start, end;
     start = txt.begin();
