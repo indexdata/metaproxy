@@ -85,6 +85,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "   <rule name=\"null\"/>\n"
             "   <rule name=\"url\">\n"
             "     <rewrite from='foo' to='bar'/>\n"
+            "     <rewrite from='^cx' to='cy'/>\n"
             "     <rewrite from='"
     "(?&lt;proto>https?://)(?&lt;host>[^/?# &quot;&apos;>]+)/(?&lt;path>[^  &quot;&apos;>]+)'\n"
             "            to='${proto}${pxhost}/${pxpath}/${host}/${path}' />\n"
@@ -145,11 +146,13 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "<a target=_blank href=\"http://targetsite/page3.html\">"
             "  Another abs link</a>"
             "<a href=\"/docs/page4.html\" />"
+            "<a href=\"cxcx\" />"
+            "<a href=\"cx \" />"
             "</body></html>";
 
         const char *resp_expected =
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 533\r\n"
+            "Content-Length: 564\r\n"
             "Content-Type: text/html\r\n"
             "Link: <http://proxyhost/proxypath/targetsite/file.xml>; rel=absolute\r\n"
             "Link: </dir/file.xml>; rel=relative\r\n"
@@ -172,6 +175,8 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "<a target=_blank href=\"http://proxyhost/proxypath/targetsite/page3.html\">"
             "  Another abs link</a>"
             "<a href=\"/docs/page4.html\"/>"
+            "<a href=\"cycx\"/>"
+            "<a href=\"cy \"/>"
             "</body></html>";
 
         int r;

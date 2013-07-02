@@ -40,6 +40,7 @@ namespace metaproxy_1 {
     namespace filter {
         class HttpRewrite::Replace {
         public:
+            bool start_anchor;
             boost::regex re;
             boost::smatch what;
             std::string recipe;
@@ -389,6 +390,7 @@ const std::string yf::HttpRewrite::Rule::test_patterns(
         std::map<std::string, std::string> & vars,
         const std::string & txt)
 {
+    bool first = true;
     std::string out;
     std::string::const_iterator start, end;
     start = txt.begin();
@@ -401,6 +403,8 @@ const std::string yf::HttpRewrite::Rule::test_patterns(
             std::list<Replace>::iterator it = replace_list.begin();
             for (; it != replace_list.end(); it++)
             {
+                if (it->start_anchor && !first)
+                    continue;
                 if (regex_search(start, end, it->what, it->re))
                 {
                     if (it->what[0].first < best_pos)
@@ -413,7 +417,7 @@ const std::string yf::HttpRewrite::Rule::test_patterns(
             if (bit == replace_list.end())
                 break;
         }
-
+        first = false;
         size_t i;
         for (i = 1; i < bit->what.size(); ++i)
         {
@@ -445,6 +449,7 @@ void yf::HttpRewrite::Replace::parse_groups(std::string pattern)
     bool esc = false;
     const std::string &str = pattern;
     std::string res;
+    start_anchor = str[0] == '^';
     yaz_log(YLOG_LOG, "Parsing groups from '%s'", str.c_str());
     for (size_t i = 0; i < str.size(); ++i)
     {
