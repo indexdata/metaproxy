@@ -7,5 +7,6 @@ filter_http_client =
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
   element mp:default-host { xsd:string }?,
+  element mp:max-redirects { xsd:integer }?,
   element mp:proxy { xsd:string }?
 

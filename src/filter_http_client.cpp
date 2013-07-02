@@ -50,8 +50,15 @@ namespace metaproxy_1 {
             void proxy(mp::Package &package);
             std::string proxy_host;
             std::string default_host;
+            int max_redirects;
+            Rep();
         };
     }
+}
+
+yf::HTTPClient::Rep::Rep()
+{
+    max_redirects = -0;
 }
 
 yf::HTTPClient::HTTPClient() : m_p(new Rep)
@@ -79,6 +86,8 @@ void yf::HTTPClient::Rep::proxy(mp::Package &package)
 
         if (*http_proxy)
             yaz_url_set_proxy(yaz_url, http_proxy);
+
+        yaz_url_set_max_redirects(yaz_url, max_redirects);
 
         std::string uri;
         if (hreq->path[0] == '/')
@@ -130,6 +139,10 @@ void mp::filter::HTTPClient::configure(const xmlNode * ptr, bool test_only,
         else if (!strcmp((const char *) ptr->name, "proxy"))
         {
             m_p->proxy_host = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name, "max-redirects"))
+        {
+            m_p->max_redirects = mp::xml::get_int(ptr, 0);
         }
         else if (!strcmp((const char *) ptr->name, "default-host"))
         {
