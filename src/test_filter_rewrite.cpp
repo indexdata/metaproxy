@@ -38,23 +38,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 using namespace boost::unit_test;
 namespace mp = metaproxy_1;
-/*
- * The global testconfig is commented out, as it won't even compile
- * on old Centos5 machines
-struct TestConfig {
-    TestConfig()
-    {
-        std::cout << "global setup\n";
-        yaz_log_init_level(YLOG_ALL);
-    }
-    ~TestConfig()
-    {
-        std::cout << "global teardown\n";
-    }
-};
-
-BOOST_GLOBAL_FIXTURE( TestConfig );
-*/
 
 BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
 {
@@ -185,54 +168,51 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "<a href=\"cy \"/>"
             "</body></html>";
 
-        int r;
         Z_GDU *gdu_res;
-        ODR dec = odr_createmem(ODR_DECODE);
+        mp::odr dec(ODR_DECODE);
+        mp::odr enc(ODR_ENCODE);
         odr_setbuf(dec, (char *) resp_buf, strlen(resp_buf), 0);
-        r = z_GDU(dec, &gdu_res, 0, 0);
+        int r = z_GDU(dec, &gdu_res, 0, 0);
 
         BOOST_CHECK(r);
         if (r)
         {
             BOOST_CHECK_EQUAL(gdu_res->which, Z_GDU_HTTP_Response);
+
+            pack.response() = gdu_res;
+
+            //feed to the router
+            pack.router(router).move();
+
+            //analyze the response
+            Z_GDU *gdu_res_rew = pack.response().get();
+            BOOST_CHECK(gdu_res_rew);
+            BOOST_CHECK_EQUAL(gdu_res_rew->which, Z_GDU_HTTP_Response);
+
+            Z_HTTP_Response *hres = gdu_res_rew->u.HTTP_Response;
+            BOOST_CHECK(hres);
+
+            z_GDU(enc, &gdu_res_rew, 0, 0);
+            char *resp_result;
+            int resp_result_len;
+            resp_result = odr_getbuf(enc, &resp_result_len, 0);
+
+            int equal = ((size_t) resp_result_len == strlen(resp_expected))
+                && !memcmp(resp_result, resp_expected, resp_result_len);
+            BOOST_CHECK(equal);
+
+            if (!equal)
+            {
+                //compare buffers
+                std::cout << "Expected result:\n" << resp_expected << "\n";
+                std::cout << "Got result:\n" << "\n";
+                fflush(stdout);
+                fwrite(resp_result, 1, resp_result_len, stdout);
+                fflush(stdout);
+                std::cout << "\nGot result buf len: " << resp_result_len
+                          << "\n";
+            }
         }
-
-        pack.response() = gdu_res;
-
-        //feed to the router
-        pack.router(router).move();
-
-        //analyze the response
-        Z_GDU *gdu_res_rew = pack.response().get();
-        BOOST_CHECK(gdu_res_rew);
-        BOOST_CHECK_EQUAL(gdu_res_rew->which, Z_GDU_HTTP_Response);
-
-        Z_HTTP_Response *hres = gdu_res_rew->u.HTTP_Response;
-        BOOST_CHECK(hres);
-
-        //compare buffers
-        std::cout << "Expected result:\n" << resp_expected << std::endl;
-
-        ODR enc = odr_createmem(ODR_ENCODE);
-        z_GDU(enc, &gdu_res_rew, 0, 0);
-        char *resp_result;
-        int resp_result_len;
-        resp_result = odr_getbuf(enc, &resp_result_len, 0);
-
-        BOOST_CHECK(resp_result);
-        BOOST_CHECK_EQUAL((size_t) resp_result_len, strlen(resp_expected));
-
-        std::cout << "Got result:\n" << std::endl;
-        fflush(stdout);
-        fwrite(resp_result, 1, resp_result_len, stdout);
-        fflush(stdout);
-        std::cout << "\nGot result buf len: " << resp_result_len
-            << std::endl;
-
-        BOOST_CHECK(memcmp(resp_result, resp_expected, resp_result_len) == 0);
-
-        odr_destroy(dec);
-        odr_destroy(enc);
     }
     catch (std::exception & e) {
         std::cout << e.what();
