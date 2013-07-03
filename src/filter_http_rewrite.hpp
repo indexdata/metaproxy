@@ -29,6 +29,7 @@ namespace metaproxy_1 {
     namespace filter {
         class HttpRewrite : public Base {
             class Phase;
+            class Content;
             class Replace;
             class Rule;
             class Within;

@@ -66,18 +66,27 @@ namespace metaproxy_1 {
             RulePtr rule;
         };
 
+        class HttpRewrite::Content {
+        public:
+            std::string type;
+            boost::regex content_re;
+            std::list<Within> within_list;
+            void configure(const xmlNode *ptr,
+                           std::map<std::string, RulePtr > &rules);
+        };
         class HttpRewrite::Phase {
         public:
             Phase();
-            std::list<Within> within_list;
             int m_verbose;
+            std::list<Content> content_list;
             void rewrite_reqline(mp::odr & o, Z_HTTP_Request *hreq,
                 std::map<std::string, std::string> & vars) const;
             void rewrite_headers(mp::odr & o, Z_HTTP_Header *headers,
                 std::map<std::string, std::string> & vars) const;
             void rewrite_body(mp::odr & o,
-                char **content_buf, int *content_len,
-                std::map<std::string, std::string> & vars) const;
+                              const char *content_type,
+                              char **content_buf, int *content_len,
+                              std::map<std::string, std::string> & vars) const;
         };
         class HttpRewrite::Event : public HTMLParserEvent {
             void openTagStart(const char *tag, int tag_len);
@@ -88,12 +97,12 @@ namespace metaproxy_1 {
                            const char *sep);
             void closeTag(const char *tag, int tag_len);
             void text(const char *value, int len);
-            const Phase *m_phase;
+            const Content *m_content;
             WRBUF m_w;
             std::stack<std::list<Within>::const_iterator> s_within;
             std::map<std::string, std::string> &m_vars;
         public:
-            Event(const Phase *p, std::map<std::string, std::string> &vars);
+            Event(const Content *p, std::map<std::string, std::string> &vars);
             ~Event();
             const char *result();
         };
@@ -124,7 +133,10 @@ void yf::HttpRewrite::process(mp::Package & package) const
         yaz_log(YLOG_LOG, ">> Request headers");
         req_phase->rewrite_headers(o, hreq->headers, vars);
         req_phase->rewrite_body(o,
-                &hreq->content_buf, &hreq->content_len, vars);
+                                z_HTTP_header_lookup(hreq->headers,
+                                                     "Content-Type"),
+                                &hreq->content_buf, &hreq->content_len,
+                                vars);
         package.request() = gdu;
     }
     package.move();
@@ -136,8 +148,11 @@ void yf::HttpRewrite::process(mp::Package & package) const
         mp::odr o;
         yaz_log(YLOG_LOG, "<< Respose headers");
         res_phase->rewrite_headers(o, hres->headers, vars);
-        res_phase->rewrite_body(o, &hres->content_buf,
-                &hres->content_len, vars);
+        res_phase->rewrite_body(o,
+                                z_HTTP_header_lookup(hres->headers,
+                                                     "Content-Type"),
+                                &hres->content_buf, &hres->content_len,
+                                vars);
         package.response() = gdu;
     }
 }
@@ -166,9 +181,16 @@ void yf::HttpRewrite::Phase::rewrite_reqline (mp::odr & o,
         path += hreq->path;
     }
 
+    std::list<Content>::const_iterator cit = content_list.begin();
+    for (; cit != content_list.end(); cit++)
+        if (cit->type == "headers")
+            break;
 
-    std::list<Within>::const_iterator it = within_list.begin();
-    for (; it != within_list.end(); it++)
+    if (cit == content_list.end())
+        return;
+
+    std::list<Within>::const_iterator it = cit->within_list.begin();
+    for (; it != cit->within_list.end(); it++)
         if (it->reqline)
         {
             RulePtr rule = it->rule;
@@ -186,10 +208,18 @@ void yf::HttpRewrite::Phase::rewrite_headers(mp::odr & o,
         Z_HTTP_Header *headers,
         std::map<std::string, std::string> & vars) const
 {
+    std::list<Content>::const_iterator cit = content_list.begin();
+    for (; cit != content_list.end(); cit++)
+        if (cit->type == "headers")
+            break;
+
+    if (cit == content_list.end())
+        return;
+
     for (Z_HTTP_Header *header = headers; header; header = header->next)
     {
-        std::list<Within>::const_iterator it = within_list.begin();
-        for (; it != within_list.end(); it++)
+        std::list<Within>::const_iterator it = cit->within_list.begin();
+        for (; it != cit->within_list.end(); it++)
         {
             if (it->header.length() > 0 &&
                 yaz_strcasecmp(it->header.c_str(), header->name) == 0)
@@ -218,11 +248,25 @@ void yf::HttpRewrite::Phase::rewrite_headers(mp::odr & o,
     }
 }
 
-void yf::HttpRewrite::Phase::rewrite_body(mp::odr & o,
-        char **content_buf,
-        int *content_len,
-        std::map<std::string, std::string> & vars) const
+void yf::HttpRewrite::Phase::rewrite_body(
+    mp::odr &o,
+    const char *content_type,
+    char **content_buf,
+    int *content_len,
+    std::map<std::string, std::string> & vars) const
 {
+    std::list<Content>::const_iterator cit = content_list.begin();
+    for (; cit != content_list.end(); cit++)
+    {
+        yaz_log(YLOG_LOG, "rewrite_body: content_type=%s type=%s",
+                content_type, cit->type.c_str());
+        if (cit->type != "headers"
+            && regex_match(content_type, cit->content_re))
+            break;
+    }
+    if (cit == content_list.end())
+        return;
+
     if (*content_buf)
     {
         int i;
@@ -230,23 +274,26 @@ void yf::HttpRewrite::Phase::rewrite_body(mp::odr & o,
             if ((*content_buf)[i] == 0)
                 return;  // binary content. skip
 
-        HTMLParser parser;
-        Event ev(this, vars);
+        if (cit->type == "html")
+        {
+            HTMLParser parser;
+            Event ev(&*cit, vars);
 
-        parser.set_verbose(m_verbose);
+            parser.set_verbose(m_verbose);
 
-        std::string buf(*content_buf, *content_len);
+            std::string buf(*content_buf, *content_len);
 
-        parser.parse(ev, buf.c_str());
-        const char *res = ev.result();
-        *content_buf = odr_strdup(o, res);
-        *content_len = strlen(res);
+            parser.parse(ev, buf.c_str());
+            const char *res = ev.result();
+            *content_buf = odr_strdup(o, res);
+            *content_len = strlen(res);
+        }
     }
 }
 
-yf::HttpRewrite::Event::Event(const Phase *p,
+yf::HttpRewrite::Event::Event(const Content *p,
                               std::map<std::string, std::string> & vars
-    ) : m_phase(p), m_vars(vars)
+    ) : m_content(p), m_vars(vars)
 {
     m_w = wrbuf_alloc();
 }
@@ -267,8 +314,8 @@ void yf::HttpRewrite::Event::openTagStart(const char *tag, int tag_len)
     wrbuf_write(m_w, tag, tag_len);
 
     std::string t(tag, tag_len);
-    std::list<Within>::const_iterator it = m_phase->within_list.begin();
-    for (; it != m_phase->within_list.end(); it++)
+    std::list<Within>::const_iterator it = m_content->within_list.begin();
+    for (; it != m_content->within_list.end(); it++)
     {
         if (it->tag.length() > 0 && yaz_strcasecmp(it->tag.c_str(),
                                                    t.c_str()) == 0)
@@ -311,10 +358,10 @@ void yf::HttpRewrite::Event::attribute(const char *tag, int tag_len,
                                        const char *value, int val_len,
                                        const char *sep)
 {
-    std::list<Within>::const_iterator it = m_phase->within_list.begin();
+    std::list<Within>::const_iterator it = m_content->within_list.begin();
     bool subst = false;
 
-    for (; it != m_phase->within_list.end(); it++)
+    for (; it != m_content->within_list.end(); it++)
     {
         std::string t(tag, tag_len);
         if (it->tag.length() == 0 ||
@@ -371,11 +418,11 @@ void yf::HttpRewrite::Event::closeTag(const char *tag, int tag_len)
 
 void yf::HttpRewrite::Event::text(const char *value, int len)
 {
-    std::list<Within>::const_iterator it = m_phase->within_list.end();
+    std::list<Within>::const_iterator it = m_content->within_list.end();
     if (!s_within.empty())
         it = s_within.top();
     std::string output;
-    if (it != m_phase->within_list.end())
+    if (it != m_content->within_list.end())
     {
         std::string input(value, len);
         output = it->rule->test_patterns(m_vars, input, false);
@@ -561,6 +608,36 @@ yf::HttpRewrite::Phase::Phase() : m_verbose(0)
 {
 }
 
+void yf::HttpRewrite::Content::configure(
+    const xmlNode *ptr, std::map<std::string, RulePtr > &rules)
+{
+    for (; ptr; ptr = ptr->next)
+    {
+        if (ptr->type != XML_ELEMENT_NODE)
+            continue;
+        if (!strcmp((const char *) ptr->name, "within"))
+        {
+            static const char *names[6] =
+                { "header", "attr", "tag", "rule", "reqline", 0 };
+            std::string values[5];
+            mp::xml::parse_attr(ptr, names, values);
+            Within w;
+            w.header = values[0];
+            w.attr = values[1];
+            w.tag = values[2];
+            std::map<std::string,RulePtr>::const_iterator it =
+                rules.find(values[3]);
+            if (it == rules.end())
+                throw mp::filter::FilterException
+                    ("Reference to non-existing rule '" + values[3] +
+                     "' in http_rewrite filter");
+            w.rule = it->second;
+            w.reqline = values[4] == "1";
+            within_list.push_back(w);
+        }
+    }
+}
+
 void yf::HttpRewrite::configure_phase(const xmlNode *ptr, Phase &phase)
 {
     static const char *names[2] = { "verbose", 0 };
@@ -620,25 +697,26 @@ void yf::HttpRewrite::configure_phase(const xmlNode *ptr, Phase &phase)
             }
             rules[values[0]] = rule;
         }
-        else if (!strcmp((const char *) ptr->name, "within"))
+        else if (!strcmp((const char *) ptr->name, "content"))
         {
-            static const char *names[6] =
-                { "header", "attr", "tag", "rule", "reqline", 0 };
-            std::string values[5];
+            static const char *names[3] =
+                { "type", "mime", 0 };
+            std::string values[2];
             mp::xml::parse_attr(ptr, names, values);
-            Within w;
-            w.header = values[0];
-            w.attr = values[1];
-            w.tag = values[2];
-            std::map<std::string,RulePtr>::const_iterator it =
-                rules.find(values[3]);
-            if (it == rules.end())
-                throw mp::filter::FilterException
-                    ("Reference to non-existing rule '" + values[3] +
-                     "' in http_rewrite filter");
-            w.rule = it->second;
-            w.reqline = values[4] == "1";
-            phase.within_list.push_back(w);
+            if (values[0].empty())
+            {
+                    throw mp::filter::FilterException
+                        ("Missing attribute, type for for element "
+                         + std::string((const char *) ptr->name)
+                         + " in http_rewrite filter");
+            }
+            Content c;
+
+            c.type = values[0];
+            // if (!values[1].empty())
+                c.content_re = values[1];
+            c.configure(ptr->children, rules);
+            phase.content_list.push_back(c);
         }
         else
         {

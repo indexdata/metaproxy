@@ -69,32 +69,38 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "<filter xmlns='http://indexdata.com/metaproxy'\n"
             "        id='rewrite1' type='http_rewrite'>\n"
             " <request verbose=\"1\">\n"
-            "   <rule name=\"null\"/>\n"
-            "   <rule name=\"url\">\n"
+            "  <rule name=\"null\"/>\n"
+            "  <rule name=\"url\">\n"
             "     <rewrite from='"
     "(?&lt;proto>https?://)(?&lt;pxhost>[^ /?#]+)/(?&lt;pxpath>[^ /]+)"
     "/(?&lt;host>[^ /]+)(?&lt;path>[^ ]*)'\n"
             "            to='${proto}${host}${path}' />\n"
             "     <rewrite from='(?:Host: )(.*)'\n"
             "            to='Host: ${host}' />\n"
-            "   </rule>\n"
-            "  <within header=\"link\" rule=\"null\"/>\n"
-            "  <within reqline=\"1\" rule=\"url\"/>\n"
+            "  </rule>\n"
+            "  <content type=\"headers\">\n"
+            "    <within header=\"link\" rule=\"null\"/>\n"
+            "    <within reqline=\"1\" rule=\"url\"/>\n"
+            "  </content>\n"
             " </request>\n"
             " <response verbose=\"1\">\n"
-            "   <rule name=\"null\"/>\n"
-            "   <rule name=\"url\">\n"
+            "  <rule name=\"null\"/>\n"
+            "  <rule name=\"url\">\n"
             "     <rewrite from='foo' to='bar'/>\n"
             "     <rewrite from='^cx' to='cy'/>\n"
             "     <rewrite from='"
     "(?&lt;proto>https?://)(?&lt;host>[^/?# &quot;&apos;>]+)/(?&lt;path>[^  &quot;&apos;>]+)'\n"
             "            to='${proto}${pxhost}/${pxpath}/${host}/${path}' />\n"
             "  </rule>\n"
-            "  <within header=\"link\" rule=\"url\"/>\n"
-            "  <within tag=\"body\" attr=\"background\" rule=\"null\"/>\n"
-            "  <within tag=\"script\" attr=\"#text\" rule=\"url\"/>\n"
-            "  <within tag=\"style\" attr=\"#text\" rule=\"url\"/>\n"
-            "  <within attr=\"href,src\" rule=\"url\"/>\n"
+            "  <content type=\"headers\">\n"
+            "    <within header=\"link\" rule=\"url\"/>\n"
+            "  </content>\n"
+            "  <content type=\"html\" mime=\"text/xml|text/html\">\n"
+            "    <within tag=\"body\" attr=\"background\" rule=\"null\"/>\n"
+            "    <within tag=\"script\" attr=\"#text\" rule=\"url\"/>\n"
+            "    <within tag=\"style\" attr=\"#text\" rule=\"url\"/>\n"
+            "    <within attr=\"href,src\" rule=\"url\"/>\n"
+            "  </content>\n"
             " </response>\n"
             "</filter>\n"
         ;
@@ -216,11 +222,11 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
         BOOST_CHECK(resp_result);
         BOOST_CHECK_EQUAL((size_t) resp_result_len, strlen(resp_expected));
 
-        std::cout << "Rewritten result:\n" << std::endl;
+        std::cout << "Got result:\n" << std::endl;
         fflush(stdout);
         fwrite(resp_result, 1, resp_result_len, stdout);
         fflush(stdout);
-        std::cout << "\nRewritten result buf len: " << resp_result_len
+        std::cout << "\nGot result buf len: " << resp_result_len
             << std::endl;
 
         BOOST_CHECK(memcmp(resp_result, resp_expected, resp_result_len) == 0);
