@@ -84,6 +84,9 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "    <within tag=\"style\" attr=\"#text\" rule=\"url\"/>\n"
             "    <within attr=\"href,src\" rule=\"url\"/>\n"
             "  </content>\n"
+            "  <content type=\"quoted-literal\" mime=\".*javascript\">\n"
+            "    <within rule=\"url\"/>\n"
+            "  </content>\n"
             " </response>\n"
             "</filter>\n"
         ;
@@ -307,11 +310,11 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
             "my.location = 'http://targetsite/images/bg.png';\n"
             "my.other = \"http://targetsite/images/fg.png\";\n"
             "my.thrd = \"other\";\n"
-            "// http://targetsite/images/bg.png\n";
+            "// \"http://targetsite/images/bg.png\n";
 
         const char *resp_expected =
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 194\r\n"
+            "Content-Length: 195\r\n"
             "Content-Type: application/javascript\r\n"
             "Link: <http://proxyhost/proxypath/targetsite/file.xml>; rel=absolute\r\n"
             "Link: </dir/file.xml>; rel=relative\r\n"
@@ -320,7 +323,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
             "my.location = 'http://proxyhost/proxypath/targetsite/images/bg.png';\n"
             "my.other = \"http://proxyhost/proxypath/targetsite/images/fg.png\";\n"
             "my.thrd = \"other\";\n"
-            "// http://targetsite/images/bg.png\n";
+            "// \"http://targetsite/images/bg.png\n";
 
         Z_GDU *gdu_res;
         mp::odr dec(ODR_DECODE);
