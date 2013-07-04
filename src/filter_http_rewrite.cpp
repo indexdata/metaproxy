@@ -73,6 +73,8 @@ namespace metaproxy_1 {
             std::list<Within> within_list;
             void configure(const xmlNode *ptr,
                            std::map<std::string, RulePtr > &rules);
+            void quoted_literal(std::string &content,
+                                std::map<std::string, std::string> &vars) const;
         };
         class HttpRewrite::Phase {
         public:
@@ -287,6 +289,13 @@ void yf::HttpRewrite::Phase::rewrite_body(
             const char *res = ev.result();
             *content_buf = odr_strdup(o, res);
             *content_len = strlen(res);
+        }
+        if (cit->type == "quoted-literal")
+        {
+            std::string content(*content_buf, *content_len);
+            cit->quoted_literal(content, vars);
+            *content_buf = odr_strdup(o, content.c_str());
+            *content_len = strlen(*content_buf);
         }
     }
 }
@@ -606,6 +615,53 @@ std::string yf::HttpRewrite::Replace::sub_vars(
 
 yf::HttpRewrite::Phase::Phase() : m_verbose(0)
 {
+}
+
+void yf::HttpRewrite::Content::quoted_literal(
+    std::string &content,
+    std::map<std::string, std::string> &vars) const
+{
+    std::string res;
+    const char *cp = content.c_str();
+    const char *cp0 = cp;
+    while (*cp)
+    {
+        if (*cp == '"' || *cp == '\'')
+        {
+            int m = *cp;
+            cp++;
+            res.append(cp0, cp - cp0);
+            cp0 = cp;
+            while (*cp)
+            {
+                if (cp[-1] != '\\' && *cp == m)
+                    break;
+                cp++;
+            }
+            if (!*cp)
+                break;
+            std::list<Within>::const_iterator it = within_list.begin();
+            std::string s(cp0, cp - cp0);
+            if (it != within_list.end())
+            {
+                RulePtr rule = it->rule;
+                std::string r;
+                r = rule->test_patterns(vars, s, true);
+                if (!r.empty())
+                    s = r;
+            }
+            cp0 = cp;
+            res.append(s);
+        }
+        else if (*cp == '/' && cp[1] == '/')
+        {
+            while (cp[1] && cp[1] != '\n')
+                cp++;
+        }
+        cp++;
+    }
+    res.append(cp0, cp - cp0);
+    content = res;
 }
 
 void yf::HttpRewrite::Content::configure(
