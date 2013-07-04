@@ -636,6 +636,8 @@ void yf::HttpRewrite::Content::quoted_literal(
             {
                 if (cp[-1] != '\\' && *cp == m)
                     break;
+                if (*cp == '\n')
+                    break;
                 cp++;
             }
             if (!*cp)
