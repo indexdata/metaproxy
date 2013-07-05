@@ -53,9 +53,9 @@ namespace metaproxy_1 {
         class HttpRewrite::Rule {
         public:
             std::list<Replace> replace_list;
-            const std::string test_patterns(
-                std::map<std::string, std::string> & vars,
-                const std::string & txt, bool anchor);
+            bool test_patterns(
+                std::map<std::string, std::string> &vars,
+                std::string &txt, bool anchor);
         };
         class HttpRewrite::Within {
         public:
@@ -195,13 +195,11 @@ void yf::HttpRewrite::Phase::rewrite_reqline (mp::odr & o,
     for (; it != cit->within_list.end(); it++)
         if (it->reqline)
         {
-            RulePtr rule = it->rule;
             yaz_log(YLOG_LOG, "Proxy request URL is %s", path.c_str());
-            std::string npath = rule->test_patterns(vars, path, true);
-            if (!npath.empty())
+            if (it->rule->test_patterns(vars, path, true))
             {
-                yaz_log(YLOG_LOG, "Rewritten request URL is %s", npath.c_str());
-                hreq->path = odr_strdup(o, npath.c_str());
+                yaz_log(YLOG_LOG, "Rewritten request URL is %s", path.c_str());
+                hreq->path = odr_strdup(o, path.c_str());
             }
         }
 }
@@ -230,20 +228,18 @@ void yf::HttpRewrite::Phase::rewrite_headers(mp::odr & o,
                 sheader += ": ";
                 sheader += header->value;
 
-                RulePtr rule = it->rule;
-                std::string out = rule->test_patterns(vars, sheader, true);
-                if (!out.empty())
+                if (it->rule->test_patterns(vars, sheader, true))
                 {
-                    size_t pos = out.find(": ");
+                    size_t pos = sheader.find(": ");
                     if (pos == std::string::npos)
                     {
                         yaz_log(YLOG_LOG, "Header malformed during rewrite, ignoring");
                         continue;
                     }
-                    header->name = odr_strdup(o, out.substr(0, pos).c_str());
-                    header->value = odr_strdup(o,
-                                               out.substr(pos + 2,
-                                                          std::string::npos).c_str());
+                    header->name = odr_strdup(
+                        o, sheader.substr(0, pos).c_str());
+                    header->value = odr_strdup(
+                        o, sheader.substr(pos + 2, std::string::npos).c_str());
                 }
             }
         }
@@ -401,13 +397,12 @@ void yf::HttpRewrite::Event::attribute(const char *tag, int tag_len,
         std::string output;
         if (subst)
         {
-            std::string input(value, val_len);
-            output = it->rule->test_patterns(m_vars, input, true);
+            std::string s(value, val_len);
+            it->rule->test_patterns(m_vars, s, true);
+            wrbuf_puts(m_w, s.c_str());
         }
-        if (output.empty())
-            wrbuf_write(m_w, value, val_len);
         else
-            wrbuf_puts(m_w, output.c_str());
+            wrbuf_write(m_w, value, val_len);
         wrbuf_puts(m_w, sep);
     }
 }
@@ -430,22 +425,21 @@ void yf::HttpRewrite::Event::text(const char *value, int len)
     std::list<Within>::const_iterator it = m_content->within_list.end();
     if (!s_within.empty())
         it = s_within.top();
-    std::string output;
     if (it != m_content->within_list.end())
     {
-        std::string input(value, len);
-        output = it->rule->test_patterns(m_vars, input, false);
+        std::string s(value, len);
+        it->rule->test_patterns(m_vars, s, false);
+        wrbuf_puts(m_w, s.c_str());
     }
-    if (output.empty())
-        wrbuf_write(m_w, value, len);
     else
-        wrbuf_puts(m_w, output.c_str());
+        wrbuf_write(m_w, value, len);
 }
 
-const std::string yf::HttpRewrite::Rule::test_patterns(
-        std::map<std::string, std::string> & vars,
-        const std::string & txt, bool anchor)
+bool yf::HttpRewrite::Rule::test_patterns(
+    std::map<std::string, std::string> & vars,
+    std::string & txt, bool anchor)
 {
+    bool replaces = false;
     bool first = anchor;
     std::string out;
     std::string::const_iterator start, end;
@@ -474,6 +468,7 @@ const std::string yf::HttpRewrite::Rule::test_patterns(
                 break;
         }
         first = false;
+        replaces = true;
         size_t i;
         for (i = 1; i < bit->what.size(); ++i)
         {
@@ -494,9 +489,9 @@ const std::string yf::HttpRewrite::Rule::test_patterns(
         out.append(rvalue);
         start = bit->what[0].second; //move search forward
     }
-    if (start != txt.begin())
-        out.append(start, end);
-    return out;
+    out.append(start, end);
+    txt = out;
+    return replaces;
 }
 
 void yf::HttpRewrite::Replace::parse_groups(std::string pattern)
@@ -645,13 +640,7 @@ void yf::HttpRewrite::Content::quoted_literal(
             std::list<Within>::const_iterator it = within_list.begin();
             std::string s(cp0, cp - cp0);
             if (it != within_list.end())
-            {
-                RulePtr rule = it->rule;
-                std::string r;
-                r = rule->test_patterns(vars, s, true);
-                if (!r.empty())
-                    s = r;
-            }
+                it->rule->test_patterns(vars, s, true);
             cp0 = cp;
             res.append(s);
         }
