@@ -75,6 +75,8 @@ namespace metaproxy_1 {
                            std::map<std::string, RulePtr > &rules);
             void quoted_literal(std::string &content,
                                 std::map<std::string, std::string> &vars) const;
+            void parse(int verbose, std::string &content,
+                       std::map<std::string, std::string> & vars) const;
         };
         class HttpRewrite::Phase {
         public:
@@ -272,27 +274,10 @@ void yf::HttpRewrite::Phase::rewrite_body(
             if ((*content_buf)[i] == 0)
                 return;  // binary content. skip
 
-        if (cit->type == "html")
-        {
-            HTMLParser parser;
-            Event ev(&*cit, vars);
-
-            parser.set_verbose(m_verbose);
-
-            std::string buf(*content_buf, *content_len);
-
-            parser.parse(ev, buf.c_str());
-            const char *res = ev.result();
-            *content_buf = odr_strdup(o, res);
-            *content_len = strlen(res);
-        }
-        if (cit->type == "quoted-literal")
-        {
-            std::string content(*content_buf, *content_len);
-            cit->quoted_literal(content, vars);
-            *content_buf = odr_strdup(o, content.c_str());
-            *content_len = strlen(*content_buf);
-        }
+        std::string content(*content_buf, *content_len);
+        cit->parse(m_verbose, content, vars);
+        *content_buf = odr_strdup(o, content.c_str());
+        *content_len = strlen(*content_buf);
     }
 }
 
@@ -610,6 +595,27 @@ std::string yf::HttpRewrite::Replace::sub_vars(
 
 yf::HttpRewrite::Phase::Phase() : m_verbose(0)
 {
+}
+
+void yf::HttpRewrite::Content::parse(
+    int verbose,
+    std::string &content,
+    std::map<std::string, std::string> &vars) const
+{
+    if (type == "html")
+    {
+        HTMLParser parser;
+        Event ev(this, vars);
+
+        parser.set_verbose(verbose);
+
+        parser.parse(ev, content.c_str());
+        content = ev.result();
+    }
+    if (type == "quoted-literal")
+    {
+        quoted_literal(content, vars);
+    }
 }
 
 void yf::HttpRewrite::Content::quoted_literal(
