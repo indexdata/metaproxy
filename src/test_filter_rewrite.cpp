@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "  </content>\n"
             "  <content type=\"html\" mime=\"text/xml|text/html\">\n"
             "    <within tag=\"body\" attr=\"background\" rule=\"null\"/>\n"
-            "    <within tag=\"script\" attr=\"#text\" rule=\"url\"/>\n"
+            "    <within tag=\"script\" attr=\"#text\" type=\"quoted-literal\" rule=\"url\"/>\n"
             "    <within tag=\"style\" attr=\"#text\" rule=\"url\"/>\n"
             "    <within attr=\"href,src\" rule=\"url\"/>\n"
             "  </content>\n"
@@ -115,7 +115,6 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
 
         const char *resp_buf =
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 441\r\n"
             "Content-Type: text/html\r\n"
             "Link: <http://targetsite/file.xml>; rel=absolute\r\n"
             "Link: </dir/file.xml>; rel=relative\r\n"
@@ -128,7 +127,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "</style>"
             "</head>"
             "<script>var jslink=\"http://targetsite/webservice.xml\";"
-            "var some=foo;"
+            "var some=\"foo\"; foo=1;"
             "</script>"
             "<body>"
             "<p>Welcome to our website. It doesn't make it easy to get pro"
@@ -144,7 +143,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
 
         const char *resp_expected =
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 564\r\n"
+            "Content-Length: 573\r\n"
             "Content-Type: text/html\r\n"
             "Link: <http://proxyhost/proxypath/targetsite/file.xml>; rel=absolute\r\n"
             "Link: </dir/file.xml>; rel=relative\r\n"
@@ -157,7 +156,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "</style>"
             "</head>"
             "<script>var jslink=\"http://proxyhost/proxypath/targetsite/webservice.xml\";"
-            "var some=bar;"
+            "var some=\"bar\"; foo=1;"
             "</script>"
             "<body>"
             "<p>Welcome to our website. It doesn't make it easy to get pro"
@@ -301,7 +300,6 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
 
         const char *resp_buf =
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 140\r\n"
             "Content-Type: application/javascript\r\n"
             "Link: <http://targetsite/file.xml>; rel=absolute\r\n"
             "Link: </dir/file.xml>; rel=relative\r\n"

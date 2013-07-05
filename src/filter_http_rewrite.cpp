@@ -62,8 +62,11 @@ namespace metaproxy_1 {
             std::string header;
             std::string attr;
             std::string tag;
+            std::string type;
             bool reqline;
             RulePtr rule;
+            bool exec(std::map<std::string, std::string> &vars,
+                      std::string &txt, bool anchor) const;
         };
 
         class HttpRewrite::Content {
@@ -198,7 +201,7 @@ void yf::HttpRewrite::Phase::rewrite_reqline (mp::odr & o,
         if (it->reqline)
         {
             yaz_log(YLOG_LOG, "Proxy request URL is %s", path.c_str());
-            if (it->rule->test_patterns(vars, path, true))
+            if (it->exec(vars, path, true))
             {
                 yaz_log(YLOG_LOG, "Rewritten request URL is %s", path.c_str());
                 hreq->path = odr_strdup(o, path.c_str());
@@ -230,7 +233,7 @@ void yf::HttpRewrite::Phase::rewrite_headers(mp::odr & o,
                 sheader += ": ";
                 sheader += header->value;
 
-                if (it->rule->test_patterns(vars, sheader, true))
+                if (it->exec(vars, sheader, true))
                 {
                     size_t pos = sheader.find(": ");
                     if (pos == std::string::npos)
@@ -255,6 +258,8 @@ void yf::HttpRewrite::Phase::rewrite_body(
     int *content_len,
     std::map<std::string, std::string> & vars) const
 {
+    if (*content_len == 0)
+        return;
     std::list<Content>::const_iterator cit = content_list.begin();
     for (; cit != content_list.end(); cit++)
     {
@@ -267,18 +272,15 @@ void yf::HttpRewrite::Phase::rewrite_body(
     if (cit == content_list.end())
         return;
 
-    if (*content_buf)
-    {
-        int i;
-        for (i = 0; i < *content_len; i++)
-            if ((*content_buf)[i] == 0)
-                return;  // binary content. skip
+    int i;
+    for (i = 0; i < *content_len; i++)
+        if ((*content_buf)[i] == 0)
+            return;  // binary content. skip
 
-        std::string content(*content_buf, *content_len);
-        cit->parse(m_verbose, content, vars);
-        *content_buf = odr_strdup(o, content.c_str());
-        *content_len = strlen(*content_buf);
-    }
+    std::string content(*content_buf, *content_len);
+    cit->parse(m_verbose, content, vars);
+    *content_buf = odr_strdup(o, content.c_str());
+    *content_len = strlen(*content_buf);
 }
 
 yf::HttpRewrite::Event::Event(const Content *p,
@@ -383,7 +385,7 @@ void yf::HttpRewrite::Event::attribute(const char *tag, int tag_len,
         if (subst)
         {
             std::string s(value, val_len);
-            it->rule->test_patterns(m_vars, s, true);
+            it->exec(m_vars, s, true);
             wrbuf_puts(m_w, s.c_str());
         }
         else
@@ -413,11 +415,70 @@ void yf::HttpRewrite::Event::text(const char *value, int len)
     if (it != m_content->within_list.end())
     {
         std::string s(value, len);
-        it->rule->test_patterns(m_vars, s, false);
+        it->exec(m_vars, s, false);
         wrbuf_puts(m_w, s.c_str());
     }
     else
         wrbuf_write(m_w, value, len);
+}
+
+static bool embed_quoted_literal(
+    std::string &content,
+    std::map<std::string, std::string> &vars,
+    mp::filter::HttpRewrite::RulePtr ruleptr)
+{
+    bool replace = false;
+    std::string res;
+    const char *cp = content.c_str();
+    const char *cp0 = cp;
+    while (*cp)
+    {
+        if (*cp == '"' || *cp == '\'')
+        {
+            int m = *cp;
+            cp++;
+            res.append(cp0, cp - cp0);
+            cp0 = cp;
+            while (*cp)
+            {
+                if (cp[-1] != '\\' && *cp == m)
+                    break;
+                if (*cp == '\n')
+                    break;
+                cp++;
+            }
+            if (!*cp)
+                break;
+            std::string s(cp0, cp - cp0);
+            if (ruleptr->test_patterns(vars, s, true))
+                replace = true;
+            cp0 = cp;
+            res.append(s);
+        }
+        else if (*cp == '/' && cp[1] == '/')
+        {
+            while (cp[1] && cp[1] != '\n')
+                cp++;
+        }
+        cp++;
+    }
+    res.append(cp0, cp - cp0);
+    content = res;
+    return replace;
+}
+
+bool yf::HttpRewrite::Within::exec(
+    std::map<std::string, std::string> & vars,
+    std::string & txt, bool anchor) const
+{
+    if (type == "quoted-literal")
+    {
+        return embed_quoted_literal(txt, vars, rule);
+    }
+    else
+    {
+        return rule->test_patterns(vars, txt, anchor);
+    }
 }
 
 bool yf::HttpRewrite::Rule::test_patterns(
@@ -622,43 +683,9 @@ void yf::HttpRewrite::Content::quoted_literal(
     std::string &content,
     std::map<std::string, std::string> &vars) const
 {
-    std::string res;
-    const char *cp = content.c_str();
-    const char *cp0 = cp;
-    while (*cp)
-    {
-        if (*cp == '"' || *cp == '\'')
-        {
-            int m = *cp;
-            cp++;
-            res.append(cp0, cp - cp0);
-            cp0 = cp;
-            while (*cp)
-            {
-                if (cp[-1] != '\\' && *cp == m)
-                    break;
-                if (*cp == '\n')
-                    break;
-                cp++;
-            }
-            if (!*cp)
-                break;
-            std::list<Within>::const_iterator it = within_list.begin();
-            std::string s(cp0, cp - cp0);
-            if (it != within_list.end())
-                it->rule->test_patterns(vars, s, true);
-            cp0 = cp;
-            res.append(s);
-        }
-        else if (*cp == '/' && cp[1] == '/')
-        {
-            while (cp[1] && cp[1] != '\n')
-                cp++;
-        }
-        cp++;
-    }
-    res.append(cp0, cp - cp0);
-    content = res;
+    std::list<Within>::const_iterator it = within_list.begin();
+    if (it != within_list.end())
+        embed_quoted_literal(content, vars, it->rule);
 }
 
 void yf::HttpRewrite::Content::configure(
@@ -670,9 +697,9 @@ void yf::HttpRewrite::Content::configure(
             continue;
         if (!strcmp((const char *) ptr->name, "within"))
         {
-            static const char *names[6] =
-                { "header", "attr", "tag", "rule", "reqline", 0 };
-            std::string values[5];
+            static const char *names[7] =
+                { "header", "attr", "tag", "rule", "reqline", "type", 0 };
+            std::string values[6];
             mp::xml::parse_attr(ptr, names, values);
             Within w;
             w.header = values[0];
@@ -686,6 +713,13 @@ void yf::HttpRewrite::Content::configure(
                      "' in http_rewrite filter");
             w.rule = it->second;
             w.reqline = values[4] == "1";
+            w.type = values[5];
+            if (w.type.empty() || w.type == "quoted-literal")
+                ;
+            else
+                throw mp::filter::FilterException
+                    ("within type must be quoted-literal or none in "
+                     " in http_rewrite filter");
             within_list.push_back(w);
         }
     }

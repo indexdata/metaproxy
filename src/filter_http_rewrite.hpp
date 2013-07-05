@@ -31,14 +31,14 @@ namespace metaproxy_1 {
             class Phase;
             class Content;
             class Replace;
-            class Rule;
             class Within;
             class Event;
-            typedef boost::shared_ptr<Rule> RulePtr;
             boost::scoped_ptr<Phase> req_phase;
             boost::scoped_ptr<Phase> res_phase;
             void configure_phase(const xmlNode *ptr, Phase &phase);
         public:
+            class Rule;
+            typedef boost::shared_ptr<Rule> RulePtr;
             HttpRewrite();
             ~HttpRewrite();
             void process(metaproxy_1::Package & package) const;
