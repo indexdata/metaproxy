@@ -61,7 +61,7 @@ namespace metaproxy_1 {
         public:
             std::string header;
             std::string attr;
-            std::string tag;
+            boost::regex tag;
             std::string type;
             bool reqline;
             RulePtr rule;
@@ -309,8 +309,7 @@ void yf::HttpRewrite::Event::openTagStart(const char *tag, int tag_len)
     std::list<Within>::const_iterator it = m_content->within_list.begin();
     for (; it != m_content->within_list.end(); it++)
     {
-        if (it->tag.length() > 0 && yaz_strcasecmp(it->tag.c_str(),
-                                                   t.c_str()) == 0)
+        if (!it->tag.empty() && regex_match(t, it->tag))
         {
             std::vector<std::string> attr;
             boost::split(attr, it->attr, boost::is_any_of(","));
@@ -336,7 +335,7 @@ void yf::HttpRewrite::Event::anyTagEnd(const char *tag, int tag_len,
         {
             std::list<Within>::const_iterator it = s_within.top();
             std::string t(tag, tag_len);
-            if (yaz_strcasecmp(it->tag.c_str(), t.c_str()) == 0)
+            if (regex_match(t, it->tag))
                 s_within.pop();
         }
     }
@@ -356,8 +355,7 @@ void yf::HttpRewrite::Event::attribute(const char *tag, int tag_len,
     for (; it != m_content->within_list.end(); it++)
     {
         std::string t(tag, tag_len);
-        if (it->tag.length() == 0 ||
-            yaz_strcasecmp(it->tag.c_str(), t.c_str()) == 0)
+        if (it->tag.empty() || regex_match(t, it->tag))
         {
             std::string a(attr, attr_len);
             std::vector<std::string> attr;
@@ -400,7 +398,7 @@ void yf::HttpRewrite::Event::closeTag(const char *tag, int tag_len)
     {
         std::list<Within>::const_iterator it = s_within.top();
         std::string t(tag, tag_len);
-        if (yaz_strcasecmp(it->tag.c_str(), t.c_str()) == 0)
+        if (regex_match(t, it->tag))
             s_within.pop();
     }
     wrbuf_puts(m_w, "</");
@@ -726,7 +724,8 @@ void yf::HttpRewrite::Content::configure(
             Within w;
             w.header = values[0];
             w.attr = values[1];
-            w.tag = values[2];
+            if (values[2].length() > 0)
+                w.tag = values[2];
             std::map<std::string,RulePtr>::const_iterator it =
                 rules.find(values[3]);
             if (it == rules.end())
