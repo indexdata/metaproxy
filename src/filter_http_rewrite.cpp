@@ -425,7 +425,8 @@ void yf::HttpRewrite::Event::text(const char *value, int len)
 static bool embed_quoted_literal(
     std::string &content,
     std::map<std::string, std::string> &vars,
-    mp::filter::HttpRewrite::RulePtr ruleptr)
+    mp::filter::HttpRewrite::RulePtr ruleptr,
+    bool html_context)
 {
     bool replace = false;
     std::string res;
@@ -433,7 +434,28 @@ static bool embed_quoted_literal(
     const char *cp0 = cp;
     while (*cp)
     {
-        if (*cp == '"' || *cp == '\'')
+        if (html_context && !strncmp(cp, "&quot;", 6))
+        {
+            cp += 6;
+            res.append(cp0, cp - cp0);
+            cp0 = cp;
+            while (*cp)
+            {
+                if (!strncmp(cp, "&quot;", 6))
+                    break;
+                if (*cp == '\n')
+                    break;
+                cp++;
+            }
+            if (!*cp)
+                break;
+            std::string s(cp0, cp - cp0);
+            if (ruleptr->test_patterns(vars, s, true))
+                replace = true;
+            cp0 = cp;
+            res.append(s);
+        }
+        else if (*cp == '"' || *cp == '\'')
         {
             int m = *cp;
             cp++;
@@ -473,7 +495,7 @@ bool yf::HttpRewrite::Within::exec(
 {
     if (type == "quoted-literal")
     {
-        return embed_quoted_literal(txt, vars, rule);
+        return embed_quoted_literal(txt, vars, rule, true);
     }
     else
     {
@@ -685,7 +707,7 @@ void yf::HttpRewrite::Content::quoted_literal(
 {
     std::list<Within>::const_iterator it = within_list.begin();
     if (it != within_list.end())
-        embed_quoted_literal(content, vars, it->rule);
+        embed_quoted_literal(content, vars, it->rule, false);
 }
 
 void yf::HttpRewrite::Content::configure(

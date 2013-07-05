@@ -83,6 +83,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "    <within tag=\"script\" attr=\"#text\" type=\"quoted-literal\" rule=\"url\"/>\n"
             "    <within tag=\"style\" attr=\"#text\" rule=\"url\"/>\n"
             "    <within attr=\"href,src\" rule=\"url\"/>\n"
+            "    <within attr=\"onclick\" type=\"quoted-literal\" rule=\"url\"/>\n"
             "  </content>\n"
             "  <content type=\"quoted-literal\" mime=\".*javascript\">\n"
             "    <within rule=\"url\"/>\n"
@@ -138,12 +139,12 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "  Another abs link</a>"
             "<a href=\"/docs/page4.html\" />"
             "<a href=\"cxcx\" />"
-            "<a href=\"cx \" />"
+            "<a href=\"cx \" onclick=\"foo(&quot;foo&quot;);\"/>"
             "</body></html>";
 
         const char *resp_expected =
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 573\r\n"
+            "Content-Length: 605\r\n"
             "Content-Type: text/html\r\n"
             "Link: <http://proxyhost/proxypath/targetsite/file.xml>; rel=absolute\r\n"
             "Link: </dir/file.xml>; rel=relative\r\n"
@@ -167,7 +168,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "  Another abs link</a>"
             "<a href=\"/docs/page4.html\"/>"
             "<a href=\"cycx\"/>"
-            "<a href=\"cy \"/>"
+            "<a href=\"cy \" onclick=\"foo(&quot;bar&quot;);\"/>"
             "</body></html>";
 
         Z_GDU *gdu_res;
