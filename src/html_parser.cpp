@@ -222,9 +222,22 @@ void mp::HTMLParser::Rep::parse_str(HTMLParserEvent &event, const char *cp)
         {
             int i;
             tagText(event, text_start, cp - 1);
-            for (i = 1; cp[i] && cp[i] != '>'; i++)
-                ;
-            event.openTagStart(cp, i);
+            if (cp[1] == '-' && cp[2] == '-')
+            {
+                for (i = 3; cp[i]; i++)
+                    if (cp[i] == '-' && cp[i+1] == '-' && cp[i+2] == '>')
+                    {
+                        i+= 2;
+                        event.openTagStart(cp, i);
+                        break;
+                    }
+            }
+            else
+            {
+                for (i = 1; cp[i] && cp[i] != '>'; i++)
+                    ;
+                event.openTagStart(cp, i);
+            }
             if (m_verbose)
                 printf("------ dtd %.*s\n", i, cp);
             i += tagEnd(event, cp, i, cp + i);

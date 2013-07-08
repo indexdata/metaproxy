@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE( test_html_parser_4 )
         mp::HTMLParser hp;
         const char* html =
             "<?xml version=\"1.0\" strandalone=\"no\"?  ax>\n"
-            "<book><x ? href/></book>";
+            "<book><x ? href/><!-- hello > --></book>";
 
         const char* expected = html;
         MyEvent e;
