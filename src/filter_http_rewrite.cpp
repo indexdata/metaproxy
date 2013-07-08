@@ -810,8 +810,8 @@ void yf::HttpRewrite::configure_phase(const xmlNode *ptr, Phase &phase)
             Content c;
 
             c.type = values[0];
-            // if (!values[1].empty())
-                c.content_re = values[1];
+            if (!values[1].empty())
+                c.content_re.assign(values[1], boost::regex::icase);
             c.configure(ptr->children, rules);
             phase.content_list.push_back(c);
         }
