@@ -315,7 +315,8 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
 
     if (file_include_path)
     {
-        int r = yaz_xml_include_simple((xmlNode *) root, file_include_path);
+        int r = yaz_xml_include_glob((xmlNode *) root, file_include_path,
+            YAZ_FILE_GLOB_FAIL_NOTEXIST);
         if (r)
             throw mp::XMLError("YAZ XML Include failed");
     }
