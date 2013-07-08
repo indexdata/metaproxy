@@ -59,8 +59,8 @@ namespace metaproxy_1 {
         };
         class HttpRewrite::Within {
         public:
-            std::string header;
-            std::string attr;
+            boost::regex header;
+            boost::regex attr;
             boost::regex tag;
             std::string type;
             bool reqline;
@@ -226,8 +226,8 @@ void yf::HttpRewrite::Phase::rewrite_headers(mp::odr & o,
         std::list<Within>::const_iterator it = cit->within_list.begin();
         for (; it != cit->within_list.end(); it++)
         {
-            if (it->header.length() > 0 &&
-                yaz_strcasecmp(it->header.c_str(), header->name) == 0)
+            if (!it->header.empty() &&
+                regex_match(header->name, it->header))
             {
                 std::string sheader(header->name);
                 sheader += ": ";
@@ -311,16 +311,10 @@ void yf::HttpRewrite::Event::openTagStart(const char *tag, int tag_len)
     {
         if (!it->tag.empty() && regex_match(t, it->tag))
         {
-            std::vector<std::string> attr;
-            boost::split(attr, it->attr, boost::is_any_of(","));
-            size_t i;
-            for (i = 0; i < attr.size(); i++)
+            if (!it->attr.empty() && regex_match("#text", it->attr))
             {
-                if (attr[i].compare("#text") == 0)
-                {
-                    s_within.push(it);
-                    return;
-                }
+                s_within.push(it);
+                return;
             }
         }
     }
@@ -358,15 +352,8 @@ void yf::HttpRewrite::Event::attribute(const char *tag, int tag_len,
         if (it->tag.empty() || regex_match(t, it->tag))
         {
             std::string a(attr, attr_len);
-            std::vector<std::string> attr;
-            boost::split(attr, it->attr, boost::is_any_of(","));
-            size_t i;
-            for (i = 0; i < attr.size(); i++)
-            {
-                if (attr[i].compare("#text") &&
-                    yaz_strcasecmp(attr[i].c_str(), a.c_str()) == 0)
-                    subst = true;
-            }
+            if (!it->attr.empty() && regex_match(a, it->attr))
+                subst = true;
         }
         if (subst)
             break;
@@ -722,10 +709,12 @@ void yf::HttpRewrite::Content::configure(
             std::string values[6];
             mp::xml::parse_attr(ptr, names, values);
             Within w;
-            w.header = values[0];
-            w.attr = values[1];
+            if (values[0].length() > 0)
+                w.header.assign(values[0], boost::regex_constants::icase);
+            if (values[1].length() > 0)
+                w.attr.assign(values[1], boost::regex_constants::icase);
             if (values[2].length() > 0)
-                w.tag = values[2];
+                w.tag.assign(values[2], boost::regex_constants::icase);
             std::map<std::string,RulePtr>::const_iterator it =
                 rules.find(values[3]);
             if (it == rules.end())

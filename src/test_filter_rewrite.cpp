@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "    <within tag=\"body\" attr=\"background\" rule=\"null\"/>\n"
             "    <within tag=\"script\" attr=\"#text\" type=\"quoted-literal\" rule=\"url\"/>\n"
             "    <within tag=\"style\" attr=\"#text\" rule=\"url\"/>\n"
-            "    <within attr=\"href,src\" rule=\"url\"/>\n"
+            "    <within attr=\"href|src\" rule=\"url\"/>\n"
             "    <within attr=\"onclick\" type=\"quoted-literal\" rule=\"url\"/>\n"
             "  </content>\n"
             "  <content type=\"quoted-literal\" mime=\".*javascript\">\n"
@@ -138,8 +138,8 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "<a target=_blank href=\"http://targetsite/page3.html\">"
             "  Another abs link</a>"
             "<a href=\"/docs/page4.html\" />"
-            "<a href=\"cxcx\" />"
-            "<a href=\"cx \" onclick=\"foo(&quot;foo&quot;);\"/>"
+            "<A href=\"cxcx\" />"
+            "<a HREF=\"cx \" onclick=\"foo(&quot;foo&quot;);\"/>"
             "</body></html>";
 
         const char *resp_expected =
@@ -167,8 +167,8 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "<a target=_blank href=\"http://proxyhost/proxypath/targetsite/page3.html\">"
             "  Another abs link</a>"
             "<a href=\"/docs/page4.html\"/>"
-            "<a href=\"cycx\"/>"
-            "<a href=\"cy \" onclick=\"foo(&quot;bar&quot;);\"/>"
+            "<A href=\"cycx\"/>"
+            "<a HREF=\"cy \" onclick=\"foo(&quot;bar&quot;);\"/>"
             "</body></html>";
 
         Z_GDU *gdu_res;
@@ -263,12 +263,6 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
             "  </rule>\n"
             "  <content type=\"headers\">\n"
             "    <within header=\"link\" rule=\"url\"/>\n"
-            "  </content>\n"
-            "  <content type=\"html\" mime=\"text/xml|text/html\">\n"
-            "    <within tag=\"body\" attr=\"background\" rule=\"null\"/>\n"
-            "    <within tag=\"script\" attr=\"#text\" rule=\"url\"/>\n"
-            "    <within tag=\"style\" attr=\"#text\" rule=\"url\"/>\n"
-            "    <within attr=\"href,src\" rule=\"url\"/>\n"
             "  </content>\n"
             "  <content type=\"quoted-literal\" mime=\".*javascript\">\n"
             "    <within rule=\"url\"/>\n"
