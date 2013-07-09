@@ -593,8 +593,9 @@ Z_APDU *mp::odr::create_scanResponse(const Z_APDU *in_apdu,
     return apdu;
 }
 
-Z_GDU *mp::odr::create_HTTP_Response(mp::Session &session,
-                                     Z_HTTP_Request *hreq, int code)
+Z_GDU *mp::odr::create_HTTP_Response_details(mp::Session &session,
+                                             Z_HTTP_Request *hreq, int code,
+                                             const char *details)
 {
     const char *response_version = "1.0";
     bool keepalive = false;
@@ -617,13 +618,20 @@ Z_GDU *mp::odr::create_HTTP_Response(mp::Session &session,
         response_version = "1.1";
     }
 
-    Z_GDU *gdu = z_get_HTTP_Response(m_odr, code);
+    Z_GDU *gdu = z_get_HTTP_Response_details(m_odr, code, details);
     Z_HTTP_Response *hres = gdu->u.HTTP_Response;
     hres->version = odr_strdup(m_odr, response_version);
     if (keepalive)
         z_HTTP_header_add(m_odr, &hres->headers, "Connection", "Keep-Alive");
 
     return gdu;
+}
+
+Z_GDU *mp::odr::create_HTTP_Response(mp::Session &session,
+                                     Z_HTTP_Request *hreq, int code)
+{
+    return create_HTTP_Response_details(session, hreq, code, 0);
+
 }
 
 Z_ReferenceId **mp_util::get_referenceId(const Z_APDU *apdu)

@@ -151,6 +151,9 @@ namespace metaproxy_1 {
 
         Z_GDU *create_HTTP_Response(metaproxy_1::Session &session,
                                     Z_HTTP_Request *req, int code);
+        Z_GDU *create_HTTP_Response_details(metaproxy_1::Session &session,
+                                            Z_HTTP_Request *req, int code,
+                                            const char *details);
     private:
         ODR m_odr;
     };
