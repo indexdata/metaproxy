@@ -287,6 +287,10 @@ void mp::HTMLParser::Rep::parse_str(HTMLParserEvent &event, const char *cp)
     tagText(event, text_start, cp);
 }
 
+mp::HTMLParserEvent::~HTMLParserEvent()
+{
+}
+
 /*
  * Local variables:
  * c-basic-offset: 4

@@ -33,6 +33,7 @@ namespace metaproxy_1 {
                                    const char *sep) = 0;
             virtual void closeTag(const char *tag, int tag_len) = 0;
             virtual void text(const char *value, int len) = 0;
+            virtual ~ HTMLParserEvent();
         };
         class HTMLParser {
             class Rep;
