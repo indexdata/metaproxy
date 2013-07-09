@@ -111,7 +111,10 @@ void yf::HTTPClient::Rep::proxy(mp::Package &package)
         }
         else
         {
-            res_gdu = o.create_HTTP_Response(package.session(), hreq, 404);
+            res_gdu = o.create_HTTP_Response_details(
+                package.session(),
+                hreq, 502,
+                yaz_url_get_error(yaz_url));
         }
         package.response() = res_gdu;
         yaz_url_destroy(yaz_url);
