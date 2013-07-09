@@ -125,11 +125,15 @@ namespace metaproxy_1 {
             time_t m_backend_set_ttl;
             time_t m_backend_expiry_ttl;
             size_t m_backend_set_max;
+            Odr_int m_preferredMessageSize;
+            Odr_int m_maximumRecordSize;
         public:
             BackendClass(const yazpp_1::GDU &init_request,
                          int resultset_ttl,
                          int resultset_max,
-                         int session_ttl);
+                         int session_ttl,
+                         Odr_int preferredRecordSize,
+                         Odr_int maximumRecordSize);
             ~BackendClass();
         };
         // frontend result set
@@ -197,6 +201,8 @@ namespace metaproxy_1 {
             bool m_optimize_search;
             bool m_restart;
             int m_session_max;
+            Odr_int m_preferredMessageSize;
+            Odr_int m_maximumRecordSize;
         };
     }
 }
@@ -382,6 +388,11 @@ yf::SessionShared::BackendInstancePtr yf::SessionShared::BackendClass::create_ba
     ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_2);
     ODR_MASK_SET(req->protocolVersion, Z_ProtocolVersion_3);
 
+    if (m_preferredMessageSize)
+        *req->preferredMessageSize = m_preferredMessageSize;
+    if (m_maximumRecordSize)
+        *req->maximumRecordSize = m_maximumRecordSize;
+
     init_package.request() = init_pdu;
 
     init_package.move();
@@ -430,10 +441,14 @@ yf::SessionShared::BackendInstancePtr yf::SessionShared::BackendClass::create_ba
 yf::SessionShared::BackendClass::BackendClass(const yazpp_1::GDU &init_request,
                                               int resultset_ttl,
                                               int resultset_max,
-                                              int session_ttl)
+                                              int session_ttl,
+                                              Odr_int preferredMessageSize,
+                                              Odr_int maximumRecordSize)
     : m_named_result_sets(false), m_init_request(init_request),
       m_sequence_top(0), m_backend_set_ttl(resultset_ttl),
-      m_backend_expiry_ttl(session_ttl), m_backend_set_max(resultset_max)
+      m_backend_expiry_ttl(session_ttl), m_backend_set_max(resultset_max),
+      m_preferredMessageSize(preferredMessageSize),
+      m_maximumRecordSize(maximumRecordSize)
 {}
 
 yf::SessionShared::BackendClass::~BackendClass()
@@ -456,7 +471,9 @@ void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
             BackendClassPtr b(new BackendClass(gdu->u.z3950,
                                                m_resultset_ttl,
                                                m_resultset_max,
-                                               m_session_ttl));
+                                               m_session_ttl,
+                                               m_preferredMessageSize,
+                                               m_maximumRecordSize));
             m_backend_map[k] = b;
             frontend->m_backend_class = b;
         }
@@ -474,7 +491,6 @@ void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
     if (bc->m_backend_list.size() == 0)
     {
         BackendInstancePtr backend = bc->create_backend(package);
-
         if (backend)
             bc->release_backend(backend);
     }
@@ -491,13 +507,22 @@ void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
         Z_GDU *response_gdu = init_response.get();
         mp::util::transfer_referenceId(odr, gdu->u.z3950,
                                        response_gdu->u.z3950);
-        Z_Options *server_options =
-            response_gdu->u.z3950->u.initResponse->options;
+        Z_InitResponse *init_res = response_gdu->u.z3950->u.initResponse;
+        Z_Options *server_options = init_res->options;
         Z_Options *client_options = &frontend->m_init_options;
         int i;
         for (i = 0; i < 30; i++)
             if (!ODR_MASK_GET(client_options, i))
                 ODR_MASK_CLEAR(server_options, i);
+
+        if (!m_preferredMessageSize ||
+            *init_res->preferredMessageSize > *req->preferredMessageSize)
+            *init_res->preferredMessageSize = *req->preferredMessageSize;
+
+        if (!m_maximumRecordSize ||
+            *init_res->maximumRecordSize > *req->maximumRecordSize)
+            *init_res->maximumRecordSize = *req->maximumRecordSize;
+
         package.response() = init_response;
         if (!*response_gdu->u.z3950->u.initResponse->result)
             package.session().close();
@@ -1091,6 +1116,8 @@ yf::SessionShared::Rep::Rep()
     m_optimize_search = true;
     m_restart = false;
     m_session_max = 100;
+    m_preferredMessageSize = 0;
+    m_maximumRecordSize = 0;
 }
 
 void yf::SessionShared::Rep::start()
@@ -1273,6 +1300,24 @@ void yf::SessionShared::configure(const xmlNode *ptr, bool test_only,
                 else if (!strcmp((const char *) attr->name, "max"))
                     m_p->m_session_max =
                         mp::xml::get_int(attr->children, 100);
+                else
+                    throw mp::filter::FilterException(
+                        "Bad attribute " + std::string((const char *)
+                                                       attr->name));
+            }
+        }
+        else if (!strcmp((const char *) ptr->name, "init"))
+        {
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "maximum-record-size"))
+                    m_p->m_maximumRecordSize =
+                        mp::xml::get_int(attr->children, 0);
+                else if (!strcmp((const char *) attr->name,
+                                 "preferred-message-size"))
+                    m_p->m_preferredMessageSize =
+                        mp::xml::get_int(attr->children, 0);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)

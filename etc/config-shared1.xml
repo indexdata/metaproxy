@@ -4,7 +4,7 @@
   <filters>
     <filter id="frontend" type="frontend_net">
       <port>@:9000</port>
-      <connect-max>3</connect-max>
+      <connect-max>10</connect-max>
     </filter>
     <filter id="backend" type="z3950_client">
     </filter>
@@ -22,6 +22,7 @@
       <filter type="session_shared">
 	<resultset ttl="10" max="3" optimizesearch="false" restart="true"/>
 	<session ttl="30"/>
+	<init maximum-record-size="320000" preferred-message-size="310000"/>
       </filter>
       <filter type="log">
 	<message>B</message>

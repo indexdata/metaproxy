@@ -15,5 +15,9 @@ filter_session_shared =
   element mp:session {
     attribute ttl { xsd:integer }?,
     attribute max { xsd:integer }?
+  }?,
+  element mp:init {
+    attribute preferred-message-size { xsd:integer }?,
+    attribute maximum-record-size { xsd:integer }?
   }?
 
