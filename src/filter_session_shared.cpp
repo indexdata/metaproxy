@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/util.hpp>
 #include "filter_session_shared.hpp"
 
+#include <yaz/copy_types.h>
 #include <yaz/log.h>
 #include <yaz/zgdu.h>
 #include <yaz/otherinfo.h>
@@ -159,6 +160,9 @@ namespace metaproxy_1 {
             void present(Package &package, Z_APDU *apdu);
             void scan(Package &package, Z_APDU *apdu);
 
+            int result_set_ref(ODR o,
+                               const Databases &databases,
+                               Z_RPNStructure *s, std::string &rset);
             void get_set(mp::Package &package,
                          const Z_APDU *apdu_req,
                          const Databases &databases,
@@ -844,6 +848,54 @@ restart:
     found_backend->m_sets.push_back(found_set);
 }
 
+int yf::SessionShared::Frontend::result_set_ref(ODR o,
+                                                const Databases &databases,
+                                                Z_RPNStructure *s,
+                                                std::string &rset)
+{
+    int ret = 0;
+    switch (s->which)
+    {
+    case Z_RPNStructure_simple:
+        if (s->u.simple->which == Z_Operand_resultSetId)
+        {
+            const char *id = s->u.simple->u.resultSetId;
+            rset = id;
+
+            FrontendSets::iterator fset_it = m_frontend_sets.find(id);
+            if (fset_it == m_frontend_sets.end())
+            {
+                ret = YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST;
+            }
+            else if (fset_it->second->get_databases() != databases)
+            {
+                ret = YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST;
+            }
+            else
+            {
+                yazpp_1::Yaz_Z_Query query = fset_it->second->get_query();
+                Z_Query *q = yaz_copy_Z_Query(query.get_Z_Query(), o);
+                if (q->which == Z_Query_type_1 || q->which == Z_Query_type_101)
+                {
+                    s->which = q->u.type_1->RPNStructure->which;
+                    s->u.simple = q->u.type_1->RPNStructure->u.simple;
+                }
+                else
+                {
+                    ret = YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST;
+                }
+            }
+        }
+        break;
+    case Z_RPNStructure_complex:
+        ret = result_set_ref(o, databases, s->u.complex->s1, rset);
+        if (!ret)
+            ret = result_set_ref(o, databases, s->u.complex->s2, rset);
+        break;
+    }
+    return ret;
+}
+
 void yf::SessionShared::Frontend::search(mp::Package &package,
                                          Z_APDU *apdu_req)
 {
@@ -864,18 +916,39 @@ void yf::SessionShared::Frontend::search(mp::Package &package,
                     YAZ_BIB1_RESULT_SET_EXISTS_AND_REPLACE_INDICATOR_OFF,
                     0);
             package.response() = apdu;
-
             return;
         }
         m_frontend_sets.erase(fset_it);
     }
 
-    yazpp_1::Yaz_Z_Query query;
-    query.set_Z_Query(req->query);
     Databases databases;
     int i;
     for (i = 0; i < req->num_databaseNames; i++)
         databases.push_back(req->databaseNames[i]);
+
+
+    yazpp_1::Yaz_Z_Query query;
+    query.set_Z_Query(req->query);
+
+    Z_Query *q = query.get_Z_Query();
+    if (q->which == Z_Query_type_1 || q->which == Z_Query_type_101)
+    {
+        mp::odr odr;
+        std::string rset;
+        int diag = result_set_ref(odr, databases, q->u.type_1->RPNStructure,
+                                  rset);
+        if (diag)
+        {
+            Z_APDU *apdu =
+                odr.create_searchResponse(
+                    apdu_req,
+                    diag,
+                    rset.c_str());
+            package.response() = apdu;
+            return;
+        }
+        query.set_Z_Query(q);
+    }
 
     BackendSetPtr found_set; // null
     BackendInstancePtr found_backend; // null
