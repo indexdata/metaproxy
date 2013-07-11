@@ -16,6 +16,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/* filter_bounce
+A very simple filter that produces some response, in case no earlier 
+filter has done so, a kind of last resort fallback. Also supports dumping
+the request in that response, for debugging and testing purposes
+*/
+
 #include "filter_bounce.hpp"
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
@@ -32,29 +38,49 @@ namespace metaproxy_1 {
     namespace filter {
         class Bounce::Rep {
             friend class Bounce;
-            bool bounce;
+            bool echo;  // indicates that we wish to echo the request in the 
+                        // HTTP response
         };
     }
 }
 
 yf::Bounce::Bounce() : m_p(new Rep)
 {
-    m_p->bounce = true;
+    m_p->echo = false;
 }
 
 yf::Bounce::~Bounce()
-{  // must have a destructor because of boost::scoped_ptr
+{  // must have a destructor because of boost::scoped_ptr to m_p
 }
+
+
+// Dump the http request into the content of the http response
+static void http_echo(mp::odr &odr, Z_GDU *zgdu, Z_GDU *zgdu_res)
+{
+    int len;
+    ODR enc = odr_createmem(ODR_ENCODE);
+    //int r =
+    (void) z_GDU(enc, &zgdu, 0, 0);
+    char *buf = odr_getbuf(enc, &len, 0);
+    //h.db( "\n" + msg + "\n" + std::string(buf,len) );
+    Z_HTTP_Response *hres = zgdu_res->u.HTTP_Response;
+    if (hres)
+    {
+        z_HTTP_header_set(odr, &hres->headers,
+                          "Content-Type", "text/plain");
+        
+        hres->content_buf = odr_strdup(odr, buf);
+        hres->content_len = len;        
+    }
+    odr_destroy(enc);
+    
+}
+
 
 void yf::Bounce::process(mp::Package &package) const
 {
-    if (! m_p->bounce )
-    {
-        package.move();
-        return;
-    }
     package.session().close();
-
+    
     Z_GDU *zgdu = package.request().get();
 
     if (!zgdu)
@@ -72,6 +98,8 @@ void yf::Bounce::process(mp::Package &package) const
         apdu_res = odr.create_close(zgdu->u.z3950,
                                     Z_Close_systemProblem,
                                     message.str().c_str());
+        // TODO - Some day we may want a dump of the request in some
+        // addinfo in the close response
         package.response() = apdu_res;
     }
     else if (zgdu->which == Z_GDU_HTTP_Request)
@@ -80,7 +108,10 @@ void yf::Bounce::process(mp::Package &package) const
         zgdu_res
             = odr.create_HTTP_Response(package.session(),
                                        zgdu->u.HTTP_Request, 400);
-
+        if (m_p->echo) 
+        {
+            http_echo(odr, zgdu, zgdu_res);
+        }
         package.response() = zgdu_res;
     }
     else if (zgdu->which == Z_GDU_HTTP_Response)
@@ -94,7 +125,23 @@ void yf::Bounce::process(mp::Package &package) const
 void mp::filter::Bounce::configure(const xmlNode * ptr, bool test_only,
                                    const char *path)
 {
-    mp::xml::check_empty(ptr);
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
+    {
+        if (ptr->type != XML_ELEMENT_NODE)
+            continue;
+        else if (!strcmp((const char *) ptr->name, "echo"))
+        {
+            m_p->echo = mp::xml::get_bool(ptr, 0);
+        }
+        else
+        {
+            throw mp::filter::FilterException
+            ("Bad element '"
+            + std::string((const char *) ptr->name)
+            + "' in bounce filter");
+        }
+    }
+    
 }
 
 static mp::filter::Base* filter_creator()
