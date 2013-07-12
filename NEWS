@@ -1,3 +1,29 @@
+--- 1.3.59 2013/07/12
+
+session_shared: negotiate init sz parameters.
+By default, session_shared will honor the paramters given by client.
+An alternative, but not implemented, algorithm would be to only
+re-use sessions with same sz parameters. This however, could reduce
+re-use of sessions a lot. Hence this, simple algorithm instead. The
+negotiation to a maximum sz values can be enabled by using
+   <init maximum-record-size="sz1" preferred-message-size="sz2"/>
+in configuration. This will make session_shared send those values
+to backends and use returned init values in negotaition to
+client before session_shared.
+
+session_shared: resolve result-set references.
+The reference is substitued with the query for old set if database
+match and query type is Type-1. If not the reference will issue a
+diagnostic.
+
+sort filter: relays RecordComposition including elementSet in use for
+search.
+
+http_client: better diagnostics
+
+http_client: disables HTTP redirect handling by default.
+It can be configured with max-redirects in configuration.
+
 --- 1.3.58 2013/06/12
 
 Fix loading of filters cql_rpn and sru_z3950 . Was broken by 1.3.57.
