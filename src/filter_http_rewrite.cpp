@@ -715,13 +715,27 @@ void yf::HttpRewrite::Content::configure(
                 w.attr.assign(values[1], boost::regex_constants::icase);
             if (values[2].length() > 0)
                 w.tag.assign(values[2], boost::regex_constants::icase);
-            std::map<std::string,RulePtr>::const_iterator it =
-                rules.find(values[3]);
-            if (it == rules.end())
+
+            std::vector<std::string> rulenames;
+            boost::split(rulenames, values[3], boost::is_any_of(","));
+            if (rulenames.size() == 0)
+            {
                 throw mp::filter::FilterException
-                    ("Reference to non-existing rule '" + values[3] +
+                    ("Empty rule in '" + values[3] +
                      "' in http_rewrite filter");
-            w.rule = it->second;
+            }
+            size_t i;
+            for (i = 0; i < rulenames.size(); i++)
+            {
+                std::map<std::string,RulePtr>::const_iterator it =
+                    rules.find(rulenames[i]);
+                if (it == rules.end())
+                    throw mp::filter::FilterException
+                        ("Reference to non-existing rule '" + rulenames[i] +
+                         "' in http_rewrite filter");
+                if (i == 0)
+                    w.rule = it->second;
+            }
             w.reqline = values[4] == "1";
             w.type = values[5];
             if (w.type.empty() || w.type == "quoted-literal")
