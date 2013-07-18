@@ -724,17 +724,36 @@ void yf::HttpRewrite::Content::configure(
                     ("Empty rule in '" + values[3] +
                      "' in http_rewrite filter");
             }
-            size_t i;
-            for (i = 0; i < rulenames.size(); i++)
+            else if (rulenames.size() == 1)
             {
                 std::map<std::string,RulePtr>::const_iterator it =
-                    rules.find(rulenames[i]);
+                    rules.find(rulenames[0]);
                 if (it == rules.end())
                     throw mp::filter::FilterException
-                        ("Reference to non-existing rule '" + rulenames[i] +
+                        ("Reference to non-existing rule '" + rulenames[0] +
                          "' in http_rewrite filter");
-                if (i == 0)
-                    w.rule = it->second;
+                w.rule = it->second;
+
+            }
+            else
+            {
+                RulePtr rule(new Rule);
+                size_t i;
+                for (i = 0; i < rulenames.size(); i++)
+                {
+                    std::map<std::string,RulePtr>::const_iterator it =
+                        rules.find(rulenames[i]);
+                    if (it == rules.end())
+                        throw mp::filter::FilterException
+                            ("Reference to non-existing rule '" + rulenames[i] +
+                             "' in http_rewrite filter");
+                    RulePtr subRule = it->second;
+                    std::list<Replace>::iterator rit =
+                        subRule->replace_list.begin();
+                    for (; rit != subRule->replace_list.end(); rit++)
+                        rule->replace_list.push_back(*rit);
+                }
+                w.rule = rule;
             }
             w.reqline = values[4] == "1";
             w.type = values[5];
