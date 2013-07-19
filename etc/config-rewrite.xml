@@ -1,0 +1,46 @@
+<?xml version='1.0'?>
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
+  <start route="start"/>
+  <routes>
+    <route id="start">
+<filter type='http_rewrite'>
+  <request verbose="1">
+    <rule name="null"/>
+    <rule name="url">
+      <rewrite
+	  from='(?&lt;proto>https?://)(?&lt;pxhost>[^ /?#]+)/(?&lt;pxpath>[^ /]+)/(?&lt;host>[^ /]+)(?&lt;path>[^ ]*)'
+	  to='${proto}${host}${path}' />
+      <rewrite from='(?:Host: )(.*)' to='Host: ${host}' />
+    </rule>
+    <content type="headers">
+      <within header="link" rule="null"/>
+      <within reqline="1" rule="url"/>
+    </content>
+  </request>
+  <response verbose="1">
+    <rule name="null"/>
+    <rule name="url">
+      <rewrite from='foo' to='bar'/>
+      <rewrite from='^cx' to='cy'/>
+      <rewrite
+	  from='(?&lt;proto>https?://)(?&lt;host>[^/?# &quot;&apos;>]+)/(?&lt;path>[^  &quot;&apos;>]+)'
+	  to='${proto}${pxhost}/${pxpath}/${host}/${path}' />
+    </rule>
+    <content type="headers">
+      <within header="link" rule="url"/>
+    </content>
+    <content type="html" mime="text/xml|text/html">
+      <within tag="body" attr="background" rule="null"/>
+      <within tag="script" attr="#text" type="quoted-literal" rule="url"/>
+      <within tag="style" attr="#text" rule="url"/>
+      <within attr="href,src" rule="url"/>
+      <within attr="onclick" type="quoted-literal" rule="url"/>
+    </content>
+    <content type="quoted-literal" mime=".*javascript">
+      <within rule="url"/>
+    </content>
+  </response>
+</filter>
+    </route>
+  </routes>
+</metaproxy>

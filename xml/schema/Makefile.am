@@ -12,6 +12,8 @@ filter_cql_rpn.rnc \
 filter_frontend_net.rnc \
 filter_http_client.rnc \
 filter_http_file.rnc \
+filter_http_rewrite.rnc \
+filter_http_rewrite1.rnc \
 filter_limit.rnc \
 filter_load_balance.rnc \
 filter_log.rnc \

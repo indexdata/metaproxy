@@ -30,6 +30,7 @@ include "filter_cql_rpn.rnc"
 include "filter_frontend_net.rnc"
 include "filter_http_client.rnc"
 include "filter_http_file.rnc"
+include "filter_http_rewrite.rnc"
 include "filter_http_rewrite1.rnc"
 include "filter_limit.rnc"
 include "filter_load_balance.rnc"
@@ -82,6 +83,7 @@ filter =
     | filter_frontend_net
     | filter_http_client
     | filter_http_file
+    | filter_http_rewrite
     | filter_http_rewrite1
     | filter_limit
     | filter_load_balance

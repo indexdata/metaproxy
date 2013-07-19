@@ -1,0 +1,44 @@
+# Metaproxy XML config file schema
+
+namespace mp = "http://indexdata.com/metaproxy"
+
+rewrite = element mp:rewrite {
+  attribute from { xsd:string },
+  attribute to { xsd:string }
+}
+
+rule = element mp:rule {
+  attribute name { xsd:string },
+  rewrite*
+}
+
+within = element mp:within {
+  attribute tag { xsd:string }?,
+  attribute attr { xsd:string }?,
+  attribute type { xsd:string }?,
+  attribute header { xsd:string }?,
+  attribute reqline { xsd:string }?,
+  attribute rule { xsd:string }
+}
+
+content = element mp:content {
+  attribute type { xsd:string },
+  attribute mime { xsd:string }?,
+  within*
+}
+
+section = (rule | content)*
+
+filter_http_rewrite =
+  attribute type { "http_rewrite" },
+  attribute id { xsd:NCName }?,
+  attribute name { xsd:NCName }?,
+  element mp:request {
+    attribute verbose { xsd:string },
+    section
+  }?,
+  element mp:response {
+    attribute verbose { xsd:string },
+    section
+  }?
+
