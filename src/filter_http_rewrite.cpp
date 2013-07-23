@@ -284,13 +284,18 @@ void yf::HttpRewrite::Phase::rewrite_body(
             && regex_match(content_type, cit->content_re))
             break;
     }
-    if (cit == content_list.end())
+    if (cit == content_list.end()) {
+        yaz_log(YLOG_LOG,"rewrite_body: No content rule matched %s, not rewriting",
+                content_type );  
         return;
+    }
 
     int i;
     for (i = 0; i < *content_len; i++)
-        if ((*content_buf)[i] == 0)
+        if ((*content_buf)[i] == 0) {
+            yaz_log(YLOG_LOG,"rewrite_body: Looks like binary stuff, not rewriting");
             return;  // binary content. skip
+        }
 
     std::string content(*content_buf, *content_len);
     cit->parse(m_verbose, content, vars);
