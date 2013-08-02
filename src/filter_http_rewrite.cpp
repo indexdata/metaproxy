@@ -275,6 +275,10 @@ void yf::HttpRewrite::Phase::rewrite_body(
 {
     if (*content_len == 0)
         return;
+    if (!content_type) {
+        yaz_log(YLOG_LOG, "rewrite_body: null content_type, can not rewrite");
+        return;
+    }
     std::list<Content>::const_iterator cit = content_list.begin();
     for (; cit != content_list.end(); cit++)
     {
