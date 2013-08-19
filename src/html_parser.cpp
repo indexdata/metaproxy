@@ -95,7 +95,7 @@ static int skipSpace(const char *cp)
 static int skipName(const char *cp)
 {
     int i;
-    for (i = 0; cp[i] && !strchr(SPACECHR "/>=", cp[i]); i++)
+    for (i = 0; cp[i] && !strchr(SPACECHR "/>=<", cp[i]); i++)
         ;
     return i;
 }
@@ -146,7 +146,7 @@ int mp::HTMLParser::Rep::tagAttrs(HTMLParserEvent &event,
                                   const char *cp)
 {
     int i = skipSpace(cp);
-    while (cp[i] && cp[i] != '>' && cp[i] != '/')
+    while (cp[i] && cp[i] != '>' && cp[i] != '/' && cp[i] != '<')
     {
         const char *attr_name = cp + i;
         int attr_len;
@@ -174,7 +174,7 @@ int mp::HTMLParser::Rep::tagEnd(HTMLParserEvent &event,
 {
     int i = 0;
     int close_it = 0;
-    for (; cp[i] && cp[i] != '/' && cp[i] != '>'; i++)
+    for (; cp[i] && cp[i] != '/' && cp[i] != '>' && cp[i] != '<'; i++)
         ;
     if (i > 0)
     {

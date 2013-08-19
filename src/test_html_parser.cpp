@@ -241,6 +241,36 @@ BOOST_AUTO_TEST_CASE( test_html_parser_5 )
     }
 }
 
+BOOST_AUTO_TEST_CASE( test_html_parser_6 )
+{
+    try
+    {
+        mp::HTMLParser hp;
+        const char* html =
+            "<html><script><x;</script></html>";
+
+        const char* expected = html;
+        MyEvent e;
+        hp.set_verbose(0);
+        hp.parse(e, html);
+
+        BOOST_CHECK_EQUAL(std::string(expected), e.out);
+        if (std::string(expected) != e.out)
+        {
+            std::cout << "Expected" << std::endl;
+            std::cout << expected << std::endl;
+            std::cout << "Got" << std::endl;
+            std::cout << e.out << std::endl;
+        }
+    }
+    catch (std::exception & e)
+    {
+        std::cout << e.what();
+        std::cout << std::endl;
+        BOOST_CHECK (false);
+    }
+}
+
 
 /*
  * Local variables:
