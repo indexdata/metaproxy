@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define SPACECHR " \t\r\n\f"
 
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html
 
 namespace metaproxy_1 {
     class HTMLParser::Rep {
@@ -95,7 +96,7 @@ static int skipSpace(const char *cp)
 static int skipName(const char *cp)
 {
     int i;
-    for (i = 0; cp[i] && !strchr(SPACECHR "/>=<", cp[i]); i++)
+    for (i = 0; cp[i] && !strchr(SPACECHR "/><=", cp[i]); i++)
         ;
     return i;
 }
@@ -146,7 +147,7 @@ int mp::HTMLParser::Rep::tagAttrs(HTMLParserEvent &event,
                                   const char *cp)
 {
     int i = skipSpace(cp);
-    while (cp[i] && cp[i] != '>' && cp[i] != '/' && cp[i] != '<')
+    while (cp[i] && !strchr("/><", cp[i]))
     {
         const char *attr_name = cp + i;
         int attr_len;
@@ -174,7 +175,7 @@ int mp::HTMLParser::Rep::tagEnd(HTMLParserEvent &event,
 {
     int i = 0;
     int close_it = 0;
-    for (; cp[i] && cp[i] != '/' && cp[i] != '>' && cp[i] != '<'; i++)
+    for (; cp[i] && !strchr("/><", cp[i]); i++)
         ;
     if (i > 0)
     {
