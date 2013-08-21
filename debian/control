@@ -61,6 +61,8 @@ Depends: libmetaproxy4 (= ${Source-Version}),
 	libxslt1-dev,
 	libboost-dev,
 	libboost-thread-dev,
+	libboost-regex-dev,
+	libboost-system-dev,
 	libgnutls-dev
 Conflicts: libmetaproxy2-dev, libmetaproxy3-dev
 Description: Z39.50/SRU router (development)
