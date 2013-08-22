@@ -63,6 +63,8 @@ rm -f ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy/*
 mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy4/modules
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/filters-enabled
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/filters-available
+mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/ports.d
+mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/routes.d
 mkdir -p ${RPM_BUILD_ROOT}/etc/logrotate.d
 mkdir -p ${RPM_BUILD_ROOT}/etc/init.d
 mkdir -p ${RPM_BUILD_ROOT}/etc/sysconfig

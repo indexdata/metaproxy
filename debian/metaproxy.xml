@@ -6,6 +6,7 @@
     <filter id="frontend" type="frontend_net">
       <threads>50</threads>
       <port>@:9000</port>
+      <include src="ports.d/*.xml"/>
       <message>FN</message>
     </filter>
   </filters>
@@ -15,6 +16,7 @@
       <include src="filters-enabled/*.xml"/>
       <filter type="bounce"/>
     </route>
+    <include src="routes.d/*.xml"/>
   </routes>
 </metaproxy>
 

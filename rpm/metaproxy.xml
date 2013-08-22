@@ -6,6 +6,7 @@
     <filter id="frontend" type="frontend_net">
       <threads>50</threads>
       <port>@:9000</port>
+      <include src="ports.d/*.xml"/>
       <!-- Uncomment the message below to get queue/thread usage logging -->
       <message>FN</message>
     </filter>
@@ -16,6 +17,7 @@
       <include src="filters-enabled/*.xml"/>
       <filter type="bounce"/>
     </route>
+    <include src="routes.d/*.xml"/>
   </routes>
 </metaproxy>
 

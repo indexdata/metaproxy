@@ -1,2 +1,4 @@
 etc/metaproxy/filters-enabled
 etc/metaproxy/filters-available
+etc/metaproxy/ports.d
+etc/metaproxy/routes.d
