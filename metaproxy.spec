@@ -109,6 +109,8 @@ rm -fr ${RPM_BUILD_ROOT}
 %config /etc/metaproxy/metaproxy.user
 %dir /etc/metaproxy/filters-available
 %dir /etc/metaproxy/filters-enabled
+%dir /etc/metaproxy/ports.d
+%dir /etc/metaproxy/routes.d
 %config(noreplace) /etc/logrotate.d/metaproxy
 %config(noreplace) /etc/sysconfig/metaproxy
 
