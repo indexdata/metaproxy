@@ -1,5 +1,6 @@
 files
 libmetaproxy4
+libmetaproxy4-dbg
 libmetaproxy4-dev
 metaproxy
 metaproxy-doc
