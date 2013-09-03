@@ -281,6 +281,7 @@ mp_util::check_sru_query_exists(mp::Package &package,
                                 Z_SRW_PDU *sru_pdu_res,
                                 Z_SRW_searchRetrieveRequest const *sr_req)
 {
+#ifdef Z_SRW_query_type_cql
     if ((sr_req->query_type == Z_SRW_query_type_cql && !sr_req->query.cql))
     {
         yaz_add_srw_diagnostic(odr_en,
@@ -313,6 +314,22 @@ mp_util::check_sru_query_exists(mp::Package &package,
                                "PQF query is empty");
         return false;
     }
+#else
+    if (!sr_req->query)
+    {
+        yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.response->diagnostics),
+                               &(sru_pdu_res->u.response->num_diagnostics),
+                               YAZ_SRW_MANDATORY_PARAMETER_NOT_SUPPLIED,
+                               "query");
+        yaz_add_srw_diagnostic(odr_en,
+                               &(sru_pdu_res->u.response->diagnostics),
+                               &(sru_pdu_res->u.response->num_diagnostics),
+                               YAZ_SRW_QUERY_SYNTAX_ERROR,
+                               "CQL query is empty");
+        return false;
+    }
+#endif
     return true;
 }
 
@@ -365,6 +382,7 @@ std::ostream& std::operator<<(std::ostream& os, Z_SRW_PDU& srw_pdu)
                 else
                     os << " -";
 
+#ifdef Z_SRW_query_type_cql
                 switch (sr->query_type){
                 case Z_SRW_query_type_cql:
                     os << " CQL";
@@ -380,6 +398,10 @@ std::ostream& std::operator<<(std::ostream& os, Z_SRW_PDU& srw_pdu)
                         os << " " << sr->query.pqf;
                     break;
                 }
+#else
+                os << " " << (sr->queryType ? sr->queryType : "cql")
+                   << " " << sr->query;
+#endif
             }
         }
         break;

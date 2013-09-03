@@ -869,7 +869,13 @@ int yf::SRUtoZ3950::Impl::z3950_build_query(
     const Z_SRW_searchRetrieveRequest *req
     ) const
 {
-    if (req->query_type == Z_SRW_query_type_cql)
+    if (
+#ifdef Z_SRW_query_type_cql
+        req->query_type == Z_SRW_query_type_cql
+#else
+        !strcmp(req->queryType, "cql")
+#endif
+        )
     {
         Z_External *ext = (Z_External *)
             odr_malloc(odr_en, sizeof(*ext));
@@ -878,22 +884,39 @@ int yf::SRUtoZ3950::Impl::z3950_build_query(
         ext->indirect_reference = 0;
         ext->descriptor = 0;
         ext->which = Z_External_CQL;
-        ext->u.cql = odr_strdup(odr_en, req->query.cql);
+        ext->u.cql = odr_strdup(odr_en,
+#ifdef Z_SRW_query_type_cql
+        req->query.cql
+#else
+        req->query
+#endif
+            );
 
         z_query->which = Z_Query_type_104;
         z_query->u.type_104 =  ext;
         return 0;
     }
 
-    if (req->query_type == Z_SRW_query_type_pqf)
+    if (
+#ifdef Z_SRW_query_type_pqf
+        req->query_type == Z_SRW_query_type_pqf
+#else
+        !strcmp(req->queryType, "pqf")
+#endif
+        )
     {
         Z_RPNQuery *RPNquery;
         YAZ_PQF_Parser pqf_parser;
 
         pqf_parser = yaz_pqf_create ();
 
-        RPNquery = yaz_pqf_parse (pqf_parser, odr_en, req->query.pqf);
-
+        RPNquery = yaz_pqf_parse (pqf_parser, odr_en,
+#ifdef Z_SRW_query_type_pqf
+        req->query.pqf
+#else
+        req->query
+#endif
+            );
         yaz_pqf_destroy(pqf_parser);
 
         if (!RPNquery)
