@@ -614,7 +614,6 @@ void yf::VirtualDB::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
     {
         package.response() = present_package.response();
         package.session().close();
-        return;
     }
     else
     {
