@@ -69,7 +69,8 @@ static void http_echo(mp::odr &odr, Z_GDU *zgdu, Z_GDU *zgdu_res)
         z_HTTP_header_set(odr, &hres->headers,
                           "Content-Type", "text/plain");
         
-        hres->content_buf = odr_strdup(odr, buf);
+        hres->content_buf = (char*) odr_malloc(odr, len);
+        memcpy(hres->content_buf, buf, len);
         hres->content_len = len;        
     }
     odr_destroy(enc);
