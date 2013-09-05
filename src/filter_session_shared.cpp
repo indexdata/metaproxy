@@ -118,7 +118,7 @@ namespace metaproxy_1 {
             BackendInstancePtr get_backend(const Package &package);
             void use_backend(BackendInstancePtr b);
             void release_backend(BackendInstancePtr b);
-            void expire_class();
+            bool expire_instances();
             yazpp_1::GDU m_init_request;
             yazpp_1::GDU m_init_response;
             boost::mutex m_mutex_backend_class;
@@ -189,6 +189,8 @@ namespace metaproxy_1 {
         public:
             void expire();
         private:
+            void expire_classes();
+            void stat();
             void init(Package &package, const Z_GDU *gdu,
                       FrontendPtr frontend);
             void start();
@@ -457,6 +459,26 @@ yf::SessionShared::BackendClass::BackendClass(const yazpp_1::GDU &init_request,
 
 yf::SessionShared::BackendClass::~BackendClass()
 {}
+
+void yf::SessionShared::Rep::stat()
+{
+    int no_classes = 0;
+    int no_instances = 0;
+    BackendClassMap::const_iterator it;
+    {
+        boost::mutex::scoped_lock lock(m_mutex_backend_map);
+        for (it = m_backend_map.begin(); it != m_backend_map.end(); it++)
+        {
+            BackendClassPtr bc = it->second;
+            no_classes++;
+            BackendInstanceList::iterator bit = bc->m_backend_list.begin();
+            for (; bit != bc->m_backend_list.end(); bit++)
+                no_instances++;
+        }
+    }
+    yaz_log(YLOG_LOG, "backend classes=%d instances=%d", no_classes,
+        no_instances);
+}
 
 void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
                                   FrontendPtr frontend)
@@ -1065,11 +1087,13 @@ void yf::SessionShared::Frontend::present(mp::Package &package,
 
         if (b_resp->records && b_resp->records->which ==  Z_Records_DBOSD)
         {
+#if 0
             yaz_log(YLOG_LOG, "Adding " ODR_INT_PRINTF "+" ODR_INT_PRINTF
                     " records to cache %p",
                     *req->resultSetStartPoint,
                     *f_resp->numberOfRecordsReturned,
                     &found_set->m_record_cache);
+#endif
             found_set->m_record_cache.add(
                 odr,
                 b_resp->records->u.databaseOrSurDiagnostics,
@@ -1129,7 +1153,7 @@ void yf::SessionShared::Worker::operator() (void)
     m_p->expire();
 }
 
-void yf::SessionShared::BackendClass::expire_class()
+bool yf::SessionShared::BackendClass::expire_instances()
 {
     time_t now;
     time(&now);
@@ -1158,6 +1182,25 @@ void yf::SessionShared::BackendClass::expire_class()
             bit++;
         }
     }
+    if (m_backend_list.empty())
+        return true;
+    return false;
+}
+
+void yf::SessionShared::Rep::expire_classes()
+{
+    boost::mutex::scoped_lock lock(m_mutex_backend_map);
+    BackendClassMap::iterator b_it = m_backend_map.begin();
+    while (b_it != m_backend_map.end())
+    {
+        if (b_it->second->expire_instances())
+        {
+            m_backend_map.erase(b_it);
+            b_it = m_backend_map.begin();
+        }
+        else
+            b_it++;
+    }
 }
 
 void yf::SessionShared::Rep::expire()
@@ -1175,9 +1218,8 @@ void yf::SessionShared::Rep::expire()
         xt.sec += m_session_ttl / 3;
         boost::thread::sleep(xt);
 
-        BackendClassMap::const_iterator b_it = m_backend_map.begin();
-        for (; b_it != m_backend_map.end(); b_it++)
-            b_it->second->expire_class();
+        stat();
+        expire_classes();
     }
 }
 
