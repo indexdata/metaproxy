@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/zgdu.h>
 #include <yaz/diagbib1.h>
 #include <yaz/srw.h>
-
+#include <yaz/tpath.h>
 
 namespace mp = metaproxy_1;
 namespace yf = metaproxy_1::filter;
@@ -42,7 +42,7 @@ namespace metaproxy_1 {
             Impl();
             ~Impl();
             void process(metaproxy_1::Package & package);
-            void configure(const xmlNode * ptr);
+            void configure(const xmlNode *ptr, const char *path);
         private:
             yazpp_1::Yaz_cql2rpn m_cql2rpn;
         };
@@ -63,7 +63,7 @@ yf::CQLtoRPN::~CQLtoRPN()
 void yf::CQLtoRPN::configure(const xmlNode *xmlnode, bool test_only,
                              const char *path)
 {
-    m_p->configure(xmlnode);
+    m_p->configure(xmlnode, path);
 }
 
 void yf::CQLtoRPN::process(mp::Package &package) const
@@ -82,7 +82,7 @@ yf::CQLtoRPN::Impl::~Impl()
 {
 }
 
-void yf::CQLtoRPN::Impl::configure(const xmlNode *xmlnode)
+void yf::CQLtoRPN::Impl::configure(const xmlNode *xmlnode, const char *path)
 {
 
     /*
@@ -122,8 +122,14 @@ void yf::CQLtoRPN::Impl::configure(const xmlNode *xmlnode)
                                           "for filter cql_rpn");
     }
 
+
+    char fullpath[1024];
+    if (!yaz_filepath_resolve(fname.c_str(), path, 0, fullpath))
+    {
+        throw mp::filter::FilterException("Could not open " + fname);
+    }
     int error = 0;
-    if (!m_cql2rpn.parse_spec_file(fname.c_str(), &error))
+    if (!m_cql2rpn.parse_spec_file(fullpath, &error))
     {
         throw mp::filter::FilterException("Bad or missing "
                                           "CQL to RPN configuration "
