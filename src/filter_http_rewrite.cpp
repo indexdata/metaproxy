@@ -42,7 +42,6 @@ namespace metaproxy_1 {
         public:
             bool start_anchor;
             boost::regex re;
-            boost::smatch what;
             std::string recipe;
             std::map<int, std::string> group_index;
             std::string sub_vars(
@@ -499,46 +498,49 @@ bool yf::HttpRewrite::Rule::test_patterns(
     while (1)
     {
         std::list<Replace>::iterator bit = replace_list.end();
+        boost::smatch bwhat;
+        bool match_one = false;
         {
-            std::string::const_iterator best_pos = txt.end();
             std::list<Replace>::iterator it = replace_list.begin();
             for (; it != replace_list.end(); it++)
             {
                 if (it->start_anchor && !first)
                     continue;
-                if (regex_search(start, end, it->what, it->re))
+                boost::smatch what;
+                if (regex_search(start, end, what, it->re))
                 {
-                    if (it->what[0].first < best_pos)
+                    if (!match_one || what[0].first < bwhat[0].first)
                     {
-                        best_pos = it->what[0].first;
+                        bwhat = what;
                         bit = it;
                     }
+                    match_one = true;
                 }
             }
-            if (bit == replace_list.end())
+            if (!match_one)
                 break;
         }
         first = false;
         replaces = true;
         size_t i;
-        for (i = 1; i < bit->what.size(); ++i)
+        for (i = 1; i < bwhat.size(); ++i)
         {
             //check if the group is named
             std::map<int, std::string>::const_iterator git
                 = bit->group_index.find(i);
             if (git != bit->group_index.end())
             {   //it is
-                vars[git->second] = bit->what[i];
+                vars[git->second] = bwhat[i];
             }
 
         }
         //prepare replacement string
         std::string rvalue = bit->sub_vars(vars);
         yaz_log(YLOG_LOG, "! Rewritten '%s' to '%s'",
-                bit->what.str(0).c_str(), rvalue.c_str());
-        out.append(start, bit->what[0].first);
+                bwhat.str(0).c_str(), rvalue.c_str());
+        out.append(start, bwhat[0].first);
         out.append(rvalue);
-        start = bit->what[0].second; //move search forward
+        start = bwhat[0].second; //move search forward
     }
     out.append(start, end);
     txt = out;
