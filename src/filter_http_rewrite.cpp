@@ -229,38 +229,12 @@ void yf::HttpRewrite::Phase::rewrite_headers(mp::odr & o,
             if (!it->header.empty() &&
                 regex_match(header->name, it->header))
             {
-#ifdef OLDHEADERMATCH                
-                // Matches and replaces the whole header line.
-                // This is good if you want to play with the header name too,
-                // but useless for patterns that want to anchor to the beginning
-                // or end of the header value, as we want to do with host-relative
-                // links. This code should probably be removed.
-                std::string sheader(header->name);
-                sheader += ": ";
-                sheader += header->value;
-
-                if (it->exec(vars, sheader, true))
-                {
-                    size_t pos = sheader.find(": ");
-                    if (pos == std::string::npos)
-                    {
-                        yaz_log(YLOG_LOG, "Header malformed during rewrite, ignoring");
-                        continue;
-                    }
-                    header->name = odr_strdup(
-                        o, sheader.substr(0, pos).c_str());
-                    header->value = odr_strdup(
-                        o, sheader.substr(pos + 2, std::string::npos).c_str());
-                }
-#else
                 // Match and replace only the header value
                 std::string hval(header->value);
                 if (it->exec(vars, hval, true))
                 {
                     header->value = odr_strdup(o, hval.c_str());
                 }
-                    
-#endif
             }
         }
     }
