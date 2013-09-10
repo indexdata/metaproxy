@@ -70,7 +70,7 @@ public:
         out.append(value, len);
     }
 };
-#if 0
+
 BOOST_AUTO_TEST_CASE( test_html_parser_1 )
 {
     try
@@ -270,18 +270,20 @@ BOOST_AUTO_TEST_CASE( test_html_parser_6 )
         BOOST_CHECK (false);
     }
 }
-#endif
+
 BOOST_AUTO_TEST_CASE( test_html_parser_7 )
 {
     try
     {
         mp::HTMLParser hp;
         const char* html =
-            "<html><script>x=1; for (i=0;i<x;i++) ;\nx=2;\n</script></html>";
+            "<html><Script>x=1; for (i=0;i<x;i++) </y>;"
+            "</SCRIPT ;>"
+            "</1>\nx=2;\n</Script></html>";
 
         const char* expected = html;
         MyEvent e;
-        hp.set_verbose(1);
+        hp.set_verbose(0);
         hp.parse(e, html);
 
         BOOST_CHECK_EQUAL(std::string(expected), e.out);

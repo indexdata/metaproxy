@@ -270,11 +270,13 @@ void mp::HTMLParser::Rep::parse_str(HTMLParserEvent &event, const char *cp)
             if (!nest)
             {
                 if (i == 6 && !yaz_strncasecmp(cp, "script", i))
-                    nest = true;
-                else
                 {
-                    continue;
+                    int ws = skipSpace(cp + 6);
+                    if (cp[ws + 6] == '>')
+                        nest = true; /* really terminated */
                 }
+                if (!nest)
+                    continue;
             }
             tagText(event, text_start, cp - 2);
             event.closeTag(cp, i);
