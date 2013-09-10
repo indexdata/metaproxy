@@ -43,7 +43,6 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
 {
     try
     {
-        std::cout << "Running non-xml config test case" << std::endl;
         mp::RouterChain router;
         mp::filter::HttpRewrite fhr;
 
@@ -130,6 +129,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "</style>"
             "</head>"
             "<script>var jslink=\"http://targetsite/webservice.xml\";"
+            "for (i = 0; i<foo; i++) ;\n"
             "var some=\"foo\"; foo=1;"
             "</script>"
             "<body>"
@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
 
         const char *resp_expected =
             "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 605\r\n"
+            "Content-Length: 631\r\n"
             "Content-Type: text/html\r\n"
             "Link: <http://proxyhost/proxypath/targetsite/file.xml>; rel=absolute\r\n"
             "Link: </dir/file.xml>; rel=relative\r\n"
@@ -159,6 +159,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             "</style>"
             "</head>"
             "<script>var jslink=\"http://proxyhost/proxypath/targetsite/webservice.xml\";"
+            "for (i = 0; i<foo; i++) ;\n"
             "var some=\"bar\"; foo=1;"
             "</script>"
             "<body>"
@@ -210,7 +211,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
             {
                 //compare buffers
                 std::cout << "Expected result:\n" << resp_expected << "\n";
-                std::cout << "Got result:\n" << "\n";
+                std::cout << "Got result:\n";
                 fflush(stdout);
                 fwrite(resp_result, 1, resp_result_len, stdout);
                 fflush(stdout);
@@ -226,12 +227,10 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
     }
 }
 
-
 BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
 {
     try
     {
-        std::cout << "Running non-xml config test case" << std::endl;
         mp::RouterChain router;
         mp::filter::HttpRewrite fhr;
 
@@ -357,7 +356,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_2 )
             {
                 //compare buffers
                 std::cout << "Expected result:\n" << resp_expected << "\n";
-                std::cout << "Got result:\n" << "\n";
+                std::cout << "Got result:\n";
                 fflush(stdout);
                 fwrite(resp_result, 1, resp_result_len, stdout);
                 fflush(stdout);

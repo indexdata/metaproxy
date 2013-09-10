@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <yaz/matchstr.h>
 
 #define SPACECHR " \t\r\n\f"
 
@@ -47,6 +48,7 @@ namespace metaproxy_1 {
         Rep();
         ~Rep();
         int m_verbose;
+        bool nest;
     };
 }
 
@@ -55,6 +57,7 @@ namespace mp = metaproxy_1;
 mp::HTMLParser::Rep::Rep()
 {
     m_verbose = 0;
+    nest = true;
 }
 
 mp::HTMLParser::Rep::~Rep()
@@ -219,7 +222,7 @@ void mp::HTMLParser::Rep::parse_str(HTMLParserEvent &event, const char *cp)
         if (*cp++ != '<')
             continue;
 
-        if (*cp == '!')
+        if (nest && *cp == '!')
         {
             int i;
             tagText(event, text_start, cp - 1);
@@ -245,7 +248,7 @@ void mp::HTMLParser::Rep::parse_str(HTMLParserEvent &event, const char *cp)
             cp += i;
             text_start = cp;
         }
-        else if (*cp == '?')
+        else if (nest && *cp == '?')
         {
             int i;
             tagText(event, text_start, cp - 1);
@@ -264,6 +267,17 @@ void mp::HTMLParser::Rep::parse_str(HTMLParserEvent &event, const char *cp)
             tagText(event, text_start, cp - 1);
 
             i = skipName(++cp);
+
+            if (!nest)
+            {
+                if (i == 6 && !yaz_strncasecmp(cp, "script", i))
+                    nest = true;
+                else
+                {
+                    text_start = cp - 1; // points to '/'
+                    continue;
+                }
+            }
             event.closeTag(cp, i);
             if (m_verbose)
                 printf("------ tag close %.*s\n", i, cp);
@@ -271,7 +285,7 @@ void mp::HTMLParser::Rep::parse_str(HTMLParserEvent &event, const char *cp)
             cp += i;
             text_start = cp;
         }
-        else if (isAlpha(*cp))
+        else if (nest && isAlpha(*cp))
         {
             int i, j;
             tagText(event, text_start, cp - 1);
@@ -281,6 +295,10 @@ void mp::HTMLParser::Rep::parse_str(HTMLParserEvent &event, const char *cp)
                 printf("------ tag open %.*s\n", i, cp);
             j = tagAttrs(event, cp, i, cp + i);
             j += tagEnd(event, cp, i, cp + i + j);
+
+            if (i == 6 && !yaz_strncasecmp(cp, "script", i))
+                nest = false;
+
             cp += i + j;
             text_start = cp;
         }
