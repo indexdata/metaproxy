@@ -264,8 +264,7 @@ void mp::HTMLParser::Rep::parse_str(HTMLParserEvent &event, const char *cp)
         else if (*cp == '/' && isAlpha(cp[1]))
         {
             int i;
-            tagText(event, text_start, cp - 1);
-
+ 
             i = skipName(++cp);
 
             if (!nest)
@@ -274,10 +273,10 @@ void mp::HTMLParser::Rep::parse_str(HTMLParserEvent &event, const char *cp)
                     nest = true;
                 else
                 {
-                    text_start = cp - 1; // points to '/'
                     continue;
                 }
             }
+            tagText(event, text_start, cp - 2);
             event.closeTag(cp, i);
             if (m_verbose)
                 printf("------ tag close %.*s\n", i, cp);
