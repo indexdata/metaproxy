@@ -166,8 +166,12 @@ int mp::HTMLParser::Rep::tagAttrs(HTMLParserEvent &event,
         x[0] = tr;
         x[1] = 0;
         if (m_verbose)
-            printf ("------ attr %.*s=%.*s\n", attr_len, attr_name,
-                    val_len, value);
+        {
+            printf("------ attr %.*s", attr_len, attr_name);
+            if (value)
+                printf("=%.*s", val_len, value);
+            printf("\n");
+        }
         event.attribute(name, len, attr_name, attr_len, value, val_len, x);
     }
     return i;
@@ -195,7 +199,7 @@ int mp::HTMLParser::Rep::tagEnd(HTMLParserEvent &event,
     {
         if (m_verbose)
             printf("------ any tag %s %.*s\n",
-                   close_it ? " close" : "end", tag_len, tag);
+                   close_it ? "close" : "end", tag_len, tag);
         event.anyTagEnd(tag, tag_len, close_it);
         i++;
     }
