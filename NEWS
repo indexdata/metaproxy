@@ -1,3 +1,21 @@
+--- 1.3.62 2013/09/11
+
+http_rewrite: better handling of <script> content in HTML parser. MP-486
+
+http_rewrite: fix threading issue with regex. MP-482
+
+bounce: don't use strdup for fixed length content. Error occurred in echo
+mode only.
+
+session_shared: expire backend class when no instances left. This
+means memory clean up, but not really a leak fix.
+
+virt_db: fix leak for naked ptr.
+
+cql_rpn: use config relative path for cql2rpn file. MP-481
+
+Updates for upcoming YAZ 5.
+
 --- 1.3.61 2013/08/29
 
 New configuration directories ports.d/routes.d for metaproxy
