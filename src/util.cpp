@@ -500,15 +500,9 @@ void mp_util::transfer_referenceId(ODR odr, const Z_APDU *src, Z_APDU *dst)
     if (src)
     {
         Z_ReferenceId **id_from = mp::util::get_referenceId(src);
-        if (id_from && *id_from && id_to)
-        {
-            *id_to = (Z_ReferenceId*) odr_malloc (odr, sizeof(**id_to));
-            (*id_to)->size = (*id_to)->len = (*id_from)->len;
-            (*id_to)->buf = (unsigned char*) odr_malloc(odr, (*id_to)->len);
-            memcpy((*id_to)->buf, (*id_from)->buf, (*id_to)->len);
-        }
-        else if (id_to)
-            *id_to = 0;
+        if (id_from && *id_from)
+            *id_to = odr_create_Odr_oct(odr, (*id_from)->buf,
+                                        (*id_from)->len);
     }
 }
 

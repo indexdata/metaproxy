@@ -957,15 +957,13 @@ Z_Entry *yf::Multi::ScanTermInfo::get_entry(ODR odr)
     t->byAttributes = 0;
     t->otherTermInfo = 0;
     t->globalOccurrences = odr_intdup(odr, m_count);
-    t->term = (Z_Term *)
-        odr_malloc(odr, sizeof(*t->term));
+    t->term = (Z_Term *) odr_malloc(odr, sizeof(*t->term));
     t->term->which = Z_Term_general;
-    Odr_oct *o;
-    t->term->u.general = o = (Odr_oct *)odr_malloc(odr, sizeof(Odr_oct));
-
-    o->len = o->size = m_norm_term.size();
-    o->buf = (unsigned char *) odr_malloc(odr, o->len);
-    memcpy(o->buf, m_norm_term.c_str(), o->len);
+    t->term->u.general = odr_create_Odr_oct(odr,
+#if YAZ_VERSIONL < 0x50000
+                                 (unsigned char *)
+#endif
+                                 m_norm_term.c_str(), m_norm_term.size());
     return e;
 }
 
