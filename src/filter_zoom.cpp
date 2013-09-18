@@ -108,7 +108,7 @@ namespace metaproxy_1 {
             void connect(std::string zurl, int *error, char **addinfo,
                          ODR odr);
             void search(ZOOM_query q, Odr_int *hits,
-                        int *error, char **addinfo, ODR odr);
+                        int *error, char **addinfo, Z_FacetList **fl, ODR odr);
             void present(Odr_int start, Odr_int number, ZOOM_record *recs,
                          int *error, char **addinfo, ODR odr);
             void set_option(const char *name, const char *value);
@@ -126,7 +126,6 @@ namespace metaproxy_1 {
             BackendPtr m_backend;
             void handle_package(mp::Package &package);
             void handle_search(mp::Package &package);
-
             void auth(mp::Package &package, Z_InitRequest *req,
                       int *error, char **addinfo, ODR odr);
 
@@ -371,15 +370,75 @@ void yf::Zoom::Backend::connect(std::string zurl,
 }
 
 void yf::Zoom::Backend::search(ZOOM_query q, Odr_int *hits,
-                               int *error, char **addinfo, ODR odr)
+                               int *error, char **addinfo, Z_FacetList **flp,
+                               ODR odr)
 {
     ZOOM_resultset_destroy(m_resultset);
+
+    if (*flp)
+    {
+        WRBUF w = wrbuf_alloc();
+        yaz_facet_list_to_wrbuf(w, *flp);
+        set_option("facets", wrbuf_cstr(w));
+        wrbuf_destroy(w);
+    }
     m_resultset = ZOOM_connection_search(m_connection, q);
     get_zoom_error(error, addinfo, odr);
     if (*error == 0)
         *hits = ZOOM_resultset_size(m_resultset);
     else
         *hits = 0;
+    *flp = 0;
+    size_t num_facets = ZOOM_resultset_facets_size(m_resultset);
+    if (num_facets > 0)
+    {
+        size_t i;
+        Z_FacetList *fl = (Z_FacetList *) odr_malloc(odr, sizeof(*fl));
+        fl->elements = (Z_FacetField **)
+            odr_malloc(odr, num_facets * sizeof(*fl->elements));
+        for (i = 0; i < num_facets; i++)
+        {
+            ZOOM_facet_field ff =
+                ZOOM_resultset_get_facet_field_by_index(m_resultset, i);
+            if (!ff)
+                break;
+            Z_AttributeList *al = (Z_AttributeList *)
+                odr_malloc(odr, sizeof(*al));
+            al->num_attributes = 1;
+            al->attributes = (Z_AttributeElement **)
+                odr_malloc(odr, sizeof(*al->attributes));
+            Z_AttributeElement *ae = al->attributes[0] = (Z_AttributeElement *)
+                odr_malloc(odr, sizeof(**al->attributes));
+            ae->attributeSet = 0;
+            ae->attributeType = odr_intdup(odr, 1);
+            ae->which = Z_AttributeValue_complex;
+            ae->value.complex = (Z_ComplexAttribute *)
+                odr_malloc(odr, sizeof(*ae->value.complex));
+            ae->value.complex->num_list = 1;
+            ae->value.complex->list = (Z_StringOrNumeric **)
+                odr_malloc(odr, sizeof(**ae->value.complex->list));
+            ae->value.complex->list[0] = (Z_StringOrNumeric *)
+                odr_malloc(odr, sizeof(**ae->value.complex->list));
+            ae->value.complex->list[0]->which = Z_StringOrNumeric_string;
+            ae->value.complex->list[0]->u.string =
+                odr_strdup(odr, ZOOM_facet_field_name(ff));
+            ae->value.complex->num_semanticAction = 0;
+            ae->value.complex->semanticAction = 0;
+
+            int num_terms = ZOOM_facet_field_term_count(ff);
+            fl->elements[i] = facet_field_create(odr, al, num_terms);
+            int j;
+            for (j = 0; j < num_terms; j++)
+            {
+                int freq;
+                const char *a_term = ZOOM_facet_field_get_term(ff, j, &freq);
+                fl->elements[i]->terms[j] =
+                    facet_term_create_cstr(odr, a_term, freq);
+            }
+        }
+        fl->num = i;
+        *flp = fl;
+    }
 }
 
 void yf::Zoom::Backend::present(Odr_int start, Odr_int number,
@@ -2311,6 +2370,14 @@ next_proxy:
     ZOOM_query q = ZOOM_query_create();
     ZOOM_query_sortby2(q, b->sptr->sortStrategy.c_str(), sortkeys.c_str());
 
+    Z_FacetList *fl = 0;
+
+    // Facets for request.. And later for reponse
+    if (!fl)
+        fl = yaz_oi_get_facetlist(&sr->otherInfo);
+    if (!fl)
+        fl = yaz_oi_get_facetlist(&sr->additionalSearchInfo);
+
     if (b->get_option("sru"))
     {
         int status = 0;
@@ -2334,7 +2401,7 @@ next_proxy:
         {
             ZOOM_query_cql(q, wrbuf_cstr(wrb));
             package.log("zoom", YLOG_LOG, "CQL: %s", wrbuf_cstr(wrb));
-            b->search(q, &hits, &error, &addinfo, odr);
+            b->search(q, &hits, &error, &addinfo, &fl, odr);
         }
         ZOOM_query_destroy(q);
 
@@ -2352,7 +2419,7 @@ next_proxy:
     {
         ZOOM_query_prefix(q, wrbuf_cstr(pqf_wrbuf));
         package.log("zoom", YLOG_LOG, "search PQF: %s", wrbuf_cstr(pqf_wrbuf));
-        b->search(q, &hits, &error, &addinfo, odr);
+        b->search(q, &hits, &error, &addinfo, &fl, odr);
         ZOOM_query_destroy(q);
     }
 
@@ -2384,6 +2451,9 @@ next_proxy:
             odr_intdup(odr, number_of_records_returned);
     }
     apdu_res->u.searchResponse->resultCount = odr_intdup(odr, hits);
+    if (fl)
+        yaz_oi_set_facetlist(&apdu_res->u.searchResponse->additionalSearchInfo,
+                             odr, fl);
     package.response() = apdu_res;
 }
 
