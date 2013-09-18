@@ -426,14 +426,23 @@ void yf::Zoom::Backend::search(ZOOM_query q, Odr_int *hits,
             ae->value.complex->semanticAction = 0;
 
             int num_terms = ZOOM_facet_field_term_count(ff);
-            fl->elements[i] = facet_field_create(odr, al, num_terms);
+            fl->elements[i] = (Z_FacetField *)
+                odr_malloc(odr, sizeof(Z_FacetField));
+            fl->elements[i]->attributes = al;
+            fl->elements[i]->num_terms = num_terms;
+            fl->elements[i]->terms = (Z_FacetTerm **)
+                odr_malloc(odr, num_terms * sizeof(Z_FacetTerm *));
             int j;
             for (j = 0; j < num_terms; j++)
             {
                 int freq;
                 const char *a_term = ZOOM_facet_field_get_term(ff, j, &freq);
-                fl->elements[i]->terms[j] =
-                    facet_term_create_cstr(odr, a_term, freq);
+                Z_FacetTerm *ft = (Z_FacetTerm *) odr_malloc(odr, sizeof(*ft));
+                ft->term = z_Term_create(odr, Z_Term_general, a_term,
+                                         strlen(a_term));
+                ft->count = odr_intdup(odr, freq);
+
+                fl->elements[i]->terms[j] = ft;
             }
         }
         fl->num = i;
