@@ -374,7 +374,7 @@ void yf::Zoom::Backend::search(ZOOM_query q, Odr_int *hits,
                                ODR odr)
 {
     ZOOM_resultset_destroy(m_resultset);
-
+    m_resultset = 0;
     if (*flp)
     {
         WRBUF w = wrbuf_alloc();
