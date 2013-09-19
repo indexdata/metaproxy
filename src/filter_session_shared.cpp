@@ -89,7 +89,8 @@ namespace metaproxy_1 {
                 Package &search_package,
                 const Z_APDU *apdu_req,
                 const BackendInstancePtr bp,
-                Z_Records **z_records);
+                Z_Records **z_records,
+                Z_OtherInformation *additionalSearchInfo);
         };
         // backend connection instance
         class SessionShared::BackendInstance {
@@ -590,12 +591,14 @@ bool yf::SessionShared::BackendSet::search(
     mp::Package &search_package,
     const Z_APDU *frontend_apdu,
     const BackendInstancePtr bp,
-    Z_Records **z_records)
+    Z_Records **z_records,
+    Z_OtherInformation *additionalSearchInfo)
 {
     mp::odr odr;
     Z_APDU *apdu_req = zget_APDU(odr, Z_APDU_searchRequest);
     Z_SearchRequest *req = apdu_req->u.searchRequest;
 
+    req->additionalSearchInfo = additionalSearchInfo;
     req->resultSetName = odr_strdup(odr, m_result_set_id.c_str());
     req->query = m_query.get_Z_Query();
 
@@ -623,6 +626,7 @@ bool yf::SessionShared::BackendSet::search(
         Z_SearchResponse *b_resp = gdu->u.z3950->u.searchResponse;
         *z_records = b_resp->records;
         m_result_set_size = *b_resp->resultCount;
+        // b_resp->additionalSearchInfo;
         return true;
     }
     Z_APDU *f_apdu = 0;
@@ -701,6 +705,10 @@ void yf::SessionShared::Frontend::get_set(mp::Package &package,
                                           BackendSetPtr &found_set)
 {
     bool session_restarted = false;
+    Z_OtherInformation *additionalSearchInfo = 0;
+
+    if (apdu_req->which == Z_APDU_searchRequest)
+        additionalSearchInfo = apdu_req->u.searchRequest->additionalSearchInfo;
 
 restart:
     std::string result_set_id;
@@ -712,7 +720,7 @@ restart:
         if ((int) bc->m_backend_list.size() >= m_p->m_session_max)
             out_of_sessions = true;
 
-        if (m_p->m_optimize_search)
+        if (m_p->m_optimize_search && !additionalSearchInfo)
         {
             // look at each backend and see if we have a similar search
             BackendInstanceList::const_iterator it = bc->m_backend_list.begin();
@@ -794,7 +802,8 @@ restart:
     search_package.copy_filter(package);
 
     if (!new_set->search(package, search_package,
-                         apdu_req, found_backend, &z_records))
+                         apdu_req, found_backend, &z_records,
+                         additionalSearchInfo))
     {
         bc->remove_backend(found_backend);
         return; // search error
