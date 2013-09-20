@@ -80,10 +80,13 @@ namespace metaproxy_1 {
             time_t m_time_last_use;
             void timestamp();
             yazpp_1::RecordCache m_record_cache;
+            Z_OtherInformation *additionalSearchInfoResponse;
+            NMEM mem_additionalSearchInfoResponse;
             BackendSet(
                 const std::string &result_set_id,
                 const Databases &databases,
                 const yazpp_1::Yaz_Z_Query &query);
+            ~BackendSet();
             bool search(
                 Package &frontend_package,
                 Package &search_package,
@@ -579,6 +582,13 @@ yf::SessionShared::BackendSet::BackendSet(
     m_databases(databases), m_result_set_size(0), m_query(query)
 {
     timestamp();
+    mem_additionalSearchInfoResponse = nmem_create();
+    additionalSearchInfoResponse = 0;
+}
+
+yf::SessionShared::BackendSet::~BackendSet()
+{
+    nmem_destroy(mem_additionalSearchInfoResponse);
 }
 
 static int get_diagnostic(Z_DefaultDiagFormat *r)
@@ -626,7 +636,10 @@ bool yf::SessionShared::BackendSet::search(
         Z_SearchResponse *b_resp = gdu->u.z3950->u.searchResponse;
         *z_records = b_resp->records;
         m_result_set_size = *b_resp->resultCount;
-        // b_resp->additionalSearchInfo;
+
+        nmem_reset(mem_additionalSearchInfoResponse);
+        additionalSearchInfoResponse = yaz_clone_z_OtherInformation(
+            b_resp->additionalSearchInfo, mem_additionalSearchInfoResponse);
         return true;
     }
     Z_APDU *f_apdu = 0;
@@ -992,6 +1005,7 @@ void yf::SessionShared::Frontend::search(mp::Package &package,
     Z_APDU *f_apdu = odr.create_searchResponse(apdu_req, 0, 0);
     Z_SearchResponse *f_resp = f_apdu->u.searchResponse;
     *f_resp->resultCount = found_set->m_result_set_size;
+    f_resp->additionalSearchInfo = found_set->additionalSearchInfoResponse;
     package.response() = f_apdu;
 
     FrontendSetPtr fset(new FrontendSet(databases, query));
