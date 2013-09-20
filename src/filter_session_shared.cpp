@@ -80,20 +80,22 @@ namespace metaproxy_1 {
             time_t m_time_last_use;
             void timestamp();
             yazpp_1::RecordCache m_record_cache;
+
+            Z_OtherInformation *additionalSearchInfoRequest;
             Z_OtherInformation *additionalSearchInfoResponse;
-            NMEM mem_additionalSearchInfoResponse;
+            NMEM mem_additionalSearchInfo;
             BackendSet(
                 const std::string &result_set_id,
                 const Databases &databases,
-                const yazpp_1::Yaz_Z_Query &query);
+                const yazpp_1::Yaz_Z_Query &query,
+                Z_OtherInformation *additionalSearchInfoRequest);
             ~BackendSet();
             bool search(
                 Package &frontend_package,
                 Package &search_package,
                 const Z_APDU *apdu_req,
                 const BackendInstancePtr bp,
-                Z_Records **z_records,
-                Z_OtherInformation *additionalSearchInfo);
+                Z_Records **z_records);
         };
         // backend connection instance
         class SessionShared::BackendInstance {
@@ -577,18 +579,22 @@ void yf::SessionShared::BackendSet::timestamp()
 yf::SessionShared::BackendSet::BackendSet(
     const std::string &result_set_id,
     const Databases &databases,
-    const yazpp_1::Yaz_Z_Query &query) :
+    const yazpp_1::Yaz_Z_Query &query,
+    Z_OtherInformation *additionalSearchInfo) :
     m_result_set_id(result_set_id),
     m_databases(databases), m_result_set_size(0), m_query(query)
 {
     timestamp();
-    mem_additionalSearchInfoResponse = nmem_create();
+    mem_additionalSearchInfo = nmem_create();
     additionalSearchInfoResponse = 0;
+    additionalSearchInfoRequest =
+        yaz_clone_z_OtherInformation(additionalSearchInfo,
+                                     mem_additionalSearchInfo);
 }
 
 yf::SessionShared::BackendSet::~BackendSet()
 {
-    nmem_destroy(mem_additionalSearchInfoResponse);
+    nmem_destroy(mem_additionalSearchInfo);
 }
 
 static int get_diagnostic(Z_DefaultDiagFormat *r)
@@ -601,14 +607,13 @@ bool yf::SessionShared::BackendSet::search(
     mp::Package &search_package,
     const Z_APDU *frontend_apdu,
     const BackendInstancePtr bp,
-    Z_Records **z_records,
-    Z_OtherInformation *additionalSearchInfo)
+    Z_Records **z_records)
 {
     mp::odr odr;
     Z_APDU *apdu_req = zget_APDU(odr, Z_APDU_searchRequest);
     Z_SearchRequest *req = apdu_req->u.searchRequest;
 
-    req->additionalSearchInfo = additionalSearchInfo;
+    req->additionalSearchInfo = additionalSearchInfoRequest;
     req->resultSetName = odr_strdup(odr, m_result_set_id.c_str());
     req->query = m_query.get_Z_Query();
 
@@ -637,9 +642,8 @@ bool yf::SessionShared::BackendSet::search(
         *z_records = b_resp->records;
         m_result_set_size = *b_resp->resultCount;
 
-        nmem_reset(mem_additionalSearchInfoResponse);
         additionalSearchInfoResponse = yaz_clone_z_OtherInformation(
-            b_resp->additionalSearchInfo, mem_additionalSearchInfoResponse);
+            b_resp->additionalSearchInfo, mem_additionalSearchInfo);
         return true;
     }
     Z_APDU *f_apdu = 0;
@@ -733,7 +737,7 @@ restart:
         if ((int) bc->m_backend_list.size() >= m_p->m_session_max)
             out_of_sessions = true;
 
-        if (m_p->m_optimize_search && !additionalSearchInfo)
+        if (m_p->m_optimize_search)
         {
             // look at each backend and see if we have a similar search
             BackendInstanceList::const_iterator it = bc->m_backend_list.begin();
@@ -744,8 +748,14 @@ restart:
                     BackendSetList::const_iterator set_it = (*it)->m_sets.begin();
                     for (; set_it != (*it)->m_sets.end(); set_it++)
                     {
+                        // for real present request we don't care
+                        // if additionalSearchInfo matches: same records
                         if ((*set_it)->m_databases == databases
-                            && query.match(&(*set_it)->m_query))
+                            && query.match(&(*set_it)->m_query)
+                            && (apdu_req->which != Z_APDU_searchRequest ||
+                                yaz_compare_z_OtherInformation(
+                                    additionalSearchInfo,
+                                (*set_it)->additionalSearchInfoRequest)))
                         {
                             found_set = *set_it;
                             found_backend = *it;
@@ -808,15 +818,15 @@ restart:
 
     // we must search ...
     BackendSetPtr new_set(new BackendSet(result_set_id,
-                                         databases, query));
+                                         databases, query,
+                                         additionalSearchInfo));
     Z_Records *z_records = 0;
 
     Package search_package(found_backend->m_session, package.origin());
     search_package.copy_filter(package);
 
     if (!new_set->search(package, search_package,
-                         apdu_req, found_backend, &z_records,
-                         additionalSearchInfo))
+                         apdu_req, found_backend, &z_records))
     {
         bc->remove_backend(found_backend);
         return; // search error
