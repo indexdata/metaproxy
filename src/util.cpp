@@ -612,12 +612,13 @@ Z_GDU *mp::odr::create_HTTP_Response_details(mp::Session &session,
         response_version = "1.1";
     }
 
-    Z_GDU *gdu = z_get_HTTP_Response_details(m_odr, code, details);
+    Z_GDU *gdu = z_get_HTTP_Response_server(
+        m_odr, code, details, "Metaproxy/" VERSION,
+        "http://www.indexdata.com/metaproxy");
     Z_HTTP_Response *hres = gdu->u.HTTP_Response;
     hres->version = odr_strdup(m_odr, response_version);
     if (keepalive)
         z_HTTP_header_add(m_odr, &hres->headers, "Connection", "Keep-Alive");
-
     return gdu;
 }
 
