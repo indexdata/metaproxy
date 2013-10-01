@@ -9,7 +9,7 @@ Vendor: Index Data ApS <info@indexdata.dk>
 Source: metaproxy-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Prefix: %{_prefix} /etc/metaproxy
-BuildRequires: pkgconfig, libyaz4-devel >= 4.2.67, libyazpp5-devel >= 1.4.1
+BuildRequires: pkgconfig, libyaz4-devel >= 4.2.69, libyazpp5-devel >= 1.4.1
 BuildRequires: libxslt-devel, boost-devel
 Conflicts: cf-engine <= 2.12.5
 Packager: Adam Dickmeiss <adam@indexdata.dk>
@@ -30,7 +30,7 @@ Metaproxy documentation.
 %package -n libmetaproxy4
 Summary: Metaproxy library
 Group: Libraries
-Requires: libyazpp5 >= 1.4.0, libyaz4 >= 4.2.67
+Requires: libyazpp5 >= 1.4.0, libyaz4 >= 4.2.69
 
 %description -n libmetaproxy4
 The Metaproxy libraries.
