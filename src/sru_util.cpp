@@ -251,10 +251,10 @@ Z_SRW_PDU * mp_util::decode_sru_request(mp::Package &package,
     // closing connection if we did not ...
     if (0 == yaz_sru_decode(http_req, &sru_pdu_req, soap,
                             odr_de, &charset,
-                            &(sru_pdu_res->u.response->diagnostics),
-                            &(sru_pdu_res->u.response->num_diagnostics)))
+                            &(sru_pdu_res->u.explain_response->diagnostics),
+                            &(sru_pdu_res->u.explain_response->num_diagnostics)))
     {
-        if (sru_pdu_res->u.response->num_diagnostics)
+        if (sru_pdu_res->u.explain_response->num_diagnostics)
         {
             //sru_pdu_res = sru_pdu_res_exp;
             package.session().close();
