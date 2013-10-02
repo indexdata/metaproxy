@@ -30,7 +30,7 @@ Metaproxy documentation.
 %package -n libmetaproxy5
 Summary: Metaproxy library
 Group: Libraries
-Requires: libyazpp6 >= 1.4.1, libyaz4 >= 5.0.0
+Requires: libyazpp6 >= 1.4.1, libyaz5 >= 5.0.0
 
 %description -n libmetaproxy5
 The Metaproxy libraries.
