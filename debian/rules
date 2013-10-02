@@ -8,7 +8,7 @@ override_dh_auto_configure:
 	dh_auto_configure -- --with-yazpp=/usr/bin --without-usemarcon
 
 override_dh_strip:
-	dh_strip --dbg-package=libmetaproxy4-dbg
+	dh_strip --dbg-package=libmetaproxy5-dbg
 
 override_dh_auto_install:
 	dh_auto_install
@@ -18,7 +18,7 @@ override_dh_auto_install:
 	cp rpm/metaproxy.user debian/tmp/etc/metaproxy/metaproxy.user
 
 override_dh_makeshlibs:
-	dh_makeshlibs -V 'libmetaproxy4 (>= 1.3.28)'
+	dh_makeshlibs -V 'libmetaproxy5 (>= 1.3.28)'
 
 override_dh_installchangelogs:
 	dh_installchangelogs NEWS

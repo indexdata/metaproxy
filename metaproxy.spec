@@ -9,13 +9,13 @@ Vendor: Index Data ApS <info@indexdata.dk>
 Source: metaproxy-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Prefix: %{_prefix} /etc/metaproxy
-BuildRequires: pkgconfig, libyaz4-devel >= 4.2.69, libyazpp5-devel >= 1.4.1
+BuildRequires: pkgconfig, libyaz5-devel >= 5.0.0, libyazpp6-devel >= 1.4.1
 BuildRequires: libxslt-devel, boost-devel
 Conflicts: cf-engine <= 2.12.5
 Packager: Adam Dickmeiss <adam@indexdata.dk>
 URL: http://www.indexdata.com/metaproxy
 Group:  Applications/Internet
-Requires:  libmetaproxy4 = %{version}
+Requires:  libmetaproxy5 = %{version}
 
 %description
 Metaproxy daemon.
@@ -27,21 +27,21 @@ Group: Documentation
 %description doc
 Metaproxy documentation.
 
-%package -n libmetaproxy4
+%package -n libmetaproxy5
 Summary: Metaproxy library
 Group: Libraries
-Requires: libyazpp5 >= 1.4.0, libyaz4 >= 4.2.69
+Requires: libyazpp6 >= 1.4.1, libyaz4 >= 5.0.0
 
-%description -n libmetaproxy4
+%description -n libmetaproxy5
 The Metaproxy libraries.
 
-%package -n libmetaproxy4-devel
+%package -n libmetaproxy5-devel
 Summary: Metaproxy development package
 Group: Development/Libraries
-Requires: libmetaproxy4 = %{version}, libyazpp5-devel, boost-devel
+Requires: libmetaproxy5 = %{version}, libyazpp5-devel, boost-devel
 Conflicts: libmetaproxy3-devel
 
-%description -n libmetaproxy4-devel
+%description -n libmetaproxy5-devel
 Development libraries and include files for the Metaproxy package.
 
 %prep
@@ -77,17 +77,17 @@ install -m 644 rpm/metaproxy.logrotate  ${RPM_BUILD_ROOT}/etc/logrotate.d/metapr
 %clean
 rm -fr ${RPM_BUILD_ROOT}
 
-%files -n libmetaproxy4
+%files -n libmetaproxy5
 %doc README LICENSE NEWS
 %defattr(-,root,root)
 %{_libdir}/*.so.*
 %dir %{_libdir}/metaproxy4/modules
 
-%post -n libmetaproxy4 -p /sbin/ldconfig
+%post -n libmetaproxy5 -p /sbin/ldconfig
 
-%postun -n libmetaproxy4 -p /sbin/ldconfig
+%postun -n libmetaproxy5 -p /sbin/ldconfig
 
-%files -n libmetaproxy4-devel
+%files -n libmetaproxy5-devel
 %defattr(-,root,root)
 %{_includedir}/metaproxy
 %{_libdir}/*.so

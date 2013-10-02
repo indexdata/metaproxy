@@ -4,8 +4,8 @@ Standards-Version: 3.6.2
 Maintainer: Adam Dickmeiss <adam@indexdata.dk>
 Priority: extra
 Build-Depends: debhelper (>= 7),
-	libyaz4-dev (>= 4.2.69),
-	libyazpp5-dev (>= 1.4.1),
+	libyaz5-dev (>= 4.2.69),
+	libyazpp6-dev (>= 1.4.1),
 	libxslt1-dev,
 	libboost-dev,
 	libboost-system-dev,
@@ -16,7 +16,7 @@ Build-Depends: debhelper (>= 7),
 Package: metaproxy
 Section: net
 Architecture: any
-Depends: ${shlibs:Depends}, libmetaproxy4 (= ${Source-Version})
+Depends: ${shlibs:Depends}, libmetaproxy5 (= ${Source-Version})
 Conflicts: cf-engine (<= 2.12.5)
 Description: Z39.50/SRU router (main executable)
  This is a universal router, proxy and encapsulated metasearcher
@@ -27,7 +27,7 @@ Description: Z39.50/SRU router (main executable)
  .
  This package includes the main Metaproxy executable.
 
-Package: libmetaproxy4
+Package: libmetaproxy5
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}
@@ -40,24 +40,24 @@ Description: Z39.50/SRU router (runtime)
  .
  This package includes the Metaproxy libraries.
 
-Package: libmetaproxy4-dbg
+Package: libmetaproxy5-dbg
 Section: debug
 Architecture: any
-Depends: libmetaproxy4 (= ${binary:Version}), ${misc:Depends}
-Description: debugging symbols for libmetaproxy4
+Depends: libmetaproxy5 (= ${binary:Version}), ${misc:Depends}
+Description: debugging symbols for libmetaproxy5
  This is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets
  and redirects requests from IR clients using standard protocols such as
  the binary ANSI/NISO Z39.50  and the information search and retrieval web
  service SRU as well as functioning as a limited HTTP server. 
  .
- This package contains the debugging symbols for libmetaproxy4.
+ This package contains the debugging symbols for libmetaproxy5.
 
-Package: libmetaproxy4-dev
+Package: libmetaproxy5-dev
 Section: libdevel
 Architecture: any
-Depends: libmetaproxy4 (= ${Source-Version}),
-	libyazpp5-dev (>= 1.4.0),
+Depends: libmetaproxy5 (= ${Source-Version}),
+	libyazpp6-dev (>= 1.4.1),
 	libxslt1-dev,
 	libboost-dev,
 	libboost-thread-dev,
