@@ -1,3 +1,18 @@
+--- 1.4.0 2013/10/04
+
+Build RPM/Deb packages with YAZ 5 and yazpp 1.5. Metaproxy still compiles
+with older version from source, but packages now use YAZ 5 that supports
+SRU 2.0.
+
+sru_z3950: Fix SEGV for decoding invalid SRU requests
+Incorrect reference to union (was explain response rather than
+search response).
+
+session_shared: match additionalSearchInfo (includes facets). In
+layman's terms means that means that facets are properly handled
+by this filter. Eg a change in requested facets will issue new
+search and facets from exisiting result set are cached.
+
 --- 1.3.62 2013/09/11
 
 http_rewrite: better handling of <script> content in HTML parser. MP-486
