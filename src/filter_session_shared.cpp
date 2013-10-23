@@ -482,8 +482,6 @@ void yf::SessionShared::Rep::stat()
                 no_instances++;
         }
     }
-    yaz_log(YLOG_LOG, "backend classes=%d instances=%d", no_classes,
-        no_instances);
 }
 
 void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
