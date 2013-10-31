@@ -1,3 +1,10 @@
+--- 1.4.1 2013/10/31
+
+RPM: fix dependency for libmetaproxy5-devel MP-496. The libmetaproxy5-devel
+RPM was unsable in version 1.4.0.
+
+Remove log message about "backend classes". Appeared in version 1.4.0.
+
 --- 1.4.0 2013/10/04
 
 Build RPM/Deb packages with YAZ 5 and yazpp 1.5. Metaproxy still compiles
