@@ -38,8 +38,8 @@ The Metaproxy libraries.
 %package -n libmetaproxy5-devel
 Summary: Metaproxy development package
 Group: Development/Libraries
-Requires: libmetaproxy5 = %{version}, libyazpp5-devel, boost-devel
-Conflicts: libmetaproxy3-devel
+Requires: libmetaproxy5 = %{version}, libyazpp6-devel, boost-devel
+Conflicts: libmetaproxy3-devel, libmetaproxy4-devel
 
 %description -n libmetaproxy5-devel
 Development libraries and include files for the Metaproxy package.
