@@ -54,7 +54,8 @@ namespace metaproxy_1 {
             std::list<Replace> replace_list;
             bool test_patterns(
                 std::map<std::string, std::string> &vars,
-                std::string &txt, bool anchor);
+                std::string &txt, bool anchor,
+                std::list<boost::regex> &skip_list);
         };
         class HttpRewrite::Within {
         public:
@@ -65,7 +66,8 @@ namespace metaproxy_1 {
             bool reqline;
             RulePtr rule;
             bool exec(std::map<std::string, std::string> &vars,
-                      std::string &txt, bool anchor) const;
+                      std::string &txt, bool anchor,
+                      std::list<boost::regex> &skip_list) const;
         };
 
         class HttpRewrite::Content {
@@ -76,15 +78,19 @@ namespace metaproxy_1 {
             void configure(const xmlNode *ptr,
                            std::map<std::string, RulePtr > &rules);
             void quoted_literal(std::string &content,
-                                std::map<std::string, std::string> &vars) const;
+                                std::map<std::string, std::string> &vars,
+                                std::list<boost::regex> & skip_list) const;
             void parse(int verbose, std::string &content,
-                       std::map<std::string, std::string> & vars) const;
+                       std::map<std::string, std::string> & vars,
+                       std::list<boost::regex> & skip_list ) const;
         };
         class HttpRewrite::Phase {
         public:
             Phase();
             int m_verbose;
             std::list<Content> content_list;
+            std::list<boost::regex> skip_list;
+            void read_skip_headers(Z_HTTP_Request *hreq);
             void rewrite_reqline(mp::odr & o, Z_HTTP_Request *hreq,
                 std::map<std::string, std::string> & vars) const;
             void rewrite_headers(mp::odr & o, Z_HTTP_Header *headers,
@@ -92,7 +98,8 @@ namespace metaproxy_1 {
             void rewrite_body(mp::odr & o,
                               const char *content_type,
                               char **content_buf, int *content_len,
-                              std::map<std::string, std::string> & vars) const;
+                              std::map<std::string, std::string> & vars,
+                              std::list<boost::regex> & skip_list ) const;
         };
         class HttpRewrite::Event : public HTMLParserEvent {
             void openTagStart(const char *tag, int tag_len);
@@ -107,8 +114,11 @@ namespace metaproxy_1 {
             WRBUF m_w;
             std::stack<std::list<Within>::const_iterator> s_within;
             std::map<std::string, std::string> &m_vars;
+            std::list<boost::regex> & m_skips;
         public:
-            Event(const Content *p, std::map<std::string, std::string> &vars);
+            Event(const Content *p,
+                  std::map<std::string, std::string> &vars,
+                  std::list<boost::regex> & skip_list );
             ~Event();
             const char *result();
         };
@@ -136,13 +146,16 @@ void yf::HttpRewrite::process(mp::Package & package) const
         Z_HTTP_Request *hreq = gdu->u.HTTP_Request;
         mp::odr o;
         req_phase->rewrite_reqline(o, hreq, vars);
+        res_phase->read_skip_headers(hreq);  
         yaz_log(YLOG_LOG, ">> Request headers");
         req_phase->rewrite_headers(o, hreq->headers, vars);
         req_phase->rewrite_body(o,
                                 z_HTTP_header_lookup(hreq->headers,
                                                      "Content-Type"),
                                 &hreq->content_buf, &hreq->content_len,
-                                vars);
+                                vars, res_phase->skip_list);
+        // TODO skip_list does not really belong in the phase. More like
+        // HttpRewrite itself!
         package.request() = gdu;
     }
     package.move();
@@ -158,10 +171,48 @@ void yf::HttpRewrite::process(mp::Package & package) const
                                 z_HTTP_header_lookup(hres->headers,
                                                      "Content-Type"),
                                 &hres->content_buf, &hres->content_len,
-                                vars);
+                                vars, res_phase->skip_list);
         package.response() = gdu;
     }
 }
+
+// Read (and remove) the X-Metaproxy-SkipLink headers
+void yf::HttpRewrite::Phase::read_skip_headers(Z_HTTP_Request *hreq)
+{
+    skip_list.clear();
+    std::string url(hreq->path);
+    if ( url.substr(0,7) != "http://" )
+    { // path was relative, as it usually is
+        const char *host =  z_HTTP_header_lookup(hreq->headers, "Host");
+        if (host)
+          url = "http://" + std::string(host) + hreq->path ;
+    }
+
+    while ( const char *hv = z_HTTP_header_remove( &(hreq->headers),
+        "X-Metaproxy-SkipLink") )
+    {
+        yaz_log(YLOG_LOG,"Found SkipLink '%s'", hv );
+        const char *p = strchr(hv,' ');
+        if (!p)
+            continue; // should not happen
+        std::string page(hv,p);
+        std::string link(p+1);
+        boost::regex pagere(page);
+        if ( boost::regex_search(url, pagere) )
+        {
+            yaz_log(YLOG_LOG,"SkipLink '%s' matches URL %s",
+                    page.c_str(), url.c_str() );
+            boost::regex linkre(link);
+            skip_list.push_back(linkre);
+        }
+        else
+        {
+            yaz_log(YLOG_LOG,"SkipLink ignored, '%s' does not match '%s'",
+                    url.c_str(), page.c_str() );
+        }
+    }
+}
+
 
 void yf::HttpRewrite::Phase::rewrite_reqline (mp::odr & o,
         Z_HTTP_Request *hreq,
@@ -200,7 +251,8 @@ void yf::HttpRewrite::Phase::rewrite_reqline (mp::odr & o,
         if (it->reqline)
         {
             yaz_log(YLOG_LOG, "Proxy request URL is %s", path.c_str());
-            if (it->exec(vars, path, true))
+            std::list<boost::regex> dummy_skip_list; // no skips here!
+            if (it->exec(vars, path, true, dummy_skip_list))
             {
                 yaz_log(YLOG_LOG, "Rewritten request URL is %s", path.c_str());
                 hreq->path = odr_strdup(o, path.c_str());
@@ -210,7 +262,7 @@ void yf::HttpRewrite::Phase::rewrite_reqline (mp::odr & o,
 
 void yf::HttpRewrite::Phase::rewrite_headers(mp::odr & o,
         Z_HTTP_Header *headers,
-        std::map<std::string, std::string> & vars) const
+        std::map<std::string, std::string> & vars ) const
 {
     std::list<Content>::const_iterator cit = content_list.begin();
     for (; cit != content_list.end(); cit++)
@@ -230,7 +282,8 @@ void yf::HttpRewrite::Phase::rewrite_headers(mp::odr & o,
             {
                 // Match and replace only the header value
                 std::string hval(header->value);
-                if (it->exec(vars, hval, true))
+                std::list<boost::regex> dummy_skip_list; // no skips here!
+                if (it->exec(vars, hval, true, dummy_skip_list))
                 {
                     header->value = odr_strdup(o, hval.c_str());
                 }
@@ -244,7 +297,8 @@ void yf::HttpRewrite::Phase::rewrite_body(
     const char *content_type,
     char **content_buf,
     int *content_len,
-    std::map<std::string, std::string> & vars) const
+    std::map<std::string, std::string> & vars,
+    std::list<boost::regex> & skip_list ) const
 {
     if (*content_len == 0)
         return;
@@ -275,14 +329,15 @@ void yf::HttpRewrite::Phase::rewrite_body(
         }
 
     std::string content(*content_buf, *content_len);
-    cit->parse(m_verbose, content, vars);
+    cit->parse(m_verbose, content, vars, skip_list);
     *content_buf = odr_strdup(o, content.c_str());
     *content_len = strlen(*content_buf);
 }
 
 yf::HttpRewrite::Event::Event(const Content *p,
-                              std::map<std::string, std::string> & vars
-    ) : m_content(p), m_vars(vars)
+                              std::map<std::string, std::string> & vars,
+                              std::list<boost::regex> & skip_list 
+    ) : m_content(p), m_vars(vars), m_skips(skip_list)
 {
     m_w = wrbuf_alloc();
 }
@@ -367,7 +422,7 @@ void yf::HttpRewrite::Event::attribute(const char *tag, int tag_len,
         if (subst)
         {
             std::string s(value, val_len);
-            it->exec(m_vars, s, true);
+            it->exec(m_vars, s, true, m_skips);
             wrbuf_puts(m_w, s.c_str());
         }
         else
@@ -397,7 +452,7 @@ void yf::HttpRewrite::Event::text(const char *value, int len)
     if (it != m_content->within_list.end())
     {
         std::string s(value, len);
-        it->exec(m_vars, s, false);
+        it->exec(m_vars, s, false, m_skips);
         wrbuf_puts(m_w, s.c_str());
     }
     else
@@ -408,7 +463,8 @@ static bool embed_quoted_literal(
     std::string &content,
     std::map<std::string, std::string> &vars,
     mp::filter::HttpRewrite::RulePtr ruleptr,
-    bool html_context)
+    bool html_context,
+    std::list<boost::regex> &skip_list)
 {
     bool replace = false;
     std::string res;
@@ -432,7 +488,7 @@ static bool embed_quoted_literal(
             if (!*cp)
                 break;
             std::string s(cp0, cp - cp0);
-            if (ruleptr->test_patterns(vars, s, true))
+            if (ruleptr->test_patterns(vars, s, true, skip_list))
                 replace = true;
             cp0 = cp;
             res.append(s);
@@ -454,7 +510,7 @@ static bool embed_quoted_literal(
             if (!*cp)
                 break;
             std::string s(cp0, cp - cp0);
-            if (ruleptr->test_patterns(vars, s, true))
+            if (ruleptr->test_patterns(vars, s, true, skip_list))
                 replace = true;
             cp0 = cp;
             res.append(s);
@@ -473,21 +529,23 @@ static bool embed_quoted_literal(
 
 bool yf::HttpRewrite::Within::exec(
     std::map<std::string, std::string> & vars,
-    std::string & txt, bool anchor) const
+    std::string & txt, bool anchor,
+    std::list<boost::regex> & skip_list) const
 {
     if (type == "quoted-literal")
     {
-        return embed_quoted_literal(txt, vars, rule, true);
+        return embed_quoted_literal(txt, vars, rule, true, skip_list);
     }
     else
     {
-        return rule->test_patterns(vars, txt, anchor);
+        return rule->test_patterns(vars, txt, anchor, skip_list);
     }
 }
 
 bool yf::HttpRewrite::Rule::test_patterns(
     std::map<std::string, std::string> & vars,
-    std::string & txt, bool anchor)
+    std::string & txt, bool anchor,
+    std::list<boost::regex> & skip_list )
 {
     bool replaces = false;
     bool first = anchor;
@@ -534,12 +592,31 @@ bool yf::HttpRewrite::Rule::test_patterns(
             }
 
         }
+        // Compare against skip_list
+        bool skipthis = false;
+        std::list<boost::regex>::iterator si = skip_list.begin();
+        for ( ; si != skip_list.end(); si++) {
+            if ( boost::regex_search(bwhat.str(0), *si) )
+            {
+                skipthis = true;
+                break;
+            }
+        }
         //prepare replacement string
         std::string rvalue = bit->sub_vars(vars);
-        yaz_log(YLOG_LOG, "! Rewritten '%s' to '%s'",
-                bwhat.str(0).c_str(), rvalue.c_str());
         out.append(start, bwhat[0].first);
-        out.append(rvalue);
+        if ( skipthis )
+        {
+            yaz_log(YLOG_LOG,"! Not rewriting '%s', skiplist match",
+                    bwhat.str(0).c_str() );
+            out.append(bwhat.str(0).c_str());
+        }
+        else
+        {
+            yaz_log(YLOG_LOG, "! Rewritten '%s' to '%s'",
+                    bwhat.str(0).c_str(), rvalue.c_str());
+            out.append(rvalue);
+        }
         start = bwhat[0].second; //move search forward
     }
     out.append(start, end);
@@ -668,12 +745,13 @@ yf::HttpRewrite::Phase::Phase() : m_verbose(0)
 void yf::HttpRewrite::Content::parse(
     int verbose,
     std::string &content,
-    std::map<std::string, std::string> &vars) const
+    std::map<std::string, std::string> &vars,
+    std::list<boost::regex> & skip_list ) const
 {
     if (type == "html")
     {
         HTMLParser parser;
-        Event ev(this, vars);
+        Event ev(this, vars, skip_list);
 
         parser.set_verbose(verbose);
 
@@ -682,17 +760,18 @@ void yf::HttpRewrite::Content::parse(
     }
     if (type == "quoted-literal")
     {
-        quoted_literal(content, vars);
+        quoted_literal(content, vars, skip_list);
     }
 }
 
 void yf::HttpRewrite::Content::quoted_literal(
     std::string &content,
-    std::map<std::string, std::string> &vars) const
+    std::map<std::string, std::string> &vars,
+    std::list<boost::regex> & skip_list ) const
 {
     std::list<Within>::const_iterator it = within_list.begin();
     if (it != within_list.end())
-        embed_quoted_literal(content, vars, it->rule, false);
+        embed_quoted_literal(content, vars, it->rule, false, skip_list);
 }
 
 void yf::HttpRewrite::Content::configure(
