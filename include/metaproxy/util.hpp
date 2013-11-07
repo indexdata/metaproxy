@@ -106,13 +106,16 @@ namespace metaproxy_1 {
 
         Z_RecordComposition *piggyback_to_RecordComposition(
             ODR odr, Odr_int result_set_size, Z_SearchRequest *sreq);
- 
+
         void piggyback(int smallSetUpperBound,
                        int largeSetLowerBound,
                        int mediumSetPresentNumber,
                        int result_set_size,
-                       int &number_to_present);
-
+                       int &number_to_present)
+#ifdef __GNUC__
+             __attribute__ ((deprecated))
+#endif
+            ;
         void piggyback_sr(Z_SearchRequest *sreq,
                           Odr_int result_set_size,
                           Odr_int &number_to_present,
