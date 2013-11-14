@@ -5,7 +5,7 @@ Maintainer: Adam Dickmeiss <adam@indexdata.dk>
 Priority: extra
 Build-Depends: debhelper (>= 7),
 	libyaz5-dev (>= 4.2.69),
-	libyazpp6-dev (>= 1.4.1),
+	libyazpp6-dev (>= 1.5.2),
 	libxslt1-dev,
 	libboost-dev,
 	libboost-system-dev,
@@ -57,7 +57,7 @@ Package: libmetaproxy5-dev
 Section: libdevel
 Architecture: any
 Depends: libmetaproxy5 (= ${Source-Version}),
-	libyazpp6-dev (>= 1.4.1),
+	libyazpp6-dev (>= 1.5.2),
 	libxslt1-dev,
 	libboost-dev,
 	libboost-thread-dev,
