@@ -1128,8 +1128,7 @@ void yf::SessionShared::Frontend::present(mp::Package &package,
             found_set->m_record_cache.add(
                 odr,
                 b_resp->records->u.databaseOrSurDiagnostics,
-                *req->resultSetStartPoint,
-                *f_resp->numberOfRecordsReturned);
+                *req->resultSetStartPoint, p_req->recordComposition);
         }
         bc->release_backend(found_backend);
     }
