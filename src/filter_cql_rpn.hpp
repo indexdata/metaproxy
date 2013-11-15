@@ -16,8 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef FILTER_CQL_TO_RPN_HPP
-#define FILTER_CQL_TO_RPN_HPP
+#ifndef FILTER_CQL_RPN_HPP
+#define FILTER_CQL_RPN_HPP
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/shared_ptr.hpp>

@@ -217,7 +217,7 @@ PROJECT_DLL_OBJS = \
 	$(OBJDIR)\filter_auth_simple.obj \
         $(OBJDIR)\filter_backend_test.obj \
         $(OBJDIR)\filter_bounce.obj \
-        $(OBJDIR)\filter_cql_to_rpn.obj \
+        $(OBJDIR)\filter_cql_rpn.obj \
 	$(OBJDIR)\filter_frontend_net.obj \
 	$(OBJDIR)\filter_http_client.obj \
 	$(OBJDIR)\filter_http_file.obj \

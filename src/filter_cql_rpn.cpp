@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/filter.hpp>
 #include <metaproxy/package.hpp>
 
-#include "filter_cql_to_rpn.hpp"
+#include "filter_cql_rpn.hpp"
 
 #include <yazpp/z-query.h>
 #include <yaz/cql.h>

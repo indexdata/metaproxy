@@ -33,7 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef WIN32
 #include "filter_cgi.hpp"
 #endif
-#include "filter_cql_to_rpn.hpp"
+#include "filter_cql_rpn.hpp"
 #include "filter_frontend_net.hpp"
 #include "filter_http_client.hpp"
 #include "filter_http_file.hpp"
