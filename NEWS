@@ -1,3 +1,12 @@
+--- 1.4.2 2013/11/15
+
+session_shared: fix element-set handling in record caching. MP-499
+
+document http_rewrite. MP-468
+
+http_write: Honor X-Metaproxy-SkipLink MP-479 . Filter understands and
+respects the header (which will normally come from the cproxy filter)
+
 --- 1.4.1 2013/10/31
 
 RPM: fix dependency for libmetaproxy5-devel MP-496. The libmetaproxy5-devel
