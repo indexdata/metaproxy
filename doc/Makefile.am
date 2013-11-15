@@ -2,7 +2,7 @@ SUBDIRS = common
 
 INKSCAPE=inkscape
 
-SUFFIXES=.3mp .1 .pdf .tkl .esp .xml 
+SUFFIXES=.3mp .1 .pdf .tkl .esp .xml
 
 XMLFILES = book.xml manref.xml copyright.xml gpl-2.0.xml local.ent
 
@@ -18,20 +18,23 @@ XMLMAN = metaproxy.xml \
 	frontend_net.xml \
 	http_client.xml \
 	http_file.xml \
+	http_rewrite.xml \
 	limit.xml \
 	load_balance.xml \
 	log.xml \
 	multi.xml \
+	present_chunk.xml \
 	query_rewrite.xml \
-        record_transform.xml\
+	record_transform.xml\
+	sd_remove.xml \
 	session_shared.xml \
 	sort.xml \
         sru_z3950.xml\
 	template.xml \
 	virt_db.xml \
 	z3950_client.xml \
-	zoom.xml \
-        zeerex_explain.xml
+        zeerex_explain.xml \
+	zoom.xml
 
 MANFILES = metaproxy.1 \
 	metaproxy-config.1 \
@@ -43,11 +46,15 @@ MANFILES = metaproxy.1 \
         frontend_net.3mp \
 	http_client.3mp \
 	http_file.3mp \
+	http_rewrite.3mp \
 	limit.3mp \
 	load_balance.3mp \
 	log.3mp \
-	multi.3mp query_rewrite.3mp \
-        record_transform.3mp\
+	multi.3mp
+	present_chunk.3mp \
+	query_rewrite.3mp \
+        record_transform.3mp \
+	sd_remove.3mp \
 	session_shared.3mp \
 	sort.3mp \
         sru_z3950.3mp \
@@ -55,11 +62,11 @@ MANFILES = metaproxy.1 \
 	virt_db.3mp \
 	z3950_client.3mp \
 	zeerex_explain.3mp \
-	zoom.3mp 
+	zoom.3mp
 
 HTMLFILES = index.html
 
-# testing if this does the job of collecting up the unnamed '*.html' files 
+# testing if this does the job of collecting up the unnamed '*.html' files
 #UNLISTEDHTML = $(wildcard *.html)
 
 PNGFILES = multi.png
@@ -67,7 +74,7 @@ PNGFILES = multi.png
 doc_DATA = $(HTMLFILES) $(PNGFILES)
 man_MANS = $(MANFILES)
 
-EXTRA_DIST = $(XMLFILES) $(XMLMAN) $(doc_DATA) $(man_MANS) multi.svg 
+EXTRA_DIST = $(XMLFILES) $(XMLMAN) $(doc_DATA) $(man_MANS) multi.svg
 
 $(MANFILES): local.ent
 

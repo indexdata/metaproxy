@@ -1,0 +1,66 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
+    "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
+ <!ENTITY copyright SYSTEM "copyright.xml">
+ <!ENTITY % idcommon SYSTEM "common/common.ent">
+     %idcommon;
+]>
+<refentry id="ref-present_chunk">
+ <refmeta>
+  <refentrytitle>present_chunk</refentrytitle>
+  <manvolnum>3mp</manvolnum>
+  <refmiscinfo>Metaproxy Module</refmiscinfo>
+ </refmeta>
+
+ <refnamediv>
+  <refname>present_chunk</refname>
+  <refpurpose>Splits Z39.50 Present Request into chunks</refpurpose>
+ </refnamediv>
+
+ <refsect1><title>DESCRIPTION</title>
+  <para>
+   This module converts a present requests to one or more present
+   requests (chunks). Some Z39.50 server software may crash or large
+   present requests (number of records requested).
+   This module tries to fix that. It takes a "chunk" element in
+   configuration that specifies the maximum number of records to fetch
+   in each chunk.
+  </para>
+ </refsect1>
+
+ <refsect1><title>SCHEMA</title>
+   <literallayout><xi:include
+		     xi:href="../xml/schema/filter_present_chunk.rnc"
+		     xi:parse="text"
+		     xmlns:xi="http://www.w3.org/2001/XInclude" />
+   </literallayout>
+ </refsect1>
+
+ <refsect1><title>EXAMPLES</title>
+  <para>
+   Configuration:
+   <screen><![CDATA[
+    <filter type="present_chunk">
+    </filter>
+]]>
+   </screen>
+  </para>
+ </refsect1>
+
+ <refsect1><title>SEE ALSO</title>
+  <para>
+   <citerefentry>
+    <refentrytitle>metaproxy</refentrytitle>
+    <manvolnum>1</manvolnum>
+   </citerefentry>
+  </para>
+ </refsect1>
+
+ &copyright;
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: nxml
+nxml-child-indent: 1
+End:
+-->

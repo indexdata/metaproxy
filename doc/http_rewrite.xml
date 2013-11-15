@@ -1,0 +1,133 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
+    "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
+ <!ENTITY copyright SYSTEM "copyright.xml">
+ <!ENTITY % idcommon SYSTEM "common/common.ent">
+     %idcommon;
+]>
+<refentry id="ref-http_rewrite">
+ <refmeta>
+  <refentrytitle>http_rewrite</refentrytitle>
+  <manvolnum>3mp</manvolnum>
+  <refmiscinfo>Metaproxy Module</refmiscinfo>
+ </refmeta>
+
+ <refnamediv>
+  <refname>http_rewrite</refname>
+  <refpurpose>Module for rewriting HTTP content and headers</refpurpose>
+ </refnamediv>
+
+ <refsect1><title>DESCRIPTION</title>
+  <para>
+   The primary purpose of this module is to rewrite links (URLs) for
+   proxying. The configuration is divided in two sections:
+   request and response for dealing with the HTTP request and response
+   respectively.
+  </para>
+  <para>
+   Each section consists of rule and content elements. Each rule must be
+   given a name (attribute "name") and these are referred to from
+   content elements. The content defines what rules are invoked.
+  </para>
+  <para>
+   Each rule consists of one or more rewrite elements. The rewrite
+   specifies a regular expression for matching content in the attribute
+   "from" and the corresponding attribute "from" specifies the result.
+   The "to" result may refer to named groups in any "from" pattern already
+   executed. For example, in the response section a rule may refer to both
+   groups in the response already executed and all rules exectuted in the
+   request section.
+  </para>
+  <para>
+   Each content section takes exactly one "type" attribute, which specifies
+   what area is inspected for rewriting. Type may be one of
+   "html" (for HTML content), "headers" for HTTP headers or
+   "quoted-literal" for Java Script type of content.
+   The content section takes one or more "within" elements. That specifies
+   where inside the content, each rule is being exectuted. All within
+   must have a "rule" attribtue that specifies the rule section to be
+   invoked (rule@name as mentioned earlier).
+  </para>
+  <para>
+   For "html" content, the within element takes also attributes "tag"
+   and "attr",that specifies tag and attributes to be inspected.
+   The attr attributes takes one or more attributes (comma separated).
+   If no "tag" is given, the rule is performed on all attributes
+   with the name given.
+  </para>
+  <para>
+   For "headers" content the within element takes "header" or "reqline" +
+   the "rule" attribute. For "header", the rule is performed on all
+   HTTP headers with the name in header. For "reqline", the
+   HTTP Request line is rewritten.
+  </para>
+  <para>
+   For "quoted-literal" content, the within element takes only a
+   "rule" attribute and the rule is performed on all content.
+  </para>
+ </refsect1>
+
+ <refsect1><title>SCHEMA</title>
+   <literallayout><xi:include
+		     xi:href="../xml/schema/filter_http_rewrite.rnc"
+		     xi:parse="text"
+		     xmlns:xi="http://www.w3.org/2001/XInclude" />
+   </literallayout>
+ </refsect1>
+
+ <refsect1><title>EXAMPLES</title>
+  <para>
+   Configuration:
+   <screen><![CDATA[
+   <filter type="http_rewrite">
+     <request>
+       <!-- save pxhost and pxpath for later -->
+       <rule name="url">
+         <rewrite
+            from='(?&lt;proto>https?://)(?&lt;pxhost>[^ /?#]+)/(?&lt;pxpath>[^ /]+)/(?&lt;host>[^ /]+)(?&lt;path>[^ ]*)'
+            to='${proto}${host}${path}' />
+         <rewrite from='(?:Host: )(.*)' to='Host: ${host}' />
+       </rule>
+       <content type="headers">
+         <within reqline="1" rule="url"/>
+       </content>
+     </request>
+     <response>
+       <!-- rewrite "back" - using pxhost and pxpath -->
+       <rule name="url">
+         <rewrite
+           from='(?&lt;proto>https?://)(?&lt;host>[^/?# &quot;&apos;>]+)/(?&lt;path>[^  &quot;&apos;>]+)'
+           to='${proto}${pxhost}/${pxpath}/${host}/${path}' />
+       </rule>
+       <content type="headers"
+         <within header="link" rule="url"/>
+       </content>
+       <content type="html">
+         <within tag="script" attr="#text" type="quoted-literal" rule="url"/>
+         <within attr="href,src" rule="url"/>
+         <within attr="onclick" type="quoted-literal" rule="url"/>
+       </content>
+     </response>
+   </filter>
+]]>
+   </screen>
+  </para>
+ </refsect1>
+
+ <refsect1><title>SEE ALSO</title>
+  <para>
+   <citerefentry>
+    <refentrytitle>metaproxy</refentrytitle>
+    <manvolnum>1</manvolnum>
+   </citerefentry>
+  </para>
+ </refsect1>
+
+ &copyright;
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: nxml
+nxml-child-indent: 1
+End:
+-->

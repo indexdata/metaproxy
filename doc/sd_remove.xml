@@ -1,0 +1,64 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
+    "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
+ <!ENTITY copyright SYSTEM "copyright.xml">
+ <!ENTITY % idcommon SYSTEM "common/common.ent">
+     %idcommon;
+]>
+<refentry id="ref-sd_remove">
+ <refmeta>
+  <refentrytitle>sd_remove</refentrytitle>
+  <manvolnum>3mp</manvolnum>
+  <refmiscinfo>Metaproxy Module</refmiscinfo>
+ </refmeta>
+
+ <refnamediv>
+  <refname>sd_remove</refname>
+  <refpurpose>Removes Surrogate Diagnostics</refpurpose>
+ </refnamediv>
+
+ <refsect1><title>DESCRIPTION</title>
+  <para>
+   This filter removes surrogate-diagnostics from Z39.50 records. It
+   replaces the surrogate diagnostics records with SUTRS records. This
+   module has no general use. It was only implemented to avoid a particualr
+   Z39.50 from crashing.
+  </para>
+ </refsect1>
+
+ <refsect1><title>SCHEMA</title>
+   <literallayout><xi:include
+		     xi:href="../xml/schema/filter_sd_remove.rnc"
+		     xi:parse="text"
+		     xmlns:xi="http://www.w3.org/2001/XInclude" />
+   </literallayout>
+ </refsect1>
+
+ <refsect1><title>EXAMPLES</title>
+  <para>
+   Configuration:
+   <screen><![CDATA[
+    <filter type="sd_remove">
+    </filter>
+]]>
+   </screen>
+  </para>
+ </refsect1>
+
+ <refsect1><title>SEE ALSO</title>
+  <para>
+   <citerefentry>
+    <refentrytitle>metaproxy</refentrytitle>
+    <manvolnum>1</manvolnum>
+   </citerefentry>
+  </para>
+ </refsect1>
+
+ &copyright;
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: nxml
+nxml-child-indent: 1
+End:
+-->
