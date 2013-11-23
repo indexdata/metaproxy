@@ -70,7 +70,7 @@ namespace metaproxy_1 {
             Record(Z_NamePlusRecord *n, const char *namespaces,
                    const char *expr, bool debug);
             ~Record();
-            bool operator < (const Record &rhs);
+            bool operator < (const Record &rhs) const;
         };
         class Sort::RecordList : boost::noncopyable {
             Odr_oid *syntax;
@@ -286,7 +286,7 @@ yf::Sort::Record::~Record()
 {
 }
 
-bool yf::Sort::Record::operator < (const Record &rhs)
+bool yf::Sort::Record::operator < (const Record &rhs) const
 {
     if (strcmp(this->score.c_str(), rhs.score.c_str()) < 0)
         return true;
