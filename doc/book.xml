@@ -150,7 +150,7 @@
       <para>
        The popular C++ library. Initial versions of Metaproxy
        was built with 1.32 but this is no longer supported.
-       Metaproxy is known to work with Boost version 1.33 through 1.46.
+       Metaproxy is known to work with Boost version 1.33 through 1.55.
       </para>
      </listitem>
     </varlistentry>
@@ -300,9 +300,7 @@
    <title>Installation on Debian GNU/Linux</title>
    <para>
     All dependencies for Metaproxy are available as
-    <ulink url="&url.debian;">Debian</ulink>
-    packages for the squeeze (stable in 2012) and wheezy (testing in 2012)
-    distributions.
+    <ulink url="&url.debian;">Debian</ulink> packages.
    </para>
    <para>
     The procedures for Debian based systems, such as
@@ -321,8 +319,9 @@
    </para>
    <screen>
     apt-get install libxslt1-dev
-    apt-get install libyazpp4-dev
+    apt-get install libyazpp6-dev
     apt-get install libboost-dev
+    apt-get install libboost-system-dev
     apt-get install libboost-thread-dev
     apt-get install libboost-test-dev
     apt-get install libboost-regex-dev
@@ -418,7 +417,7 @@
     <title>YAZ++</title>
     <para>
      Get <ulink url="&url.yazplusplus;">YAZ++</ulink> as well.
-     Version 1.2.7 or later is required.
+     Version 1.5.2 or later is required.
     </para>
     <para>
      YAZ++ includes NMAKE makefiles, similar to those found in the
