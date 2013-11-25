@@ -141,6 +141,7 @@ LIBXSLT_LIB = \
 COMMON_C_OPTIONS=          \
   /nologo /W3 /EHsc /FD /c \
   /D "_CRT_SECURE_NO_DEPRECATE" \
+  /D _SCL_SECURE_NO_WARNINGS \
   $(YAZ_DEF)               \
   $(YAZPP_DEF)             \
   $(BOOST_DEF)             \
