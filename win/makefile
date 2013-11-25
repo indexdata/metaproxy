@@ -14,8 +14,9 @@ YAZ_DIR=..\..\yaz
 YAZPP_DIR=..\..\yazpp
 
 # Boost
-BOOST=\program files\boost\boost_1_51
-BOOST_VERSION=1_51
+BOOST=\local\boost_1_55_0
+BOOST_VERSION=1_55
+BOOST_LIBPATH=$(BOOST)\lib32-msvc-9.0
 BOOST_TOOLSET=vc90 # vc90 for VS2008, vc80 for VS 2005, vc71 for 2003
 BOOST_MODEL=mt
 
@@ -123,7 +124,7 @@ BOOST_LIB_SUFFIX=$(BOOST_TOOLSET)-$(BOOST_MODEL)-$(BOOST_VERSION).lib
 
 BOOST_DEF = /I"$(BOOST)"
 BOOST_LIB = \
-	     /LIBPATH:"$(BOOST)\lib" \
+	     /LIBPATH:"$(BOOST_LIBPATH)" \
     "libboost_thread-$(BOOST_LIB_SUFFIX)"  \
     "libboost_regex-$(BOOST_LIB_SUFFIX)" \
     "libboost_date_time-$(BOOST_LIB_SUFFIX)" 
@@ -141,6 +142,7 @@ LIBXSLT_LIB = \
 COMMON_C_OPTIONS=          \
   /nologo /W3 /EHsc /FD /c \
   /D "_CRT_SECURE_NO_DEPRECATE" \
+  /D _SCL_SECURE_NO_WARNINGS \
   $(YAZ_DEF)               \
   $(YAZPP_DEF)             \
   $(BOOST_DEF)             \
