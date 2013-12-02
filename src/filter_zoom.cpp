@@ -1472,6 +1472,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             out_names[no_out_args] = "subdatabase";
             out_values[no_out_args++] = odr_strdup(odr, sptr->cfSubDB.c_str());
         }
+        if (!param_nocproxy && b->sptr->contentConnector.length())
+            param_nocproxy = "1";
+
         if (param_nocproxy)
         {
             out_names[no_out_args] = "nocproxy";
