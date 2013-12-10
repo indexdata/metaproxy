@@ -1,3 +1,20 @@
+--- 1.4.3 2013/12/10
+
+zoom: Add nocproxy=1 for contentConnector sessions MP-501
+
+Doc: mention proper versions; fix link to Boost win binaries.
+
+Windows: update for Boost 1.55
+
+Windows: avoid warning when using boost::split. Done by defining
+_SCL_SECURE_NO_WARNINGS for Visual Studio.
+
+Fix LSB conformance for /etc/init.d/metaproxy MP-500
+Debian: add support for /etc/init.d/metaproxy status
+
+sort: Add const to Record less than operator in order to compile on
+OS X Maverick.
+
 --- 1.4.2 2013/11/15
 
 session_shared: fix element-set handling in record caching. MP-499
