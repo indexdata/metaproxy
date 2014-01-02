@@ -76,9 +76,9 @@ void mp::RouterXML::start()
     m_p->m_flexml->start();
 }
 
-void mp::RouterXML::stop()
+void mp::RouterXML::stop(int signo)
 {
-    m_p->m_flexml->stop();
+    m_p->m_flexml->stop(signo);
 }
 
 /*

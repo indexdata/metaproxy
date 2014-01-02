@@ -59,18 +59,20 @@ static void set_log_prefix(void)
 #if HAVE_UNISTD_H
 static pid_t process_group = 0;
 
-static void sig_usr1_handler(int s)
+static void sig_usr1_handler(int signo)
 {
     yaz_log(YLOG_LOG, "metaproxy received SIGUSR1");
-    routerp->stop();
+    if (routerp)
+        routerp->stop(signo);
 }
 
-static void sig_term_handler(int s)
+static void sig_term_handler(int signo)
 {
-    yaz_log(YLOG_LOG, "metaproxy received SIGTERM");
-    yaz_log(YLOG_LOG, "metaproxy stop");
-    kill(-process_group, SIGTERM); /* kill all children processes as well */
-    _exit(0);
+    if (routerp)
+    {
+        yaz_log(YLOG_LOG, "metaproxy received SIGTERM");
+        routerp->stop(signo);
+    }
 }
 #endif
 
@@ -88,7 +90,9 @@ static void work_common(void *data)
 
     mp::Package pack;
     pack.router(*routerp).move();
-    yaz_log(YLOG_LOG, "metaproxy stop"); /* only for graceful stop */
+    yaz_log(YLOG_LOG, "metaproxy stop");
+    delete routerp;
+    routerp = 0;
 #if HAVE_UNISTD_H
     kill(-process_group, SIGTERM); /* kill all children processes as well */
 #endif

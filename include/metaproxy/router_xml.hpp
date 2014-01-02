@@ -41,7 +41,7 @@ namespace metaproxy_1
 
         virtual RoutePos *createpos() const;
         void start();
-        void stop();
+        void stop(int signo);
     private:
         boost::scoped_ptr<Rep> m_p;
     };

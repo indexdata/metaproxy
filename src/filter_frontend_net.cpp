@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/log.h>
 #include <yaz/daemon.h>
 #include "gduutil.hpp"
+#include <signal.h>
 
 #include <iostream>
 
@@ -67,7 +68,7 @@ namespace metaproxy_1 {
             double m_duration_max;
             double m_duration_min;
             double m_duration_total;
-            bool m_stop;
+            int m_stop_signo;
         public:
             Rep();
             ~Rep();
@@ -527,7 +528,7 @@ yf::FrontendNet::Rep::Rep()
     m_duration_max = 0.0;
     m_duration_min = 0.0;
     m_duration_total = 0.0;
-    m_stop = false;
+    m_stop_signo = 0;
 }
 
 yf::FrontendNet::Rep::~Rep()
@@ -546,9 +547,9 @@ yf::FrontendNet::~FrontendNet()
 {
 }
 
-void yf::FrontendNet::stop() const
+void yf::FrontendNet::stop(int signo) const
 {
-    m_p->m_stop = true;
+    m_p->m_stop_signo = signo;
 }
 
 bool yf::FrontendNet::My_Timer_Thread::timeout()
@@ -592,9 +593,11 @@ void yf::FrontendNet::process(mp::Package &package) const
     }
     while (m_p->mySocketManager.processEvent() > 0)
     {
-        if (m_p->m_stop)
-        {
-            m_p->m_stop = false;
+        if (m_p->m_stop_signo == SIGTERM)
+            break; /* stop right away */
+        if (m_p->m_stop_signo == SIGUSR1)
+        {    /* just stop listeners and cont till all sessions are done*/
+            m_p->m_stop_signo = 0;
             if (m_p->az)
             {
                 size_t i;

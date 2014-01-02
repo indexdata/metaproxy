@@ -42,7 +42,7 @@ namespace metaproxy_1 {
 
             virtual void start() const;
 
-            virtual void stop() const;
+            virtual void stop(int signo) const;
         };
 
         class FilterException : public std::runtime_error {

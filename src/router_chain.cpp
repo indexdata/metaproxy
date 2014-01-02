@@ -58,12 +58,12 @@ void mp::RouterChain::start()
         (*it)->start();
 }
 
-void mp::RouterChain::stop()
+void mp::RouterChain::stop(int signo)
 {
     std::list<const filter::Base *>::const_iterator it;
 
     for (it = m_p->m_filter_list.begin(); it != m_p->m_filter_list.end(); it++)
-        (*it)->stop();
+        (*it)->stop(signo);
 }
 
 const mp::filter::Base *mp::RouterChain::Pos::move(const char *route)

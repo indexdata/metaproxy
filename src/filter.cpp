@@ -27,7 +27,7 @@ void mp::filter::Base::start() const
 {
 }
 
-void mp::filter::Base::stop() const
+void mp::filter::Base::stop(int signo) const
 {
 }
 
