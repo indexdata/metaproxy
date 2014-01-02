@@ -1,5 +1,6 @@
 ## This file is part of Metaproxy
-## Copyright (C) 2005-2013 Index Data
+## Copyright (C) Index Data
+## See the file LICENSE for details.
 
 SUBDIRS = xml include src etc doc
 

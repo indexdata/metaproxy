@@ -1,5 +1,5 @@
 ## This file is part of Metaproxy
-## Copyright (C) 2005-2013 Index Data
+## Copyright (C) Index Data
 
 SUBDIRS = metaproxy
 

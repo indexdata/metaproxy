@@ -7,7 +7,7 @@
     the binary ANSI/NISO Z39.50  and the information search and retrieval web
     service SRU as well as functioning as a limited HTTP server.
 
-    Copyright (C) 2006-2008 Index Data ApS, http://www.indexdata.com
+    Copyright (C) 2005-2014 Index Data ApS, http://www.indexdata.com
 
     The software was written by Marc Cromme, Adam Dickmeiss and Mike Taylor.
 

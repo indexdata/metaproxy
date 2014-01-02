@@ -1,5 +1,6 @@
-# Copyright (C) 2005-2013 Index Data
-# All rights reserved.
+# This file is part of metaproxy
+# Copyright (C) Index Data
+# See the file LICENSE for details.
 
 # MS NMAKE makefile for metaproxy
 
