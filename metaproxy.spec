@@ -15,7 +15,7 @@ Conflicts: cf-engine <= 2.12.5
 Packager: Adam Dickmeiss <adam@indexdata.dk>
 URL: http://www.indexdata.com/metaproxy
 Group:  Applications/Internet
-Requires:  libmetaproxy5 = %{version}
+Requires:  libmetaproxy6 = %{version}
 
 %description
 Metaproxy daemon.
@@ -27,21 +27,21 @@ Group: Documentation
 %description doc
 Metaproxy documentation.
 
-%package -n libmetaproxy5
+%package -n libmetaproxy6
 Summary: Metaproxy library
 Group: Libraries
 Requires: libyazpp6 >= 1.5.2, libyaz5 >= 5.0.0
 
-%description -n libmetaproxy5
+%description -n libmetaproxy6
 The Metaproxy libraries.
 
-%package -n libmetaproxy5-devel
+%package -n libmetaproxy6-devel
 Summary: Metaproxy development package
 Group: Development/Libraries
-Requires: libmetaproxy5 = %{version}, libyazpp6-devel, boost-devel
-Conflicts: libmetaproxy3-devel, libmetaproxy4-devel
+Requires: libmetaproxy6 = %{version}, libyazpp6-devel, boost-devel
+Conflicts: libmetaproxy3-devel, libmetaproxy4-devel, libmetaproxy5-devel
 
-%description -n libmetaproxy5-devel
+%description -n libmetaproxy6-devel
 Development libraries and include files for the Metaproxy package.
 
 %prep
@@ -60,7 +60,7 @@ make install DESTDIR=${RPM_BUILD_ROOT}
 rm ${RPM_BUILD_ROOT}/%{_libdir}/*.la
 rm -fr ${RPM_BUILD_ROOT}/%{_prefix}/share/metaproxy
 rm -f ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy/*
-mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy4/modules
+mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy6/modules
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/filters-enabled
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/filters-available
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/ports.d
@@ -77,17 +77,17 @@ install -m 644 rpm/metaproxy.logrotate  ${RPM_BUILD_ROOT}/etc/logrotate.d/metapr
 %clean
 rm -fr ${RPM_BUILD_ROOT}
 
-%files -n libmetaproxy5
+%files -n libmetaproxy6
 %doc README LICENSE NEWS
 %defattr(-,root,root)
 %{_libdir}/*.so.*
-%dir %{_libdir}/metaproxy4/modules
+%dir %{_libdir}/metaproxy6/modules
 
-%post -n libmetaproxy5 -p /sbin/ldconfig
+%post -n libmetaproxy6 -p /sbin/ldconfig
 
-%postun -n libmetaproxy5 -p /sbin/ldconfig
+%postun -n libmetaproxy6 -p /sbin/ldconfig
 
-%files -n libmetaproxy5-devel
+%files -n libmetaproxy6-devel
 %defattr(-,root,root)
 %{_includedir}/metaproxy
 %{_libdir}/*.so

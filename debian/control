@@ -16,7 +16,7 @@ Build-Depends: debhelper (>= 7),
 Package: metaproxy
 Section: net
 Architecture: any
-Depends: ${shlibs:Depends}, libmetaproxy5 (= ${Source-Version})
+Depends: ${shlibs:Depends}, libmetaproxy6 (= ${Source-Version})
 Conflicts: cf-engine (<= 2.12.5)
 Description: Z39.50/SRU router (main executable)
  This is a universal router, proxy and encapsulated metasearcher
@@ -27,7 +27,7 @@ Description: Z39.50/SRU router (main executable)
  .
  This package includes the main Metaproxy executable.
 
-Package: libmetaproxy5
+Package: libmetaproxy6
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}
@@ -40,23 +40,25 @@ Description: Z39.50/SRU router (runtime)
  .
  This package includes the Metaproxy libraries.
 
-Package: libmetaproxy5-dbg
+Package: libmetaproxy6-dbg
 Section: debug
 Architecture: any
-Depends: libmetaproxy5 (= ${binary:Version}), ${misc:Depends}
-Description: debugging symbols for libmetaproxy5
+Depends: libmetaproxy6 (= ${binary:Version}), ${misc:Depends}
+Description: debugging symbols for libmetaproxy6
  This is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets
  and redirects requests from IR clients using standard protocols such as
  the binary ANSI/NISO Z39.50  and the information search and retrieval web
  service SRU as well as functioning as a limited HTTP server. 
  .
- This package contains the debugging symbols for libmetaproxy5.
+ This package contains the debugging symbols for libmetaproxy6.
 
-Package: libmetaproxy5-dev
+Package: libmetaproxy6-dev
 Section: libdevel
 Architecture: any
-Depends: libmetaproxy5 (= ${Source-Version}),
+Provides: libmetaproxy-dev
+Replaces: libmetaproxy-dev
+Depends: libmetaproxy6 (= ${Source-Version}),
 	libyazpp6-dev (>= 1.5.2),
 	libxslt1-dev,
 	libboost-dev,
@@ -64,7 +66,9 @@ Depends: libmetaproxy5 (= ${Source-Version}),
 	libboost-regex-dev,
 	libboost-system-dev,
 	libgnutls-dev
-Conflicts: libmetaproxy2-dev, libmetaproxy3-dev
+Conflicts: libmetaproxy-dev,
+	   libmetaproxy2-dev, libmetaproxy3-dev,
+	   libmetaproxy4-dev, libmetaproxy5-dev
 Description: Z39.50/SRU router (development)
  This is a universal router, proxy and encapsulated metasearcher
  for information retrieval protocols. It accepts, processes, interprets

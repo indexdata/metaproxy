@@ -41,7 +41,7 @@ filter_src = \
 	filter_zoom.cpp filter_zoom.hpp
 
 lib_LTLIBRARIES = libmetaproxy.la
-libmetaproxy_la_LDFLAGS = -version-info 5:0:0 -export-dynamic
+libmetaproxy_la_LDFLAGS = -version-info 6:0:0 -export-dynamic
 
 libmetaproxy_la_SOURCES = \
 	$(filter_src) \

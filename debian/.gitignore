@@ -1,7 +1,7 @@
 files
-libmetaproxy5
-libmetaproxy5-dbg
-libmetaproxy5-dev
+libmetaproxy6
+libmetaproxy6-dbg
+libmetaproxy6-dev
 metaproxy
 metaproxy-doc
 tmp

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
-  <dlpath>/usr/lib/metaproxy4/modules</dlpath>
+  <dlpath>/usr/lib/metaproxy6/modules</dlpath>
   <start route="start"/>
   <filters>
     <filter id="frontend" type="frontend_net">

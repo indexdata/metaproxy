@@ -98,7 +98,7 @@
    <filename><replaceable>prefix</replaceable>/lib/libmetaproxy*.a</filename>
   </para>
   <para>
-   <filename><replaceable>prefix</replaceable>/lib/metaproxy4/modules</filename>
+   <filename><replaceable>prefix</replaceable>/lib/metaproxy6/modules</filename>
   </para>
   <para>
    <filename><replaceable>prefix</replaceable>/include/metaproxy</filename>
