@@ -16,6 +16,7 @@ Packager: Adam Dickmeiss <adam@indexdata.dk>
 URL: http://www.indexdata.com/metaproxy
 Group:  Applications/Internet
 Requires:  libmetaproxy6 = %{version}
+Provides: metaproxy6
 
 %description
 Metaproxy daemon.
