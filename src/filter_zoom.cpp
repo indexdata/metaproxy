@@ -112,6 +112,7 @@ namespace metaproxy_1 {
             void present(Odr_int start, Odr_int number, ZOOM_record *recs,
                          int *error, char **addinfo, ODR odr);
             void set_option(const char *name, const char *value);
+            void set_option(const char *name, const char *value, size_t l);
             void set_option(const char *name, std::string value);
             const char *get_option(const char *name);
             void get_zoom_error(int *error, char **addinfo, ODR odr);
@@ -456,6 +457,12 @@ void yf::Zoom::Backend::present(Odr_int start, Odr_int number,
 {
     ZOOM_resultset_records(m_resultset, recs, start, number);
     get_zoom_error(error, addinfo, odr);
+}
+
+
+void yf::Zoom::Backend::set_option(const char *name, const char *value, size_t l)
+{
+    ZOOM_connection_option_setl(m_connection, name, value, l);
 }
 
 void yf::Zoom::Backend::set_option(const char *name, const char *value)
@@ -1483,54 +1490,31 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     }
     else
     {
-        if (sptr->sru.length() == 0)
-            b->set_option("user", authentication); /* Z39.50 */
+        const char *auth = authentication.c_str();
+        const char *cp1 = strchr(auth, ' ');
+        if (!cp1 && sptr->sru.length())
+            cp1 =  strchr(auth, '/');
+        if (!cp1)
+        {
+            /* Z39.50 user/password style, or no password for SRU */
+            b->set_option("user", auth);
+        }
         else
         {
-            std::string user;
-            std::string password;
-            std::string authtype = sptr->authenticationMode;
+            /* now consider group as well */
+            const char *cp2 = strchr(cp1 + 1, ' ');
 
-            {
-                const char *cstr = authentication.c_str();
-                const char *cp1 = strchr(cstr, '/');
-                if (cp1)
-                {
-                    password.assign(cp1 + 1);
-                    user.assign(cstr, cp1 - cstr);
-                }
-                else
-                    user.assign(cstr);
-            }
-
-            if (authtype.compare("url") == 0)
-            {
-                /* SRU URL encoding of auth stuff */
-                ODR o = odr_createmem(ODR_ENCODE);
-                char *path = 0;
-                const char *names[3];
-                const char *values[3];
-
-                names[0] = "x-username";
-                values[0] = user.c_str();
-                names[1] = "x-password";
-                values[1] = password.c_str();
-                names[2] = 0;
-                values[2] = 0;
-
-                yaz_array_to_uri(&path, o, (char **) names, (char **) values);
-                if (extraArgs.length())
-                    extraArgs.append("&");
-                extraArgs.append(path);
-                odr_destroy(o);
-            }
+            b->set_option("user", auth, cp1 - auth);
+            if (!cp2)
+                b->set_option("password", cp1 + 1);
             else
             {
-                b->set_option("user", user);
-                if (password.length())
-                    b->set_option("password", password);
+                b->set_option("group", cp1 + 1, cp2 - cp1 - 1);
+                b->set_option("password", cp2 + 1);
             }
         }
+        if (sptr->authenticationMode.length())
+            b->set_option("authenticationMode", sptr->authenticationMode);
         if (proxy.length())
             b->set_option("proxy", proxy);
     }
