@@ -41,6 +41,11 @@
    for more information.
   </para>
   <para>
+   Optionally the default stylesheet may be specified. If the client
+   do not specify a stylesheet, the CDATA of element
+   <literal>stylesheet</literal> is used.
+  </para>
+  <para>
    All Z39.50 packages and all HTTP packages that do not resolve to
    one configured database name are passed unaltered to the next
    filters on the route.
@@ -123,6 +128,7 @@
    A typical configuration looks like this:
    <screen><![CDATA[
     <filter type="sru_z3950">
+      <stylesheet>/my.xsl</stylesheet>
       <database name="Default">
         <explain xmlns="http://explain.z3950.org/dtd/2.0/">
           ...

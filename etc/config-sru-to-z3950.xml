@@ -9,6 +9,7 @@
       <port>@:9000</port>
     </filter>
     <filter id="sru" type="sru_z3950">
+      <stylesheet>/my.xsl</stylesheet>
       <database name="Default">
        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
                     href="../etc/explain.xml"/>

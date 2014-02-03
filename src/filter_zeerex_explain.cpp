@@ -153,7 +153,7 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
     char *stylesheet = 0;
     if (! (sru_pdu_req = mp_util::decode_sru_request(package, odr_de, odr_en,
                                             sru_pdu_res, &soap,
-                                            charset, stylesheet)))
+                                            charset)))
     {
         mp_util::build_sru_explain(package, odr_en, sru_pdu_res,
                                    sruinfo, explainnode);

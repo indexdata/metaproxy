@@ -6,6 +6,7 @@ filter_sru_z3950 =
   attribute type { "sru_z3950" },
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
+  element mp:stylesheet { xsd:string }?,
   element mp:database {  
      attribute name { xsd:NCName },
      any        

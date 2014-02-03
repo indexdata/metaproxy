@@ -229,8 +229,7 @@ Z_SRW_PDU * mp_util::decode_sru_request(mp::Package &package,
                                         mp::odr &odr_en,
                                         Z_SRW_PDU *sru_pdu_res,
                                         Z_SOAP **soap,
-                                        char *charset,
-                                        char *stylesheet)
+                                        char *charset)
 {
     Z_GDU *zgdu_req = package.request().get();
     Z_SRW_PDU *sru_pdu_req = 0;

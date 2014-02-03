@@ -76,8 +76,7 @@ namespace metaproxy_1 {
                                        metaproxy_1::odr &odr_en,
                                        Z_SRW_PDU *sru_pdu_res,
                                        Z_SOAP **soap,
-                                       char *charset,
-                                       char *stylesheet);
+                                       char *charset);
 
         bool check_sru_query_exists(metaproxy_1::Package &package,
                                     metaproxy_1::odr &odr_en,

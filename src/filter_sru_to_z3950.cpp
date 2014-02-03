@@ -63,6 +63,7 @@ namespace metaproxy_1 {
             FrontendPtr get_frontend(mp::Package &package);
             void release_frontend(mp::Package &package);
             std::map<std::string, const xmlNode *> m_database_explain;
+            std::string default_stylesheet;
 
             typedef std::map<std::string, int> ActiveUrlMap;
 
@@ -151,27 +152,40 @@ void yf::SRUtoZ3950::Impl::configure(const xmlNode *confignode)
         if (dbnode->type != XML_ELEMENT_NODE)
             continue;
 
-        std::string database;
-        mp::xml::check_element_mp(dbnode, "database");
-
-        for (struct _xmlAttr *attr = dbnode->properties;
-             attr; attr = attr->next)
+        if (!strcmp((const char *) dbnode->name, "database"))
         {
+            std::string database;
 
-            mp::xml::check_attribute(attr, "", "name");
-            database = mp::xml::get_text(attr);
-
-            const xmlNode *explainnode;
-            for (explainnode = dbnode->children;
-                 explainnode; explainnode = explainnode->next)
+            for (struct _xmlAttr *attr = dbnode->properties;
+                 attr; attr = attr->next)
             {
-                if (explainnode->type != XML_ELEMENT_NODE)
-                    continue;
-                if (explainnode)
-                    break;
+                mp::xml::check_attribute(attr, "", "name");
+                database = mp::xml::get_text(attr);
+
+                const xmlNode *explainnode;
+                for (explainnode = dbnode->children;
+                     explainnode; explainnode = explainnode->next)
+                {
+                    if (explainnode->type == XML_ELEMENT_NODE)
+                    {
+                        m_database_explain.insert(
+                            std::make_pair(database, explainnode));
+                        break;
+                    }
+                }
             }
-            // assigning explain node to database name - no check yet
-            m_database_explain.insert(std::make_pair(database, explainnode));
+        }
+        else if (!strcmp((const char *) dbnode->name, "stylesheet"))
+        {
+            default_stylesheet = mp::xml::get_text(dbnode);
+        }
+        else
+        {
+            throw mp::filter::FilterException
+                ("Bad element "
+                 + std::string((const char *) dbnode->name)
+                 + " in sru_z3950"
+                    );
         }
     }
 }
@@ -201,12 +215,12 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
     // decode SRU request
     Z_SOAP *soap = 0;
     char *charset = 0;
-    char *stylesheet = 0;
+    const char *stylesheet = 0;
 
     // filter acts as sink for non-valid SRU requests
     if (! (sru_pdu_req = mp_util::decode_sru_request(package, odr_de, odr_en,
                                                      sru_pdu_res, &soap,
-                                                     charset, stylesheet)))
+                                                     charset)))
     {
         if (soap)
         {
@@ -267,6 +281,8 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
     if (sru_pdu_req->which == Z_SRW_explain_request)
     {
         Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
+        stylesheet = er_req->stylesheet;
+
         mp_util::build_sru_explain(package, odr_en, sru_pdu_res,
                                    sruinfo, explainnode, er_req);
     }
@@ -274,6 +290,7 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
              && sru_pdu_req->u.request)
     {   // searchRetrieve
         Z_SRW_searchRetrieveRequest *sr_req = sru_pdu_req->u.request;
+        stylesheet = sr_req->stylesheet;
 
         sru_pdu_res = yaz_srw_get_pdu(odr_en, Z_SRW_searchRetrieve_response,
                                       sru_pdu_req->srw_version);
@@ -305,6 +322,7 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
     {
         sru_pdu_res = yaz_srw_get_pdu(odr_en, Z_SRW_scan_response,
                                       sru_pdu_req->srw_version);
+        stylesheet = sru_pdu_req->u.scan_request->stylesheet;
 
         // we do not do scan at the moment, therefore issuing a diagnostic
         yaz_add_srw_diagnostic(odr_en,
@@ -339,6 +357,8 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
                 odr_strdup(odr_en, wrbuf_cstr(w));
         }
     }
+    if (!stylesheet && default_stylesheet.length())
+        stylesheet = default_stylesheet.c_str();
 
     // build and send SRU response
     mp_util::build_sru_response(package, odr_en, soap,
