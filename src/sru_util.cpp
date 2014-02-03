@@ -131,6 +131,7 @@ bool mp_util::build_sru_explain(metaproxy_1::Package &package,
         xmlDocDumpFormatMemory(doc, &xmlbuff, &xmlbuffsz, 1);
 
         explain_xml.assign((const char*)xmlbuff, 0, xmlbuffsz);
+        xmlFree(xmlbuff);
     }
 
 
