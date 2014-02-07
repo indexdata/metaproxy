@@ -1,16 +1,16 @@
 #!/bin/sh
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-libdir=@libdir@
-includedir=@includedir@
+prefix="@prefix@"
+exec_prefix="@exec_prefix@"
+libdir="@libdir@"
+includedir="@includedir@"
 echo_cflags=no
 echo_libs=no
 echo_help=no
 echo_tabs=no
 echo_source=yes
 echo_lalibs=no
-src_root=@abs_top_srcdir@
-build_root=@abs_top_builddir@
+src_root="@abs_top_srcdir@"
+build_root="@abs_top_builddir@"
 
 libs="@BOOST_LIB@ @BOOST_SYSTEM_LIB@ @BOOST_REGEX_LIB@ @BOOST_THREAD_LIB@ @YAZPPLIB@ @LIBS@"
 lalibs="@YAZPPLALIB@ @LIBS@"
@@ -82,7 +82,7 @@ else
     if test "$prefix" != "/usr"; then
 	LIB="-L${libdir} $LIB"
     fi
-    LALIB=$LIB
+    LALIB="$LIB"
     if test "$prefix" != "/usr"; then
 	INC="-I${includedir} $INC"
     fi
