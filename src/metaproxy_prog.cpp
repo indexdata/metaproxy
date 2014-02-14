@@ -58,19 +58,20 @@ static void set_log_prefix(void)
 
 #if HAVE_UNISTD_H
 static pid_t process_group = 0;
+static int sig_received = 0;
 
 static void sig_usr1_handler(int signo)
 {
-    yaz_log(YLOG_LOG, "metaproxy received SIGUSR1");
+    sig_received = signo;
     if (routerp)
         routerp->stop(signo);
 }
 
 static void sig_term_handler(int signo)
 {
+    sig_received = signo;
     if (routerp)
     {
-        yaz_log(YLOG_LOG, "metaproxy received SIGTERM");
         routerp->stop(signo);
     }
 }
@@ -90,6 +91,21 @@ static void work_common(void *data)
 
     mp::Package pack;
     pack.router(*routerp).move();
+#if HAVE_UNISTD_H
+    switch (sig_received)
+    {
+    case SIGTERM:
+        yaz_log(YLOG_LOG, "metaproxy received SIGTERM");
+        break;
+    case SIGUSR1:
+        yaz_log(YLOG_LOG, "metaproxy received SIGUSR1");
+        break;
+    case 0:
+        break;
+    default:
+        yaz_log(YLOG_LOG, "metaproxy received signo=%d", sig_received);
+    }
+#endif
     yaz_log(YLOG_LOG, "metaproxy stop");
     delete routerp;
     routerp = 0;
