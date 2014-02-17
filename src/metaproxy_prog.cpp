@@ -91,21 +91,6 @@ static void work_common(void *data)
 
     mp::Package pack;
     pack.router(*routerp).move();
-#if HAVE_UNISTD_H
-    switch (sig_received)
-    {
-    case SIGTERM:
-        yaz_log(YLOG_LOG, "metaproxy received SIGTERM");
-        break;
-    case SIGUSR1:
-        yaz_log(YLOG_LOG, "metaproxy received SIGUSR1");
-        break;
-    case 0:
-        break;
-    default:
-        yaz_log(YLOG_LOG, "metaproxy received signo=%d", sig_received);
-    }
-#endif
     yaz_log(YLOG_LOG, "metaproxy stop");
     delete routerp;
     routerp = 0;

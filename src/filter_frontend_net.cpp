@@ -594,9 +594,13 @@ void yf::FrontendNet::process(mp::Package &package) const
     while (m_p->mySocketManager.processEvent() > 0)
     {
         if (m_p->m_stop_signo == SIGTERM)
+        {
+            yaz_log(YLOG_LOG, "metaproxy received SIGTERM");
             break; /* stop right away */
+        }
         if (m_p->m_stop_signo == SIGUSR1)
         {    /* just stop listeners and cont till all sessions are done*/
+            yaz_log(YLOG_LOG, "metaproxy received SIGUSR1");
             m_p->m_stop_signo = 0;
             if (m_p->az)
             {
