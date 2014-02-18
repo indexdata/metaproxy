@@ -1,3 +1,40 @@
+--- 1.4.4 2014/02/18
+
+Log when SIG{TERM,USR1} is received ASAP MP-513
+Do it in frontend_net event loop rather than in place for metaproxy
+main, which only exits when all sessions are terminated for SIGUSR1
+at graceful stop.
+
+metaproxy-config: quote some RHS values (that might include blanks)
+
+Fix leak in sru_z3950 filter - when explain is returned MP-511
+
+Allow stylesheet to be given for sru_z3950 filter MP-510
+This is based on a patch by Sven Porst and the functionality
+of the YAZ Generic Frontend Server.
+
+Allow base attribute in configuration file tags - the attributes are
+inserted by XInclude usage as mentioned on
+yazlist: http://lists.indexdata.dk/pipermail/yazlist/2012-Au
+and noted in a gist: https://gist.github.com/3551094
+
+Package metaproxy provides virtual package metaproxy6 MP-508
+This allows module packages to depend on a metaproxy server
+with version 6 API.
+
+Filter destructors called upon daemon termination MP-505
+When metaproxy daemon receives SIGTERM the stop method of each filter
+is called. The stop method existed before, but did not take any
+arguements (void).. The frontend_net filter can now distinguish
+between SIGUSR1 (stop bind, but keep sessions running) and SIGTERM
+(stop immediately). Note that this changes the API+ABI of Metaproxy
+filters.
+
+zoom: sync up with Pazpar2 WRT authentication handling MP-492
+
+Router: use shared_ptr rather than naked one - to avoid leak if an
+exception is thrown in configure.
+
 --- 1.4.3 2013/12/10
 
 zoom: Add nocproxy=1 for contentConnector sessions MP-501
