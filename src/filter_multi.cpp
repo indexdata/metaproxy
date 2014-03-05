@@ -35,6 +35,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
 #include <yaz/match_glob.h>
+#include <yaz/oid_db.h>
 
 #include <vector>
 #include <algorithm>
@@ -443,6 +444,13 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
 
         *breq->preferredMessageSize = *req->preferredMessageSize;
         *breq->maximumRecordSize = *req->maximumRecordSize;
+
+
+        const char *peer_name = yaz_oi_get_string_oid(
+            &req->otherInfo, yaz_oid_userinfo_client_ip, 1, 0);
+        if (peer_name)
+            yaz_oi_set_string_oid(&breq->otherInfo, odr,
+                                  yaz_oid_userinfo_client_ip, 1, peer_name);
 
         ODR_MASK_SET(breq->options, Z_Options_search);
         ODR_MASK_SET(breq->options, Z_Options_present);

@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/diagbib1.h>
 #include <yaz/match_glob.h>
 #include <yaz/log.h>
+#include <yaz/oid_db.h>
 
 #include <map>
 #include <iostream>
@@ -210,6 +211,13 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::init_backend(
     // copy stuff from Frontend Init Request
     Z_GDU *org_gdu = m_init_gdu.get();
     Z_InitRequest *org_init = org_gdu->u.z3950->u.initRequest;
+
+
+    const char *peer_name = yaz_oi_get_string_oid(
+        &org_init->otherInfo, yaz_oid_userinfo_client_ip, 1, 0);
+    if (peer_name)
+        yaz_oi_set_string_oid(&init_apdu->u.initRequest->otherInfo, odr,
+                              yaz_oid_userinfo_client_ip, 1, peer_name);
 
     req->idAuthentication = org_init->idAuthentication;
     req->implementationId = org_init->implementationId;

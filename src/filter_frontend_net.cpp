@@ -277,6 +277,12 @@ yf::FrontendNet::ZAssocChild::ZAssocChild(
     const char *peername = PDU_Observable->getpeername();
     if (!peername)
         peername = "unknown";
+    else
+    {
+        const char *cp = strchr(peername, ':');
+        if (cp)
+            peername = cp + 1;
+    }
     m_origin.set_tcpip_address(std::string(peername), m_session.id());
     timeout(m_p->m_session_timeout);
 }

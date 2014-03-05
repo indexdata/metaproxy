@@ -35,6 +35,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/log.h>
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
+#include <yaz/oid_db.h>
 
 #include <yazpp/socket-manager.h>
 #include <yazpp/pdu-assoc.h>
@@ -486,6 +487,8 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
     if (gdu->u.z3950->which == Z_APDU_close)
         c->m_has_closed = true;
 
+    Z_APDU *apdu = gdu->u.z3950;
+
     // prepare connect
     c->m_time_elapsed = 0;
     c->m_waiting = true;
@@ -510,7 +513,27 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
     {
         return;
     }
-
+    const char *peer_name2 = package.origin().get_address().c_str();
+    mp::odr odr;
+    if (apdu->which == Z_APDU_initRequest && peer_name2)
+    {
+        Z_OtherInformation **oi = &apdu->u.initRequest->otherInfo;
+        char *peer_name1 =
+            yaz_oi_get_string_oid(oi, yaz_oid_userinfo_client_ip, 1, 1);
+        char *pcomb = (char *)
+            odr_malloc(odr, (peer_name1 ? strlen(peer_name1) : 0)
+                       + strlen(peer_name2) + 4);
+        strcpy(pcomb, "");
+        if (peer_name1)
+        {
+            strcat(pcomb, peer_name1);
+            strcat(pcomb, ", ");
+        }
+        strcat(pcomb, peer_name2);
+        yaz_oi_set_string_oid(&apdu->u.initRequest->otherInfo,
+                              odr, yaz_oid_userinfo_client_ip,
+                              1, pcomb);
+    }
     // prepare response
     c->m_time_elapsed = 0;
     c->m_waiting = true;

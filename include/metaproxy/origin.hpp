@@ -57,6 +57,7 @@ namespace metaproxy_1 {
         unsigned int m_origin_id;
         int m_max_sockets;
         std::string m_custom_session;
+        std::string get_forward_address() const;
     };
 }
 

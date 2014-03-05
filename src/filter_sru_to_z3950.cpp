@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/pquery.h>
 #include <yaz/oid_db.h>
 #include <yaz/log.h>
+#include <yaz/otherinfo.h>
 #if YAZ_VERSIONL >= 0x50000
 #include <yaz/facet.h>
 #endif
@@ -516,6 +517,19 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
         std::list<std::string> dblist;
         mp_util::split_zurl(zurl, host, dblist);
         mp_util::set_vhost_otherinfo(&init_req->otherInfo, odr_en, host, 1);
+    }
+
+    Z_GDU *zgdu_req = package.request().get();
+    if (zgdu_req->which == Z_GDU_HTTP_Request)
+    {
+        Z_HTTP_Request *hreq = zgdu_req->u.HTTP_Request;
+        const char *peer_name =
+            z_HTTP_header_lookup(hreq->headers, "X-Forwarded-For");
+        if (peer_name)
+        {
+            yaz_oi_set_string_oid(&init_req->otherInfo, odr_en,
+                                  yaz_oid_userinfo_client_ip, 1, peer_name);
+        }
     }
 
     z3950_package.request() = apdu;

@@ -51,6 +51,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/sortspec.h>
 #include <yaz/tokenizer.h>
 #include <yaz/zoom.h>
+#include <yaz/otherinfo.h>
 
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
@@ -2614,8 +2615,13 @@ void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
         }
     }
 
-    std::string ip = package.origin().get_address();
-    yaz_log(YLOG_LOG, "IP=%s", ip.c_str());
+    Z_OtherInformation **oi = &req->otherInfo;
+    const char *ip =
+        yaz_oi_get_string_oid(oi, yaz_oid_userinfo_client_ip, 1, 0);
+    if (!ip)
+        ip = package.origin().get_address().c_str();
+
+    yaz_log(YLOG_LOG, "IP=%s", ip);
 
     std::string torus_query;
     int failure_code;
@@ -2628,13 +2634,8 @@ void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
     }
     else
     {
-        const char *ip_cstr = ip.c_str();
-        const char *cp = strchr(ip_cstr, ':');
-        if (cp)
-            ip_cstr = cp + 1;
-
         torus_query = "ip encloses/net.ipaddress \"";
-        torus_query += escape_cql_term(std::string(ip_cstr));
+        torus_query += escape_cql_term(std::string(ip));
         torus_query += "\"";
         failure_code = YAZ_BIB1_INIT_AC_BLOCKED_NETWORK_ADDRESS;
     }
