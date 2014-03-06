@@ -84,6 +84,7 @@ namespace metaproxy_1 {
             int m_timeout_sec;
             int m_max_sockets;
             bool m_force_close;
+            bool m_client_ip;
             std::string m_default_target;
             std::string m_force_target;
             boost::mutex m_mutex;
@@ -297,6 +298,7 @@ yf::Z3950Client::Z3950Client() :  m_p(new yf::Z3950Client::Rep)
     m_p->m_timeout_sec = 30;
     m_p->m_max_sockets = 0;
     m_p->m_force_close = false;
+    m_p->m_client_ip = false;
 }
 
 yf::Z3950Client::~Z3950Client() {
@@ -513,26 +515,26 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
     {
         return;
     }
-    const char *peer_name2 = package.origin().get_address().c_str();
     mp::odr odr;
-    if (apdu->which == Z_APDU_initRequest && peer_name2)
+    if (m_client_ip)
     {
-        Z_OtherInformation **oi = &apdu->u.initRequest->otherInfo;
-        char *peer_name1 =
-            yaz_oi_get_string_oid(oi, yaz_oid_userinfo_client_ip, 1, 1);
-        char *pcomb = (char *)
-            odr_malloc(odr, (peer_name1 ? strlen(peer_name1) : 0)
-                       + strlen(peer_name2) + 4);
-        strcpy(pcomb, "");
-        if (peer_name1)
+        std::string peer_name2 = package.origin().get_address();
+        if (apdu->which == Z_APDU_initRequest && peer_name2.length())
         {
-            strcat(pcomb, peer_name1);
-            strcat(pcomb, ", ");
+            Z_OtherInformation **oi = &apdu->u.initRequest->otherInfo;
+            char *peer_name1 =
+                yaz_oi_get_string_oid(oi, yaz_oid_userinfo_client_ip, 1, 1);
+            std::string pcomb;
+            if (peer_name1)
+            {
+                pcomb.append(peer_name1);
+                pcomb.append(", ");
+            }
+            pcomb.append(peer_name2);
+            yaz_oi_set_string_oid(&apdu->u.initRequest->otherInfo,
+                                  odr, yaz_oid_userinfo_client_ip,
+                                  1, pcomb.c_str());
         }
-        strcat(pcomb, peer_name2);
-        yaz_oi_set_string_oid(&apdu->u.initRequest->otherInfo,
-                              odr, yaz_oid_userinfo_client_ip,
-                              1, pcomb);
     }
     // prepare response
     c->m_time_elapsed = 0;
@@ -619,6 +621,10 @@ void yf::Z3950Client::configure(const xmlNode *ptr, bool test_only,
         else if (!strcmp((const char *) ptr->name, "force_close"))
         {
             m_p->m_force_close = mp::xml::get_bool(ptr, 0);
+        }
+        else if (!strcmp((const char *) ptr->name, "client_ip"))
+        {
+            m_p->m_client_ip = mp::xml::get_bool(ptr, 0);
         }
         else
         {

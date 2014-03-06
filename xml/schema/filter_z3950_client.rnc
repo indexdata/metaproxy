@@ -9,5 +9,6 @@ filter_z3950_client =
   element mp:timeout { xsd:integer }?,
   element mp:default_target { xsd:string }?,
   element mp:force_target { xsd:string }?,
-  element mp:force_close { xsd:boolean }?
+  element mp:force_close { xsd:boolean }?,
+  element mp:client_ip { xsd:boolean }?
 
