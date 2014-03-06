@@ -51,6 +51,7 @@ namespace metaproxy_1 {
             std::string proxy_host;
             std::string default_host;
             int max_redirects;
+            bool x_forwarded_for;
             Rep();
         };
     }
@@ -58,7 +59,8 @@ namespace metaproxy_1 {
 
 yf::HTTPClient::Rep::Rep()
 {
-    max_redirects = -0;
+    max_redirects = 0;
+    x_forwarded_for = false;
 }
 
 yf::HTTPClient::HTTPClient() : m_p(new Rep)
@@ -89,6 +91,21 @@ void yf::HTTPClient::Rep::proxy(mp::Package &package)
 
         yaz_url_set_max_redirects(yaz_url, max_redirects);
 
+        if (x_forwarded_for)
+        {
+            std::string peer_name2 = package.origin().get_address();
+            const char *peer_name1 =
+                z_HTTP_header_lookup(hreq->headers, "X-Forwarded-For");
+            std::string pcomb;
+            if (peer_name1)
+            {
+                pcomb.append(peer_name1);
+                pcomb.append(", ");
+            }
+            pcomb.append(peer_name2);
+            z_HTTP_header_set(o, &hreq->headers, "X-Forwarded-For",
+                              pcomb.c_str());
+        }
         std::string uri;
         if (hreq->path[0] == '/')
         {
@@ -156,6 +173,10 @@ void mp::filter::HTTPClient::configure(const xmlNode * ptr, bool test_only,
                     ("default-host is missing method (such as http://)"
                      " in http_client filter");
             }
+        }
+        else if (!strcmp((const char *) ptr->name, "x-forwarded-for"))
+        {
+            m_p->x_forwarded_for = mp::xml::get_bool(ptr, 0);
         }
         else
         {

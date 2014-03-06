@@ -29,6 +29,7 @@
       </filter>
       <filter type="http_client">
 	<default-host>http://localhost:9999</default-host>
+        <x-forwarded-for>true</x-forwarded-for>
       </filter>
       <filter type="bounce"/>
     </route>
