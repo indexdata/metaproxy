@@ -89,8 +89,8 @@ namespace metaproxy_1 {
             Phase();
             int m_verbose;
             std::list<Content> content_list;
-            std::list<boost::regex> skip_list;
-            void read_skip_headers(Z_HTTP_Request *hreq);
+            void read_skip_headers(Z_HTTP_Request *hreq,
+                                   std::list<boost::regex> &skip_list);
             void rewrite_reqline(mp::odr & o, Z_HTTP_Request *hreq,
                 std::map<std::string, std::string> & vars) const;
             void rewrite_headers(mp::odr & o, Z_HTTP_Header *headers,
@@ -141,21 +141,22 @@ void yf::HttpRewrite::process(mp::Package & package) const
     //map of request/response vars
     std::map<std::string, std::string> vars;
     //we have an http req
+
+    std::list<boost::regex> skip_list;
+    
     if (gdu && gdu->which == Z_GDU_HTTP_Request)
     {
         Z_HTTP_Request *hreq = gdu->u.HTTP_Request;
         mp::odr o;
         req_phase->rewrite_reqline(o, hreq, vars);
-        res_phase->read_skip_headers(hreq);  
+        res_phase->read_skip_headers(hreq, skip_list);  
         yaz_log(YLOG_LOG, ">> Request headers");
         req_phase->rewrite_headers(o, hreq->headers, vars);
         req_phase->rewrite_body(o,
                                 z_HTTP_header_lookup(hreq->headers,
                                                      "Content-Type"),
                                 &hreq->content_buf, &hreq->content_len,
-                                vars, res_phase->skip_list);
-        // TODO skip_list does not really belong in the phase. More like
-        // HttpRewrite itself!
+                                vars, skip_list);
         package.request() = gdu;
     }
     package.move();
@@ -171,15 +172,15 @@ void yf::HttpRewrite::process(mp::Package & package) const
                                 z_HTTP_header_lookup(hres->headers,
                                                      "Content-Type"),
                                 &hres->content_buf, &hres->content_len,
-                                vars, res_phase->skip_list);
+                                vars, skip_list);
         package.response() = gdu;
     }
 }
 
 // Read (and remove) the X-Metaproxy-SkipLink headers
-void yf::HttpRewrite::Phase::read_skip_headers(Z_HTTP_Request *hreq)
+void yf::HttpRewrite::Phase::read_skip_headers(Z_HTTP_Request *hreq,
+                                 std::list<boost::regex> &skip_list )
 {
-    skip_list.clear();
     std::string url(hreq->path);
     if ( url.substr(0,7) != "http://" )
     { // path was relative, as it usually is
