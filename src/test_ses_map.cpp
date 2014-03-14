@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <map>
 
-#include <boost/thread.hpp>
+#include <boost/thread/thread.hpp>
 #include <boost/shared_ptr.hpp>
 #define BOOST_AUTO_TEST_MAIN
 #define BOOST_TEST_DYN_LINK
