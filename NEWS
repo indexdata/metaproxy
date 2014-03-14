@@ -1,3 +1,31 @@
+--- 1.4.5 2014/03/14
+
+http_rewrite: use local skiplist; fixes memory corruption. MP-520
+
+http_client: x-forwarded-for controls X-Forwarded-For presence
+If x-forwarded-for setting (boolean) is enabled, http_client will
+generate an X-Forwarded-For header entry which includes existing
+X-Forwarded-For (if any) and current peer address (immediate client
+of Metaproxy). By default x-forwarded-for disabled and X-Forwarded-For
+will not be generated.
+
+z3950_client: client_ip controls client-IP presence
+If client_ip setting (boolean) is enabled, z3950_client will
+generate a client_ip OID as part of init request which includes
+previous client_ip (if any) and current peer address (immediate
+client of Metaproxy). By default client_ip is disabled and client_ip
+will not be generated.
+
+HTTP X-Forwarded-For/Z39.50 Client-IP support
+virt_db, multi: relays Z39.50 client-IP.
+sru_z3950: converts X-Forwarded-For header to Z39.50 client-IP.
+zoom: uses Client-IP or origin address (prefer Client-IP).
+frontend_net: Strips tcp: from peer address (so that it is no longer
+printed and stripped in zoom filter).
+z3950_client: builds client-IP list - combining immediate peer address
+as returned by COMSTACK and existing client-IP list (if avaiable).
+The Origin only printes first X-Forwarded address.
+
 --- 1.4.4 2014/02/18
 
 Log when SIG{TERM,USR1} is received ASAP MP-513
