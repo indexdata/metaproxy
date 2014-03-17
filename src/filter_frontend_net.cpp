@@ -604,6 +604,7 @@ void yf::FrontendNet::process(mp::Package &package) const
             yaz_log(YLOG_LOG, "metaproxy received SIGTERM");
             break; /* stop right away */
         }
+#ifndef WIN32
         if (m_p->m_stop_signo == SIGUSR1)
         {    /* just stop listeners and cont till all sessions are done*/
             yaz_log(YLOG_LOG, "metaproxy received SIGUSR1");
@@ -616,6 +617,7 @@ void yf::FrontendNet::process(mp::Package &package) const
                 yaz_daemon_stop();
             }
         }
+#endif
         int no = m_p->mySocketManager.getNumberOfObservers();
         if (no <= 1)
             break;
