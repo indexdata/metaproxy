@@ -220,7 +220,10 @@ void ThreadPoolSocketObserver::cleanup(IThreadPoolMsg *m, void *info)
     while (it != m_p->m_input.end())
     {
         if ((*it)->cleanup(info))
+        {
+            delete *it;
             it = m_p->m_input.erase(it);
+        }
         else
             it++;
     }
