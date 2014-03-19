@@ -727,7 +727,9 @@ void yf::FrontendNet::set_ports(std::vector<Port> &ports)
 
     // Create yf::FrontendNet::ZAssocServer for each port
     size_t i;
-    for (i = 0; i<m_p->m_ports.size(); i++)
+    for (i = 0; i < m_p->m_ports.size(); i++)
+        m_p->az[i] = 0;
+    for (i = 0; i < m_p->m_ports.size(); i++)
     {
         // create a PDU assoc object (one per yf::FrontendNet::ZAssocServer)
         yazpp_1::PDU_Assoc *as = new yazpp_1::PDU_Assoc(&m_p->mySocketManager);
