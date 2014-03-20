@@ -193,6 +193,7 @@ namespace metaproxy_1 {
             void release_frontend(Package &package);
             Rep();
         public:
+            ~Rep();
             void expire();
         private:
             void expire_classes();
@@ -202,6 +203,7 @@ namespace metaproxy_1 {
             void start();
             boost::mutex m_mutex;
             boost::condition m_cond_session_ready;
+            boost::condition m_cond_expire_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
 
             BackendClassMap m_backend_map;
@@ -215,6 +217,7 @@ namespace metaproxy_1 {
             int m_session_max;
             Odr_int m_preferredMessageSize;
             Odr_int m_maximumRecordSize;
+            bool close_down;
         };
     }
 }
@@ -1239,15 +1242,19 @@ void yf::SessionShared::Rep::expire()
     {
         boost::xtime xt;
         boost::xtime_get(&xt,
-#if BOOST_VERSION >= 105000 
+#if BOOST_VERSION >= 105000
                 boost::TIME_UTC_
 #else
                 boost::TIME_UTC
 #endif
                   );
         xt.sec += m_session_ttl / 3;
-        boost::thread::sleep(xt);
-
+        {
+            boost::mutex::scoped_lock lock(m_mutex);
+            m_cond_expire_ready.timed_wait(lock, xt);
+            if (close_down)
+                break;
+        }
         stat();
         expire_classes();
     }
@@ -1263,6 +1270,17 @@ yf::SessionShared::Rep::Rep()
     m_session_max = 100;
     m_preferredMessageSize = 0;
     m_maximumRecordSize = 0;
+    close_down = false;
+}
+
+yf::SessionShared::Rep::~Rep()
+{
+    {
+        boost::mutex::scoped_lock lock(m_mutex);
+        close_down = true;
+        m_cond_expire_ready.notify_all();
+    }
+    m_thrds.join_all();
 }
 
 void yf::SessionShared::Rep::start()
