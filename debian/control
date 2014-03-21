@@ -4,7 +4,7 @@ Standards-Version: 3.6.2
 Maintainer: Adam Dickmeiss <adam@indexdata.dk>
 Priority: extra
 Build-Depends: debhelper (>= 7),
-	libyaz5-dev (>= 4.2.69),
+	libyaz5-dev (>= 5.0.21),
 	libyazpp6-dev (>= 1.5.2),
 	libxslt1-dev,
 	libboost-dev,
