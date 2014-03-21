@@ -138,6 +138,13 @@ void yf::HttpFile::Rep::fetch_file(mp::Session &session,
 {
     mp::odr o(ODR_ENCODE);
 
+    if (strcmp(req->method, "GET"))
+    {
+        Z_GDU *gdu = o.create_HTTP_Response(session, req, 405);
+        package.response() = gdu;
+        return;
+    }
+
     FILE *f = fopen(fname.c_str(), "rb");
     if (!f)
     {
