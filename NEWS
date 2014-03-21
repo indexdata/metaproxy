@@ -1,3 +1,21 @@
+--- 1.4.6 2014/03/21
+
+http_file: only supports HTTP GET MP-523
+
+session_shared: shut down expire thread in destructor
+This ensures that expire thread is not running after destruction
+and does bad memory references, etc.
+
+frontend_net: fix segfault on startup MP-524
+Would happen if MP was listening on multiple ports and one
+of the ports was already in use (and MP would exit).
+
+frontend_net: fix memory leak MP-521
+This leak would occur if all sessions were in use and the input
+queue was cleared when a client would close connection (socket).
+
+frontend_net: fix compilation on Windows (SIGUSR1 does not exist)
+
 --- 1.4.5 2014/03/14
 
 http_rewrite: use local skiplist; fixes memory corruption. MP-520
