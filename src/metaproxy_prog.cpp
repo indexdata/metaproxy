@@ -60,20 +60,15 @@ static void set_log_prefix(void)
 static pid_t process_group = 0;
 static int sig_received = 0;
 
-static void sig_usr1_handler(int signo)
+static void sig_x_handler(int signo)
 {
+    if (sig_received)
+        return;
     sig_received = signo;
     if (routerp)
         routerp->stop(signo);
-}
-
-static void sig_term_handler(int signo)
-{
-    sig_received = signo;
-    if (routerp)
-    {
-        routerp->stop(signo);
-    }
+    if (signo == SIGTERM)
+        kill(-process_group, SIGTERM); /* kill all children processes as well */
 }
 #endif
 
@@ -83,8 +78,8 @@ static void work_common(void *data)
 #if HAVE_UNISTD_H
     process_group = getpgid(0); // save process group ID
 
-    signal(SIGTERM, sig_term_handler);
-    signal(SIGUSR1, sig_usr1_handler);
+    signal(SIGTERM, sig_x_handler);
+    signal(SIGUSR1, sig_x_handler);
 #endif
     routerp = (mp::RouterXML*) data;
     routerp->start();
@@ -94,9 +89,6 @@ static void work_common(void *data)
     yaz_log(YLOG_LOG, "metaproxy stop");
     delete routerp;
     routerp = 0;
-#if HAVE_UNISTD_H
-    kill(-process_group, SIGTERM); /* kill all children processes as well */
-#endif
     _exit(0);
 }
 
