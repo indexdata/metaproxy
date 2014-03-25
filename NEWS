@@ -1,3 +1,10 @@
+--- 1.4.7 2014/03/25
+
+query_rewrite: pass-thru non Type-1 queries MP-527
+
+metaproxy stop (SIGTERM) kills all child processes spanwed by
+filter (if any) before invoking filter destructors. MP-525
+
 --- 1.4.6 2014/03/21
 
 http_file: only supports HTTP GET MP-523
