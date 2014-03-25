@@ -101,12 +101,7 @@ void yf::QueryRewrite::Rep::process(mp::Package &package) const
                 xmlDocPtr doc_input = 0;
                 yaz_query2xml(req->query, &doc_input);
 
-                if (!doc_input)
-                {
-                    error_code = YAZ_BIB1_MALFORMED_QUERY;
-                    addinfo = "converion from Query to XML failed";
-                }
-                else
+                if (doc_input)
                 {
                     xmlDocPtr doc_res = xsltApplyStylesheet(m_stylesheet,
                                                             doc_input, 0);
