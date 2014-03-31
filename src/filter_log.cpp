@@ -614,7 +614,8 @@ void yf::Log::Impl::process(mp::Package &package)
                 Z_IdAuthentication *a = req->idAuthentication;
                 if (a)
                 {
-                    if (a->which == Z_IdAuthentication_idPass)
+                    if (a->which == Z_IdAuthentication_idPass
+                        && a->u.idPass->userId)
                         user = a->u.idPass->userId;
                     else if (a->which == Z_IdAuthentication_open)
                         user = a->u.open;
