@@ -1,3 +1,9 @@
+--- 1.4.8 2014/04/02
+
+sru_z3950: fix facet response (memory corruption) MP-532
+
+log: fix crash idPass user is omitted MP-530
+
 --- 1.4.7 2014/03/25
 
 query_rewrite: pass-thru non Type-1 queries MP-527
