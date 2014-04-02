@@ -95,6 +95,7 @@ namespace metaproxy_1 {
 
             bool z3950_search_request(
                 mp::Package &package,
+                mp::Package &z3950_package,
                 mp::odr &odr_en,
                 Z_SRW_PDU *sru_pdu_res,
                 Z_SRW_searchRetrieveRequest const *sr_req,
@@ -278,6 +279,9 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
 
     assert(sru_pdu_req);
 
+    Package z3950_package(package.session(), package.origin());
+    z3950_package.copy_filter(package);
+
     // filter acts as sink for SRU explain requests
     if (sru_pdu_req->which == Z_SRW_explain_request)
     {
@@ -303,7 +307,7 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
         if (ok && z3950_init_request(package, odr_en,
                                      zurl, sru_pdu_res, sru_pdu_req))
         {
-            ok = z3950_search_request(package, odr_en,
+            ok = z3950_search_request(package, z3950_package, odr_en,
                                       sru_pdu_res, sr_req, zurl, dbargs);
 
             if (ok
@@ -593,6 +597,7 @@ bool yf::SRUtoZ3950::Impl::z3950_close_request(mp::Package &package) const
 }
 
 bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
+                                                mp::Package &z3950_package,
                                                 mp::odr &odr_en,
                                                 Z_SRW_PDU *sru_pdu_res,
                                                 Z_SRW_searchRetrieveRequest
@@ -602,9 +607,6 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
 {
 
     assert(sru_pdu_res->u.response);
-
-    Package z3950_package(package.session(), package.origin());
-    z3950_package.copy_filter(package);
 
     Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_searchRequest);
     Z_SearchRequest *z_searchRequest = apdu->u.searchRequest;
