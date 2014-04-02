@@ -640,7 +640,7 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
     // yaz_oi_set_facetlist not public in YAZ 4.2.66
     if (sr_req->facetList)
     {
-        Z_OtherInformation **oi = &z_searchRequest->otherInfo;
+        Z_OtherInformation **oi = &z_searchRequest->additionalSearchInfo;
         yaz_oi_set_facetlist(oi, odr_en, sr_req->facetList);
     }
 #endif
