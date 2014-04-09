@@ -20,6 +20,9 @@
   <routes>
     <route id="start">
       <filter refid="frontend"/>
+      <filter type="cql_rpn">
+         <conversion file="cql2pqf.txt" reverse="true"/>
+      </filter>
       <filter type="log">
         <message>log</message>
       </filter>

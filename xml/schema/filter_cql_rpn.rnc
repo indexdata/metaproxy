@@ -7,6 +7,7 @@ filter_cql_rpn =
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
   element mp:conversion {
-    attribute  file { xsd:string }
+    attribute file { xsd:string },
+    attribute reverse { xsd:boolean }?
   }
 

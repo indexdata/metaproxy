@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/diagbib1.h>
 #include <yaz/srw.h>
 #include <yaz/tpath.h>
+#include <yaz/oid_std.h>
 
 namespace mp = metaproxy_1;
 namespace yf = metaproxy_1::filter;
@@ -45,6 +46,7 @@ namespace metaproxy_1 {
             void configure(const xmlNode *ptr, const char *path);
         private:
             yazpp_1::Yaz_cql2rpn m_cql2rpn;
+            bool reverse;
         };
     }
 }
@@ -74,7 +76,7 @@ void yf::CQLtoRPN::process(mp::Package &package) const
 
 // define Implementation stuff
 
-yf::CQLtoRPN::Impl::Impl()
+yf::CQLtoRPN::Impl::Impl() : reverse(false)
 {
 }
 
@@ -103,6 +105,10 @@ void yf::CQLtoRPN::Impl::configure(const xmlNode *xmlnode, const char *path)
             {
                 if (!strcmp((const char *) attr->name, "file"))
                     fname = mp::xml::get_text(attr);
+                else if (!strcmp((const char *) attr->name, "reverse"))
+                {
+                    reverse = mp::xml::get_bool(attr->children, 0);
+                }
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
@@ -146,7 +152,42 @@ void yf::CQLtoRPN::Impl::process(mp::Package &package)
     {
         Z_APDU *apdu_req = gdu->u.z3950;
         Z_SearchRequest *sr = gdu->u.z3950->u.searchRequest;
-        if (sr->query && sr->query->which == Z_Query_type_104 &&
+        if (reverse && sr->query && sr->query->which == Z_Query_type_1)
+        {
+            char *addinfo = 0;
+            mp::odr odr;
+            WRBUF cql = wrbuf_alloc();
+
+            int r = m_cql2rpn.rpn2cql_transform(sr->query->u.type_1, cql,
+                                                odr, &addinfo);
+            if (r)
+            {
+                int error_code = yaz_diag_srw_to_bib1(r);
+
+                Z_APDU *f_apdu =
+                    odr.create_searchResponse(apdu_req, error_code, addinfo);
+                package.response() = f_apdu;
+                return;
+            }
+            else
+            {
+                Z_External *ext = (Z_External *)
+                    odr_malloc(odr, sizeof(*ext));
+                ext->direct_reference = odr_oiddup(odr,
+                                                   yaz_oid_userinfo_cql);
+                ext->indirect_reference = 0;
+                ext->descriptor = 0;
+                ext->which = Z_External_CQL;
+                ext->u.cql = odr_strdup(odr, wrbuf_cstr(cql));
+
+                sr->query->which = Z_Query_type_104;
+                sr->query->u.type_104 = ext;
+
+                package.request() = gdu;
+            }
+            wrbuf_destroy(cql);
+        }
+        if (!reverse && sr->query && sr->query->which == Z_Query_type_104 &&
             sr->query->u.type_104->which == Z_External_CQL)
         {
             char *addinfo = 0;
