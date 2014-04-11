@@ -727,6 +727,17 @@ const char *mp::wrbuf::buf()
     return wrbuf_buf(m_wrbuf);
 }
 
+const char *mp::wrbuf::c_str()
+{
+    return wrbuf_cstr(m_wrbuf);
+}
+
+const char *mp::wrbuf::c_str_null()
+{
+    if (wrbuf_len(m_wrbuf))
+        return wrbuf_cstr(m_wrbuf);
+    return 0;
+}
 
 /*
  * Local variables:

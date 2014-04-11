@@ -169,6 +169,8 @@ namespace metaproxy_1 {
         operator WRBUF() const;
         size_t len();
         const char *buf();
+        const char *c_str();
+        const char *c_str_null();
     private:
         WRBUF m_wrbuf;
     };
