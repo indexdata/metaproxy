@@ -734,9 +734,7 @@ const char *mp::wrbuf::c_str()
 
 const char *mp::wrbuf::c_str_null()
 {
-    if (wrbuf_len(m_wrbuf))
-        return wrbuf_cstr(m_wrbuf);
-    return 0;
+    return wrbuf_cstr_null(m_wrbuf);
 }
 
 /*
