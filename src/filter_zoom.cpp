@@ -2377,45 +2377,36 @@ next_proxy:
 
     if (b->get_option("sru"))
     {
-        int status = 0;
         Z_RPNQuery *zquery;
         zquery = p_query_rpn(odr, wrbuf_cstr(pqf_wrbuf));
-        mp::wrbuf wrb;
+        mp::wrbuf wrb_cql;
+        mp::wrbuf wrb_addinfo;
 
         if (!strcmp(b->get_option("sru"), "solr"))
-        {
-            solr_transform_t cqlt = solr_transform_create();
-
-            status = solr_transform_rpn2solr_wrbuf(cqlt, wrb, zquery);
-
-            solr_transform_close(cqlt);
-        }
+            error = solr_transform_rpn2solr_stream_r(b->cqlt, wrb_addinfo,
+                                                     wrbuf_vp_puts, wrb_cql,
+                                                     zquery);
         else
+            error = cql_transform_rpn2cql_stream_r(b->cqlt, wrb_addinfo,
+                                                   wrbuf_vp_puts, wrb_cql,
+                                                   zquery);
+        if (error)
         {
-            status = cql_transform_rpn2cql_wrbuf(b->cqlt, wrb, zquery);
-        }
-        if (status == 0)
-        {
-            ZOOM_query_cql(q, wrbuf_cstr(wrb));
-            package.log("zoom", YLOG_LOG, "CQL: %s", wrbuf_cstr(wrb));
-            b->search(q, &hits, &error, &addinfo, &fl, odr);
-        }
-        ZOOM_query_destroy(q);
-
-        if (status)
-        {
-            error = YAZ_BIB1_MALFORMED_QUERY;
-            const char *addinfo = "can not convert from RPN to CQL/Solr";
-            log_diagnostic(package, error, addinfo);
-            apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
+            log_diagnostic(package, error, wrb_addinfo.c_str_null());
+            apdu_res = odr.create_searchResponse(apdu_req, error,
+                                                 wrb_addinfo.c_str_null());
             package.response() = apdu_res;
             return;
         }
+        ZOOM_query_cql(q, wrb_cql.c_str());
+        package.log("zoom", YLOG_LOG, "search CQL: %s", wrb_cql.c_str());
+        b->search(q, &hits, &error, &addinfo, &fl, odr);
+        ZOOM_query_destroy(q);
     }
     else
     {
-        ZOOM_query_prefix(q, wrbuf_cstr(pqf_wrbuf));
-        package.log("zoom", YLOG_LOG, "search PQF: %s", wrbuf_cstr(pqf_wrbuf));
+        ZOOM_query_prefix(q, pqf_wrbuf.c_str());
+        package.log("zoom", YLOG_LOG, "search PQF: %s", pqf_wrbuf.c_str());
         b->search(q, &hits, &error, &addinfo, &fl, odr);
         ZOOM_query_destroy(q);
     }
