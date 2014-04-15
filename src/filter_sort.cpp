@@ -573,14 +573,12 @@ void yf::Sort::Frontend::handle_search(mp::Package &package, Z_APDU *apdu_req)
 {
     Z_SearchRequest *req = apdu_req->u.searchRequest;
     std::string resultSetId = req->resultSetName;
-    Package b_package(package.session(), package.origin());
     mp::odr odr;
     Odr_oid *syntax = 0;
 
     if (req->preferredRecordSyntax)
         syntax = odr_oiddup(odr, req->preferredRecordSyntax);
 
-    b_package.copy_filter(package);
     Sets_it sets_it = m_sets.find(req->resultSetName);
     if (sets_it != m_sets.end())
     {
@@ -601,13 +599,18 @@ void yf::Sort::Frontend::handle_search(mp::Package &package, Z_APDU *apdu_req)
     }
     ResultSetPtr s(new ResultSet);
     m_sets[resultSetId] = s;
-    package.move();
-    Z_GDU *gdu_res = package.response().get();
+
+    Package b_package(package.session(), package.origin());
+    b_package.copy_filter(package);
+    b_package.request() = apdu_req;
+    b_package.move();
+
+    Z_GDU *gdu_res = b_package.response().get();
     if (gdu_res && gdu_res->which == Z_GDU_Z3950 && gdu_res->u.z3950->which ==
         Z_APDU_searchResponse)
     {
         Z_SearchResponse *res = gdu_res->u.z3950->u.searchResponse;
-        Z_RecordComposition *record_comp = 
+        Z_RecordComposition *record_comp =
             mp::util::piggyback_to_RecordComposition(odr,
                                                      *res->resultCount, req);
         s->hit_count = *res->resultCount;
@@ -615,13 +618,16 @@ void yf::Sort::Frontend::handle_search(mp::Package &package, Z_APDU *apdu_req)
                        syntax, record_comp, resultSetId.c_str());
         package.response() = gdu_res;
     }
+    else
+        package.response() = b_package.response();
+    if (b_package.session().is_closed())
+        b_package.session().close();
 }
 
 void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
 {
     Z_PresentRequest *req = apdu_req->u.presentRequest;
     std::string resultSetId = req->resultSetId;
-    Package b_package(package.session(), package.origin());
     mp::odr odr;
     Odr_oid *syntax = 0;
     Odr_int start = *req->resultSetStartPoint;
@@ -629,7 +635,6 @@ void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
     if (req->preferredRecordSyntax)
         syntax = odr_oiddup(odr, req->preferredRecordSyntax);
 
-    b_package.copy_filter(package);
     Sets_it sets_it = m_sets.find(resultSetId);
     if (sets_it == m_sets.end())
     {
@@ -676,7 +681,12 @@ void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
             }
             break;
         }
-    package.move();
+
+
+    Package b_package(package.session(), package.origin());
+    b_package.copy_filter(package);
+    b_package.request() = apdu_req;
+    b_package.move();
     Z_GDU *gdu_res = package.response().get();
     if (gdu_res && gdu_res->which == Z_GDU_Z3950 && gdu_res->u.z3950->which ==
         Z_APDU_presentResponse)
@@ -687,6 +697,10 @@ void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
                        resultSetId.c_str());
         package.response() = gdu_res;
     }
+    else
+        package.response() = b_package.response();
+    if (b_package.session().is_closed())
+        b_package.session().close();
 }
 
 void yf::Sort::Frontend::handle_package(mp::Package &package)
