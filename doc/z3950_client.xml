@@ -65,6 +65,16 @@
       </para>
      </listitem>
     </varlistentry>
+    <varlistentry><term>client_ip</term>
+     <listitem>
+      <para>
+       Is a boolean value (false, true). If true, the Z39.50 client will
+       as part of the Init Request include Client-IP information (the
+       Z39.50 equivalent of HTTP X-Forwarded-To information). By default
+       this is false (not included).
+      </para>
+     </listitem>
+    </varlistentry>
    </variablelist>
   </para>
  </refsect1>
