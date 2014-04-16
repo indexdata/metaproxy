@@ -50,7 +50,7 @@ MANFILES = metaproxy.1 \
 	limit.3mp \
 	load_balance.3mp \
 	log.3mp \
-	multi.3mp
+	multi.3mp \
 	present_chunk.3mp \
 	query_rewrite.3mp \
         record_transform.3mp \
