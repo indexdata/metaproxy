@@ -87,8 +87,12 @@ static void work_common(void *data)
     mp::Package pack;
     pack.router(*routerp).move();
     yaz_log(YLOG_LOG, "metaproxy stop");
-    delete routerp;
-    routerp = 0;
+
+    if (sig_received != SIGTERM)
+    {
+        delete routerp;
+        routerp = 0;
+    }
     _exit(0);
 }
 
