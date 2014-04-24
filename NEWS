@@ -1,3 +1,17 @@
+--- 1.5.0 2014/04/24
+
+Build packages for Ubuntu Trusty Tahr 14.04 LTS
+
+sort: crash / invalid_read in filter sort MP-541
+
+sru_z3950: facet should be stored in additionalSearchInfo MP-533
+
+doc: fix missing man pages MP-542
+
+cql_rpn: fix threading problem with CQL to RPN conversion MP-497
+
+cql_rpn: allow conversion from RPN to CQL (reverse) MP-537
+
 --- 1.4.8 2014/04/02
 
 sru_z3950: fix facet response (memory corruption) MP-532
