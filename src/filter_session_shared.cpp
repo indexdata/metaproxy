@@ -41,6 +41,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <map>
 #include <iostream>
 #include <time.h>
+#include <limits.h>
 
 namespace mp = metaproxy_1;
 namespace yf = metaproxy_1::filter;
@@ -1058,11 +1059,16 @@ void yf::SessionShared::Frontend::present(mp::Package &package,
         return;
 
     Z_NamePlusRecordList *npr_res = 0;
-    if (found_set->m_record_cache.lookup(odr, &npr_res,
-                                         *req->resultSetStartPoint,
-                                         *req->numberOfRecordsRequested,
-                                         req->preferredRecordSyntax,
-                                         req->recordComposition))
+    // record_cache.lookup types are int's. Avoid non-fitting values
+    if (*req->resultSetStartPoint > 0
+        && *req->resultSetStartPoint < INT_MAX
+        && *req->numberOfRecordsRequested > 0
+        && *req->numberOfRecordsRequested < INT_MAX
+        && found_set->m_record_cache.lookup(odr, &npr_res,
+                                            *req->resultSetStartPoint,
+                                            *req->numberOfRecordsRequested,
+                                            req->preferredRecordSyntax,
+                                            req->recordComposition))
     {
         Z_APDU *f_apdu_res = odr.create_presentResponse(apdu_req, 0, 0);
         Z_PresentResponse *f_resp = f_apdu_res->u.presentResponse;
@@ -1121,17 +1127,23 @@ void yf::SessionShared::Frontend::present(mp::Package &package,
 
         if (b_resp->records && b_resp->records->which ==  Z_Records_DBOSD)
         {
+            Z_NamePlusRecordList *npr =
+                b_resp->records->u.databaseOrSurDiagnostics;
+            // record_cache.add types are int's. Avoid non-fitting values
+            if (*req->resultSetStartPoint > 0
+                && npr->num_records + *req->resultSetStartPoint < INT_MAX)
+            {
 #if 0
-            yaz_log(YLOG_LOG, "Adding " ODR_INT_PRINTF "+" ODR_INT_PRINTF
-                    " records to cache %p",
-                    *req->resultSetStartPoint,
-                    *f_resp->numberOfRecordsReturned,
-                    &found_set->m_record_cache);
+                yaz_log(YLOG_LOG, "Adding " ODR_INT_PRINTF "+" ODR_INT_PRINTF
+                        " records to cache %p",
+                        *req->resultSetStartPoint,
+                        *f_resp->numberOfRecordsReturned,
+                        &found_set->m_record_cache);
 #endif
-            found_set->m_record_cache.add(
-                odr,
-                b_resp->records->u.databaseOrSurDiagnostics,
-                *req->resultSetStartPoint, p_req->recordComposition);
+                found_set->m_record_cache.add(
+                    odr, npr, *req->resultSetStartPoint,
+                    p_req->recordComposition);
+            }
         }
         bc->release_backend(found_backend);
     }
