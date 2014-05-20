@@ -30,7 +30,8 @@ namespace metaproxy_1 {
                            std::string url_template, const std::string &db,
                            const std::string &query,
                            const std::string &realm,
-                           const std::string &proxy);
+                           const std::string &proxy,
+                           std::string &addinfo);
 }
 
 #endif

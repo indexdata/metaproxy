@@ -31,7 +31,8 @@ xmlDoc *mp::get_searchable(mp::Package &package,
                            std::string url_template, const std::string &db,
                            const std::string &query,
                            const std::string &realm,
-                           const std::string &proxy)
+                           const std::string &proxy,
+                           std::string &addinfo)
 {
     // http://mk2.indexdata.com/torus2/searchable/records/?query=udb%3d%db
     // or
@@ -76,19 +77,28 @@ xmlDoc *mp::get_searchable(mp::Package &package,
             package.log("zoom", YLOG_LOG, "Torus: %s OK",
                         url_template.c_str());
         else
+        {
             package.log("zoom", YLOG_WARN, "Torus: %s FAIL. XML parse failed",
                         url_template.c_str());
+            addinfo = "Torus: XML parse failed";
+        }
     }
     else
     {
+        addinfo = "Torus: ";
         if (http_response)
         {
             package.log("zoom", YLOG_WARN, "Torus: %s FAIL. HTTP code %d",
                         url_template.c_str(), http_response->code);
+            addinfo += std::string(http_response->content_buf,
+                                  http_response->content_len);
         }
         else
+        {
+            addinfo += "unknown error";
             package.log("zoom", YLOG_WARN, "Torus: %s FAIL. No HTTP response",
                         url_template.c_str());
+        }
     }
 
     if (http_response && http_response->content_buf)

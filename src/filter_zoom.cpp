@@ -1257,15 +1257,17 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         sptr = it->second;
     else if (torus_url.length() > 0)
     {
+        std::string torus_addinfo;
         std::string torus_query = "udb==" + torus_db;
         xmlDoc *doc = mp::get_searchable(package,torus_url, torus_db,
                                          torus_query,
-                                         realm, m_p->proxy);
+                                         realm, m_p->proxy,
+                                         torus_addinfo);
         if (!doc)
         {
             *error = YAZ_BIB1_UNSPECIFIED_ERROR;
-            *addinfo = odr_strdup(odr, "Torus server unavailable or "
-                                  "incorrectly configured");
+            if (torus_addinfo.length())
+                *addinfo = odr_strdup(odr, torus_addinfo.c_str());
             BackendPtr b;
             return b;
         }
@@ -2013,10 +2015,12 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
     else if (query->which == Z_Query_type_104 &&
         query->u.type_104->which == Z_External_CQL)
     {
+        std::string torus_addinfo;
         std::string torus_query(query->u.type_104->u.cql);
         xmlDoc *doc = mp::get_searchable(package, torus_url, "",
                                          torus_query,
-                                         realm, m_p->proxy);
+                                         realm, m_p->proxy,
+                                         torus_addinfo);
         if (m_p->explain_xsp)
         {
             xmlDoc *rec_res =  xsltApplyStylesheet(m_p->explain_xsp, doc, 0);
@@ -2027,8 +2031,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
         if (!doc)
         {
             *error = YAZ_BIB1_UNSPECIFIED_ERROR;
-            *addinfo = odr_strdup(odr, "Torus server unavailable or "
-                                  "incorrectly configured");
+            if (torus_addinfo.length())
+                *addinfo = odr_strdup(odr, torus_addinfo.c_str());
         }
         else
         {
@@ -2633,14 +2637,16 @@ void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
 
     std::string dummy_db;
     std::string dummy_realm;
+    std::string torus_addinfo;
     xmlDoc *doc = mp::get_searchable(package, m_p->torus_auth_url, dummy_db,
-                                     torus_query, dummy_realm, m_p->proxy);
+                                     torus_query, dummy_realm, m_p->proxy,
+                                     torus_addinfo);
     if (!doc)
     {
         // something fundamental broken in lookup.
         *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-        *addinfo = odr_strdup(odr, "zoom: torus server unavailable or "
-                              "incorrectly configured.");
+        if (torus_addinfo.length())
+            *addinfo = odr_strdup(odr, torus_addinfo.c_str());
         return;
     }
     const xmlNode *ptr = xmlDocGetRootElement(doc);
