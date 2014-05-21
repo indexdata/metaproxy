@@ -1732,8 +1732,19 @@ Z_Records *yf::Zoom::Frontend::get_records(mp::Package &package,
     if (!*error)
     {
         for (i = 0; i < number_to_present; i++)
+        {
             if (!recs[i])
                 break;
+
+            const char *addinfo;
+            int sur_error = ZOOM_record_error(recs[i], 0 /* msg */,
+                                              &addinfo, 0 /* diagset */);
+            if (sur_error ==
+                YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS && addinfo &&
+                !strcmp(addinfo,
+                        "ZOOM C generated. Present phase and no records"))
+                break;
+        }
     }
     if (i > 0)
     {  // only return records if no error and at least one record
