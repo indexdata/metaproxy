@@ -1764,7 +1764,7 @@ Z_Records *yf::Zoom::Frontend::get_records(mp::Package &package,
         npl->num_records = i;
         npl->records = (Z_NamePlusRecord **)
             odr_malloc(odr, i * sizeof(*npl->records));
-        for (i = 0; i < number_to_present; i++)
+        for (i = 0; i < npl->num_records; i++)
         {
             Z_NamePlusRecord *npr = 0;
             const char *addinfo;
