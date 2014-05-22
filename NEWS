@@ -1,3 +1,11 @@
+--- 1.5.2 2014/05/22
+
+zoom: Do not include ZOOM C's fake surrogate diag recs MP-547
+
+zoom: fix invalid present response in some cases MP-546
+
+zoom: Relay Torus HTTP error message
+
 --- 1.5.1 2014/04/28
 
 Check for proper limits before using RecordCache functions MP-544
