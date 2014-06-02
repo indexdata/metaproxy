@@ -305,25 +305,27 @@ void yf::SessionShared::BackendClass::release_backend(BackendInstancePtr b)
 
 void yf::SessionShared::BackendClass::remove_backend(BackendInstancePtr b)
 {
-    BackendInstanceList::iterator it = m_backend_list.begin();
-
-    while (it != m_backend_list.end())
     {
-        if (*it == b)
+        boost::mutex::scoped_lock lock(m_mutex_backend_class);
+        BackendInstanceList::iterator it = m_backend_list.begin();
+        for (;;)
         {
-             mp::odr odr;
-            (*it)->m_close_package->response() = odr.create_close(
-                0, Z_Close_lackOfActivity, 0);
-            (*it)->m_close_package->session().close();
-            (*it)->m_close_package->move();
-
-            it = m_backend_list.erase(it);
-        }
-        else
+            if (it == m_backend_list.end())
+                return;
+            if (*it == b)
+            {
+                it = m_backend_list.erase(it);
+                break;
+            }
             it++;
+        }
     }
+    mp::odr odr;
+    b->m_close_package->response() = odr.create_close(
+        0, Z_Close_lackOfActivity, 0);
+    b->m_close_package->session().close();
+    b->m_close_package->move();
 }
-
 
 
 yf::SessionShared::BackendInstancePtr
