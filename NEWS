@@ -1,3 +1,11 @@
+--- 1.5.3 2014/06/03
+
+session_shared: close in ~BackendInstance MP-549
+This fixes a serious issue where some MP would leak sockets.
+
+session_shared: mutex lock in BackendClass::release_backend MP-550
+Fixes a SEGV that could occur (in rare cases).
+
 --- 1.5.2 2014/05/22
 
 zoom: Do not include ZOOM C's fake surrogate diag recs MP-547
