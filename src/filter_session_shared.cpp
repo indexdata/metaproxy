@@ -371,6 +371,14 @@ void yf::SessionShared::BackendInstance::timestamp()
 
 yf::SessionShared::BackendInstance::~BackendInstance()
 {
+    if (m_close_package)
+    {
+        mp::odr odr;
+        m_close_package->response() = odr.create_close(
+            0, Z_Close_lackOfActivity, 0);
+        m_close_package->session().close();
+        m_close_package->move();
+    }
     delete m_close_package;
 }
 
@@ -1216,12 +1224,6 @@ bool yf::SessionShared::BackendClass::expire_instances()
         }
         else if (now < last_use || now - last_use > m_backend_expiry_ttl)
         {
-            mp::odr odr;
-            (*bit)->m_close_package->response() = odr.create_close(
-                0, Z_Close_lackOfActivity, 0);
-            (*bit)->m_close_package->session().close();
-            (*bit)->m_close_package->move();
-
             bit = m_backend_list.erase(bit);
         }
         else
