@@ -2640,7 +2640,7 @@ void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
     }
     else
     {
-        torus_query = "ip encloses/net.ipaddress \"";
+        torus_query = "ipRanges encloses/net.ipaddress \"";
         torus_query += escape_cql_term(std::string(ip));
         torus_query += "\"";
         failure_code = YAZ_BIB1_INIT_AC_BLOCKED_NETWORK_ADDRESS;
