@@ -219,6 +219,7 @@ namespace metaproxy_1 {
             std::string torus_content_url;
             std::string torus_auth_url;
             std::string default_realm;
+            std::string torus_auth_hostname;
             std::map<std::string,std::string> fieldmap;
             std::string xsldir;
             std::string file_path;
@@ -778,6 +779,8 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                     torus_auth_url = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "realm"))
                     default_realm = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "auth_hostname"))
+                    torus_auth_hostname = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "xsldir"))
                     xsldir = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "element_transform"))
@@ -2643,6 +2646,13 @@ void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
         torus_query = "ipRanges encloses/net.ipaddress \"";
         torus_query += escape_cql_term(std::string(ip));
         torus_query += "\"";
+
+        if (m_p->torus_auth_hostname.length())
+        {
+            torus_query += " AND hostName == \"";
+            torus_query += escape_cql_term(m_p->torus_auth_hostname);
+            torus_query += "\"";
+        }
         failure_code = YAZ_BIB1_INIT_AC_BLOCKED_NETWORK_ADDRESS;
     }
 
