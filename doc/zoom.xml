@@ -114,6 +114,14 @@
       </para>
      </listitem>
     </varlistentry>
+    <varlistentry id="auth_hostname">
+     <term>attribute <literal>auth_hostname</literal></term>
+     <listitem>
+      <para>
+       Limits IP lookup to a given logical hostname.
+      </para>
+     </listitem>
+    </varlistentry>
     <varlistentry>
       <term>attribute <literal>realm</literal></term>
       <listitem>
