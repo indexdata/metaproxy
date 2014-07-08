@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
-                xmlns:srw="http://www.loc.gov/zing/srw/" 
-                xmlns:dc="http://www.loc.gov/zing/srw/dcschema/v1.0/" 
-                xmlns:zr="http://explain.z3950.org/dtd/2.0/" 
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:srw="http://www.loc.gov/zing/srw/"
+                xmlns:dc="http://www.loc.gov/zing/srw/dcschema/v1.0/"
+                xmlns:zr="http://explain.z3950.org/dtd/2.0/"
                 xmlns:diag="http://www.loc.gov/zing/srw/diagnostic/"
                 version="1.0">
 
@@ -20,7 +20,7 @@
         <title>
           <xsl:value-of select="//zr:explain/zr:databaseInfo/zr:title"/>
         </title>
-        <link href="css.css" rel="stylesheet" 
+        <link href="css.css" rel="stylesheet"
               type="text/css" media="screen, all"/>
       </head>
       <body>
@@ -90,7 +90,7 @@
           <xsl:for-each select="//zr:schemaInfo/zr:schema">
             <option value="{@name}">
               <xsl:value-of select="zr:title"/>
-            </option>            
+            </option>
           </xsl:for-each>
           </select>
           <xsl:text> recordPacking: </xsl:text>
@@ -142,7 +142,7 @@
 
   <xsl:template name="indexinfo">
      <div class="dbinfo">
-       <xsl:for-each 
+       <xsl:for-each
           select="//zr:indexInfo/zr:index[zr:map/zr:name/@set]">
         <xsl:variable name="index">
           <xsl:value-of select="zr:map/zr:name/@set"/>
@@ -157,7 +157,7 @@
 
   <xsl:template name="relationinfo">
     <!--
-      <xsl:variable name="defrel" 
+      <xsl:variable name="defrel"
                     select="//zr:configInfo/zr:default[@type='relation']"/>
       <b><xsl:value-of select="$defrel"/><br/></b>
       -->
@@ -195,7 +195,7 @@
           <xsl:value-of select="."/>
          </h4>
       </xsl:for-each>
-      
+
       <xsl:for-each select="srw:records">
         <xsl:for-each select="srw:record">
           <div class="record">
@@ -220,11 +220,11 @@
 
   <xsl:template name="displayscan">
     <div class="scanresults">
-      
+
       <xsl:for-each select="srw:terms">
         <xsl:for-each select="srw:term">
           <div class="term">
-            
+
               <!-- <xsl:text>Term: </xsl:text> -->
               <xsl:for-each select="srw:displayTerm">
                 <xsl:value-of select="."/>
@@ -240,12 +240,12 @@
                 <xsl:value-of select="."/>
                 <xsl:text>)</xsl:text>
               </xsl:for-each>
-            
+
               <xsl:for-each select="srw:extraTermData">
                 <xsl:text> - </xsl:text>
                 <xsl:value-of select="."/>
               </xsl:for-each>
-              
+
           </div>
         </xsl:for-each>
       </xsl:for-each>
