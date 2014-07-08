@@ -180,14 +180,12 @@
             retrieve="true">
       <title lang="en">Dublin Core</title>
     </schema>
-    <!--
-    <schema identifier="http://indexdata.dk/dc-short"
-            location=""
-            name="dc-short"
+    <schema identifier="info:srw/schema/1/marcxml-v1.1"
+            location="http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd"
+            name="marcxml"
             retrieve="true">
-      <title lang="en">Dublin Core Short Form</title>
+      <title lang="en">MARCXML</title>
     </schema>
-    -->
   </schemaInfo>
 
 
@@ -227,7 +225,7 @@
     <default type="retrieveSchema">dc</default>
     <default type="recordPacking">xml</default>
 
-    <setting type="stylesheet">docpath/sru.xsl</setting>
+    <setting type="stylesheet">/etc/sru.xsl</setting>
     <!-- <setting type="maximumRecords">1000</setting> -->
     <!-- <supports type="resultSets"></supports>  -->
 
