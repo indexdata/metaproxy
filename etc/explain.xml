@@ -19,9 +19,8 @@
     <description lang="en" primary="true">
       Some description of this service
     </description>
-    <author>Marc Cromme, Index Data Aps, http://www.indexdata.com</author>
-    <contact>Marc Cromme, marc(at)indexdata(dot)com</contact>
-    <history>Implemented for Talis LTD</history>
+    <author>Index Data, http://www.indexdata.com</author>
+    <contact>Index Data, info(at)indexdata(dot)com</contact>
   </databaseInfo>
 
   <indexInfo>
