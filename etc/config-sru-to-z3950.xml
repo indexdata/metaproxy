@@ -9,7 +9,7 @@
       <port>@:9000</port>
     </filter>
     <filter id="sru" type="sru_z3950">
-      <stylesheet>/my.xsl</stylesheet>
+      <stylesheet>/etc/sru.xsl</stylesheet>
       <database name="Default">
        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
                     href="../etc/explain.xml"/>
@@ -35,6 +35,12 @@
         <retrieval syntax="opac"/>
         <retrieval syntax="xml" name="opac">
           <backend syntax="opac" name="F">
+          <marc inputformat="marc" outputformat="marcxml"
+                inputcharset="marc-8"/>
+          </backend>
+        </retrieval>
+        <retrieval syntax="xml" name="marcxml">
+          <backend syntax="usmarc" name="F">
           <marc inputformat="marc" outputformat="marcxml"
                 inputcharset="marc-8"/>
           </backend>
@@ -81,6 +87,12 @@
       <filter type="log">
         <message>HTTP</message>
 	<!-- <category apdu="true"/> -->
+      </filter>
+      <filter type="http_file">
+        <area>
+          <documentroot>.</documentroot>
+          <prefix>/etc</prefix>
+        </area>
       </filter>
       <filter refid="sru"/>
       <filter refid="cql"/>
