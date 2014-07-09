@@ -151,9 +151,13 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
     Z_SOAP *soap = 0;
     char *charset = 0;
     char *stylesheet = 0;
-    if (! (sru_pdu_req = mp_util::decode_sru_request(package, odr_de, odr_en,
-                                            sru_pdu_res, &soap,
-                                            charset)))
+    Z_SRW_diagnostic *diagnostic = 0;
+    int num_diagnostic = 0;
+
+    if (! (sru_pdu_req = mp_util::decode_sru_request(
+               package, odr_de, odr_en,
+               &diagnostic, &num_diagnostic, &soap,
+               charset)))
     {
         mp_util::build_sru_explain(package, odr_en, sru_pdu_res,
                                    sruinfo, explainnode);
@@ -174,6 +178,9 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
     else
     {
         Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
+
+        sru_pdu_res->u.explain_response->diagnostics = diagnostic;
+        sru_pdu_res->u.explain_response->num_diagnostics = num_diagnostic;
         //mp_util::build_simple_explain(package, odr_en, sru_pdu_res,
         //                           sruinfo, er_req);
         mp_util::build_sru_explain(package, odr_en, sru_pdu_res,

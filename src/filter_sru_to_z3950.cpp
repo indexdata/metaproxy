@@ -200,7 +200,6 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
     Z_SRW_PDU *sru_pdu_req = 0;
 
     mp::odr odr_en(ODR_ENCODE);
-    Z_SRW_PDU *sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
 
     // determine database with the HTTP header information only
     mp_util::SRUServerInfo sruinfo = mp_util::get_sru_server_info(package);
@@ -218,14 +217,21 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
     Z_SOAP *soap = 0;
     char *charset = 0;
     const char *stylesheet = 0;
+    Z_SRW_diagnostic *diagnostic = 0;
+    int num_diagnostic = 0;
 
     // filter acts as sink for non-valid SRU requests
     if (! (sru_pdu_req = mp_util::decode_sru_request(package, odr_de, odr_en,
-                                                     sru_pdu_res, &soap,
+                                                     &diagnostic,
+                                                     &num_diagnostic, &soap,
                                                      charset)))
     {
         if (soap)
         {
+            Z_SRW_PDU *sru_pdu_res = yaz_srw_get(odr_en,
+                                                 Z_SRW_explain_response);
+            sru_pdu_res->u.explain_response->diagnostics = diagnostic;
+            sru_pdu_res->u.explain_response->num_diagnostics = num_diagnostic;
             mp_util::build_sru_explain(package, odr_en, sru_pdu_res,
                                        sruinfo, explainnode);
             mp_util::build_sru_response(package, odr_en, soap,
@@ -282,23 +288,26 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
     Package z3950_package(package.session(), package.origin());
     z3950_package.copy_filter(package);
 
-    // filter acts as sink for SRU explain requests
+    Z_SRW_PDU *sru_pdu_res = 0;
     if (sru_pdu_req->which == Z_SRW_explain_request)
     {
         Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
         stylesheet = er_req->stylesheet;
-
+        sru_pdu_res = yaz_srw_get_pdu_e(odr_en, Z_SRW_explain_response,
+                                        sru_pdu_req);
+        sru_pdu_res->u.explain_response->diagnostics = diagnostic;
+        sru_pdu_res->u.explain_response->num_diagnostics = num_diagnostic;
         mp_util::build_sru_explain(package, odr_en, sru_pdu_res,
                                    sruinfo, explainnode, er_req);
     }
-    else if (sru_pdu_req->which == Z_SRW_searchRetrieve_request
-             && sru_pdu_req->u.request)
-    {   // searchRetrieve
+    else if (sru_pdu_req->which == Z_SRW_searchRetrieve_request)
+    {
         Z_SRW_searchRetrieveRequest *sr_req = sru_pdu_req->u.request;
         stylesheet = sr_req->stylesheet;
-
-        sru_pdu_res = yaz_srw_get_pdu(odr_en, Z_SRW_searchRetrieve_response,
-                                      sru_pdu_req->srw_version);
+        sru_pdu_res = yaz_srw_get_pdu_e(odr_en, Z_SRW_searchRetrieve_response,
+                                        sru_pdu_req);
+        sru_pdu_res->u.response->diagnostics = diagnostic;
+        sru_pdu_res->u.response->num_diagnostics = num_diagnostic;
 
         // checking that we have a query
         ok = mp_util::check_sru_query_exists(package, odr_en,
@@ -320,31 +329,29 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
             z3950_close_request(package);
         }
     }
-
-    // scan
-    else if (sru_pdu_req->which == Z_SRW_scan_request
-             && sru_pdu_req->u.scan_request)
+    else if (sru_pdu_req->which == Z_SRW_scan_request)
     {
-        sru_pdu_res = yaz_srw_get_pdu(odr_en, Z_SRW_scan_response,
-                                      sru_pdu_req->srw_version);
         stylesheet = sru_pdu_req->u.scan_request->stylesheet;
+        sru_pdu_res = yaz_srw_get_pdu_e(odr_en, Z_SRW_scan_response,
+                                        sru_pdu_req);
+        sru_pdu_res->u.scan_response->diagnostics = diagnostic;
+        sru_pdu_res->u.scan_response->num_diagnostics = num_diagnostic;
 
         // we do not do scan at the moment, therefore issuing a diagnostic
-        yaz_add_srw_diagnostic(odr_en,
-                               &(sru_pdu_res->u.scan_response->diagnostics),
-                               &(sru_pdu_res->u.scan_response->num_diagnostics),
+        yaz_add_srw_diagnostic(odr_en, 
+                               &sru_pdu_res->u.scan_response->diagnostics,
+                               &sru_pdu_res->u.scan_response->num_diagnostics,
                                YAZ_SRW_UNSUPP_OPERATION, "scan");
     }
     else
     {
-        sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
-
-        yaz_add_srw_diagnostic(odr_en,
-                               &(sru_pdu_res->u.explain_response->diagnostics),
-                               &(sru_pdu_res->u.explain_response->num_diagnostics),
+        sru_pdu_res =
+            yaz_srw_get_pdu_e(odr_en, Z_SRW_explain_response, sru_pdu_req);
+        sru_pdu_res->u.explain_response->diagnostics = diagnostic;
+        sru_pdu_res->u.explain_response->num_diagnostics = num_diagnostic;
+        yaz_add_srw_diagnostic(odr_en, &diagnostic, &num_diagnostic,
                                YAZ_SRW_UNSUPP_OPERATION, "unknown");
     }
-
     if (enable_package_log)
     {
         std::string l;

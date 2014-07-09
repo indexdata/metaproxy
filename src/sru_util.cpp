@@ -228,7 +228,8 @@ bool mp_util::build_sru_response(mp::Package &package,
 Z_SRW_PDU * mp_util::decode_sru_request(mp::Package &package,
                                         mp::odr &odr_de,
                                         mp::odr &odr_en,
-                                        Z_SRW_PDU *sru_pdu_res,
+                                        Z_SRW_diagnostic **diagnostic,
+                                        int *num_diagnostic,
                                         Z_SOAP **soap,
                                         char *charset)
 {
@@ -251,15 +252,8 @@ Z_SRW_PDU * mp_util::decode_sru_request(mp::Package &package,
     // closing connection if we did not ...
     if (0 == yaz_sru_decode(http_req, &sru_pdu_req, soap,
                             odr_de, &charset,
-                            &(sru_pdu_res->u.explain_response->diagnostics),
-                            &(sru_pdu_res->u.explain_response->num_diagnostics)))
+                            diagnostic, num_diagnostic))
     {
-        if (sru_pdu_res->u.explain_response->num_diagnostics)
-        {
-            //sru_pdu_res = sru_pdu_res_exp;
-            package.session().close();
-            return 0;
-        }
         return sru_pdu_req;
     }
     else if (0 == yaz_srw_decode(http_req, &sru_pdu_req, soap,

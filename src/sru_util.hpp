@@ -74,7 +74,8 @@ namespace metaproxy_1 {
         Z_SRW_PDU * decode_sru_request(metaproxy_1::Package &package,
                                        metaproxy_1::odr &odr_de,
                                        metaproxy_1::odr &odr_en,
-                                       Z_SRW_PDU *sru_pdu_res,
+                                       Z_SRW_diagnostic **diagnostic,
+                                       int *num_diagnostic,
                                        Z_SOAP **soap,
                                        char *charset);
 
