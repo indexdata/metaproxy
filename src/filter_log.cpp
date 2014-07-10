@@ -701,6 +701,8 @@ void yf::Log::Impl::process(mp::Package &package)
 
     Z_GDU *gdu_res = package.response().get();
 
+    gdu_req = package.request().get();
+
     yaz_timing_stop(timer);
     double duration = yaz_timing_get_real(timer);
 
