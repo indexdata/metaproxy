@@ -1,3 +1,9 @@
+--- 1.5.6 2014/07/14
+
+Fix ref to freed memory in log filter 1line - MP-556
+
+echoedSearchRetrieveRequest support MP-555
+
 --- 1.5.5 2014/06/06
 
 zoom: allow hostname to be given for ipauth MP-552
