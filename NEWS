@@ -1,3 +1,10 @@
+--- 1.5.7 2014/07/15
+
+http_file: passthru option MP-557
+New facility for http_file to passthru - even if an area is matched. The
+default behavior (passthru=false) is to return 404: Not found. With
+passthru=false, next filter is consulted.
+
 --- 1.5.6 2014/07/14
 
 Fix ref to freed memory in log filter 1line - MP-556
