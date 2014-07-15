@@ -48,6 +48,7 @@ namespace metaproxy_1 {
             std::string m_url_path_prefix;
             std::string m_file_root;
             bool m_raw;
+            bool m_passthru;
             Area();
         };
         class HttpFile::Mime {
@@ -70,13 +71,13 @@ namespace metaproxy_1 {
             void fetch_file(mp::Session &session,
                             Z_HTTP_Request *req,
                             std::string &fname, mp::Package &package,
-                            bool raw);
+                            bool raw, bool passthru);
             std::string get_mime_type(std::string &fname);
         };
     }
 }
 
-yf::HttpFile::Area::Area() : m_raw(false)
+yf::HttpFile::Area::Area() : m_raw(false), m_passthru(false)
 {
 }
 
@@ -134,14 +135,36 @@ std::string yf::HttpFile::Rep::get_mime_type(std::string &fname)
 void yf::HttpFile::Rep::fetch_file(mp::Session &session,
                                    Z_HTTP_Request *req,
                                    std::string &fname, mp::Package &package,
-                                   bool raw)
+                                   bool raw, bool passthru)
 {
     mp::odr o(ODR_ENCODE);
 
     if (strcmp(req->method, "GET"))
     {
-        Z_GDU *gdu = o.create_HTTP_Response(session, req, 405);
-        package.response() = gdu;
+        if (passthru)
+        {
+            package.move();
+        }
+        else
+        {
+            Z_GDU *gdu = o.create_HTTP_Response(session, req, 405);
+            package.response() = gdu;
+        }
+        return;
+    }
+
+    struct stat st;
+    if (stat(fname.c_str(), &st) == -1 || (st.st_mode & S_IFMT) != S_IFREG)
+    {
+        if (passthru)
+        {
+            package.move();
+        }
+        else
+        {
+            Z_GDU *gdu = o.create_HTTP_Response(session, req, 404);
+            package.response() = gdu;
+        }
         return;
     }
 
@@ -238,7 +261,8 @@ void yf::HttpFile::Rep::fetch_uri(mp::Session &session,
             {
                 std::string fname = it->m_file_root + path.substr(l);
                 package.log("http_file", YLOG_LOG, "%s", fname.c_str());
-                fetch_file(session, req, fname, package, it->m_raw);
+                fetch_file(session, req, fname, package, it->m_raw,
+                    it->m_passthru);
                 return;
             }
         }
@@ -298,6 +322,8 @@ void mp::filter::HttpFile::configure(const xmlNode * ptr, bool test_only,
                     a.m_url_path_prefix = mp::xml::get_text(a_node);
                 else if (mp::xml::is_element_mp(a_node, "raw"))
                     a.m_raw = mp::xml::get_bool(a_node, false);
+                else if (mp::xml::is_element_mp(a_node, "passthru"))
+                    a.m_passthru = mp::xml::get_bool(a_node, false);
                 else
                     throw mp::filter::FilterException
                         ("Bad element "
