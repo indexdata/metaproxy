@@ -59,11 +59,15 @@ static void set_log_prefix(void)
 #if HAVE_UNISTD_H
 static pid_t process_group = 0;
 static int sig_received = 0;
+static pid_t my_pid = 0;  
 
 static void sig_x_handler(int signo)
 {
     if (sig_received)
         return;
+    if ( getpid() != my_pid ) // can happen in unlikely cases
+        return; // when the sig hits a child just after fork(), before it
+                // clears its sighandler. MP-559.
     sig_received = signo;
     if (routerp)
         routerp->stop(signo);
@@ -77,7 +81,8 @@ static void work_common(void *data)
     set_log_prefix();
 #if HAVE_UNISTD_H
     process_group = getpgid(0); // save process group ID
-
+    my_pid = getpid(); 
+    
     signal(SIGTERM, sig_x_handler);
     signal(SIGUSR1, sig_x_handler);
 #endif
