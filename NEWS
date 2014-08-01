@@ -1,3 +1,9 @@
+--- 1.5.8 2014/07/15
+
+Fix race condition in SIGTERM handling. Could terminate whole metaproxy
+instead of just a child process. Extremely rare in real life, hit me with
+CF stress testing. MP-559.
+
 --- 1.5.7 2014/07/15
 
 http_file: passthru option MP-557
