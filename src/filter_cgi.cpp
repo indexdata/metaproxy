@@ -105,11 +105,22 @@ void yf::CGI::process(mp::Package &package) const
             int r;
             pid_t pid;
             int status;
+            int fds[2];
 
+            r = pipe(fds);
+            if (r == -1)
+            {
+                zgdu_res = odr.create_HTTP_Response(
+                    package.session(), zgdu_req->u.HTTP_Request, 400);
+                package.response() = zgdu_res;
+                continue;
+            }
             pid = ::fork();
             switch (pid)
             {
             case 0: /* child */
+                close(1);
+                dup(fds[1]);
                 setenv("PATH_INFO", path_info.c_str(), 1);
                 setenv("QUERY_STRING", query_string.c_str(), 1);
                 r = execl(it->program.c_str(), it->program.c_str(), (char *) 0);
@@ -118,16 +129,30 @@ void yf::CGI::process(mp::Package &package) const
                 exit(0);
                 break;
             case -1: /* error */
+                close(fds[0]);
+                close(fds[1]);
                 zgdu_res = odr.create_HTTP_Response(
                     package.session(), zgdu_req->u.HTTP_Request, 400);
                 package.response() = zgdu_res;
                 break;
             default: /* parent */
+                close(fds[1]);
                 if (pid)
                 {
                     boost::mutex::scoped_lock lock(m_p->m_mutex);
                     m_p->children[pid] = pid;
                 }
+                WRBUF w = wrbuf_alloc();
+                wrbuf_puts(w, "HTTP/1.1 200 OK\r\n");
+                while (1)
+                {
+                    char buf[512];
+                    ssize_t rd = read(fds[0], buf, sizeof buf);
+                    if (rd <= 0)
+                        break;
+                    wrbuf_write(w, buf, rd);
+                }
+                close(fds[0]);
                 waitpid(pid, &status, 0);
 
                 if (pid)
@@ -135,9 +160,27 @@ void yf::CGI::process(mp::Package &package) const
                     boost::mutex::scoped_lock lock(m_p->m_mutex);
                     m_p->children.erase(pid);
                 }
-                zgdu_res = odr.create_HTTP_Response(
-                    package.session(), zgdu_req->u.HTTP_Request, 200);
+                ODR dec = odr_createmem(ODR_DECODE);
+                odr_setbuf(dec, wrbuf_buf(w), wrbuf_len(w), 0);
+                r = z_GDU(dec, &zgdu_res, 0, 0);
+                if (r && zgdu_res)
+                {
+                    package.response() = zgdu_res;
+                }
+                else
+                {
+                    zgdu_res = odr.create_HTTP_Response(
+                        package.session(), zgdu_req->u.HTTP_Request, 400);
+                    Z_HTTP_Response *hres = zgdu_res->u.HTTP_Response;
+                    z_HTTP_header_add(odr, &hres->headers,
+                                      "Content-Type", "text/plain");
+                    hres->content_buf =
+                        odr_strdup(odr, "Invalid script from script");
+                    hres->content_len = strlen(hres->content_buf);
+                }
                 package.response() = zgdu_res;
+                odr_destroy(dec);
+                wrbuf_destroy(w);
                 break;
             }
             return;
