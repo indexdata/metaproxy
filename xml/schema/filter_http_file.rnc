@@ -6,7 +6,7 @@ filter_http_file =
   attribute type { "http_file" },
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
-  element mp:mimetypes { xsd:string },
+  element mp:mimetypes { xsd:string }?,
   element mp:area {
     element mp:documentroot { xsd:string },
     element mp:prefix { xsd:string },
