@@ -49,7 +49,8 @@ filter_zoom =
         element mp:sortmap_date { xsd:string }?,
         element mp:sortmap_title { xsd:string }?,
         element mp:extraArgs { xsd:string }?,
-        element mp:rpn2cql { xsd:string }?
+        element mp:rpn2cql { xsd:string }?,
+        element mp:retryOnFailure { xsd:string }?
       }*
     }?
   }?,

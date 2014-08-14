@@ -38,6 +38,7 @@
 	    <transform>tmarc.xsl</transform>
 	    <urlRecipe>http://sever.com?title=${md-title[\s+/+/g]}&amp;parm=1</urlRecipe>
 	    <zurl>localhost:9998/Default</zurl>
+	    <retryOnFailure>0</retryOnFailure>
 	  </record>
 	  <record>
 	    <udb>heikki/content1</udb>

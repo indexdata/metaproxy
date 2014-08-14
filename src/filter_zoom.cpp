@@ -80,6 +80,7 @@ namespace metaproxy_1 {
             std::string sortStrategy;
             std::string extraArgs;
             std::string rpn2cql_fname;
+            std::string retry_on_failure;
             bool use_turbomarc;
             bool piggyback;
             CCL_bibset ccl_bibset;
@@ -103,6 +104,7 @@ namespace metaproxy_1 {
             xmlDoc *explain_doc;
             std::string m_proxy;
             cql_transform_t cqlt;
+            std::string retry_on_failure;
         public:
             Backend();
             ~Backend();
@@ -489,6 +491,7 @@ yf::Zoom::Searchable::Searchable(CCL_bibset base)
     piggyback = true;
     use_turbomarc = true;
     sortStrategy = "embed";
+    retry_on_failure = "1"; // existing default (should have been false)
     ccl_bibset = ccl_qual_dup(base);
 }
 
@@ -700,6 +703,11 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
         }
         else if (!strcmp((const char *) ptr->name, "rpn2cql"))
             s->rpn2cql_fname = mp::xml::get_text(ptr);
+        else if (!strcmp((const char *) ptr->name,
+                          "retryOnFailure"))
+        {
+            s->retry_on_failure = mp::xml::get_text(ptr);
+        }
     }
     return s;
 }
@@ -1134,6 +1142,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     const char *param_content_user = 0;
     const char *param_content_password = 0;
     const char *param_nocproxy = 0;
+    const char *param_retry = 0;
     int no_parms = 0;
 
     char **names;
@@ -1169,6 +1178,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             content_proxy = value;
         else if (!strcmp(name, "nocproxy"))
             param_nocproxy = value;
+        else if (!strcmp(name, "retry"))
+            param_retry = value;
         else if (!strcmp(name, "proxy"))
         {
             char **dstr;
@@ -1428,6 +1439,11 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     b->xsp = xsp;
     b->m_frontend_database = database;
     b->enable_cproxy = param_nocproxy ? false : true;
+
+    if (param_retry)
+        b->retry_on_failure = param_retry;
+    else
+        b->retry_on_failure = b->sptr->retry_on_failure;
 
     if (sptr->query_encoding.length())
         b->set_option("rpnCharset", sptr->query_encoding);
@@ -2150,7 +2166,8 @@ bool yf::Zoom::Frontend::retry(mp::Package &package,
         error = YAZ_BIB1_PROXY_FAILURE;
         *addinfo = odr_strdup(odr, b->m_proxy.c_str());
     }
-    else if (same_retries == 0 && proxy_retries == 0)
+    else if (b && b->retry_on_failure.compare("0")
+             && same_retries == 0 && proxy_retries == 0)
     {
         log_diagnostic(package, error, *addinfo);
         same_retries++;
