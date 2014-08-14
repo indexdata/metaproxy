@@ -1,4 +1,13 @@
---- 1.5.8 2014/07/15
+--- 1.5.9 2014/08/15
+
+zoom: make retry on failure configurable MP-565
+The default and existing behavior is that backend failures (any
+diagnostic) makes the module re-search once. The behavior may
+be changed by db parameter 'retry'. If given value '0' disables
+retry and '1' enables it. If not given, the Torus record may
+specify with element retryOnFailure (value '0'/'1').
+
+--- 1.5.8 2014/08/01
 
 Fix race condition in SIGTERM handling. Could terminate whole metaproxy
 instead of just a child process. Extremely rare in real life, hit me with
