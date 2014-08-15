@@ -108,7 +108,8 @@ metaproxyj.pdf: $(XMLFILES) multi.pdf
 	pdfjadetex book.tex
 	mv book.pdf metaproxyj.pdf
 
-manref.xml: $(XMLMAN) $(srcdir)/common/stripref.xsl $(srcdir)/copyright.xml
+manref.xml: $(XMLMAN) $(srcdir)/common/stripref.xsl \
+		$(srcdir)/copyright.xml local.ent
 	rm -f manref.xml
 	for i in $(XMLMAN); do \
 		xsltproc --xinclude $(srcdir)/common/stripref.xsl $(srcdir)/$$i | sed 1d >> manref.xml; \
