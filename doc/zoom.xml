@@ -684,6 +684,9 @@
    is a comma rather than a question mark. What follows question mark are
    HTTP arguments (in this case SRU arguments).
   </para>
+  <para>
+   The database parameters, in alphabetical order, are:
+  </para>
   <variablelist>
    <varlistentry>
     <term>content-password</term>
@@ -772,6 +775,18 @@
       is not allowed if access is controlled by
       <link linkend="auth_url">auth_url</link>
       in configuration.
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>retry</term>
+    <listitem>
+     <para>
+      Optional paramater. If the value is 0, retry on failure is
+      disabled for the ZOOM module. Any other value enables retry
+      on failure. If this parameter is omitted, then the value of
+      <literal>retryOnFailure</literal>
+      from the Torus record is used (same values).
      </para>
     </listitem>
    </varlistentry>
