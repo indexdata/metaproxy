@@ -1,3 +1,8 @@
+--- 1.5.10 2014/08/26
+
+On SIGTERM shut down connection+listening sockets MP-568
+This fixes a problem with 'metaproxy stop' sometimes taking a long time.
+
 --- 1.5.9 2014/08/15
 
 zoom: make retry on failure configurable MP-565
