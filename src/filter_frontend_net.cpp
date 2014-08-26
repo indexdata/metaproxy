@@ -63,6 +63,7 @@ namespace metaproxy_1 {
             std::string m_stat_req;
             yazpp_1::SocketManager mySocketManager;
             ZAssocServer **az;
+            yazpp_1::PDU_Assoc **pdu;
             int m_duration_freq[22];
             double m_duration_lim[22];
             double m_duration_max;
@@ -545,6 +546,7 @@ yf::FrontendNet::Rep::~Rep()
         for (i = 0; i < m_ports.size(); i++)
             delete az[i];
         delete [] az;
+        delete [] pdu;
     }
     az = 0;
 }
@@ -602,6 +604,16 @@ void yf::FrontendNet::process(mp::Package &package) const
         if (m_p->m_stop_signo == SIGTERM)
         {
             yaz_log(YLOG_LOG, "metaproxy received SIGTERM");
+            if (m_p->az)
+            {
+                size_t i;
+                for (i = 0; i < m_p->m_ports.size(); i++)
+                {
+                    m_p->pdu[i]->shutdown();
+                    m_p->az[i]->server("");
+                }
+                yaz_daemon_stop();
+            }
             break; /* stop right away */
         }
 #ifndef WIN32
@@ -724,6 +736,7 @@ void yf::FrontendNet::set_ports(std::vector<Port> &ports)
     m_p->m_ports = ports;
 
     m_p->az = new yf::FrontendNet::ZAssocServer *[m_p->m_ports.size()];
+    m_p->pdu = new yazpp_1::PDU_Assoc *[m_p->m_ports.size()];
 
     // Create yf::FrontendNet::ZAssocServer for each port
     size_t i;
@@ -737,6 +750,7 @@ void yf::FrontendNet::set_ports(std::vector<Port> &ports)
         if (m_p->m_ports[i].cert_fname.length())
             as->set_cert_fname(m_p->m_ports[i].cert_fname.c_str());
         // create ZAssoc with PDU Assoc
+        m_p->pdu[i] = as;
         m_p->az[i] = new yf::FrontendNet::ZAssocServer(
             as, m_p->m_ports[i].route, m_p.get());
         if (m_p->az[i]->server(m_p->m_ports[i].port.c_str()))
