@@ -216,6 +216,9 @@ static int sc_main(
         , test_config ? "test" : "start"
             );
 
+    xmlInitParser();
+    LIBXML_TEST_VERSION
+
     yaz_log_xml_errors(0, YLOG_LOG);
     xmlDocPtr doc = xmlReadFile(fname,
                                 NULL,

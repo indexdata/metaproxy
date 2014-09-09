@@ -431,8 +431,6 @@ mp::RouterFleXML::RouterFleXML(std::string xmlconf, mp::FactoryFilter &factory,
     bool test_only)
     : m_p(new Rep)
 {
-    LIBXML_TEST_VERSION;
-
     xmlDocPtr doc = xmlParseMemory(xmlconf.c_str(),
                                    xmlconf.size());
     if (!doc)
