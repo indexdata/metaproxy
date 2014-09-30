@@ -515,22 +515,22 @@
   <tbody>
    <row>
     <entry>Z39.50 server</entry>
-    <entry>Using filter <literal>frontend_net</literal></entry>
+    <entry>Using filter <xref linkend="ref-frontend_net"/></entry>
     <entry>Supported</entry>
    </row>
    <row>
     <entry>SRU server</entry>
-    <entry>Supported with filter <literal>sru_z3950</literal></entry>
+    <entry>Supported with filter <xref linkend="ref-sru_z3950"/></entry>
     <entry>Supported</entry>
    </row>
    <row>
     <entry>Z39.50 client</entry>
-    <entry>Supported with filter <literal>z3950_client</literal></entry>
+    <entry>Supported with filter <xref linkend="ref-z3950_client"/></entry>
     <entry>Supported</entry>
    </row>
    <row>
     <entry>SRU client</entry>
-    <entry>Unsupported</entry>
+    <entry>Supported with filter <xref linkend="ref-zoom"/></entry>
     <entry>Unsupported</entry>
    </row>
    <row>
