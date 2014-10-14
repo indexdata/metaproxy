@@ -3,5 +3,6 @@ echo "Content-Type: text/plain"
 echo ""
 
 echo "hello, world."
-sleep 1
+pwd
+env
 
