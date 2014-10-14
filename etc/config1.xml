@@ -15,6 +15,7 @@
      <default_target>localhost:9999</default_target>
      <force_close>true</force_close>
      <client_ip>true</client_ip>
+     <charset>utf-8</charset>
     </filter>
   </filters>
   <routes>

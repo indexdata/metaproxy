@@ -36,6 +36,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/otherinfo.h>
 #include <yaz/diagbib1.h>
 #include <yaz/oid_db.h>
+#include <yaz/charneg.h>
 
 #include <yazpp/socket-manager.h>
 #include <yazpp/pdu-assoc.h>
@@ -85,6 +86,7 @@ namespace metaproxy_1 {
             int m_max_sockets;
             bool m_force_close;
             bool m_client_ip;
+            std::string m_charset;
             std::string m_default_target;
             std::string m_force_target;
             boost::mutex m_mutex;
@@ -464,6 +466,35 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     return as;
 }
 
+static void set_charset_proposal(ODR odr, Z_InitRequest *req, const char *charset)
+{
+    Z_OtherInformation **p = &req->otherInfo;
+    Z_OtherInformationUnit *oi;
+
+    if (*p)
+    {
+        int i;
+        for (i = 0; i < (*p)->num_elements; i++)
+        {
+            Z_External *ext = (*p)->list[i]->information.externallyDefinedInfo;
+            if ((*p)->list[i]->which == Z_OtherInfo_externallyDefinedInfo
+                && ext &&
+                ext->which == Z_External_charSetandLanguageNegotiation)
+                return;
+        }
+    }
+    if ((oi = yaz_oi_update(p, odr, 0, 0, 0)))
+    {
+        ODR_MASK_SET(req->options, Z_Options_negotiationModel);
+        oi->which = Z_OtherInfo_externallyDefinedInfo;
+        oi->information.externallyDefinedInfo =
+            yaz_set_proposal_charneg_list(odr, ",",
+                                          charset,
+                                          0 /* lang */,
+                                          1 /* records included */);
+    }
+}
+
 void yf::Z3950Client::Rep::send_and_receive(Package &package,
                                             yf::Z3950Client::Assoc *c)
 {
@@ -536,6 +567,9 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
                                   1, pcomb.c_str());
         }
     }
+    if (apdu->which == Z_APDU_initRequest && m_charset.length() > 0)
+        set_charset_proposal(odr, apdu->u.initRequest, m_charset.c_str());
+
     // prepare response
     c->m_time_elapsed = 0;
     c->m_waiting = true;
@@ -625,6 +659,10 @@ void yf::Z3950Client::configure(const xmlNode *ptr, bool test_only,
         else if (!strcmp((const char *) ptr->name, "client_ip"))
         {
             m_p->m_client_ip = mp::xml::get_bool(ptr, 0);
+        }
+        else if (!strcmp((const char *) ptr->name, "charset"))
+        {
+            m_p->m_charset = mp::xml::get_text(ptr);
         }
         else
         {
