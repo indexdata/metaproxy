@@ -44,6 +44,7 @@ namespace metaproxy_1 {
         class CGI::Rep {
             friend class CGI;
             std::list<CGI::Exec> exec_map;
+            std::map<std::string,std::string> env_map;
             std::map<pid_t,pid_t> children;
             boost::mutex m_mutex;
         public:
@@ -100,12 +101,14 @@ void yf::CGI::process(mp::Package &package) const
     metaproxy_1::odr odr;
     for (it = m_p->exec_map.begin(); it != m_p->exec_map.end(); it++)
     {
-        if (it->path.compare(path_info) == 0)
+        if (it->path.compare(0, it->path.length(), path_info) == 0)
         {
             int r;
             pid_t pid;
             int status;
             int fds[2];
+            const char *program_cstr = it->program.c_str();
+            std::map<std::string,std::string>::const_iterator it;
 
             r = pipe(fds);
             if (r == -1)
@@ -121,9 +124,25 @@ void yf::CGI::process(mp::Package &package) const
             case 0: /* child */
                 close(1);
                 dup(fds[1]);
-                setenv("PATH_INFO", path_info.c_str(), 1);
+                setenv("SCRIPT_NAME", path_info.c_str(), 1);
+                setenv("PATH_INFO", "", 1);
                 setenv("QUERY_STRING", query_string.c_str(), 1);
-                r = execl(it->program.c_str(), it->program.c_str(), (char *) 0);
+                for (it = m_p->env_map.begin(); it != m_p->env_map.end(); it++)
+                    setenv(it->first.c_str(), it->second.c_str(), 1);
+
+                if (1)
+                {
+                    char *cp1 = xstrdup(program_cstr);
+                    char *cp2 = strrchr(cp1, '/');
+                    if (cp2)
+                    {
+                        *cp2 = '\0';
+                        chdir(cp1);
+
+                    }
+                    xfree(cp1);
+                }
+                r = execl(program_cstr, program_cstr, (char *) 0);
                 if (r == -1)
                     exit(1);
                 exit(0);
@@ -191,6 +210,7 @@ void yf::CGI::process(mp::Package &package) const
 
 void yf::CGI::configure(const xmlNode *ptr, bool test_only, const char *path)
 {
+    yaz_log(YLOG_LOG, "cgi::configure path=%s", path);
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
         if (ptr->type != XML_ELEMENT_NODE)
@@ -213,6 +233,26 @@ void yf::CGI::configure(const xmlNode *ptr, bool test_only, const char *path)
                          + " in cgi section");
             }
             m_p->exec_map.push_back(exec);
+        }
+        else if (!strcmp((const char *) ptr->name, "env"))
+        {
+            std::string name, value;
+
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name,  "name"))
+                    name = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "value"))
+                    value = mp::xml::get_text(attr->children);
+                else
+                    throw mp::filter::FilterException
+                        ("Bad attribute "
+                         + std::string((const char *) attr->name)
+                         + " in cgi section");
+            }
+            if (name.length() > 0)
+                m_p->env_map[name] = value;
         }
         else
         {

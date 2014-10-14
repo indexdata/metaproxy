@@ -14,6 +14,7 @@
       <filter type="log"><category user-access="true" apdu="true" /></filter>
       <filter type="cgi">
          <map path="/mycgi" exec="./cgi.sh"/>
+         <env name="HTTP_HOST" value="localhost"/>
       </filter>
       <filter type="bounce"/>
     </route>

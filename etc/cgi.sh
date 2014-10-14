@@ -3,5 +3,5 @@ echo "Content-Type: text/plain"
 echo ""
 
 echo "hello, world."
-sleep 35
+sleep 1
 
