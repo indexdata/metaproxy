@@ -84,65 +84,80 @@ void yf::CGI::process(mp::Package &package) const
         package.move();
         return;
     }
-    std::string path_info;
-    std::string query_string;
-    const char *path = zgdu_req->u.HTTP_Request->path;
-    yaz_log(YLOG_LOG, "path=%s", path);
-    const char *p_cp = strchr(path, '?');
-    if (p_cp)
-    {
-        path_info.assign(path, p_cp - path);
-        query_string.assign(p_cp+1);
-    }
-    else
-        path_info.assign(path);
+
 
     std::list<CGI::Exec>::const_iterator it;
     metaproxy_1::odr odr;
+    Z_HTTP_Request *hreq = zgdu_req->u.HTTP_Request;
+    const char *path_cstr = hreq->path;
     for (it = m_p->exec_map.begin(); it != m_p->exec_map.end(); it++)
     {
-        if (it->path.compare(0, it->path.length(), path_info) == 0)
+        if (strncmp(it->path.c_str(), path_cstr, it->path.length()) == 0)
         {
-            int r;
-            pid_t pid;
-            int status;
-            int fds[2];
+            std::string path(path_cstr);
             const char *program_cstr = it->program.c_str();
-            std::map<std::string,std::string>::const_iterator it;
-
-            r = pipe(fds);
+            std::string script_name(path, 0, it->path.length());
+            std::string rest(path, it->path.length());
+            std::string query_string;
+            std::string path_info;
+            size_t qpos = rest.find('?');
+            if (qpos == std::string::npos)
+                path_info = rest;
+            else
+            {
+                query_string.assign(rest, qpos + 1, std::string::npos);
+                path_info.assign(rest, 0, qpos);
+            }
+            int fds[2];
+            int r = pipe(fds);
             if (r == -1)
             {
                 zgdu_res = odr.create_HTTP_Response(
-                    package.session(), zgdu_req->u.HTTP_Request, 400);
+                    package.session(), hreq, 400);
                 package.response() = zgdu_res;
                 continue;
             }
-            pid = ::fork();
+            int status;
+            pid_t pid = ::fork();
             switch (pid)
             {
             case 0: /* child */
                 close(1);
                 dup(fds[1]);
-                setenv("SCRIPT_NAME", path_info.c_str(), 1);
-                setenv("PATH_INFO", "", 1);
+                setenv("REQUEST_METHOD", hreq->method, 1);
+                setenv("REQUEST_URI", path_cstr, 1);
+                setenv("SCRIPT_NAME", script_name.c_str(), 1);
+                setenv("PATH_INFO", path_info.c_str(), 1);
                 setenv("QUERY_STRING", query_string.c_str(), 1);
-                for (it = m_p->env_map.begin(); it != m_p->env_map.end(); it++)
-                    setenv(it->first.c_str(), it->second.c_str(), 1);
-
-                if (1)
                 {
-                    char *cp1 = xstrdup(program_cstr);
-                    char *cp2 = strrchr(cp1, '/');
-                    if (cp2)
+                    const char *v;
+                    v = z_HTTP_header_lookup(hreq->headers, "Cookie");
+                    if (v)
+                        setenv("HTTP_COOKIE", v, 1);
+                    v = z_HTTP_header_lookup(hreq->headers, "User-Agent");
+                    if (v)
+                        setenv("HTTP_USER_AGENT", v, 1);
+                    v = z_HTTP_header_lookup(hreq->headers, "Accept");
+                    if (v)
+                        setenv("HTTP_ACCEPT", v, 1);
+                    v = z_HTTP_header_lookup(hreq->headers, "Accept-Encoding");
+                    if (v)
+                        setenv("HTTP_ACCEPT_ENCODING", v, 1);
+                    std::map<std::string,std::string>::const_iterator it;
+                    for (it = m_p->env_map.begin();
+                         it != m_p->env_map.end(); it++)
+                        setenv(it->first.c_str(), it->second.c_str(), 1);
+                    char *program = xstrdup(program_cstr);
+                    char *cp = strrchr(program, '/');
+                    if (cp)
                     {
-                        *cp2 = '\0';
-                        chdir(cp1);
-
+                        *cp++ = '\0';
+                        chdir(program);
                     }
-                    xfree(cp1);
+                    else
+                        cp = program;
+                    r = execl(cp, cp, (char *) 0);
                 }
-                r = execl(program_cstr, program_cstr, (char *) 0);
                 if (r == -1)
                     exit(1);
                 exit(0);
@@ -151,7 +166,7 @@ void yf::CGI::process(mp::Package &package) const
                 close(fds[0]);
                 close(fds[1]);
                 zgdu_res = odr.create_HTTP_Response(
-                    package.session(), zgdu_req->u.HTTP_Request, 400);
+                    package.session(), hreq, 400);
                 package.response() = zgdu_res;
                 break;
             default: /* parent */
