@@ -47,6 +47,8 @@ namespace metaproxy_1 {
             std::map<std::string,std::string> env_map;
             std::map<pid_t,pid_t> children;
             boost::mutex m_mutex;
+            std::string documentroot;
+            void child(Z_HTTP_Request *, const CGI::Exec *);
         public:
             ~Rep();
         };
@@ -69,6 +71,66 @@ yf::CGI::Rep::~Rep()
 
 yf::CGI::~CGI()
 {
+}
+
+void yf::CGI::Rep::child(Z_HTTP_Request *hreq, const CGI::Exec *it)
+{
+    const char *path_cstr = hreq->path;
+    std::string path(path_cstr);
+    const char *program_cstr = it->program.c_str();
+    std::string script_name(path, 0, it->path.length());
+    std::string rest(path, it->path.length());
+    std::string query_string;
+    std::string path_info;
+    size_t qpos = rest.find('?');
+    if (qpos == std::string::npos)
+        path_info = rest;
+    else
+    {
+        query_string.assign(rest, qpos + 1, std::string::npos);
+        path_info.assign(rest, 0, qpos);
+    }
+    setenv("REQUEST_METHOD", hreq->method, 1);
+    setenv("REQUEST_URI", path_cstr, 1);
+    setenv("SCRIPT_NAME", script_name.c_str(), 1);
+    setenv("PATH_INFO", path_info.c_str(), 1);
+    setenv("QUERY_STRING", query_string.c_str(), 1);
+    const char *v;
+    v = z_HTTP_header_lookup(hreq->headers, "Cookie");
+    if (v)
+        setenv("HTTP_COOKIE", v, 1);
+    v = z_HTTP_header_lookup(hreq->headers, "User-Agent");
+    if (v)
+        setenv("HTTP_USER_AGENT", v, 1);
+    v = z_HTTP_header_lookup(hreq->headers, "Accept");
+    if (v)
+        setenv("HTTP_ACCEPT", v, 1);
+    v = z_HTTP_header_lookup(hreq->headers, "Accept-Encoding");
+    if (v)
+        setenv("HTTP_ACCEPT_ENCODING", v, 1);
+    setenv("DOCUMENT_ROOT", documentroot.c_str(), 1);
+    setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
+    // apply user-defined environment
+    std::map<std::string,std::string>::const_iterator it_e;
+    for (it_e = env_map.begin();
+         it_e != env_map.end(); it_e++)
+        setenv(it_e->first.c_str(), it_e->second.c_str(), 1);
+    // change directory to configuration root
+    // then to CGI program directory (could be relative)
+    chdir(documentroot.c_str());
+    char *program = xstrdup(program_cstr);
+    char *cp = strrchr(program, '/');
+    if (cp)
+    {
+        *cp++ = '\0';
+        chdir(program);
+    }
+    else
+        cp = program;
+    int r = execl(cp, cp, (char *) 0);
+    if (r == -1)
+        exit(1);
+    exit(0);
 }
 
 void yf::CGI::process(mp::Package &package) const
@@ -94,20 +156,6 @@ void yf::CGI::process(mp::Package &package) const
     {
         if (strncmp(it->path.c_str(), path_cstr, it->path.length()) == 0)
         {
-            std::string path(path_cstr);
-            const char *program_cstr = it->program.c_str();
-            std::string script_name(path, 0, it->path.length());
-            std::string rest(path, it->path.length());
-            std::string query_string;
-            std::string path_info;
-            size_t qpos = rest.find('?');
-            if (qpos == std::string::npos)
-                path_info = rest;
-            else
-            {
-                query_string.assign(rest, qpos + 1, std::string::npos);
-                path_info.assign(rest, 0, qpos);
-            }
             int fds[2];
             int r = pipe(fds);
             if (r == -1)
@@ -124,43 +172,7 @@ void yf::CGI::process(mp::Package &package) const
             case 0: /* child */
                 close(1);
                 dup(fds[1]);
-                setenv("REQUEST_METHOD", hreq->method, 1);
-                setenv("REQUEST_URI", path_cstr, 1);
-                setenv("SCRIPT_NAME", script_name.c_str(), 1);
-                setenv("PATH_INFO", path_info.c_str(), 1);
-                setenv("QUERY_STRING", query_string.c_str(), 1);
-                {
-                    const char *v;
-                    v = z_HTTP_header_lookup(hreq->headers, "Cookie");
-                    if (v)
-                        setenv("HTTP_COOKIE", v, 1);
-                    v = z_HTTP_header_lookup(hreq->headers, "User-Agent");
-                    if (v)
-                        setenv("HTTP_USER_AGENT", v, 1);
-                    v = z_HTTP_header_lookup(hreq->headers, "Accept");
-                    if (v)
-                        setenv("HTTP_ACCEPT", v, 1);
-                    v = z_HTTP_header_lookup(hreq->headers, "Accept-Encoding");
-                    if (v)
-                        setenv("HTTP_ACCEPT_ENCODING", v, 1);
-                    std::map<std::string,std::string>::const_iterator it;
-                    for (it = m_p->env_map.begin();
-                         it != m_p->env_map.end(); it++)
-                        setenv(it->first.c_str(), it->second.c_str(), 1);
-                    char *program = xstrdup(program_cstr);
-                    char *cp = strrchr(program, '/');
-                    if (cp)
-                    {
-                        *cp++ = '\0';
-                        chdir(program);
-                    }
-                    else
-                        cp = program;
-                    r = execl(cp, cp, (char *) 0);
-                }
-                if (r == -1)
-                    exit(1);
-                exit(0);
+                m_p->child(hreq, &(*it));
                 break;
             case -1: /* error */
                 close(fds[0]);
@@ -269,6 +281,10 @@ void yf::CGI::configure(const xmlNode *ptr, bool test_only, const char *path)
             if (name.length() > 0)
                 m_p->env_map[name] = value;
         }
+        else if (!strcmp((const char *) ptr->name, "documentroot"))
+        {
+            m_p->documentroot = path;
+        }
         else
         {
             throw mp::filter::FilterException("Bad element "
@@ -276,6 +292,8 @@ void yf::CGI::configure(const xmlNode *ptr, bool test_only, const char *path)
                                                              ptr->name));
         }
     }
+    if (m_p->documentroot.length() == 0)
+        m_p->documentroot = ".";
 }
 
 static mp::filter::Base* filter_creator()
