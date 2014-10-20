@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
 #include "filter_http_file.hpp"
+#include <sys/stat.h>
 
 #include <yaz/zgdu.h>
 #include <yaz/log.h>
