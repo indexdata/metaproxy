@@ -1,3 +1,11 @@
+--- 1.5.11 2014/10/20
+
+http_file: add include of sys/stat.h fixes MP-576
+
+Fix documentation about SRU client support MP-572
+
+Initialize Libxml2 - for threaded operation MP-571
+
 --- 1.5.10 2014/08/26
 
 On SIGTERM shut down connection+listening sockets MP-568
