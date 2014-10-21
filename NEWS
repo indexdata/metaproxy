@@ -1,3 +1,9 @@
+--- 1.6.0 2014/10/21
+
+z3950_client: allows negotiation charset to be set MP-564
+
+cgi: more functional but no support for POSTed content yet
+
 --- 1.5.11 2014/10/20
 
 http_file: add include of sys/stat.h fixes MP-576
