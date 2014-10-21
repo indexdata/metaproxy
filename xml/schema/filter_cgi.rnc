@@ -4,9 +4,12 @@ namespace mp = "http://indexdata.com/metaproxy"
 
 filter_cgi =
   attribute type { "cgi" },
+  element mp:documentroot { xsd:string },
+  element mp:env {
+    attribute name { xsd:string },
+    attribute value { xsd:string }
+  }*,
   element mp:map {
     attribute path { xsd:string },
     attribute exec { xsd:string }
   }*
-
- 

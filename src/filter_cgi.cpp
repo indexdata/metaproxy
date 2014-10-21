@@ -44,8 +44,11 @@ namespace metaproxy_1 {
         class CGI::Rep {
             friend class CGI;
             std::list<CGI::Exec> exec_map;
+            std::map<std::string,std::string> env_map;
             std::map<pid_t,pid_t> children;
             boost::mutex m_mutex;
+            std::string documentroot;
+            void child(Z_HTTP_Request *, const CGI::Exec *);
         public:
             ~Rep();
         };
@@ -70,6 +73,66 @@ yf::CGI::~CGI()
 {
 }
 
+void yf::CGI::Rep::child(Z_HTTP_Request *hreq, const CGI::Exec *it)
+{
+    const char *path_cstr = hreq->path;
+    std::string path(path_cstr);
+    const char *program_cstr = it->program.c_str();
+    std::string script_name(path, 0, it->path.length());
+    std::string rest(path, it->path.length());
+    std::string query_string;
+    std::string path_info;
+    size_t qpos = rest.find('?');
+    if (qpos == std::string::npos)
+        path_info = rest;
+    else
+    {
+        query_string.assign(rest, qpos + 1, std::string::npos);
+        path_info.assign(rest, 0, qpos);
+    }
+    setenv("REQUEST_METHOD", hreq->method, 1);
+    setenv("REQUEST_URI", path_cstr, 1);
+    setenv("SCRIPT_NAME", script_name.c_str(), 1);
+    setenv("PATH_INFO", path_info.c_str(), 1);
+    setenv("QUERY_STRING", query_string.c_str(), 1);
+    const char *v;
+    v = z_HTTP_header_lookup(hreq->headers, "Cookie");
+    if (v)
+        setenv("HTTP_COOKIE", v, 1);
+    v = z_HTTP_header_lookup(hreq->headers, "User-Agent");
+    if (v)
+        setenv("HTTP_USER_AGENT", v, 1);
+    v = z_HTTP_header_lookup(hreq->headers, "Accept");
+    if (v)
+        setenv("HTTP_ACCEPT", v, 1);
+    v = z_HTTP_header_lookup(hreq->headers, "Accept-Encoding");
+    if (v)
+        setenv("HTTP_ACCEPT_ENCODING", v, 1);
+    setenv("DOCUMENT_ROOT", documentroot.c_str(), 1);
+    setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
+    // apply user-defined environment
+    std::map<std::string,std::string>::const_iterator it_e;
+    for (it_e = env_map.begin();
+         it_e != env_map.end(); it_e++)
+        setenv(it_e->first.c_str(), it_e->second.c_str(), 1);
+    // change directory to configuration root
+    // then to CGI program directory (could be relative)
+    chdir(documentroot.c_str());
+    char *program = xstrdup(program_cstr);
+    char *cp = strrchr(program, '/');
+    if (cp)
+    {
+        *cp++ = '\0';
+        chdir(program);
+    }
+    else
+        cp = program;
+    int r = execl(cp, cp, (char *) 0);
+    if (r == -1)
+        exit(1);
+    exit(0);
+}
+
 void yf::CGI::process(mp::Package &package) const
 {
     Z_GDU *zgdu_req = package.request().get();
@@ -83,56 +146,39 @@ void yf::CGI::process(mp::Package &package) const
         package.move();
         return;
     }
-    std::string path_info;
-    std::string query_string;
-    const char *path = zgdu_req->u.HTTP_Request->path;
-    yaz_log(YLOG_LOG, "path=%s", path);
-    const char *p_cp = strchr(path, '?');
-    if (p_cp)
-    {
-        path_info.assign(path, p_cp - path);
-        query_string.assign(p_cp+1);
-    }
-    else
-        path_info.assign(path);
+
 
     std::list<CGI::Exec>::const_iterator it;
     metaproxy_1::odr odr;
+    Z_HTTP_Request *hreq = zgdu_req->u.HTTP_Request;
+    const char *path_cstr = hreq->path;
     for (it = m_p->exec_map.begin(); it != m_p->exec_map.end(); it++)
     {
-        if (it->path.compare(path_info) == 0)
+        if (strncmp(it->path.c_str(), path_cstr, it->path.length()) == 0)
         {
-            int r;
-            pid_t pid;
-            int status;
             int fds[2];
-
-            r = pipe(fds);
+            int r = pipe(fds);
             if (r == -1)
             {
                 zgdu_res = odr.create_HTTP_Response(
-                    package.session(), zgdu_req->u.HTTP_Request, 400);
+                    package.session(), hreq, 400);
                 package.response() = zgdu_res;
                 continue;
             }
-            pid = ::fork();
+            int status;
+            pid_t pid = ::fork();
             switch (pid)
             {
             case 0: /* child */
                 close(1);
                 dup(fds[1]);
-                setenv("PATH_INFO", path_info.c_str(), 1);
-                setenv("QUERY_STRING", query_string.c_str(), 1);
-                r = execl(it->program.c_str(), it->program.c_str(), (char *) 0);
-                if (r == -1)
-                    exit(1);
-                exit(0);
+                m_p->child(hreq, &(*it));
                 break;
             case -1: /* error */
                 close(fds[0]);
                 close(fds[1]);
                 zgdu_res = odr.create_HTTP_Response(
-                    package.session(), zgdu_req->u.HTTP_Request, 400);
+                    package.session(), hreq, 400);
                 package.response() = zgdu_res;
                 break;
             default: /* parent */
@@ -191,6 +237,7 @@ void yf::CGI::process(mp::Package &package) const
 
 void yf::CGI::configure(const xmlNode *ptr, bool test_only, const char *path)
 {
+    yaz_log(YLOG_LOG, "cgi::configure path=%s", path);
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
         if (ptr->type != XML_ELEMENT_NODE)
@@ -214,6 +261,30 @@ void yf::CGI::configure(const xmlNode *ptr, bool test_only, const char *path)
             }
             m_p->exec_map.push_back(exec);
         }
+        else if (!strcmp((const char *) ptr->name, "env"))
+        {
+            std::string name, value;
+
+            const struct _xmlAttr *attr;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name,  "name"))
+                    name = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "value"))
+                    value = mp::xml::get_text(attr->children);
+                else
+                    throw mp::filter::FilterException
+                        ("Bad attribute "
+                         + std::string((const char *) attr->name)
+                         + " in cgi section");
+            }
+            if (name.length() > 0)
+                m_p->env_map[name] = value;
+        }
+        else if (!strcmp((const char *) ptr->name, "documentroot"))
+        {
+            m_p->documentroot = path;
+        }
         else
         {
             throw mp::filter::FilterException("Bad element "
@@ -221,6 +292,8 @@ void yf::CGI::configure(const xmlNode *ptr, bool test_only, const char *path)
                                                              ptr->name));
         }
     }
+    if (m_p->documentroot.length() == 0)
+        m_p->documentroot = ".";
 }
 
 static mp::filter::Base* filter_creator()
