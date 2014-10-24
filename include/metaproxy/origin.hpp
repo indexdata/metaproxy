@@ -48,6 +48,9 @@ namespace metaproxy_1 {
         /// get tcpip address
         std::string get_address();
 
+        /// get tcpip address
+        std::string get_bind_address();
+
         void set_custom_session(const std::string &s);
     private:
         friend std::ostream&

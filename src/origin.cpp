@@ -17,6 +17,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "config.hpp"
+#include <assert.h>
 #include <metaproxy/origin.hpp>
 #include <yaz/log.h>
 #include <iostream>
@@ -39,7 +40,7 @@ int mp::Origin::get_max_sockets()
 
 void mp::Origin::set_tcpip_address(std::string addr, unsigned long s)
 {
-    // assume first call is immediate reverse IP: cs_addrstr(COMSTACK)
+    // assume first call is immediate reverse IP: + bind IP
     // 2nd call might be X-Forwarded .. we use that for logging
     std::string tmp = m_address;
     m_address = addr;
@@ -47,6 +48,11 @@ void mp::Origin::set_tcpip_address(std::string addr, unsigned long s)
     {
         m_address.append(" ");
         m_address.append(tmp);
+    }
+    else
+    {
+        size_t pos = addr.find(' ');
+        assert (pos != std::string::npos);
     }
     m_origin_id = s;
 }
@@ -69,13 +75,32 @@ std::string mp::Origin::get_forward_address() const
 
 std::string mp::Origin::get_address()
 {
-    // return last component of address
-    size_t pos = m_address.rfind(' ');
-    if (pos != std::string::npos)
-        return m_address.substr(pos + 1);
+    // return 2nd last component of address (last is listening IP)
+    size_t pos2 = m_address.rfind(' ');
+    if (pos2 != std::string::npos && pos2 > 0)
+    {
+        size_t pos1 = m_address.rfind(' ', pos2 - 1);
+        if (pos1 != std::string::npos)
+            return m_address.substr(pos1 + 1, pos2 - pos1 - 1);
+        else
+            return m_address.substr(0, pos2);
+    }
     else
         return m_address;
 }
+
+std::string mp::Origin::get_bind_address()
+{
+    // return last component of address
+    size_t pos2 = m_address.rfind(' ');
+    if (pos2 != std::string::npos && pos2 > 0)
+    {
+        return m_address.substr(pos2 + 1);
+    }
+    else
+        return m_address;
+}
+
 
 std::ostream& std::operator<<(std::ostream& os, const mp::Origin& o)
 {

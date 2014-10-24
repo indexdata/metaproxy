@@ -90,10 +90,10 @@ namespace metaproxy_1 {
             ZAssocChild(yazpp_1::IPDU_Observable *the_PDU_Observable,
                         mp::ThreadPoolSocketObserver *m_thread_pool_observer,
                         const mp::Package *package,
-                        std::string route,
+                        Port *port,
                         Rep *rep);
             int m_no_requests;
-            std::string m_route;
+            Port *m_port;
         private:
             yazpp_1::IPDU_Observer* sessionNotify(
                 yazpp_1::IPDU_Observable *the_PDU_Observable,
@@ -130,7 +130,7 @@ namespace metaproxy_1 {
         public:
             ~ZAssocServer();
             ZAssocServer(yazpp_1::IPDU_Observable *PDU_Observable,
-                         std::string route,
+                         FrontendNet::Port *port,
                          Rep *rep);
             void set_package(const mp::Package *package);
             void set_thread_pool(ThreadPoolSocketObserver *observer);
@@ -147,7 +147,7 @@ namespace metaproxy_1 {
             mp::ThreadPoolSocketObserver *m_thread_pool_observer;
             const mp::Package *m_package;
             yazpp_1::LimitConnect limit_connect;
-            std::string m_route;
+            Port *m_port;
             Rep *m_p;
         };
     }
@@ -259,7 +259,7 @@ void yf::FrontendNet::ThreadPoolPackage::result(const char *t_info)
 
 mp::IThreadPoolMsg *yf::FrontendNet::ThreadPoolPackage::handle()
 {
-    m_package->move(m_assoc_child->m_route);
+    m_package->move(m_assoc_child->m_port->route);
     return this;
 }
 
@@ -267,14 +267,14 @@ yf::FrontendNet::ZAssocChild::ZAssocChild(
     yazpp_1::IPDU_Observable *PDU_Observable,
     mp::ThreadPoolSocketObserver *my_thread_pool,
     const mp::Package *package,
-    std::string route, Rep *rep)
+    Port *port, Rep *rep)
     :  Z_Assoc(PDU_Observable), m_p(rep)
 {
     m_thread_pool_observer = my_thread_pool;
     m_no_requests = 0;
     m_delete_flag = false;
     m_package = package;
-    m_route = route;
+    m_port = port;
     const char *peername = PDU_Observable->getpeername();
     if (!peername)
         peername = "unknown";
@@ -284,7 +284,11 @@ yf::FrontendNet::ZAssocChild::ZAssocChild(
         if (cp)
             peername = cp + 1;
     }
-    m_origin.set_tcpip_address(std::string(peername), m_session.id());
+    std::string addr;
+    addr.append(peername);
+    addr.append(" ");
+    addr.append(port->port);
+    m_origin.set_tcpip_address(addr, m_session.id());
     timeout(m_p->m_session_timeout);
 }
 
@@ -437,10 +441,10 @@ void yf::FrontendNet::ZAssocChild::connectNotify()
 
 yf::FrontendNet::ZAssocServer::ZAssocServer(
     yazpp_1::IPDU_Observable *PDU_Observable,
-    std::string route,
+    Port *port,
     Rep *rep)
     :
-    Z_Assoc(PDU_Observable), m_route(route), m_p(rep)
+    Z_Assoc(PDU_Observable), m_port(port), m_p(rep)
 {
     m_package = 0;
 }
@@ -472,7 +476,7 @@ yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocServer::sessionNotify(
     }
     ZAssocChild *my = new ZAssocChild(the_PDU_Observable,
                                       m_thread_pool_observer,
-                                      m_package, m_route, m_p);
+                                      m_package, m_port, m_p);
     return my;
 }
 
@@ -752,7 +756,7 @@ void yf::FrontendNet::set_ports(std::vector<Port> &ports)
         // create ZAssoc with PDU Assoc
         m_p->pdu[i] = as;
         m_p->az[i] = new yf::FrontendNet::ZAssocServer(
-            as, m_p->m_ports[i].route, m_p.get());
+            as, &m_p->m_ports[i], m_p.get());
         if (m_p->az[i]->server(m_p->m_ports[i].port.c_str()))
         {
             throw yf::FilterException("Unable to bind to address "

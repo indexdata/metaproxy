@@ -1,26 +1,14 @@
 <?xml version="1.0"?>
 <metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
-  <!-- Z39.50 proxy which relays to target specified in Init otherinfo
-  (VAL_RPOXY). If no target is given, it relays to target
-  z3950.indexdata.dk -->
   <start route="start"/>
-  <filters>
-    <filter id="frontend" type="frontend_net">
-      <threads>10</threads>
-      <port>@:9000</port>
-      <message>FN</message>
-    </filter>
-    <filter id="backend" type="z3950_client">
-     <timeout>30</timeout>
-     <default_target>localhost:9999</default_target>
-     <force_close>true</force_close>
-     <client_ip>true</client_ip>
-     <charset>utf-8</charset>
-    </filter>
-  </filters>
   <routes>
     <route id="start">
-      <filter refid="frontend"/>
+      <filter type="frontend_net">
+	<threads>10</threads>
+	<port>127.0.0.2:9000</port>
+	<port>127.0.0.1:9000</port>
+	<message>FN</message>
+      </filter>
       <filter type="cql_rpn">
          <conversion file="cql2pqf.txt" reverse="true"/>
       </filter>
@@ -31,7 +19,19 @@
       <filter type="present_chunk">
         <chunk>2</chunk>
       </filter>
-      <filter refid="backend"/>
+      <filter type="z3950_client">
+	<timeout>30</timeout>
+	<default_target>127.0.0.1:9999</default_target>
+	<force_close>true</force_close>
+	<client_ip>true</client_ip>
+	<charset>utf-8</charset>
+	<bind_host>true</bind_host>
+      </filter>
+      <filter type="http_client">
+	<default-host>http://127.0.0.1:9999</default-host>
+        <x-forwarded-for>true</x-forwarded-for>
+	<bind_host>true</bind_host>
+      </filter>
       <filter type="bounce"/>
     </route>
   </routes>

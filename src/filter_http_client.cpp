@@ -52,6 +52,7 @@ namespace metaproxy_1 {
             std::string default_host;
             int max_redirects;
             bool x_forwarded_for;
+            bool bind_host;
             Rep();
         };
     }
@@ -61,6 +62,7 @@ yf::HTTPClient::Rep::Rep()
 {
     max_redirects = 0;
     x_forwarded_for = false;
+    bind_host = false;
 }
 
 yf::HTTPClient::HTTPClient() : m_p(new Rep)
@@ -114,6 +116,14 @@ void yf::HTTPClient::Rep::proxy(mp::Package &package)
         }
         else
             uri = hreq->path;
+
+
+        if (bind_host)
+        {
+            std::string host = package.origin().get_bind_address();
+            uri.append(" ");
+            uri.append(host);
+        }
         Z_HTTP_Response *http_response = 0;
         if (uri.length())
             http_response =
@@ -177,6 +187,10 @@ void mp::filter::HTTPClient::configure(const xmlNode * ptr, bool test_only,
         else if (!strcmp((const char *) ptr->name, "x-forwarded-for"))
         {
             m_p->x_forwarded_for = mp::xml::get_bool(ptr, 0);
+        }
+        else if (!strcmp((const char *) ptr->name, "bind_host"))
+        {
+            m_p->bind_host = mp::xml::get_bool(ptr, 0);
         }
         else
         {

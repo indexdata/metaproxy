@@ -86,6 +86,7 @@ namespace metaproxy_1 {
             int m_max_sockets;
             bool m_force_close;
             bool m_client_ip;
+            bool m_bind_host;
             std::string m_charset;
             std::string m_default_target;
             std::string m_force_target;
@@ -301,6 +302,7 @@ yf::Z3950Client::Z3950Client() :  m_p(new yf::Z3950Client::Rep)
     m_p->m_max_sockets = 0;
     m_p->m_force_close = false;
     m_p->m_client_ip = false;
+    m_p->m_bind_host = false;
 }
 
 yf::Z3950Client::~Z3950Client() {
@@ -527,7 +529,18 @@ void yf::Z3950Client::Rep::send_and_receive(Package &package,
     c->m_waiting = true;
     if (!c->m_connected)
     {
-        if (c->client(c->m_host.c_str()))
+        std::string host(c->m_host);
+
+        if (m_bind_host)
+        {
+            std::string bind_host = package.origin().get_bind_address();
+            if (bind_host.length())
+            {
+                host.append(" ");
+                host.append(bind_host);
+            }
+        }
+        if (c->client(host.c_str()))
         {
             mp::odr odr;
             package.response() =
@@ -663,6 +676,10 @@ void yf::Z3950Client::configure(const xmlNode *ptr, bool test_only,
         else if (!strcmp((const char *) ptr->name, "charset"))
         {
             m_p->m_charset = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name, "bind_host"))
+        {
+            m_p->m_bind_host = mp::xml::get_bool(ptr, 0);
         }
         else
         {
