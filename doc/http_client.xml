@@ -23,7 +23,7 @@
 
  <refsect1><title>DESCRIPTION</title>
   <para>
-   This module implements HTTP client functionality. Filter rontend_net
+   This module implements HTTP client functionality. Filter frontend_net
    + http_client in combo - acts as a normal, non-transparent, proxy.
   </para>
   <para>
@@ -34,6 +34,49 @@
   <para>
    The configuration element, proxy, is optional and enables a remote
    HTTP proxy to be in use.
+  </para>
+  <para>
+   <variablelist>
+    <varlistentry><term>default-host</term>
+    <listitem>
+     <para>
+      Specifies host for transparant proxy mode.
+     </para>
+    </listitem>
+    </varlistentry>
+    <varlistentry><term>max-redirects</term>
+     <listitem>
+      <para>
+       Maximum number of HTTP redirects. Default value is 0 (HTTP redirect
+       disabled).
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>proxy</term>
+     <listitem>
+      <para>
+       Specifies HTTP proxy for outgoing connections.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>x-forwarded-for</term>
+     <listitem>
+      <para>
+       Is a boolean value (false, true). If true, the peer
+       IP address as seen in frontend_net will be added to
+       x-forwarded HTTP header.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>bind_host</term>
+     <listitem>
+      <para>
+       Is a boolean value (false, true). If true, the out going
+       TCP connection will be bound to the same as listening IP.
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
   </para>
  </refsect1>
 

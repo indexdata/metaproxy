@@ -75,6 +75,23 @@
       </para>
      </listitem>
     </varlistentry>
+    <varlistentry><term>charset</term>
+     <listitem>
+      <para>
+       If set, holds Z39.50 negotiation charset (encoding) that is
+       sent via the Initialize Request. If Initalize Request already
+       contains negotaition information it will be left un-modified.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>bind_host</term>
+     <listitem>
+      <para>
+       Is a boolean value (false, true). If true, the out going
+       TCP connection will be bound to the same as listening IP.
+      </para>
+     </listitem>
+    </varlistentry>
    </variablelist>
   </para>
  </refsect1>
