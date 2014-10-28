@@ -1,3 +1,8 @@
+--- 1.7.0 2014/10/28
+
+Add support for binding outgoing IP for http_client and z3950_client
+This is enabled by bind_host setting. MP-575
+
 --- 1.6.0 2014/10/21
 
 z3950_client: allows negotiation charset to be set MP-574
