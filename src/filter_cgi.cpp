@@ -138,16 +138,11 @@ void yf::CGI::process(mp::Package &package) const
     Z_GDU *zgdu_req = package.request().get();
     Z_GDU *zgdu_res = 0;
 
-    if (!zgdu_req)
-        return;
-
-    if (zgdu_req->which != Z_GDU_HTTP_Request)
+    if (!zgdu_req || zgdu_req->which != Z_GDU_HTTP_Request)
     {
         package.move();
         return;
     }
-
-
     std::list<CGI::Exec>::const_iterator it;
     metaproxy_1::odr odr;
     Z_HTTP_Request *hreq = zgdu_req->u.HTTP_Request;
