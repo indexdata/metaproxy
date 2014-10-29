@@ -24,8 +24,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/log.h>
 
 #include <unistd.h>
+#include <fcntl.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <yaz/poll.h>
 #include <sstream>
 
 #include "config.hpp"
@@ -110,6 +112,15 @@ void yf::CGI::Rep::child(Z_HTTP_Request *hreq, const CGI::Exec *it)
         setenv("HTTP_ACCEPT_ENCODING", v, 1);
     setenv("DOCUMENT_ROOT", documentroot.c_str(), 1);
     setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
+
+    v = z_HTTP_header_lookup(hreq->headers, "Content-Type");
+    if (v)
+    {
+        char tmp[40];
+        sprintf(tmp, "%d", hreq->content_len);
+        setenv("CONTENT_LENGTH", tmp, 1);
+        setenv("CONTENT_TYPE", v, 1);
+    }
     // apply user-defined environment
     std::map<std::string,std::string>::const_iterator it_e;
     for (it_e = env_map.begin();
@@ -151,8 +162,8 @@ void yf::CGI::process(mp::Package &package) const
     {
         if (strncmp(it->path.c_str(), path_cstr, it->path.length()) == 0)
         {
-            int fds[2];
-            int r = pipe(fds);
+            int fds_response[2];
+            int r = pipe(fds_response);
             if (r == -1)
             {
                 zgdu_res = odr.create_HTTP_Response(
@@ -160,24 +171,45 @@ void yf::CGI::process(mp::Package &package) const
                 package.response() = zgdu_res;
                 continue;
             }
+            int fds_request[2];
+            r = pipe(fds_request);
+            if (r == -1)
+            {
+                zgdu_res = odr.create_HTTP_Response(
+                    package.session(), hreq, 400);
+                package.response() = zgdu_res;
+                close(fds_response[0]);
+                close(fds_response[1]);
+                continue;
+            }
+
             int status;
             pid_t pid = ::fork();
             switch (pid)
             {
             case 0: /* child */
+                /* POSTed content */
+                close(0);
+                dup(fds_request[0]);
+                close(fds_request[1]);
+                /* response */
                 close(1);
-                dup(fds[1]);
+                close(fds_response[0]);
+                dup(fds_response[1]);
                 m_p->child(hreq, &(*it));
                 break;
             case -1: /* error */
-                close(fds[0]);
-                close(fds[1]);
+                close(fds_request[0]);
+                close(fds_request[1]);
+                close(fds_response[0]);
+                close(fds_response[1]);
                 zgdu_res = odr.create_HTTP_Response(
                     package.session(), hreq, 400);
                 package.response() = zgdu_res;
                 break;
             default: /* parent */
-                close(fds[1]);
+                close(fds_response[1]);
+                close(fds_request[0]);
                 if (pid)
                 {
                     boost::mutex::scoped_lock lock(m_p->m_mutex);
@@ -185,15 +217,44 @@ void yf::CGI::process(mp::Package &package) const
                 }
                 WRBUF w = wrbuf_alloc();
                 wrbuf_puts(w, "HTTP/1.1 200 OK\r\n");
+                fcntl(fds_response[0], F_SETFL, O_NONBLOCK);
+                fcntl(fds_request[1], F_SETFL, O_NONBLOCK);
+                int no_write = 0;
                 while (1)
                 {
-                    char buf[512];
-                    ssize_t rd = read(fds[0], buf, sizeof buf);
-                    if (rd <= 0)
+                    int num = 1;
+                    struct yaz_poll_fd fds[2];
+                    fds[0].fd = fds_response[0];
+                    fds[0].input_mask = yaz_poll_read;
+                    if (no_write < hreq->content_len)
+                    {
+                        fds[1].fd = fds_request[1];
+                        fds[1].input_mask = yaz_poll_write;
+                        num = 2;
+                    }
+                    int r = yaz_poll(fds, num, 60, 0);
+                    if (r <= 0)
                         break;
-                    wrbuf_write(w, buf, rd);
+                    if (fds[0].output_mask & (yaz_poll_read|yaz_poll_except))
+                    {
+                        char buf[512];
+                        ssize_t rd = read(fds_response[0], buf, sizeof buf);
+                        if (rd <= 0)
+                            break;
+                        wrbuf_write(w, buf, rd);
+                    }
+                    if (num == 2 && fds[1].output_mask & yaz_poll_write)
+                    {
+                        ssize_t wd = write(fds_request[1],
+                                           hreq->content_buf + no_write,
+                                           hreq->content_len - no_write);
+                        if (wd <= 0)
+                            break;
+                        no_write += wd;
+                    }
                 }
-                close(fds[0]);
+                close(fds_request[1]);
+                close(fds_response[0]);
                 waitpid(pid, &status, 0);
 
                 if (pid)
