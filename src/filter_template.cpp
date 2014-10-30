@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
 
+#include <boost/scoped_ptr.hpp>
 #include <boost/thread/mutex.hpp>
 
 #include <yaz/zgdu.h>
@@ -30,10 +31,10 @@ namespace yf = mp::filter;
 
 namespace metaproxy_1 {
     namespace filter {
-        class Template::Impl {
+        class Template : public Base {
         public:
-            Impl();
-            ~Impl();
+            Template();
+            ~Template();
             void process(metaproxy_1::Package & package) const;
             void configure(const xmlNode * ptr, bool test_only,
                            const char *path);
@@ -43,49 +44,21 @@ namespace metaproxy_1 {
     }
 }
 
-// define Pimpl wrapper forwarding to Impl
-
-yf::Template::Template() : m_p(new Impl)
+yf::Template::Template()
 {
 }
 
 yf::Template::~Template()
-{  // must have a destructor because of boost::scoped_ptr
+{
 }
 
 void yf::Template::configure(const xmlNode *xmlnode, bool test_only,
                              const char *path)
 {
-    m_p->configure(xmlnode, test_only, path);
 }
 
 void yf::Template::process(mp::Package &package) const
 {
-    m_p->process(package);
-}
-
-
-// define Implementation stuff
-
-
-
-yf::Template::Impl::Impl()
-{
-    m_dummy = 1;
-}
-
-yf::Template::Impl::~Impl()
-{
-}
-
-void yf::Template::Impl::configure(const xmlNode *xmlnode, bool test_only,
-                                   const char *path)
-{
-}
-
-void yf::Template::Impl::process(mp::Package &package) const
-{
-    // Z_GDU *gdu = package.request().get();
     package.move();
 }
 

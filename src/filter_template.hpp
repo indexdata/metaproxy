@@ -20,24 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef FILTER_TEMPLATE_HPP
 #define FILTER_TEMPLATE_HPP
 
-#include <boost/scoped_ptr.hpp>
-
 #include <metaproxy/filter.hpp>
-
-namespace metaproxy_1 {
-    namespace filter {
-        class Template : public Base {
-            class Impl;
-            boost::scoped_ptr<Impl> m_p;
-        public:
-            Template();
-            ~Template();
-            void process(metaproxy_1::Package & package) const;
-            void configure(const xmlNode * ptr, bool test_only,
-                           const char *path);
-        };
-    }
-}
 
 extern "C" {
     extern struct metaproxy_1_filter_struct metaproxy_1_filter_template;
