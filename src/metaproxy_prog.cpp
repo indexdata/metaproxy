@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/daemon.h>
 
 #include <yaz/sc.h>
+#include <yaz/backtrace.h>
 #include <iostream>
 #include <stdexcept>
 #include <libxml/xinclude.h>
@@ -123,6 +124,7 @@ static int sc_main(
     const char *pidfile = 0;
     const char *uid = 0;
 
+    yaz_enable_panic_backtrace(argv[0]);
     set_log_prefix();
 
     while ((ret = options("c{config}:Dh{help}l:m:p:tu:v:V{version}w:X",
