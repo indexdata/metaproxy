@@ -1,3 +1,16 @@
+--- 1.7.1 2014/12/02
+
+Use YAZ backtrace facility MP-582
+
+Fix libmetaproxy-dev depends on libgnutls-dev - MP-580
+libgnutls-dev is unavailable on jessie.
+
+Update template filter to avoid Pimpl MP-579
+
+cgi: POSTed content - part of MP-562
+
+Fix filter cgi does not relay session close MP-577
+
 --- 1.7.0 2014/10/28
 
 Add support for binding outgoing IP for http_client and z3950_client
