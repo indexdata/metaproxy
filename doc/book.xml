@@ -165,8 +165,8 @@
   </para>
   <para>
    We have successfully built Metaproxy using the compilers
-   <ulink url="&url.gcc;">GCC</ulink> version 4.0 and
-   <ulink url="&url.vstudio;">Microsoft Visual Studio</ulink> 2003/2005/2008.
+   <ulink url="&url.gcc;">GCC</ulink> and
+   <ulink url="&url.vstudio;">Microsoft Visual Studio</ulink>.
   </para>
 
   <para>
@@ -371,7 +371,8 @@
    <para>
     Metaproxy can be compiled with Microsoft
     <ulink url="&url.vstudio;">Visual Studio</ulink>.
-    Versions 2003 (C 7.1), 2005 (C 8.0) and 2008 (C 9.0) are known to work.
+    Versions 2003 (C 7.1), 2005 (C 8.0), 2008 (C 9.0) and 2013 (C 12.0)
+    are known to work.
    </para>
    <section id="installation.windows.boost">
     <title>Boost</title>
@@ -395,12 +396,10 @@
     <para>
      <ulink url="&url.libxslt;">Libxslt</ulink> can be downloaded
      for Windows from
-     <ulink url="&url.libxml2.download.win32;">here</ulink>.
+     <ulink url="&url.libxml2.download.windows;">here</ulink>.
     </para>
     <para>
-     Libxslt has other dependencies, but these can all be downloaded
-     from the same site. Get the following package:
-     iconv, zlib, libxml2, libxslt.
+     Libxslt also requires libxml2 to operate.
     </para>
    </section>
 
