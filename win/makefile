@@ -15,17 +15,15 @@ YAZ_DIR=..\..\yaz
 YAZPP_DIR=..\..\yazpp
 
 # Boost
-BOOST=\local\boost_1_55_0
-BOOST_VERSION=1_55
-BOOST_LIBPATH=$(BOOST)\lib32-msvc-9.0
-BOOST_TOOLSET=vc90 # vc90 for VS2008, vc80 for VS 2005, vc71 for 2003
+BOOST=\local\boost_1_57_0
+BOOST_VERSION=1_57
+BOOST_LIBPATH=$(BOOST)\lib32-msvc-12.0
+BOOST_TOOLSET=vc120 # vs120 for VS2013, vc90 for VS2008, vc80 for VS 2005
 BOOST_MODEL=mt
 
 # libxml2 + libxslt + associates
-ZLIB_DIR=\zlib-1.2.3.win32
-ICONV_DIR=\iconv-1.9.2.win32
-LIBXML2_DIR=\libxml2-2.7.6.win32
-LIBXSLT_DIR=\libxslt-1.1.26.win32
+LIBXML2_DIR=\libxml2-2.9.2.win32
+LIBXSLT_DIR=\libxslt-1.1.28.win32
 
 # The targets
 
@@ -104,11 +102,9 @@ $(BINDIR)\$(YAZPPD).dll: "$(YAZPP_DIR)\bin\$(YAZPPD).dll"
 # Copy libxslt and associates to our bin directory
 libxslt: $(BINDIR)\libxslt.dll
 
-$(BINDIR)\libxslt.dll: "$(LIBXSLT_DIR)\bin\libxslt.dll"
-	copy "$(ICONV_DIR)\bin\iconv.dll" $(BINDIR)
-	copy "$(ZLIB_DIR)\bin\zlib1.dll" $(BINDIR)
+$(BINDIR)\libxslt.dll: "$(LIBXSLT_DIR)\lib\libxslt.dll"
 	copy "$(LIBXML2_DIR)\bin\libxml2.dll" $(BINDIR)
-	copy "$(LIBXSLT_DIR)\bin\libxslt.dll" $(BINDIR)
+	copy "$(LIBXSLT_DIR)\lib\libxslt.dll" $(BINDIR)
 
 config: $(SRCDIR)\config.hpp
 
@@ -131,12 +127,10 @@ BOOST_LIB = \
     "libboost_date_time-$(BOOST_LIB_SUFFIX)" 
 
 LIBXSLT_DEF = \
-	      /I"$(ICONV_DIR)\include" \
-	      /I"$(LIBXML2_DIR)\include" \
+	      /I"$(LIBXML2_DIR)\include\libxml2" \
 	      /I"$(LIBXSLT_DIR)\include"
 
 LIBXSLT_LIB = \
-    "$(ICONV_DIR)\lib\iconv.lib" \
     "$(LIBXML2_DIR)\lib\libxml2.lib" \
     "$(LIBXSLT_DIR)\lib\libxslt.lib"
 
