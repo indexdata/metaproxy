@@ -369,10 +369,9 @@
   <section id="installation.windows">
    <title>Installation on Windows</title>
    <para>
-    Metaproxy can be compiled with Microsoft
+    Metaproxy has been tested Microsoft
     <ulink url="&url.vstudio;">Visual Studio</ulink>.
-    Versions 2003 (C 7.1), 2005 (C 8.0), 2008 (C 9.0) and 2013 (C 12.0)
-    are known to work.
+    2013 (C 12.0).
    </para>
    <section id="installation.windows.boost">
     <title>Boost</title>
@@ -416,7 +415,7 @@
     <title>YAZ++</title>
     <para>
      Get <ulink url="&url.yazplusplus;">YAZ++</ulink> as well.
-     Version 1.5.2 or later is required.
+     Version 1.6.0 or later is required.
     </para>
     <para>
      YAZ++ includes NMAKE makefiles, similar to those found in the
