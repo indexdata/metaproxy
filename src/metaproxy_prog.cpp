@@ -263,6 +263,7 @@ static int sc_main(
             yaz_daemon("metaproxy", mode, mode == YAZ_DAEMON_DEBUG ?
                        work_debug : work_normal, router, pidfile, uid);
         }
+        delete router;
     }
     catch (std::logic_error &e) {
         yaz_log(YLOG_FATAL,"std::logic error: %s" , e.what() );
