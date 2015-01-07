@@ -491,6 +491,15 @@
    </listitem>
    </varlistentry>
 
+   <varlistentry>
+    <term id="zoom-torus-contentAuthentication">contentAuthentication</term><listitem>
+    <para>
+     Specifies authentication info to be passed to a content connector.
+     This is only used if content-user and content-password are omitted.
+    </para>
+   </listitem>
+   </varlistentry>
+
    <varlistentry id="zoom-torus-contentConnector">
     <term>contentConnector</term><listitem>
     <para>

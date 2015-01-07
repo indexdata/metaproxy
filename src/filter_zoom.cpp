@@ -62,6 +62,7 @@ namespace metaproxy_1 {
           public:
             std::string authentication;
             std::string authenticationMode;
+            std::string contentAuthentication;
             std::string cfAuth;
             std::string cfProxy;
             std::string cfSubDB;
@@ -592,6 +593,11 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
                          "authenticationMode"))
         {
             s->authenticationMode = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name,
+                         "contentAuthentication"))
+        {
+            s->contentAuthentication = mp::xml::get_text(ptr);
         }
         else if (!strcmp((const char *) ptr->name,
                          "cfAuth"))
@@ -1459,6 +1465,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         b->set_option("count", "1"); /* some SRU servers INSIST on getting
                                         maximumRecords > 0 */
     b->set_option("piggyback", sptr->piggyback ? "1" : "0");
+
+    if (content_authentication.length() == 0)
+        content_authentication = sptr->contentAuthentication;
 
     if (authentication.length() == 0)
         authentication = sptr->authentication;

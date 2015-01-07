@@ -31,6 +31,7 @@ filter_zoom =
         element mp:cclmap_su { xsd:string }?,
         element mp:cclmap_term { xsd:string }?,
         element mp:cclmap_ti { xsd:string }?,
+        element mp:contentAuthentication { xsd:string }?,
         element mp:elementSet { xsd:string }?,
         element mp:recordEncoding { xsd:string }?,
         element mp:requestSyntax { xsd:string }?,
