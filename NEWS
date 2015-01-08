@@ -1,3 +1,7 @@
+--- 1.8.0 2015/01/08
+
+zoom: handle contentAuthentication MP-587
+
 --- 1.7.2 2014/12/16
 
 Destroy router and filters in parent process MP-584
