@@ -2103,7 +2103,7 @@ static bool wait_conn(COMSTACK cs, int secs)
     struct yaz_poll_fd pfd;
 
     yaz_poll_add(pfd.input_mask, yaz_poll_except);
-    if (cs->io_pending && CS_WANT_WRITE)
+    if (cs->io_pending & CS_WANT_WRITE)
         yaz_poll_add(pfd.input_mask, yaz_poll_write);
     if (cs->io_pending & CS_WANT_READ)
         yaz_poll_add(pfd.input_mask, yaz_poll_read);
