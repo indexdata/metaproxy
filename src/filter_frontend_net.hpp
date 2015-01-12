@@ -35,7 +35,6 @@ namespace metaproxy_1 {
             class ZAssocChild;
             class ThreadPoolPackage;
             class My_Timer_Thread;
-            class ThreadPoolPackage;
             boost::scoped_ptr<Rep> m_p;
         public:
             FrontendNet();
