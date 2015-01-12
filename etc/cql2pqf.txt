@@ -27,7 +27,7 @@ index.cql.all = 1=1010
 index.rec.id = 1=12 4=3 
 index.dc.title = 1=4 
 index.dc.creator = 1=1003 
-index.dc.subject = 1=47 
+index.dc.subject = 1=21 
 index.dc.description = 1=62 
 index.dc.publisher = 1=1018 
 index.dc.contributor = 1=1003 
