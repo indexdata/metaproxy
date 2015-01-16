@@ -52,6 +52,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/tokenizer.h>
 #include <yaz/zoom.h>
 #include <yaz/otherinfo.h>
+#include <yaz/match_glob.h>
 
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
@@ -221,6 +222,7 @@ namespace metaproxy_1 {
             std::string torus_searchable_url;
             std::string torus_content_url;
             std::string torus_auth_url;
+            std::string torus_allow_ip;
             std::string default_realm;
             std::string torus_auth_hostname;
             std::map<std::string,std::string> fieldmap;
@@ -791,6 +793,8 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                     torus_content_url = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "auth_url"))
                     torus_auth_url = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "allow_ip"))
+                    torus_allow_ip = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "realm"))
                     default_realm = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "auth_hostname"))
@@ -2651,13 +2655,31 @@ void yf::Zoom::Frontend::auth(mp::Package &package, Z_InitRequest *req,
     }
 
     Z_OtherInformation **oi = &req->otherInfo;
-    const char *ip =
+    const char *ip_cstr =
         yaz_oi_get_string_oid(oi, yaz_oid_userinfo_client_ip, 1, 0);
-    if (!ip)
-        ip = package.origin().get_address().c_str();
+    std::string ip;
+    if (ip_cstr)
+        ip = ip_cstr;
+    else
+        ip = package.origin().get_address();
 
-    yaz_log(YLOG_LOG, "IP=%s", ip);
+    yaz_log(YLOG_LOG, "IP=%s", ip.c_str());
 
+    {
+        NMEM nmem = nmem_create();
+        char **darray;
+        int i, num;
+        nmem_strsplit_blank(nmem, m_p->torus_allow_ip.c_str(), &darray, &num);
+        for (i = 0; i < num; i++)
+        {
+            yaz_log(YLOG_LOG, "check against %s+%s", darray[i], ip.c_str());
+            if (yaz_match_glob(darray[i], ip.c_str()))
+                break;
+        }
+        nmem_destroy(nmem);
+        if (i < num)
+            return;  /* allow this IP */
+    }
     std::string torus_query;
     int failure_code;
 
