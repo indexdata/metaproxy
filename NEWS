@@ -1,3 +1,16 @@
+--- 1.8.1 2015/01/19
+
+Fix double free in log filter (with incorrect config) MP-589
+
+zoom: Add allow_ip feature - fixes MP-588
+Allow a list of IPs to be given separated by blanks
+<allow auth_url="http://mkc-admin.indexdata.com/..."
+   allow_ip="127.0.0.1 ::1" .. >
+
+cql2pqf.txt: Maps dc.subject to Bib-1 21 rather than 47
+
+zoom: fix CS write-check
+
 --- 1.8.0 2015/01/08
 
 zoom: handle contentAuthentication MP-587
