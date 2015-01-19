@@ -72,11 +72,6 @@ namespace metaproxy_1 {
             bool m_init_options;
             LFilePtr m_file;
             std::string m_time_format;
-            // Only used during confiqgure stage (no threading),
-            // for performance avoid opening files which other log filter
-            // instances already have opened
-            static std::list<LFilePtr> filter_log_files;
-
             boost::mutex m_session_mutex;
             std::map<mp::Session, std::string> m_sessions;
        };
@@ -93,7 +88,7 @@ namespace metaproxy_1 {
                      std::ostringstream &os);
             void flush();
         };
-
+        static std::list<yf::Log::Impl::LFilePtr> filter_log_files;
     }
 }
 
@@ -121,10 +116,6 @@ void yf::Log::process(mp::Package &package) const
 {
     m_p->process(package);
 }
-
-
-// static initialization
-std::list<yf::Log::Impl::LFilePtr> yf::Log::Impl::filter_log_files;
 
 
 yf::Log::Impl::Impl(const std::string &x)
