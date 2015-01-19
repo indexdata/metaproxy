@@ -32,7 +32,7 @@ namespace metaproxy_1 {
         class Multi : public Base {
             class Rep;
             struct Frontend;
-            struct Map;
+            class Map;
             struct FrontendSet;
             struct Backend;
             struct BackendSet;
