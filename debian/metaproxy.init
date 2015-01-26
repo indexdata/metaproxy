@@ -88,7 +88,8 @@ do_reload() {
 	# If the daemon can reload its configuration without
 	# restarting (for example, when it is sent a SIGHUP),
 	# then implement that here.
-	#
+	
+	$DAEMON -t $DAEMON_OPTS > /dev/null || return 2
 	start-stop-daemon --stop --signal USR1 --quiet --retry=5 --pidfile $PIDFILE --name $NAME
 	RETVAL="$?"
 	# Return if daemon could not be stopped
@@ -156,6 +157,10 @@ case "$1" in
 		log_end_msg 1
 		;;
 	esac
+	;;
+  checkconfig)
+	$DAEMON -t $DAEMON_OPTS > /dev/null || exit 2
+	exit 0
 	;;
   status)
 	status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?

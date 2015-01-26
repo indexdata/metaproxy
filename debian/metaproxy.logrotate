@@ -5,6 +5,12 @@
 	compress
 	delaycompress
 	notifempty
+	prerotate
+		if [ -f /var/run/metaproxy.pid ]; then
+			/etc/init.d/metaproxy checkconfig > /dev/null
+
+		fi
+	endscript
 	postrotate
 		if [ -f /var/run/metaproxy.pid ]; then
 			/etc/init.d/metaproxy force-reload > /dev/null
