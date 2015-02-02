@@ -1,3 +1,12 @@
+--- 1.8.2 2015/02/02
+
+Log rotate no longer reloads configuration - instead Metaproxy just
+re-opens log files when SIGHUP is received. MP-485
+
+Debian : init.d metaproxy reload should check configuration MP-591
+
+Fix Metaproxy stops logging after check config failed MP-590
+
 --- 1.8.1 2015/01/19
 
 Fix double free in log filter (with incorrect config) MP-589
