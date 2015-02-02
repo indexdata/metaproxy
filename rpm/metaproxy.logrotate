@@ -5,14 +5,10 @@
 	compress
 	delaycompress
 	notifempty
-	prerotate
-		if [ -f /var/run/metaproxy.pid ]; then
-			/sbin/service metaproxy configtest > /dev/null
-		fi
-	endscript
 	postrotate
 		if [ -f /var/run/metaproxy.pid ]; then
-			/sbin/service metaproxy reload > /dev/null
+			kill -HUP `cat /var/run/metaproxy.pid`
 		fi
 	endscript
+	create 644 metaproxy root
 }
