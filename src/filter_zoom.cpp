@@ -1140,8 +1140,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     else
         torus_db = database;
 
-    std::string authentication;
-    std::string content_authentication;
     std::string content_proxy;
     std::string realm = session_realm;
     if (realm.length() == 0)
@@ -1254,19 +1252,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         m_backend->connect("", error, addinfo, odr);
         return m_backend;
-    }
-
-    if (param_user)
-    {
-        authentication = std::string(param_user);
-        if (param_password)
-            authentication += "/" + std::string(param_password);
-    }
-    if (param_content_user)
-    {
-        content_authentication = std::string(param_content_user);
-        if (param_content_password)
-            content_authentication += "/" + std::string(param_content_password);
     }
 
     if (torus_db.compare("IR-Explain---1") == 0)
@@ -1470,11 +1455,20 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                                         maximumRecords > 0 */
     b->set_option("piggyback", sptr->piggyback ? "1" : "0");
 
-    if (content_authentication.length() == 0)
-        content_authentication = sptr->contentAuthentication;
-
-    if (authentication.length() == 0)
-        authentication = sptr->authentication;
+    std::string authentication = sptr->authentication;
+    if (param_user)
+    {
+        authentication = std::string(param_user);
+        if (param_password)
+            authentication += "/" + std::string(param_password);
+    }
+    std::string content_authentication = sptr->contentAuthentication;
+    if (param_content_user)
+    {
+        content_authentication = std::string(param_content_user);
+        if (param_content_password)
+            content_authentication += "/" + std::string(param_content_password);
+    }
 
     if (proxy.length() == 0)
         proxy = sptr->cfProxy;
@@ -1484,7 +1478,17 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         // A CF target
         b->set_option("user", sptr->cfAuth);
-        if (authentication.length())
+        if (param_user)
+        {
+            out_names[no_out_args] = "user";
+            out_values[no_out_args++] = odr_strdup(odr, param_user);
+            if (param_password)
+            {
+                out_names[no_out_args] = "password";
+                out_values[no_out_args++] = odr_strdup(odr, param_password);
+            }
+        }
+        else if (authentication.length())
         {
             size_t found = authentication.find('/');
             if (found != std::string::npos)
