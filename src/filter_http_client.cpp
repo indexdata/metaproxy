@@ -117,31 +117,37 @@ void yf::HTTPClient::Rep::proxy(mp::Package &package)
         else
             uri = hreq->path;
 
-
         if (bind_host)
         {
             std::string host = package.origin().get_bind_address();
             uri.append(" ");
             uri.append(host);
         }
-        Z_HTTP_Response *http_response = 0;
-        if (uri.length())
-            http_response =
-            yaz_url_exec(yaz_url, uri.c_str(), hreq->method,
-                         hreq->headers, hreq->content_buf,
-                         hreq->content_len);
-        if (http_response)
-        {
-            res_gdu = o.create_HTTP_Response(package.session(), hreq, 200);
-            z_HTTP_header_remove(&http_response->headers, "Transfer-Encoding");
-            res_gdu->u.HTTP_Response = http_response;
-        }
-        else
+        if (!uri.length())
         {
             res_gdu = o.create_HTTP_Response_details(
                 package.session(),
-                hreq, 502,
-                yaz_url_get_error(yaz_url));
+                hreq, 404,
+                "http_client: no target URI specified");
+        }
+        else
+        {
+            Z_HTTP_Response * http_response =
+                yaz_url_exec(yaz_url, uri.c_str(), hreq->method,
+                             hreq->headers, hreq->content_buf,
+                             hreq->content_len);
+            if (http_response)
+            {
+                res_gdu = o.create_HTTP_Response(package.session(), hreq, 200);
+                z_HTTP_header_remove(&http_response->headers, "Transfer-Encoding");
+                res_gdu->u.HTTP_Response = http_response;
+            }
+            else
+            {
+                res_gdu = o.create_HTTP_Response_details(
+                    package.session(),
+                    hreq, 502, yaz_url_get_error(yaz_url));
+            }
         }
         package.response() = res_gdu;
         yaz_url_destroy(yaz_url);
