@@ -93,7 +93,6 @@ namespace metaproxy_1 {
         class Zoom::Backend : boost::noncopyable {
             friend class Impl;
             friend class Frontend;
-            std::string zurl;
             mp::wrbuf m_apdu_wrbuf;
             ZOOM_connection m_connection;
             ZOOM_resultset m_resultset;
