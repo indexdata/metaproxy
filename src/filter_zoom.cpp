@@ -96,7 +96,6 @@ namespace metaproxy_1 {
             mp::wrbuf m_apdu_wrbuf;
             ZOOM_connection m_connection;
             ZOOM_resultset m_resultset;
-            std::string m_frontend_database;
             SearchablePtr sptr;
             xsltStylesheetPtr xsp;
             std::string cproxy_host;
@@ -127,6 +126,7 @@ namespace metaproxy_1 {
             bool m_is_virtual;
             bool m_in_use;
             std::string session_realm;
+            std::string m_frontend_database;
             yazpp_1::GDU m_init_gdu;
             BackendPtr m_backend;
             void handle_package(mp::Package &package);
@@ -1121,7 +1121,7 @@ void yf::Zoom::Frontend::get_backend_from_databases(
     std::string proxy;
 
     if (m_backend && !m_backend->enable_explain &&
-        m_backend->m_frontend_database == database)
+        m_frontend_database == database)
     {
         connection_reuse = true;
         proxy = m_backend->m_proxy;
@@ -1420,7 +1420,7 @@ void yf::Zoom::Frontend::get_backend_from_databases(
     b->cqlt = cqlt;
     b->sptr = sptr;
     b->xsp = xsp;
-    b->m_frontend_database = database;
+    m_frontend_database = database;
     b->enable_cproxy = param_nocproxy ? false : true;
 
     if (param_retry)
@@ -1692,7 +1692,7 @@ Z_Records *yf::Zoom::Frontend::get_explain_records(
 
         Z_NamePlusRecord *npr =
             (Z_NamePlusRecord *) odr_malloc(odr, sizeof(*npr));
-        npr->databaseName = odr_strdup(odr, b->m_frontend_database.c_str());
+        npr->databaseName = odr_strdup(odr, m_frontend_database.c_str());
         npr->which = Z_NamePlusRecord_databaseRecord;
         npr->u.databaseRecord =
             z_ext_record_xml(odr,
@@ -1790,8 +1790,7 @@ Z_Records *yf::Zoom::Frontend::get_records(mp::Package &package,
             xsl_parms[0] = 0;
         }
 
-        char *odr_database = odr_strdup(odr,
-                                        b->m_frontend_database.c_str());
+        char *odr_database = odr_strdup(odr, m_frontend_database.c_str());
         Z_NamePlusRecordList *npl = (Z_NamePlusRecordList *)
             odr_malloc(odr, sizeof(*npl));
         *number_of_records_returned = i;
@@ -2030,7 +2029,7 @@ void yf::Zoom::Frontend::explain_search(mp::Package &package,
 
     BackendPtr b(new Backend);
 
-    b->m_frontend_database = database;
+    m_frontend_database = database;
     b->enable_explain = true;
 
     Z_GDU *gdu = package.request().get();
