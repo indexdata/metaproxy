@@ -134,21 +134,21 @@ namespace metaproxy_1 {
             void auth(mp::Package &package, Z_InitRequest *req,
                       int *error, char **addinfo, ODR odr);
 
-            BackendPtr explain_search(mp::Package &package,
-                                      std::string &database,
-                                      int *error,
-                                      char **addinfo,
-                                      mp::odr &odr,
-                                      std::string torus_url,
-                                      std::string &torus_db,
-                                      std::string &realm);
+            void explain_search(mp::Package &package,
+                                std::string &database,
+                                int *error,
+                                char **addinfo,
+                                mp::odr &odr,
+                                std::string torus_url,
+                                std::string &torus_db,
+                                std::string &realm);
             void handle_present(mp::Package &package);
-            BackendPtr get_backend_from_databases(mp::Package &package,
-                                                  std::string &database,
-                                                  int *error,
-                                                  char **addinfo,
-                                                  mp::odr &odr,
-                                                  int *proxy_step);
+            void get_backend_from_databases(mp::Package &package,
+                                            std::string &database,
+                                            int *error,
+                                            char **addinfo,
+                                            mp::odr &odr,
+                                            int *proxy_step);
 
             bool create_content_session(mp::Package &package,
                                         BackendPtr b,
@@ -1112,7 +1112,7 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
     return true;
 }
 
-yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
+void yf::Zoom::Frontend::get_backend_from_databases(
     mp::Package &package,
     std::string &database, int *error, char **addinfo, mp::odr &odr,
     int *proxy_step)
@@ -1120,7 +1120,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     bool connection_reuse = false;
     std::string proxy;
 
-    std::list<BackendPtr>::const_iterator map_it;
     if (m_backend && !m_backend->enable_explain &&
         m_backend->m_frontend_database == database)
     {
@@ -1241,7 +1240,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
             sprintf(msg, "zoom: bad database argument: %s", name);
             *addinfo = msg;
-            return notfound;
+            return;
         }
     }
     if (proxy.length())
@@ -1250,7 +1249,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (connection_reuse)
     {
         m_backend->connect("", error, addinfo, odr);
-        return m_backend;
+        return;
     }
 
     if (torus_db.compare("IR-Explain---1") == 0)
@@ -1276,8 +1275,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             *error = YAZ_BIB1_UNSPECIFIED_ERROR;
             if (torus_addinfo.length())
                 *addinfo = odr_strdup(odr, torus_addinfo.c_str());
-            BackendPtr b;
-            return b;
+            return;
         }
         const xmlNode *ptr = xmlDocGetRootElement(doc);
         if (ptr && ptr->type == XML_ELEMENT_NODE)
@@ -1301,8 +1299,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                             sprintf(*addinfo, "multiple records for udb=%s",
                                     database.c_str());
                             xmlFreeDoc(doc);
-                            BackendPtr b;
-                            return b;
+                            return;
                         }
                         sptr = m_p->parse_torus_record(ptr);
                     }
@@ -1315,8 +1312,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                     odr, 40 + strlen((const char *) ptr->name));
                 sprintf(*addinfo, "bad root element for torus: %s", ptr->name);
                 xmlFreeDoc(doc);
-                BackendPtr b;
-                return b;
+                return;
             }
         }
         xmlFreeDoc(doc);
@@ -1326,8 +1322,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
         *addinfo = odr_strdup(odr, torus_db.c_str());
-        BackendPtr b;
-        return b;
+        return;
     }
 
     xsltStylesheetPtr xsp = 0;
@@ -1340,8 +1335,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
             *addinfo = odr_strdup(odr, "zoom: xmlParseMemory failed "
                                   "for literalTransform XSL");
-            BackendPtr b;
-            return b;
+            return;
         }
         xsp = xsltParseStylesheetDoc(xsp_doc);
         if (!xsp)
@@ -1350,9 +1344,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             *addinfo =
                 odr_strdup(odr,"zoom: xsltParseStylesheetDoc failed "
                            "for literalTransform XSL");
-            BackendPtr b;
             xmlFreeDoc(xsp_doc);
-            return b;
+            return;
         }
     }
     else if (sptr->transform_xsl_fname.length())
@@ -1377,8 +1370,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                 odr_malloc(odr, 40 + sptr->transform_xsl_fname.length());
             sprintf(*addinfo, "zoom: could not open file %s",
                     sptr->transform_xsl_fname.c_str());
-            BackendPtr b;
-            return b;
+            return;
         }
         xmlDoc *xsp_doc = xmlParseFile(fname.c_str());
         if (!xsp_doc)
@@ -1387,8 +1379,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             *addinfo = (char *) odr_malloc(odr, 50 + fname.length());
             sprintf(*addinfo, "zoom: xmlParseFile failed for file %s",
                     fname.c_str());
-            BackendPtr b;
-            return b;
+            return;
         }
         xsp = xsltParseStylesheetDoc(xsp_doc);
         if (!xsp)
@@ -1397,9 +1388,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             *addinfo = (char *) odr_malloc(odr, 50 + fname.length());
             sprintf(*addinfo, "zoom: xsltParseStylesheetDoc failed "
                     "for file %s", fname.c_str());
-            BackendPtr b;
             xmlFreeDoc(xsp_doc);
-            return b;
+            return;
         }
     }
 
@@ -1419,9 +1409,8 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     {
         *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
         *addinfo = odr_strdup(odr, "zoom: missing/invalid cql2rpn file");
-        BackendPtr b;
         xsltFreeStylesheet(xsp);
-        return b;
+        return;
     }
 
     m_backend.reset();
@@ -1587,7 +1576,6 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                                realm);
     if (*error == 0)
         m_backend = b;
-    return b;
 }
 
 void yf::Zoom::Frontend::prepare_elements(BackendPtr b,
@@ -2029,14 +2017,14 @@ void yf::Zoom::Frontend::log_diagnostic(mp::Package &package,
                     error, err_msg);
 }
 
-yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
-                                                        std::string &database,
-                                                        int *error,
-                                                        char **addinfo,
-                                                        mp::odr &odr,
-                                                        std::string torus_url,
-                                                        std::string &torus_db,
-                                                        std::string &realm)
+void yf::Zoom::Frontend::explain_search(mp::Package &package,
+                                        std::string &database,
+                                        int *error,
+                                        char **addinfo,
+                                        mp::odr &odr,
+                                        std::string torus_url,
+                                        std::string &torus_db,
+                                        std::string &realm)
 {
     m_backend.reset();
 
@@ -2056,7 +2044,7 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
         *addinfo =
             odr_strdup(odr, "IR-Explain---1 unsupported. "
                        "Torus explain_xsl not defined");
-        return m_backend;
+        return;
     }
     else if (query->which == Z_Query_type_104 &&
         query->u.type_104->which == Z_External_CQL)
@@ -2095,13 +2083,11 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::explain_search(mp::Package &package,
         if (b->explain_doc)
             xmlFreeDoc(b->explain_doc);
         b->explain_doc = doc;
-        return m_backend;
     }
     else
     {
         *error = YAZ_BIB1_QUERY_TYPE_UNSUPP;
         *addinfo = odr_strdup(odr, "IR-Explain---1 only supports CQL");
-        return m_backend;
     }
 }
 
@@ -2220,8 +2206,9 @@ next_proxy:
     char *addinfo = 0;
     std::string db(sr->databaseNames[0]);
 
-    BackendPtr b = get_backend_from_databases(package, db, &error,
-                                              &addinfo, odr, &proxy_step);
+    get_backend_from_databases(package, db, &error,
+                               &addinfo, odr, &proxy_step);
+    BackendPtr b = m_backend;
     if (error)
     {
         if (retry(package, odr, b, error, &addinfo, proxy_step,
