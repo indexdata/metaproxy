@@ -100,7 +100,6 @@ namespace metaproxy_1 {
             xsltStylesheetPtr xsp;
             std::string cproxy_host;
             bool enable_cproxy;
-            bool enable_explain;
             xmlDoc *explain_doc;
             std::string m_proxy;
             cql_transform_t cqlt;
@@ -125,10 +124,12 @@ namespace metaproxy_1 {
             Impl *m_p;
             bool m_is_virtual;
             bool m_in_use;
+            bool enable_explain;
             std::string session_realm;
             std::string m_frontend_database;
             yazpp_1::GDU m_init_gdu;
-            BackendPtr m_backend;
+            // BackendPtr m_backend;
+            std::list<BackendPtr> m_backend_list;
             void handle_package(mp::Package &package);
             void handle_search(mp::Package &package);
             void auth(mp::Package &package, Z_InitRequest *req,
@@ -149,7 +150,23 @@ namespace metaproxy_1 {
                                             char **addinfo,
                                             mp::odr &odr,
                                             int *proxy_step);
-
+            void connect_searchable(mp::Package &package,
+                                    SearchablePtr sptr,
+                                    std::string &database,
+                                    int *error, char **addinfo,
+                                    mp::odr &odr,
+                                    int no_out_args,
+                                    const char **out_names,
+                                    const char **out_values,
+                                    std::string content_proxy,
+                                    std::string proxy,
+                                    const char *param_content_password,
+                                    const char *param_content_user,
+                                    const char *param_nocproxy,
+                                    const char *param_password,
+                                    const char *param_retry,
+                                    const char *param_user,
+                                    std::string realm);
             bool create_content_session(mp::Package &package,
                                         BackendPtr b,
                                         int *error,
@@ -299,7 +316,6 @@ yf::Zoom::Backend::Backend()
     m_resultset = 0;
     xsp = 0;
     enable_cproxy = true;
-    enable_explain = false;
     explain_doc = 0;
     cqlt = 0;
 }
@@ -503,7 +519,7 @@ yf::Zoom::Searchable::~Searchable()
 }
 
 yf::Zoom::Frontend::Frontend(Impl *impl) :
-    m_p(impl), m_is_virtual(false), m_in_use(true)
+    m_p(impl), m_is_virtual(false), m_in_use(true), enable_explain(false)
 {
 }
 
@@ -1112,219 +1128,24 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
     return true;
 }
 
-void yf::Zoom::Frontend::get_backend_from_databases(
-    mp::Package &package,
-    std::string &database, int *error, char **addinfo, mp::odr &odr,
-    int *proxy_step)
+void yf::Zoom::Frontend::connect_searchable(mp::Package &package,
+                                            SearchablePtr sptr,
+                                            std::string &database,
+                                            int *error, char **addinfo,
+                                            mp::odr &odr,
+                                            int no_out_args,
+                                            const char **out_names,
+                                            const char **out_values,
+                                            std::string content_proxy,
+                                            std::string proxy,
+                                            const char *param_content_password,
+                                            const char *param_content_user,
+                                            const char *param_nocproxy,
+                                            const char *param_password,
+                                            const char *param_retry,
+                                            const char *param_user,
+                                            std::string realm)
 {
-    bool connection_reuse = false;
-    std::string proxy;
-
-    if (m_backend && !m_backend->enable_explain &&
-        m_frontend_database == database)
-    {
-        connection_reuse = true;
-        proxy = m_backend->m_proxy;
-    }
-
-    std::string input_args;
-    std::string torus_db;
-    size_t db_arg_pos = database.find(',');
-    if (db_arg_pos != std::string::npos)
-    {
-        torus_db = database.substr(0, db_arg_pos);
-        input_args = database.substr(db_arg_pos + 1);
-    }
-    else
-        torus_db = database;
-
-    std::string content_proxy;
-    std::string realm = session_realm;
-    if (realm.length() == 0)
-        realm = m_p->default_realm;
-
-    const char *param_user = 0;
-    const char *param_password = 0;
-    const char *param_content_user = 0;
-    const char *param_content_password = 0;
-    const char *param_nocproxy = 0;
-    const char *param_retry = 0;
-    int no_parms = 0;
-
-    char **names;
-    char **values;
-    int no_out_args = 0;
-    if (input_args.length())
-        no_parms = yaz_uri_to_array(input_args.c_str(),
-                                    odr, &names, &values);
-    // adding 10 because we'll be adding other URL args
-    const char **out_names = (const char **)
-        odr_malloc(odr, (10 + no_parms) * sizeof(*out_names));
-    const char **out_values = (const char **)
-        odr_malloc(odr, (10 + no_parms) * sizeof(*out_values));
-
-    // may be changed if it's a content connection
-    std::string torus_url = m_p->torus_searchable_url;
-    int i;
-    for (i = 0; i < no_parms; i++)
-    {
-        const char *name = names[i];
-        const char *value = values[i];
-        assert(name);
-        assert(value);
-        if (!strcmp(name, "user"))
-            param_user = value;
-        else if (!strcmp(name, "password"))
-            param_password = value;
-        else if (!strcmp(name, "content-user"))
-            param_content_user = value;
-        else if (!strcmp(name, "content-password"))
-            param_content_password = value;
-        else if (!strcmp(name, "content-proxy"))
-            content_proxy = value;
-        else if (!strcmp(name, "nocproxy"))
-            param_nocproxy = value;
-        else if (!strcmp(name, "retry"))
-            param_retry = value;
-        else if (!strcmp(name, "proxy"))
-        {
-            char **dstr;
-            int dnum = 0;
-            nmem_strsplit(((ODR) odr)->mem, ",", value, &dstr, &dnum);
-            if (connection_reuse)
-            {
-                // find the step after our current proxy
-                int i;
-                for (i = 0; i < dnum; i++)
-                    if (!strcmp(proxy.c_str(), dstr[i]))
-                        break;
-                if (i >= dnum - 1)
-                    *proxy_step = 0;
-                else
-                    *proxy_step = i + 1;
-            }
-            else
-            {
-                // step is known.. Guess our proxy from it
-                if (*proxy_step >= dnum)
-                    *proxy_step = 0;
-                else
-                {
-                    proxy = dstr[*proxy_step];
-
-                    (*proxy_step)++;
-                    if (*proxy_step == dnum)
-                        *proxy_step = 0;
-                }
-            }
-        }
-        else if (!strcmp(name, "cproxysession"))
-        {
-            out_names[no_out_args] = name;
-            out_values[no_out_args++] = value;
-            torus_url = m_p->torus_content_url;
-        }
-        else if (!strcmp(name, "realm") && session_realm.length() == 0)
-            realm = value;
-        else if (!strcmp(name, "torus_url") && session_realm.length() == 0)
-            torus_url = value;
-        else if (name[0] == 'x' && name[1] == '-')
-        {
-            out_names[no_out_args] = name;
-            out_values[no_out_args++] = value;
-        }
-        else
-        {
-            BackendPtr notfound;
-            char *msg = (char*) odr_malloc(odr, strlen(name) + 30);
-            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-            sprintf(msg, "zoom: bad database argument: %s", name);
-            *addinfo = msg;
-            return;
-        }
-    }
-    if (proxy.length())
-        package.log("zoom", YLOG_LOG, "proxy: %s", proxy.c_str());
-
-    if (connection_reuse)
-    {
-        m_backend->connect("", error, addinfo, odr);
-        return;
-    }
-
-    if (torus_db.compare("IR-Explain---1") == 0)
-        return explain_search(package, database, error, addinfo, odr, torus_url,
-                              torus_db, realm);
-
-    SearchablePtr sptr;
-
-    std::map<std::string,SearchablePtr>::iterator it;
-    it = m_p->s_map.find(torus_db);
-    if (it != m_p->s_map.end())
-        sptr = it->second;
-    else if (torus_url.length() > 0)
-    {
-        std::string torus_addinfo;
-        std::string torus_query = "udb==" + torus_db;
-        xmlDoc *doc = mp::get_searchable(package,torus_url, torus_db,
-                                         torus_query,
-                                         realm, m_p->proxy,
-                                         torus_addinfo);
-        if (!doc)
-        {
-            *error = YAZ_BIB1_UNSPECIFIED_ERROR;
-            if (torus_addinfo.length())
-                *addinfo = odr_strdup(odr, torus_addinfo.c_str());
-            return;
-        }
-        const xmlNode *ptr = xmlDocGetRootElement(doc);
-        if (ptr && ptr->type == XML_ELEMENT_NODE)
-        {
-            if (!strcmp((const char *) ptr->name, "record"))
-            {
-                sptr = m_p->parse_torus_record(ptr);
-            }
-            else if (!strcmp((const char *) ptr->name, "records"))
-            {
-                for (ptr = ptr->children; ptr; ptr = ptr->next)
-                {
-                    if (ptr->type == XML_ELEMENT_NODE
-                        && !strcmp((const char *) ptr->name, "record"))
-                    {
-                        if (sptr)
-                        {
-                            *error = YAZ_BIB1_UNSPECIFIED_ERROR;
-                            *addinfo = (char*)
-                                odr_malloc(odr, 40 + torus_db.length());
-                            sprintf(*addinfo, "multiple records for udb=%s",
-                                    database.c_str());
-                            xmlFreeDoc(doc);
-                            return;
-                        }
-                        sptr = m_p->parse_torus_record(ptr);
-                    }
-                }
-            }
-            else
-            {
-                *error = YAZ_BIB1_UNSPECIFIED_ERROR;
-                *addinfo = (char*) odr_malloc(
-                    odr, 40 + strlen((const char *) ptr->name));
-                sprintf(*addinfo, "bad root element for torus: %s", ptr->name);
-                xmlFreeDoc(doc);
-                return;
-            }
-        }
-        xmlFreeDoc(doc);
-    }
-
-    if (!sptr)
-    {
-        *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
-        *addinfo = odr_strdup(odr, torus_db.c_str());
-        return;
-    }
-
     xsltStylesheetPtr xsp = 0;
     if (sptr->transform_xsl_content.length())
     {
@@ -1413,14 +1234,11 @@ void yf::Zoom::Frontend::get_backend_from_databases(
         return;
     }
 
-    m_backend.reset();
-
     BackendPtr b(new Backend);
 
     b->cqlt = cqlt;
     b->sptr = sptr;
     b->xsp = xsp;
-    m_frontend_database = database;
     b->enable_cproxy = param_nocproxy ? false : true;
 
     if (param_retry)
@@ -1575,7 +1393,279 @@ void yf::Zoom::Frontend::get_backend_from_databases(
                                content_proxy.length() ? content_proxy : proxy,
                                realm);
     if (*error == 0)
-        m_backend = b;
+    {
+        m_backend_list.push_back(b);
+    }
+}
+
+void yf::Zoom::Frontend::get_backend_from_databases(
+    mp::Package &package,
+    std::string &database, int *error, char **addinfo, mp::odr &odr,
+    int *proxy_step)
+{
+    std::string proxy;
+    bool connection_reuse = false;
+
+    if (m_backend_list.size() > 0 && !enable_explain &&
+        m_frontend_database == database)
+    {
+        // TODO !! proxy = m_backend->m_proxy;
+        connection_reuse = true;
+    }
+
+    std::string input_args;
+    std::string torus_db;
+    size_t db_arg_pos = database.find(',');
+    if (db_arg_pos != std::string::npos)
+    {
+        torus_db = database.substr(0, db_arg_pos);
+        input_args = database.substr(db_arg_pos + 1);
+    }
+    else
+        torus_db = database;
+
+    std::string content_proxy;
+    std::string realm = session_realm;
+    if (realm.length() == 0)
+        realm = m_p->default_realm;
+
+    const char *param_user = 0;
+    const char *param_password = 0;
+    const char *param_content_user = 0;
+    const char *param_content_password = 0;
+    const char *param_nocproxy = 0;
+    const char *param_retry = 0;
+    int no_parms = 0;
+
+    char **names;
+    char **values;
+    int no_out_args = 0;
+    if (input_args.length())
+        no_parms = yaz_uri_to_array(input_args.c_str(),
+                                    odr, &names, &values);
+    // adding 10 because we'll be adding other URL args
+    const char **out_names = (const char **)
+        odr_malloc(odr, (10 + no_parms) * sizeof(*out_names));
+    const char **out_values = (const char **)
+        odr_malloc(odr, (10 + no_parms) * sizeof(*out_values));
+
+    // may be changed if it's a content connection
+    std::string torus_url = m_p->torus_searchable_url;
+    int i;
+    for (i = 0; i < no_parms; i++)
+    {
+        const char *name = names[i];
+        const char *value = values[i];
+        assert(name);
+        assert(value);
+        if (!strcmp(name, "user"))
+            param_user = value;
+        else if (!strcmp(name, "password"))
+            param_password = value;
+        else if (!strcmp(name, "content-user"))
+            param_content_user = value;
+        else if (!strcmp(name, "content-password"))
+            param_content_password = value;
+        else if (!strcmp(name, "content-proxy"))
+            content_proxy = value;
+        else if (!strcmp(name, "nocproxy"))
+            param_nocproxy = value;
+        else if (!strcmp(name, "retry"))
+            param_retry = value;
+        else if (!strcmp(name, "proxy"))
+        {
+            char **dstr;
+            int dnum = 0;
+            nmem_strsplit(((ODR) odr)->mem, ",", value, &dstr, &dnum);
+            if (connection_reuse)
+            {
+                // find the step after our current proxy
+                int i;
+                for (i = 0; i < dnum; i++)
+                    if (!strcmp(proxy.c_str(), dstr[i]))
+                        break;
+                if (i >= dnum - 1)
+                    *proxy_step = 0;
+                else
+                    *proxy_step = i + 1;
+            }
+            else
+            {
+                // step is known.. Guess our proxy from it
+                if (*proxy_step >= dnum)
+                    *proxy_step = 0;
+                else
+                {
+                    proxy = dstr[*proxy_step];
+
+                    (*proxy_step)++;
+                    if (*proxy_step == dnum)
+                        *proxy_step = 0;
+                }
+            }
+        }
+        else if (!strcmp(name, "cproxysession"))
+        {
+            out_names[no_out_args] = name;
+            out_values[no_out_args++] = value;
+            torus_url = m_p->torus_content_url;
+        }
+        else if (!strcmp(name, "realm") && session_realm.length() == 0)
+            realm = value;
+        else if (!strcmp(name, "torus_url") && session_realm.length() == 0)
+            torus_url = value;
+        else if (name[0] == 'x' && name[1] == '-')
+        {
+            out_names[no_out_args] = name;
+            out_values[no_out_args++] = value;
+        }
+        else
+        {
+            BackendPtr notfound;
+            char *msg = (char*) odr_malloc(odr, strlen(name) + 30);
+            *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+            sprintf(msg, "zoom: bad database argument: %s", name);
+            *addinfo = msg;
+            return;
+        }
+    }
+    if (proxy.length())
+        package.log("zoom", YLOG_LOG, "proxy: %s", proxy.c_str());
+
+    if (connection_reuse)
+    {
+        std::list<BackendPtr>::iterator it = m_backend_list.begin();
+        for (; it != m_backend_list.end(); it++)
+            (*it)->connect("", error, addinfo, odr);
+        return;
+    }
+
+    m_frontend_database = database;
+    m_backend_list.clear();
+
+    if (torus_db.compare("IR-Explain---1") == 0)
+        return explain_search(package, database, error, addinfo, odr, torus_url,
+                              torus_db, realm);
+    enable_explain = false;
+
+    SearchablePtr sptr;
+
+    std::map<std::string,SearchablePtr>::iterator it;
+    it = m_p->s_map.find(torus_db);
+    if (it != m_p->s_map.end())
+    {
+        sptr = it->second;
+        connect_searchable(package, sptr, database, error, addinfo, odr,
+                           no_out_args, out_names, out_values,
+                           content_proxy, proxy,
+                           param_content_password,
+                           param_content_user,
+                           param_nocproxy,
+                           param_password,
+                           param_retry,
+                           param_user,
+                           realm);
+    }
+    else if (torus_db == "all_local")
+    {
+        for (it = m_p->s_map.begin(); it != m_p->s_map.end(); it++)
+        {
+            sptr = it->second;
+            connect_searchable(package, sptr, database, error, addinfo, odr,
+                               no_out_args, out_names, out_values,
+                               content_proxy, proxy,
+                               param_content_password,
+                               param_content_user,
+                               param_nocproxy,
+                               param_password,
+                               param_retry,
+                               param_user,
+                               realm);
+        }
+    }
+    else if (torus_url.length() > 0)
+    {
+        std::string torus_addinfo;
+        std::string torus_query = "udb==" + torus_db;
+        xmlDoc *doc = mp::get_searchable(package,torus_url, torus_db,
+                                         torus_query,
+                                         realm, m_p->proxy,
+                                         torus_addinfo);
+        if (!doc)
+        {
+            *error = YAZ_BIB1_UNSPECIFIED_ERROR;
+            if (torus_addinfo.length())
+                *addinfo = odr_strdup(odr, torus_addinfo.c_str());
+            return;
+        }
+        const xmlNode *ptr = xmlDocGetRootElement(doc);
+        if (ptr && ptr->type == XML_ELEMENT_NODE)
+        {
+            if (!strcmp((const char *) ptr->name, "record"))
+            {
+                sptr = m_p->parse_torus_record(ptr);
+                connect_searchable(package, sptr, database,
+                                   error, addinfo, odr,
+                                   no_out_args, out_names, out_values,
+                                   content_proxy, proxy,
+                                   param_content_password,
+                                   param_content_user,
+                                   param_nocproxy,
+                                   param_password,
+                                   param_retry,
+                                   param_user,
+                                   realm);
+            }
+            else if (!strcmp((const char *) ptr->name, "records"))
+            {
+                for (ptr = ptr->children; ptr; ptr = ptr->next)
+                {
+                    if (ptr->type == XML_ELEMENT_NODE
+                        && !strcmp((const char *) ptr->name, "record"))
+                    {
+                        if (sptr)
+                        {
+                            *error = YAZ_BIB1_UNSPECIFIED_ERROR;
+                            *addinfo = (char*)
+                                odr_malloc(odr, 40 + torus_db.length());
+                            sprintf(*addinfo, "multiple records for udb=%s",
+                                    database.c_str());
+                            xmlFreeDoc(doc);
+                            return;
+                        }
+                        sptr = m_p->parse_torus_record(ptr);
+                        connect_searchable(package, sptr, database,
+                                           error, addinfo, odr,
+                                           no_out_args, out_names, out_values,
+                                           content_proxy, proxy,
+                                           param_content_password,
+                                           param_content_user,
+                                           param_nocproxy,
+                                           param_password,
+                                           param_retry,
+                                           param_user,
+                                           realm);
+                    }
+                }
+            }
+            else
+            {
+                *error = YAZ_BIB1_UNSPECIFIED_ERROR;
+                *addinfo = (char*) odr_malloc(
+                    odr, 40 + strlen((const char *) ptr->name));
+                sprintf(*addinfo, "bad root element for torus: %s", ptr->name);
+                xmlFreeDoc(doc);
+                return;
+            }
+        }
+        xmlFreeDoc(doc);
+    }
+
+    if (m_backend_list.size() == 0)
+    {
+        *error = YAZ_BIB1_DATABASE_DOES_NOT_EXIST;
+        *addinfo = odr_strdup(odr, torus_db.c_str());
+    }
 }
 
 void yf::Zoom::Frontend::prepare_elements(BackendPtr b,
@@ -2025,12 +2115,9 @@ void yf::Zoom::Frontend::explain_search(mp::Package &package,
                                         std::string &torus_db,
                                         std::string &realm)
 {
-    m_backend.reset();
-
     BackendPtr b(new Backend);
 
-    m_frontend_database = database;
-    b->enable_explain = true;
+    enable_explain = true;
 
     Z_GDU *gdu = package.request().get();
     Z_APDU *apdu_req = gdu->u.z3950;
@@ -2077,7 +2164,7 @@ void yf::Zoom::Frontend::explain_search(mp::Package &package,
             Z_APDU *apdu_res = odr.create_searchResponse(apdu_req, 0, 0);
             apdu_res->u.searchResponse->resultCount = odr_intdup(odr, hits);
             package.response() = apdu_res;
-            m_backend = b;
+            m_backend_list.push_back(b);
         }
         if (b->explain_doc)
             xmlFreeDoc(b->explain_doc);
@@ -2157,7 +2244,7 @@ bool yf::Zoom::Frontend::retry(mp::Package &package,
     {
         log_diagnostic(package, error, *addinfo);
         package.log("zoom", YLOG_LOG, "proxy %s fails", b->m_proxy.c_str());
-        m_backend.reset();
+        m_backend_list.clear();
         if (proxy_step) // there is a failover
         {
             proxy_retries++;
@@ -2173,7 +2260,7 @@ bool yf::Zoom::Frontend::retry(mp::Package &package,
         log_diagnostic(package, error, *addinfo);
         same_retries++;
         package.log("zoom", YLOG_WARN, "search failed: retry");
-        m_backend.reset();
+        m_backend_list.clear();
         proxy_step = 0;
         return true;
     }
@@ -2207,9 +2294,10 @@ next_proxy:
 
     get_backend_from_databases(package, db, &error,
                                &addinfo, odr, &proxy_step);
-    BackendPtr b = m_backend;
-    if (error)
+    if (error && m_backend_list.size() == 1)
     {
+        std::list<BackendPtr>::iterator it = m_backend_list.begin();
+        BackendPtr b = *it;
         if (retry(package, odr, b, error, &addinfo, proxy_step,
                   same_retries, proxy_retries))
             goto next_proxy;
@@ -2221,267 +2309,259 @@ next_proxy:
         package.response() = apdu_res;
         return;
     }
-    if (!b || b->enable_explain)
+    if (m_backend_list.size() == 0 || enable_explain)
         return;
 
-    b->set_option("setname", "default");
-
-    bool enable_pz2_retrieval = false;
-    bool enable_pz2_transform = false;
-    bool enable_record_transform = false;
-    bool assume_marc8_charset = false;
-    prepare_elements(b, sr->preferredRecordSyntax, 0 /*element_set_name */,
-                     enable_pz2_retrieval,
-                     enable_pz2_transform,
-                     enable_record_transform,
-                     assume_marc8_charset);
-
-    Odr_int hits = 0;
-    Z_Query *query = sr->query;
-    mp::wrbuf ccl_wrbuf;
-    mp::wrbuf pqf_wrbuf;
-    std::string sortkeys;
-
-    if (query->which == Z_Query_type_1 || query->which == Z_Query_type_101)
+    std::list<BackendPtr>::iterator it = m_backend_list.begin();
+    for (; it != m_backend_list.end(); it++)
     {
-        // RPN
-        yaz_rpnquery_to_wrbuf(pqf_wrbuf, query->u.type_1);
-    }
-    else if (query->which == Z_Query_type_2)
-    {
-        // CCL
-        wrbuf_write(ccl_wrbuf, (const char *) query->u.type_2->buf,
-                    query->u.type_2->len);
-    }
-    else if (query->which == Z_Query_type_104 &&
-             query->u.type_104->which == Z_External_CQL)
-    {
-        // CQL
-        const char *cql = query->u.type_104->u.cql;
-        CQL_parser cp = cql_parser_create();
-        int r = cql_parser_string(cp, cql);
-        package.log("zoom", YLOG_LOG, "CQL: %s", cql);
-        if (r)
+        BackendPtr b = *it;
+        b->set_option("setname", "default");
+
+        bool enable_pz2_retrieval = false;
+        bool enable_pz2_transform = false;
+        bool enable_record_transform = false;
+        bool assume_marc8_charset = false;
+        prepare_elements(b, sr->preferredRecordSyntax, 0 /*element_set_name */,
+                         enable_pz2_retrieval,
+                         enable_pz2_transform,
+                         enable_record_transform,
+                         assume_marc8_charset);
+
+        Odr_int hits = 0;
+        Z_Query *query = sr->query;
+        mp::wrbuf ccl_wrbuf;
+        mp::wrbuf pqf_wrbuf;
+        std::string sortkeys;
+
+        if (query->which == Z_Query_type_1 || query->which == Z_Query_type_101)
         {
-            cql_parser_destroy(cp);
-            error = YAZ_BIB1_MALFORMED_QUERY;
-            const char *addinfo = "CQL syntax error";
-            log_diagnostic(package, error, addinfo);
-            apdu_res =
-                odr.create_searchResponse(apdu_req, error, addinfo);
-            package.response() = apdu_res;
-            return;
+            // RPN
+            yaz_rpnquery_to_wrbuf(pqf_wrbuf, query->u.type_1);
         }
-        struct cql_node *cn = cql_parser_result(cp);
-        struct cql_node *cn_error = m_p->convert_cql_fields(cn, odr);
-        if (cn_error)
+        else if (query->which == Z_Query_type_2)
         {
-            // hopefully we are getting a ptr to a index+relation+term node
-            error = YAZ_BIB1_UNSUPP_USE_ATTRIBUTE;
-            addinfo = 0;
-            if (cn_error->which == CQL_NODE_ST)
-                addinfo = cn_error->u.st.index;
-
-            log_diagnostic(package, error, addinfo);
-            apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
-            package.response() = apdu_res;
-            cql_parser_destroy(cp);
-            return;
+            // CCL
+            wrbuf_write(ccl_wrbuf, (const char *) query->u.type_2->buf,
+                        query->u.type_2->len);
         }
-        r = cql_to_ccl(cn, wrbuf_vp_puts,  ccl_wrbuf);
-        if (r)
+        else if (query->which == Z_Query_type_104 &&
+                 query->u.type_104->which == Z_External_CQL)
         {
-            error = YAZ_BIB1_MALFORMED_QUERY;
-            const char *addinfo = "CQL to CCL conversion error";
-
-            log_diagnostic(package, error, addinfo);
-            apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
-            package.response() = apdu_res;
-            cql_parser_destroy(cp);
-            return;
-        }
-
-        mp::wrbuf sru_sortkeys_wrbuf;
-        if (cql_sortby_to_sortkeys(cn, wrbuf_vp_puts, sru_sortkeys_wrbuf))
-        {
-            error = YAZ_BIB1_ILLEGAL_SORT_RELATION;
-            const char *addinfo = "CQL to CCL sortby conversion";
-
-            log_diagnostic(package, error, addinfo);
-            apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
-            package.response() = apdu_res;
-            cql_parser_destroy(cp);
-            return;
-        }
-        mp::wrbuf sort_spec_wrbuf;
-        yaz_srw_sortkeys_to_sort_spec(wrbuf_cstr(sru_sortkeys_wrbuf),
-                                      sort_spec_wrbuf);
-        yaz_tok_cfg_t tc = yaz_tok_cfg_create();
-        yaz_tok_parse_t tp =
-            yaz_tok_parse_buf(tc, wrbuf_cstr(sort_spec_wrbuf));
-        yaz_tok_cfg_destroy(tc);
-
-        /* go through sortspec and map fields */
-        int token = yaz_tok_move(tp);
-        while (token != YAZ_TOK_EOF)
-        {
-            if (token == YAZ_TOK_STRING)
+            // CQL
+            const char *cql = query->u.type_104->u.cql;
+            CQL_parser cp = cql_parser_create();
+            int r = cql_parser_string(cp, cql);
+            package.log("zoom", YLOG_LOG, "CQL: %s", cql);
+            if (r)
             {
-                const char *field = yaz_tok_parse_string(tp);
-                std::map<std::string,std::string>::iterator it;
-                it = b->sptr->sortmap.find(field);
-                if (it != b->sptr->sortmap.end())
-                    sortkeys += it->second;
-                else
-                    sortkeys += field;
+                cql_parser_destroy(cp);
+                error = YAZ_BIB1_MALFORMED_QUERY;
+                const char *addinfo = "CQL syntax error";
+                log_diagnostic(package, error, addinfo);
+                apdu_res =
+                    odr.create_searchResponse(apdu_req, error, addinfo);
+                package.response() = apdu_res;
+                return;
             }
-            sortkeys += " ";
-            token = yaz_tok_move(tp);
-            if (token == YAZ_TOK_STRING)
+            struct cql_node *cn = cql_parser_result(cp);
+            struct cql_node *cn_error = m_p->convert_cql_fields(cn, odr);
+            if (cn_error)
             {
-                sortkeys += yaz_tok_parse_string(tp);
+                // hopefully we are getting a ptr to a index+relation+term node
+                error = YAZ_BIB1_UNSUPP_USE_ATTRIBUTE;
+                addinfo = 0;
+                if (cn_error->which == CQL_NODE_ST)
+                    addinfo = cn_error->u.st.index;
+                log_diagnostic(package, error, addinfo);
+                apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
+                package.response() = apdu_res;
+                cql_parser_destroy(cp);
+                return;
             }
-            if (token != YAZ_TOK_EOF)
+            r = cql_to_ccl(cn, wrbuf_vp_puts,  ccl_wrbuf);
+            if (r)
             {
+                error = YAZ_BIB1_MALFORMED_QUERY;
+                const char *addinfo = "CQL to CCL conversion error";
+                log_diagnostic(package, error, addinfo);
+                apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
+                package.response() = apdu_res;
+                cql_parser_destroy(cp);
+                return;
+            }
+            mp::wrbuf sru_sortkeys_wrbuf;
+            if (cql_sortby_to_sortkeys(cn, wrbuf_vp_puts, sru_sortkeys_wrbuf))
+            {
+                error = YAZ_BIB1_ILLEGAL_SORT_RELATION;
+                const char *addinfo = "CQL to CCL sortby conversion";
+                log_diagnostic(package, error, addinfo);
+                apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
+                package.response() = apdu_res;
+                cql_parser_destroy(cp);
+                return;
+            }
+            mp::wrbuf sort_spec_wrbuf;
+            yaz_srw_sortkeys_to_sort_spec(wrbuf_cstr(sru_sortkeys_wrbuf),
+                                          sort_spec_wrbuf);
+            yaz_tok_cfg_t tc = yaz_tok_cfg_create();
+            yaz_tok_parse_t tp =
+                yaz_tok_parse_buf(tc, wrbuf_cstr(sort_spec_wrbuf));
+            yaz_tok_cfg_destroy(tc);
+            /* go through sortspec and map fields */
+            int token = yaz_tok_move(tp);
+            while (token != YAZ_TOK_EOF)
+            {
+                if (token == YAZ_TOK_STRING)
+                {
+                    const char *field = yaz_tok_parse_string(tp);
+                    std::map<std::string,std::string>::iterator it;
+                    it = b->sptr->sortmap.find(field);
+                    if (it != b->sptr->sortmap.end())
+                        sortkeys += it->second;
+                    else
+                        sortkeys += field;
+                }
                 sortkeys += " ";
                 token = yaz_tok_move(tp);
+                if (token == YAZ_TOK_STRING)
+                {
+                    sortkeys += yaz_tok_parse_string(tp);
+                }
+                if (token != YAZ_TOK_EOF)
+                {
+                    sortkeys += " ";
+                    token = yaz_tok_move(tp);
+                }
             }
+            yaz_tok_parse_destroy(tp);
+            cql_parser_destroy(cp);
         }
-        yaz_tok_parse_destroy(tp);
-        cql_parser_destroy(cp);
-    }
-    else
-    {
-        error = YAZ_BIB1_QUERY_TYPE_UNSUPP;
-        const char *addinfo = 0;
-        log_diagnostic(package, error, addinfo);
-        apdu_res =  odr.create_searchResponse(apdu_req, error, addinfo);
-        package.response() = apdu_res;
-        return;
-    }
-
-    if (ccl_wrbuf.len())
-    {
-        // CCL to PQF
-        assert(pqf_wrbuf.len() == 0);
-        int cerror, cpos;
-        struct ccl_rpn_node *cn;
-        package.log("zoom", YLOG_LOG, "CCL: %s", wrbuf_cstr(ccl_wrbuf));
-        cn = ccl_find_str(b->sptr->ccl_bibset, wrbuf_cstr(ccl_wrbuf),
-                          &cerror, &cpos);
-        if (!cn)
+        else
         {
-            char *addinfo = odr_strdup_null(odr, ccl_err_msg(cerror));
-            error = YAZ_BIB1_MALFORMED_QUERY;
-
-            switch (cerror)
+            error = YAZ_BIB1_QUERY_TYPE_UNSUPP;
+            const char *addinfo = 0;
+            log_diagnostic(package, error, addinfo);
+            apdu_res =  odr.create_searchResponse(apdu_req, error, addinfo);
+            package.response() = apdu_res;
+            return;
+        }
+        if (ccl_wrbuf.len())
+        {
+            // CCL to PQF
+            assert(pqf_wrbuf.len() == 0);
+            int cerror, cpos;
+            struct ccl_rpn_node *cn;
+            package.log("zoom", YLOG_LOG, "CCL: %s", wrbuf_cstr(ccl_wrbuf));
+            cn = ccl_find_str(b->sptr->ccl_bibset, wrbuf_cstr(ccl_wrbuf),
+                              &cerror, &cpos);
+            if (!cn)
             {
-            case CCL_ERR_UNKNOWN_QUAL:
-            case CCL_ERR_TRUNC_NOT_LEFT:
-            case CCL_ERR_TRUNC_NOT_RIGHT:
-            case CCL_ERR_TRUNC_NOT_BOTH:
+                char *addinfo = odr_strdup_null(odr, ccl_err_msg(cerror));
+                error = YAZ_BIB1_MALFORMED_QUERY;
+                switch (cerror)
+                {
+                case CCL_ERR_UNKNOWN_QUAL:
+                case CCL_ERR_TRUNC_NOT_LEFT:
+                case CCL_ERR_TRUNC_NOT_RIGHT:
+                case CCL_ERR_TRUNC_NOT_BOTH:
 #ifdef CCL_ERR_TRUNC_NOT_EMBED
-            case CCL_ERR_TRUNC_NOT_EMBED:
+                case CCL_ERR_TRUNC_NOT_EMBED:
 #endif
 #ifdef CCL_ERR_TRUNC_NOT_SINGLE
-            case CCL_ERR_TRUNC_NOT_SINGLE:
+                case CCL_ERR_TRUNC_NOT_SINGLE:
 #endif
-                error = YAZ_BIB1_UNSUPP_SEARCH;
-                break;
+                    error = YAZ_BIB1_UNSUPP_SEARCH;
+                    break;
+                }
+                log_diagnostic(package, error, addinfo);
+                apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
+                package.response() = apdu_res;
+                return;
             }
-            log_diagnostic(package, error, addinfo);
-            apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
-            package.response() = apdu_res;
-            return;
+            ccl_pquery(pqf_wrbuf, cn);
+            package.log("zoom", YLOG_LOG, "RPN: %s", wrbuf_cstr(pqf_wrbuf));
+            ccl_rpn_delete(cn);
         }
-        ccl_pquery(pqf_wrbuf, cn);
-        package.log("zoom", YLOG_LOG, "RPN: %s", wrbuf_cstr(pqf_wrbuf));
-        ccl_rpn_delete(cn);
-    }
-
-    assert(pqf_wrbuf.len());
-
-    ZOOM_query q = ZOOM_query_create();
-    ZOOM_query_sortby2(q, b->sptr->sortStrategy.c_str(), sortkeys.c_str());
-
-    Z_FacetList *fl = 0;
-
-    // Facets for request.. And later for reponse
-    if (!fl)
-        fl = yaz_oi_get_facetlist(&sr->otherInfo);
-    if (!fl)
-        fl = yaz_oi_get_facetlist(&sr->additionalSearchInfo);
-
-    if (b->get_option("sru"))
-    {
-        Z_RPNQuery *zquery;
-        zquery = p_query_rpn(odr, wrbuf_cstr(pqf_wrbuf));
-        mp::wrbuf wrb_cql;
-        mp::wrbuf wrb_addinfo;
-
-        if (!strcmp(b->get_option("sru"), "solr"))
-            error = solr_transform_rpn2solr_stream_r(b->cqlt, wrb_addinfo,
-                                                     wrbuf_vp_puts, wrb_cql,
-                                                     zquery);
-        else
-            error = cql_transform_rpn2cql_stream_r(b->cqlt, wrb_addinfo,
-                                                   wrbuf_vp_puts, wrb_cql,
-                                                   zquery);
-        if (error)
+        assert(pqf_wrbuf.len());
+        ZOOM_query q = ZOOM_query_create();
+        ZOOM_query_sortby2(q, b->sptr->sortStrategy.c_str(), sortkeys.c_str());
+        Z_FacetList *fl = 0;
+        // Facets for request.. And later for reponse
+        if (!fl)
+            fl = yaz_oi_get_facetlist(&sr->otherInfo);
+        if (!fl)
+            fl = yaz_oi_get_facetlist(&sr->additionalSearchInfo);
+        if (b->get_option("sru"))
         {
-            log_diagnostic(package, error, wrb_addinfo.c_str_null());
-            apdu_res = odr.create_searchResponse(apdu_req, error,
-                                                 wrb_addinfo.c_str_null());
-            package.response() = apdu_res;
-            return;
+            Z_RPNQuery *zquery;
+            zquery = p_query_rpn(odr, wrbuf_cstr(pqf_wrbuf));
+            mp::wrbuf wrb_cql;
+            mp::wrbuf wrb_addinfo;
+            if (!strcmp(b->get_option("sru"), "solr"))
+                error = solr_transform_rpn2solr_stream_r(b->cqlt, wrb_addinfo,
+                                                     wrbuf_vp_puts, wrb_cql,
+                                                         zquery);
+            else
+                error = cql_transform_rpn2cql_stream_r(b->cqlt, wrb_addinfo,
+                                                       wrbuf_vp_puts, wrb_cql,
+                                                       zquery);
+            if (error)
+            {
+                log_diagnostic(package, error, wrb_addinfo.c_str_null());
+                apdu_res = odr.create_searchResponse(apdu_req, error,
+                                                     wrb_addinfo.c_str_null());
+                package.response() = apdu_res;
+                return;
+            }
+            ZOOM_query_cql(q, wrb_cql.c_str());
+            package.log("zoom", YLOG_LOG, "search CQL: %s", wrb_cql.c_str());
+            b->search(q, &hits, &error, &addinfo, &fl, odr);
+            ZOOM_query_destroy(q);
         }
-        ZOOM_query_cql(q, wrb_cql.c_str());
-        package.log("zoom", YLOG_LOG, "search CQL: %s", wrb_cql.c_str());
-        b->search(q, &hits, &error, &addinfo, &fl, odr);
-        ZOOM_query_destroy(q);
+        else
+        {
+            ZOOM_query_prefix(q, pqf_wrbuf.c_str());
+            package.log("zoom", YLOG_LOG, "search PQF: %s", pqf_wrbuf.c_str());
+            b->search(q, &hits, &error, &addinfo, &fl, odr);
+            ZOOM_query_destroy(q);
+        }
+        if (error && m_backend_list.size() == 1)
+        {
+            if (retry(package, odr, b, error, &addinfo, proxy_step,
+                      same_retries, proxy_retries))
+                goto next_proxy;
+        }
+        const char *element_set_name = 0;
+        Odr_int number_to_present = 0;
+        if (!error)
+            mp::util::piggyback_sr(sr, hits,
+                                   number_to_present, &element_set_name);
+        Odr_int number_of_records_returned = 0;
+        Z_Records *records = get_records(
+            package,
+            0, number_to_present, &error, &addinfo,
+            &number_of_records_returned, odr, b, sr->preferredRecordSyntax,
+            element_set_name);
+        if (error)
+            log_diagnostic(package, error, addinfo);
+        apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
+        if (records)
+        {
+            apdu_res->u.searchResponse->records = records;
+            apdu_res->u.searchResponse->numberOfRecordsReturned =
+                odr_intdup(odr, number_of_records_returned);
+        }
+        apdu_res->u.searchResponse->resultCount = odr_intdup(odr, hits);
+        if (fl)
+            yaz_oi_set_facetlist(
+                &apdu_res->u.searchResponse->additionalSearchInfo,
+                odr, fl);
+        package.response() = apdu_res;
     }
-    else
-    {
-        ZOOM_query_prefix(q, pqf_wrbuf.c_str());
-        package.log("zoom", YLOG_LOG, "search PQF: %s", pqf_wrbuf.c_str());
-        b->search(q, &hits, &error, &addinfo, &fl, odr);
-        ZOOM_query_destroy(q);
-    }
-
-    if (error)
-    {
-        if (retry(package, odr, b, error, &addinfo, proxy_step,
-                  same_retries, proxy_retries))
-            goto next_proxy;
-    }
-
-    const char *element_set_name = 0;
-    Odr_int number_to_present = 0;
-    if (!error)
-        mp::util::piggyback_sr(sr, hits, number_to_present, &element_set_name);
-
-    Odr_int number_of_records_returned = 0;
-    Z_Records *records = get_records(
-        package,
-        0, number_to_present, &error, &addinfo,
-        &number_of_records_returned, odr, b, sr->preferredRecordSyntax,
-        element_set_name);
-    if (error)
-        log_diagnostic(package, error, addinfo);
-    apdu_res = odr.create_searchResponse(apdu_req, error, addinfo);
-    if (records)
-    {
-        apdu_res->u.searchResponse->records = records;
-        apdu_res->u.searchResponse->numberOfRecordsReturned =
-            odr_intdup(odr, number_of_records_returned);
-    }
-    apdu_res->u.searchResponse->resultCount = odr_intdup(odr, hits);
-    if (fl)
-        yaz_oi_set_facetlist(&apdu_res->u.searchResponse->additionalSearchInfo,
-                             odr, fl);
-    package.response() = apdu_res;
 }
 
+#if 0
 void yf::Zoom::Frontend::handle_present(mp::Package &package)
 {
     Z_GDU *gdu = package.request().get();
@@ -2547,6 +2627,7 @@ void yf::Zoom::Frontend::handle_present(mp::Package &package)
         package.response() = apdu_res;
     }
 }
+#endif
 
 void yf::Zoom::Frontend::handle_package(mp::Package &package)
 {
@@ -2556,9 +2637,9 @@ void yf::Zoom::Frontend::handle_package(mp::Package &package)
     else if (gdu->which == Z_GDU_Z3950)
     {
         Z_APDU *apdu_req = gdu->u.z3950;
-
-        if (m_backend)
-            wrbuf_rewind(m_backend->m_apdu_wrbuf);
+        std::list<BackendPtr>::iterator it;
+        for (it = m_backend_list.begin(); it != m_backend_list.end(); it++)
+            wrbuf_rewind((*it)->m_apdu_wrbuf);
         if (apdu_req->which == Z_APDU_initRequest)
         {
             mp::odr odr;
@@ -2571,10 +2652,12 @@ void yf::Zoom::Frontend::handle_package(mp::Package &package)
         {
             handle_search(package);
         }
+#if 0
         else if (apdu_req->which == Z_APDU_presentRequest)
         {
             handle_present(package);
         }
+#endif
         else
         {
             mp::odr odr;
@@ -2584,9 +2667,9 @@ void yf::Zoom::Frontend::handle_package(mp::Package &package)
                 "zoom filter cannot handle this APDU");
             package.session().close();
         }
-        if (m_backend)
+        for (it = m_backend_list.begin(); it != m_backend_list.end(); it++)
         {
-            WRBUF w = m_backend->m_apdu_wrbuf;
+            WRBUF w = (*it)->m_apdu_wrbuf;
             package.log_write(wrbuf_buf(w), wrbuf_len(w));
         }
     }
