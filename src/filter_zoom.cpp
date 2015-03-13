@@ -83,6 +83,7 @@ namespace metaproxy_1 {
             std::string extraArgs;
             std::string rpn2cql_fname;
             std::string retry_on_failure;
+            std::map<std::string, std::string> cf_param;
             bool use_turbomarc;
             bool piggyback;
             CCL_bibset ccl_bibset;
@@ -715,6 +716,11 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
         {
             s->retry_on_failure = mp::xml::get_text(ptr);
         }
+        else if (strlen((const char *) ptr->name) > 3 &&
+                 !memcmp((const char *) ptr->name, "cf_", 3))
+        {
+            s->cf_param[(const char *) ptr->name + 3] = mp::xml::get_text(ptr);
+        }
     }
     return s;
 }
@@ -1158,11 +1164,11 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     if (input_args.length())
         no_parms = yaz_uri_to_array(input_args.c_str(),
                                     odr, &names, &values);
-    // adding 10 because we'll be adding other URL args
+    // adding 20 because we'll be adding other URL args
     const char **out_names = (const char **)
-        odr_malloc(odr, (10 + no_parms) * sizeof(*out_names));
+        odr_malloc(odr, (20 + no_parms) * sizeof(*out_names));
     const char **out_values = (const char **)
-        odr_malloc(odr, (10 + no_parms) * sizeof(*out_values));
+        odr_malloc(odr, (20 + no_parms) * sizeof(*out_values));
 
     // may be changed if it's a content connection
     std::string torus_url = m_p->torus_searchable_url;
@@ -1524,6 +1530,20 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         {
             out_names[no_out_args] = "nocproxy";
             out_values[no_out_args++] = odr_strdup(odr, param_nocproxy);
+        }
+        std::map<std::string,std::string>::const_iterator it;
+        for (it = sptr->cf_param.begin(); it != sptr->cf_param.end(); it++)
+        {
+            int i;
+            const char *n = it->first.c_str();
+            for (i = 0; i < no_out_args; i++)
+                if (!strcmp(n, out_names[i]))
+                    break;
+            if (i == no_out_args)
+            {
+                out_names[no_out_args] = odr_strdup(odr, n);
+                out_values[no_out_args++] = odr_strdup(odr, it->second.c_str());
+            }
         }
     }
     else

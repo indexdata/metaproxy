@@ -201,6 +201,7 @@
 	    <cfAuth>cfuser/cfpassword</cfAuth>
 	    <cfProxy>localhost:3128</cfProxy>
 	    <cfSubDB>mysub</cfSubDB>
+	    <cf_x-associate>xvalue</cf_x-associate>
 	  </record>
 	</records>
       </torus>
