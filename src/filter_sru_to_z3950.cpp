@@ -68,11 +68,6 @@ namespace metaproxy_1 {
 
             typedef std::map<std::string, int> ActiveUrlMap;
 
-            boost::mutex m_url_mutex;
-            boost::condition m_cond_url_ready;
-            ActiveUrlMap m_active_urls;
-
-
             boost::mutex m_mutex_session;
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
@@ -441,33 +436,7 @@ void yf::SRUtoZ3950::Impl::process(mp::Package &package)
 
     if (zgdu_req && zgdu_req->which == Z_GDU_HTTP_Request)
     {
-        if (zgdu_req->u.HTTP_Request->content_len == 0)
-        {
-            const char *path = zgdu_req->u.HTTP_Request->path;
-            boost::mutex::scoped_lock lock(m_url_mutex);
-            while (1)
-            {
-                ActiveUrlMap::iterator it = m_active_urls.find(path);
-                if (it == m_active_urls.end())
-                {
-                    m_active_urls[path] = 1;
-                    break;
-                }
-                yaz_log(YLOG_LOG, "Waiting for %s to complete", path);
-                m_cond_url_ready.wait(lock);
-            }
-        }
         sru(package, zgdu_req);
-        if (zgdu_req && zgdu_req->u.HTTP_Request->content_len == 0)
-        {
-            const char *path = zgdu_req->u.HTTP_Request->path;
-            boost::mutex::scoped_lock lock(m_url_mutex);
-
-            ActiveUrlMap::iterator it = m_active_urls.find(path);
-
-            m_active_urls.erase(it);
-            m_cond_url_ready.notify_all();
-        }
     }
     else
     {
