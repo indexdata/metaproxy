@@ -1,3 +1,9 @@
+--- 1.8.4 2015/03/16
+
+zoom: support cf_-params MP-595
+
+http_client: returns 404 if no destination URI is given
+
 --- 1.8.3 2015/02/10
 
 zoom: allow / in user and password db args MP-592
