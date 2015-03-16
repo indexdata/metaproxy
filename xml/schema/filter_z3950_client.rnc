@@ -6,6 +6,8 @@ filter_z3950_client =
   attribute type { "z3950_client" },
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
+  element mp:connect-timeout { xsd:integer }?,
+  element mp:init-timeout { xsd:integer }?,
   element mp:timeout { xsd:integer }?,
   element mp:default_target { xsd:string }?,
   element mp:force_target { xsd:string }?,

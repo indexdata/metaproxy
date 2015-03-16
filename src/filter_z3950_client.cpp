@@ -51,7 +51,8 @@ namespace metaproxy_1 {
             friend class Rep;
             Assoc(yazpp_1::SocketManager *socket_manager,
                   yazpp_1::IPDU_Observable *PDU_Observable,
-                  std::string host, int timeout);
+                  std::string host, int connect_timeout,
+                  int init_timeout, int general_timeout);
             ~Assoc();
             void connectNotify();
             void failNotify();
@@ -70,19 +71,22 @@ namespace metaproxy_1 {
             bool m_in_use;
             bool m_waiting;
             bool m_destroyed;
-            bool m_connected;
+            int m_connected; // 0=not connected, 1=init phase, 2=rest
             bool m_has_closed;
             int m_queue_len;
             int m_time_elapsed;
-            int m_time_max;
-            int m_time_connect_max;
+            int m_connect_time_max;
+            int m_init_time_max;
+            int m_general_time_max;
             std::string m_host;
         };
 
         class Z3950Client::Rep {
         public:
             // number of seconds to wait before we give up request
-            int m_timeout_sec;
+            int m_general_timeout_sec;
+            int m_connect_timeout_sec;
+            int m_init_timeout_sec;
             int m_max_sockets;
             bool m_force_close;
             bool m_client_ip;
@@ -105,13 +109,18 @@ using namespace mp;
 
 yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
                               yazpp_1::IPDU_Observable *PDU_Observable,
-                              std::string host, int timeout_sec)
+                              std::string host,
+                              int connect_timeout,
+                              int init_timeout, int general_timeout)
     :  Z_Assoc(PDU_Observable),
        m_socket_manager(socket_manager), m_PDU_Observable(PDU_Observable),
        m_package(0), m_in_use(true), m_waiting(false),
-       m_destroyed(false), m_connected(false), m_has_closed(false),
+       m_destroyed(false), m_connected(0), m_has_closed(false),
        m_queue_len(1),
-       m_time_elapsed(0), m_time_max(timeout_sec),  m_time_connect_max(10),
+       m_time_elapsed(0),
+       m_connect_time_max(connect_timeout),
+       m_init_time_max(init_timeout),
+       m_general_time_max(general_timeout),
        m_host(host)
 {
     // std::cout << "create assoc " << this << "\n";
@@ -126,7 +135,7 @@ void yf::Z3950Client::Assoc::connectNotify()
 {
     m_waiting = false;
 
-    m_connected = true;
+    m_connected = 1;
 }
 
 void yf::Z3950Client::Assoc::failNotify()
@@ -150,8 +159,9 @@ void yf::Z3950Client::Assoc::failNotify()
 void yf::Z3950Client::Assoc::timeoutNotify()
 {
     m_time_elapsed++;
-    if ((m_connected && m_time_elapsed >= m_time_max)
-        || (!m_connected && m_time_elapsed >= m_time_connect_max))
+    if ((m_connected == 0 && m_time_elapsed >= m_connect_time_max)
+        || (m_connected == 1 && m_time_elapsed >= m_init_time_max)
+        || (m_connected >= 2 && m_time_elapsed >= m_general_time_max))
     {
         m_waiting = false;
 
@@ -164,7 +174,7 @@ void yf::Z3950Client::Assoc::timeoutNotify()
             if (gdu && gdu->which == Z_GDU_Z3950)
                 apdu = gdu->u.z3950;
 
-            if (m_connected)
+            if (m_connected == 2)
                 m_package->response() =
                     odr.create_close(apdu, Z_Close_lackOfActivity, 0);
             else
@@ -281,6 +291,7 @@ void yf::Z3950Client::Assoc::recv_GDU(Z_GDU *gdu, int len)
                 break;
             case Z_APDU_initResponse:
                 fixup_init(odr, apdu->u.initResponse);
+                m_connected = 2;
                 break;
             }
         }
@@ -298,7 +309,9 @@ yazpp_1::IPDU_Observer *yf::Z3950Client::Assoc::sessionNotify(
 
 yf::Z3950Client::Z3950Client() :  m_p(new yf::Z3950Client::Rep)
 {
-    m_p->m_timeout_sec = 30;
+    m_p->m_connect_timeout_sec = 10;
+    m_p->m_init_timeout_sec = 10;
+    m_p->m_general_timeout_sec = 30;
     m_p->m_max_sockets = 0;
     m_p->m_force_close = false;
     m_p->m_client_ip = false;
@@ -461,9 +474,11 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
 
     yazpp_1::SocketManager *sm = new yazpp_1::SocketManager;
     yazpp_1::PDU_Assoc *pdu_as = new yazpp_1::PDU_Assoc(sm);
-    yf::Z3950Client::Assoc *as = new yf::Z3950Client::Assoc(sm, pdu_as,
-                                                            target.c_str(),
-                                                            m_timeout_sec);
+    yf::Z3950Client::Assoc *as =
+        new yf::Z3950Client::Assoc(sm, pdu_as, target.c_str(),
+                                   m_connect_timeout_sec,
+                                   m_init_timeout_sec,
+                                   m_general_timeout_sec);
     m_clients[package.session()] = as;
     return as;
 }
@@ -651,7 +666,15 @@ void yf::Z3950Client::configure(const xmlNode *ptr, bool test_only,
             continue;
         if (!strcmp((const char *) ptr->name, "timeout"))
         {
-            m_p->m_timeout_sec = mp::xml::get_int(ptr, 30);
+            m_p->m_general_timeout_sec = mp::xml::get_int(ptr, 30);
+        }
+        else if (!strcmp((const char *) ptr->name, "connect-timeout"))
+        {
+            m_p->m_connect_timeout_sec = mp::xml::get_int(ptr, 10);
+        }
+        else if (!strcmp((const char *) ptr->name, "init-timeout"))
+        {
+            m_p->m_init_timeout_sec = mp::xml::get_int(ptr, 10);
         }
         else if (!strcmp((const char *) ptr->name, "default_target"))
         {
