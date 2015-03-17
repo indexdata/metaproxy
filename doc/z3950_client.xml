@@ -31,11 +31,27 @@
   </para>
   <para>
    <variablelist>
+    <varlistentry><term>connect-timeout</term>
+     <listitem>
+      <para>
+       Specifies how long the client will wait for TCP connect to
+       complete before giving up. Default value is 30 seconds.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry><term>init-timeout</term>
+     <listitem>
+      <para>
+       Specifies how long the client will wait for Z39.50 Init response
+       before giving up. Default value is 10 seconds.
+      </para>
+     </listitem>
+    </varlistentry>
     <varlistentry><term>timeout</term>
      <listitem>
       <para>
-       Specifies how long the client will wait for any request
-       before giving up. Default value is 30 seconds.
+       Specifies how long the client will wait for any request other
+       than Init before giving up. Default value is 30 seconds.
       </para>
      </listitem>
     </varlistentry>
