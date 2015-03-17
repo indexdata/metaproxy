@@ -1,3 +1,14 @@
+--- 1.8.5 2015/03/17
+
+sru_z3950: undo Serialize identical SRU GET requests MP-598
+Now much more elegantly handled by session_shared.
+
+session_shared: anticipated init and search MP-597
+
+z3950_client: separate init timeout MP-596
+Both init-timeout and connect-timeout are configurable by this change.
+Default is 10 seconds.
+
 --- 1.8.4 2015/03/16
 
 zoom: support cf_-params MP-595
