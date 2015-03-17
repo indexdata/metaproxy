@@ -128,6 +128,8 @@ namespace metaproxy_1 {
             bool expire_instances();
             yazpp_1::GDU m_init_request;
             yazpp_1::GDU m_init_response;
+            boost::mutex m_mutex_backend_class;
+            boost::condition m_cond_set_ready;
             int m_sequence_top;
             time_t m_backend_set_ttl;
             time_t m_backend_expiry_ttl;
@@ -138,8 +140,6 @@ namespace metaproxy_1 {
             int m_no_succeeded;
             int m_no_init;
         public:
-            boost::mutex m_mutex_backend_class;
-            boost::condition m_cond_set_ready;
             BackendClass(const yazpp_1::GDU &init_request,
                          int resultset_ttl,
                          int resultset_max,
