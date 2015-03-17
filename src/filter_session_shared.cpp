@@ -128,8 +128,6 @@ namespace metaproxy_1 {
             bool expire_instances();
             yazpp_1::GDU m_init_request;
             yazpp_1::GDU m_init_response;
-            boost::mutex m_mutex_backend_class;
-            boost::condition m_cond_set_ready;
             int m_sequence_top;
             time_t m_backend_set_ttl;
             time_t m_backend_expiry_ttl;
@@ -140,6 +138,8 @@ namespace metaproxy_1 {
             int m_no_succeeded;
             int m_no_init;
         public:
+            boost::mutex m_mutex_backend_class;
+            boost::condition m_cond_set_ready;
             BackendClass(const yazpp_1::GDU &init_request,
                          int resultset_ttl,
                          int resultset_max,
@@ -561,7 +561,9 @@ void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
         {
             // first for first one to finish
             while (!bc->m_no_failed && !bc->m_no_succeeded && bc->m_no_init)
-                bc->m_cond_set_ready.wait(bc->m_mutex_backend_class);
+            {
+                bc->m_cond_set_ready.wait(lock);
+            }
         }
     }
     if (create_first_one)
@@ -801,8 +803,7 @@ restart:
                     {
                         if ((*it)->m_in_use)
                         {
-                            bc->m_cond_set_ready.wait(
-                                bc->m_mutex_backend_class);
+                            bc->m_cond_set_ready.wait(lock);
                             restart = true;
                             break;
                         }
