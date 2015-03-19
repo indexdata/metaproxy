@@ -218,6 +218,11 @@ static int sc_main(
         , test_config ? "test" : "start"
             );
 
+    char yaz_version_str[20];
+    char yaz_sha1_str[41];
+    yaz_version(yaz_version_str, yaz_sha1_str);
+    yaz_log(YLOG_LOG, "YAZ %s %s", yaz_version_str, yaz_sha1_str);
+
     xmlInitParser();
     LIBXML_TEST_VERSION
 
