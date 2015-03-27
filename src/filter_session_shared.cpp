@@ -946,6 +946,7 @@ restart:
                 package.response() = f_apdu;
             }
             bc->release_backend(found_backend);
+            found_set.reset();
             return; // search error
         }
     }
