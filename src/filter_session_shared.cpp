@@ -879,7 +879,6 @@ restart:
 
     found_set = new_set;
     found_set->timestamp();
-    found_backend->m_sets.push_back(found_set);
 
     Z_Records *z_records = 0;
 
@@ -958,12 +957,7 @@ restart:
         found_backend.reset();
         goto restart;
     }
-
-#if 0
-    found_set = new_set;
-    found_set->timestamp();
     found_backend->m_sets.push_back(found_set);
-#endif
 }
 
 int yf::SessionShared::Frontend::result_set_ref(ODR o,
