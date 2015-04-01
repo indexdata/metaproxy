@@ -1,3 +1,13 @@
+--- 1.8.6 2015/04/01
+
+Fix session_shared caches set with diagnostic MP-604
+
+Fix assertion failed in session_shared filter MP-603
+
+Make /usr/share/metaproxy be part of metaproxy RPM MP-601
+
+Log YAZ version upon start MP-599
+
 --- 1.8.5 2015/03/17
 
 sru_z3950: undo Serialize identical SRU GET requests MP-598
