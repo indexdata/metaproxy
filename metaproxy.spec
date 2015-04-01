@@ -59,7 +59,6 @@ make CFLAGS="$RPM_OPT_FLAGS"
 rm -fr ${RPM_BUILD_ROOT}
 make install DESTDIR=${RPM_BUILD_ROOT}
 rm ${RPM_BUILD_ROOT}/%{_libdir}/*.la
-rm -fr ${RPM_BUILD_ROOT}/%{_prefix}/share/metaproxy
 rm -f ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy/*
 mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/metaproxy6/modules
 mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/filters-enabled
@@ -102,6 +101,7 @@ rm -fr ${RPM_BUILD_ROOT}
 
 %files
 %defattr(-,root,root)
+%{_datadir}/metaproxy
 %{_bindir}/metaproxy
 %{_mandir}/man3/*
 %{_mandir}/man1/metaproxy.*
