@@ -2414,12 +2414,8 @@ next_proxy:
             case CCL_ERR_TRUNC_NOT_LEFT:
             case CCL_ERR_TRUNC_NOT_RIGHT:
             case CCL_ERR_TRUNC_NOT_BOTH:
-#ifdef CCL_ERR_TRUNC_NOT_EMBED
             case CCL_ERR_TRUNC_NOT_EMBED:
-#endif
-#ifdef CCL_ERR_TRUNC_NOT_SINGLE
             case CCL_ERR_TRUNC_NOT_SINGLE:
-#endif
                 error = YAZ_BIB1_UNSUPP_SEARCH;
                 break;
             }

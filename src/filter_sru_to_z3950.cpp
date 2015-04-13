@@ -31,9 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/oid_db.h>
 #include <yaz/log.h>
 #include <yaz/otherinfo.h>
-#if YAZ_VERSIONL >= 0x50000
 #include <yaz/facet.h>
-#endif
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
@@ -612,15 +610,11 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
             odr_malloc(odr_en, sizeof(char *));
         z_searchRequest->databaseNames[0] = odr_strdup(odr_en, db.c_str());
     }
-#if YAZ_VERSIONL >= 0x50000
-    // yaz_oi_set_facetlist not public in YAZ 4.2.66
     if (sr_req->facetList)
     {
         Z_OtherInformation **oi = &z_searchRequest->additionalSearchInfo;
         yaz_oi_set_facetlist(oi, odr_en, sr_req->facetList);
     }
-#endif
-
     Z_Query *z_query = (Z_Query *) odr_malloc(odr_en, sizeof(Z_Query));
     z_searchRequest->query = z_query;
 
@@ -660,12 +654,10 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
     {
         return false;
     }
-#if YAZ_VERSIONL >= 0x50000
     Z_FacetList *fl = yaz_oi_get_facetlist(&sr->additionalSearchInfo);
     if (!fl)
         fl =  yaz_oi_get_facetlist(&sr->otherInfo);
     sru_pdu_res->u.response->facetList = fl;
-#endif
     sru_pdu_res->u.response->numberOfRecords
         = odr_intdup(odr_en, *sr->resultCount);
     return true;
@@ -897,13 +889,7 @@ int yf::SRUtoZ3950::Impl::z3950_build_query(
     const Z_SRW_searchRetrieveRequest *req
     ) const
 {
-    if (
-#ifdef Z_SRW_query_type_cql
-        req->query_type == Z_SRW_query_type_cql
-#else
-        !strcmp(req->queryType, "cql")
-#endif
-        )
+    if (!strcmp(req->queryType, "cql"))
     {
         Z_External *ext = (Z_External *)
             odr_malloc(odr_en, sizeof(*ext));
@@ -912,39 +898,21 @@ int yf::SRUtoZ3950::Impl::z3950_build_query(
         ext->indirect_reference = 0;
         ext->descriptor = 0;
         ext->which = Z_External_CQL;
-        ext->u.cql = odr_strdup(odr_en,
-#ifdef Z_SRW_query_type_cql
-        req->query.cql
-#else
-        req->query
-#endif
-            );
+        ext->u.cql = odr_strdup(odr_en, req->query);
 
         z_query->which = Z_Query_type_104;
         z_query->u.type_104 =  ext;
         return 0;
     }
 
-    if (
-#ifdef Z_SRW_query_type_pqf
-        req->query_type == Z_SRW_query_type_pqf
-#else
-        !strcmp(req->queryType, "pqf")
-#endif
-        )
+    if (!strcmp(req->queryType, "pqf"))
     {
         Z_RPNQuery *RPNquery;
         YAZ_PQF_Parser pqf_parser;
 
         pqf_parser = yaz_pqf_create ();
 
-        RPNquery = yaz_pqf_parse (pqf_parser, odr_en,
-#ifdef Z_SRW_query_type_pqf
-        req->query.pqf
-#else
-        req->query
-#endif
-            );
+        RPNquery = yaz_pqf_parse (pqf_parser, odr_en, req->query);
         yaz_pqf_destroy(pqf_parser);
 
         if (!RPNquery)

@@ -968,9 +968,6 @@ Z_Entry *yf::Multi::ScanTermInfo::get_entry(ODR odr)
     t->term = (Z_Term *) odr_malloc(odr, sizeof(*t->term));
     t->term->which = Z_Term_general;
     t->term->u.general = odr_create_Odr_oct(odr,
-#if YAZ_VERSIONL < 0x50000
-                                 (unsigned char *)
-#endif
                                  m_norm_term.c_str(), m_norm_term.size());
     return e;
 }
