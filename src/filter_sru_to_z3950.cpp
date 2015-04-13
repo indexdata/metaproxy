@@ -923,6 +923,15 @@ int yf::SRUtoZ3950::Impl::z3950_build_query(
 
         return 0;
     }
+
+    if (!strcmp(req->queryType, "ccl"))
+    {
+        z_query->which = Z_Query_type_2;
+        z_query->u.type_2 = odr_create_Odr_oct(odr_en, req->query,
+                                               strlen(req->query));
+        return 0;
+    }
+
     return YAZ_SRW_MANDATORY_PARAMETER_NOT_SUPPLIED;
 }
 
