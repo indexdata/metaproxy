@@ -1,3 +1,9 @@
+--- 1.8.8 2015/04/14
+
+sru_z3950: allow CCL in SRU search MP-606
+Makes the sru_z3950 filter convert to CCL queries if query type
+"ccl" is used, eg ?query=water&queryType=ccl&... for SRU 2.0.
+
 --- 1.8.7 2015/04/01
 
 Fix dead lock in session_shared (init) MP-605
