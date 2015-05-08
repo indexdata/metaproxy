@@ -266,7 +266,7 @@ static int sc_main(
             yaz_sc_running(s);
 
             yaz_daemon("metaproxy", mode | YAZ_DAEMON_LOG_REOPEN,
-                       mode == YAZ_DAEMON_DEBUG ? work_debug : work_normal,
+                       (mode & YAZ_DAEMON_FORK) ? work_normal : work_debug,
                        router, pidfile, uid);
         }
         delete router;
