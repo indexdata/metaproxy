@@ -12,7 +12,7 @@
 # This file is accessed by an Auth-Simple filter containing a
 # <targetRegister> element whose content is the filename.
 
-mike:z3950.loc.gov:7090/voyager,indexdata.dk/gils
+mike:lx2.loc.gov:210/LCDB,indexdata.dk/gils
 adam:indexdata.dk/gils,localhost:9999/Default,something_for_backend_test_to_know
 rob:localhost:9999/Default,something_for_backend_test_to_know
 AllDbsUser:*

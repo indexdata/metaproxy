@@ -21,7 +21,7 @@
       <filter type="virt_db">
         <virtual>
           <database>loc</database>
-          <target>z3950.loc.gov:7090/voyager</target>
+          <target>lx2.loc.gov:210/LCDB</target>
         </virtual>
         <virtual>
           <database>idgils</database>
@@ -37,7 +37,7 @@
         </virtual>
         <virtual>
           <database>all</database>
-          <target>z3950.loc.gov:7090/voyager</target>
+          <target>lx2.loc.gov:210/LCDB</target>
           <target>indexdata.dk/gils</target>
           <target>localhost:9999/Default</target>
         </virtual>

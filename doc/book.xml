@@ -1393,7 +1393,7 @@ Figure out what additional information we need in:
    <screen><![CDATA[<filter type="virt_db">
   <virtual>
     <database>lc</database>
-    <target>z3950.loc.gov:7090/voyager</target>
+    <target>lx2.loc.gov:210/LCDB</target>
   </virtual>
   <virtual>
     <database>marc</database>
@@ -1433,7 +1433,7 @@ Figure out what additional information we need in:
       <filter type="virt_db">
         <virtual>
           <database>lc</database>
-          <target>z3950.loc.gov:7090/voyager</target>
+          <target>lx2.loc.gov:210/LCDB</target>
         </virtual>
         <virtual>
           <database>marc</database>
@@ -1441,7 +1441,7 @@ Figure out what additional information we need in:
         </virtual>
         <virtual>
           <database>all</database>
-          <target>z3950.loc.gov:7090/voyager</target>
+          <target>lx2.loc.gov:210/LCDB</target>
           <target>indexdata.com/marc</target>
         </virtual>
       </filter>

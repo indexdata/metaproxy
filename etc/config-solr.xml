@@ -25,7 +25,7 @@
 	      <udb>loc</udb>
 	      <cclmap_term>t=l,r</cclmap_term>
 	      <cclmap_ti>u=4 t=l,r</cclmap_ti>
-	      <zurl>z3950.loc.gov:7090/voyager</zurl>
+	      <zurl>lx2.loc.gov:210/LCDB</zurl>
 	    </record>
 	  </records>
 	</torus>
