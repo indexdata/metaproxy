@@ -901,7 +901,7 @@
               <udb>loc</udb>
               <cclmap_term>t=l,r</cclmap_term>
               <cclmap_ti>u=4 t=l,r</cclmap_ti>
-              <zurl>lx2.loc.gov:210/LCDB</zurl>
+              <zurl>lx2.loc.gov:210/LCDB_MARC8</zurl>
             </record>
           </records>
         </torus>

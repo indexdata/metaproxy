@@ -122,11 +122,11 @@ the following databaseNames (virtual databases):
         </virtual>
         <virtual>
           <database>LCDB_UTF8</database>
-          <target>z3950.loc.gov:7097/LCDB_UTF8</target>
+          <target>z3950.loc.gov:7097/LCDB_MARC8_UTF8</target>
         </virtual>
         <virtual>
           <database>LCDB_MARC8</database>
-          <target>z3950.loc.gov:7095/LCDB_MARC8</target>
+          <target>z3950.loc.gov:7095/LCDB_MARC8_MARC8</target>
         </virtual>
         <virtual>
           <database>HLAS_UTF8</database>
@@ -172,7 +172,7 @@ the following databaseNames (virtual databases):
         <!-- merged results -->
         <virtual>
           <database>AllVoyager</database>
-          <target>z3950.loc.gov:7097/LCDB_UTF8</target>
+          <target>z3950.loc.gov:7097/LCDB_MARC8_UTF8</target>
           <target>z3950.loc.gov:7999/HLAS_UTF8</target>
           <target>z3950.loc.gov:7999/NLSBPH_UTF8</target>
         </virtual>
@@ -182,8 +182,8 @@ the following databaseNames (virtual databases):
       <!-- merge and route -->
       <filter type="multi">
         <target route="idtest">localhost*</target>
-        <target route="lcdb_utf8">z3950.loc.gov:7097/LCDB_UTF8</target>
-        <target route="lcdb_marc8">z3950.loc.gov:7095/LCDB_MARC8</target>
+        <target route="lcdb_utf8">z3950.loc.gov:7097/LCDB_MARC8_UTF8</target>
+        <target route="lcdb_marc8">z3950.loc.gov:7095/LCDB_MARC8_MARC8</target>
         <target route="utf8">*UTF8</target>
       </filter>
       <!-- other targets.. MARC-8 and foreign .. -->

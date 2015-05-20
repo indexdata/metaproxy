@@ -45,13 +45,13 @@
         </virtual>
         <virtual>
           <database>loc</database>
-	  <target>lx2.loc.gov:210/LCDB</target>
+	  <target>lx2.loc.gov:210/LCDB_MARC8</target>
         </virtual>
         <virtual>
           <database>all</database>
           <target>localhost:9999/Default</target>
           <target>localhost:9998/Slow</target>
-          <target>lx2.loc.gov:210/LCDB</target>
+          <target>lx2.loc.gov:210/LCDB_MARC8</target>
         </virtual>
       </filter>
       <filter type="log">

@@ -69,7 +69,7 @@
    A typical configuration looks like this:
    <screen><![CDATA[
     <filter type="multi">
-     <target route="route1">lx2.loc.gov:210/LCDB</target>
+     <target route="route1">lx2.loc.gov:210/LCDB_MARC8</target>
      <target route="route2">bagel.indexdata.dk/gils</target>
      <target route="other">*</target>
     </filter>
