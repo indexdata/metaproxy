@@ -326,7 +326,6 @@ static void log_1line_Z_APDU(Z_APDU *z_req, Z_APDU *z_res, WRBUF w)
                     res->records->u.multipleNonSurDiagnostics->diagRecs);
             }
             wrbuf_puts(w, " ");
-            assert(req->preferredRecordSyntax);
             log_syntax(w, req->preferredRecordSyntax);
 
             wrbuf_printf(w, " %s " ODR_INT_PRINTF "+" ODR_INT_PRINTF " ",
