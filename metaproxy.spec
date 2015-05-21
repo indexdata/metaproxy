@@ -14,7 +14,6 @@ BuildRequires: libxslt-devel, boost-devel
 Conflicts: cf-engine <= 2.12.5
 Packager: Adam Dickmeiss <adam@indexdata.dk>
 URL: http://www.indexdata.com/metaproxy
-Group:  Applications/Internet
 Requires:  libmetaproxy6 = %{version}
 Provides: metaproxy6
 
