@@ -681,7 +681,11 @@ void yf::Log::Impl::process(mp::Package &package)
             {
                 mp::odr odr(ODR_PRINT);
                 odr_set_stream(odr, m_file->fhandle, stream_write, 0);
+                if (!m_file->fhandle)
+                    yaz_log_lock();
                 z_GDU(odr, &gdu_req, 0, 0);
+                if (!m_file->fhandle)
+                    yaz_log_unlock();
             }
         }
     }
@@ -776,7 +780,11 @@ void yf::Log::Impl::process(mp::Package &package)
             {
                 mp::odr odr(ODR_PRINT);
                 odr_set_stream(odr, m_file->fhandle, stream_write, 0);
+                if (!m_file->fhandle)
+                    yaz_log_lock();
                 z_GDU(odr, &gdu_res, 0, 0);
+                if (!m_file->fhandle)
+                    yaz_log_unlock();
             }
         }
     }
