@@ -1,4 +1,4 @@
-%define idmetaversion %(. ./IDMETA; echo $VERSION|tr -d '\n')
+%define idmetaversion %(. ./IDMETA; echo $VERSION)
 Summary: Z39.50/SRU router
 Name: metaproxy
 Version: %{idmetaversion}
