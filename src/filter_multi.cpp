@@ -691,7 +691,7 @@ void yf::Multi::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
             close_p ? "true" : "false",
             m_p->m_hide_errors ? "true" : "false");
     *f_resp->resultCount = result_set_size;
-    if (close_p && (no_successful == 0 || !m_p->m_hide_errors))
+    if (close_p && (no_successful == 0 || !m_p->m_hide_unavailable))
     {
         package.session().close();
         package.response() = close_p->response();
