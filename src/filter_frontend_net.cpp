@@ -59,6 +59,7 @@ namespace metaproxy_1 {
             int m_listen_duration;
             int m_session_timeout;
             int m_connect_max;
+            int m_http_req_max;
             std::string m_msg_config;
             std::string m_stat_req;
             yazpp_1::SocketManager mySocketManager;
@@ -91,7 +92,8 @@ namespace metaproxy_1 {
                         mp::ThreadPoolSocketObserver *m_thread_pool_observer,
                         const mp::Package *package,
                         Port *port,
-                        Rep *rep);
+                        Rep *rep,
+                        yazpp_1::LimitConnect &limit_connect);
             int m_no_requests;
             Port *m_port;
         private:
@@ -110,6 +112,7 @@ namespace metaproxy_1 {
             bool m_delete_flag;
             const mp::Package *m_package;
             Rep *m_p;
+            yazpp_1::LimitConnect &m_limit_connect;
         };
         class FrontendNet::ThreadPoolPackage : public mp::IThreadPoolMsg {
         public:
@@ -267,8 +270,9 @@ yf::FrontendNet::ZAssocChild::ZAssocChild(
     yazpp_1::IPDU_Observable *PDU_Observable,
     mp::ThreadPoolSocketObserver *my_thread_pool,
     const mp::Package *package,
-    Port *port, Rep *rep)
-    :  Z_Assoc(PDU_Observable), m_p(rep)
+    Port *port, Rep *rep,
+    yazpp_1::LimitConnect &limit_connect)
+    :  Z_Assoc(PDU_Observable), m_p(rep), m_limit_connect(limit_connect)
 {
     m_thread_pool_observer = my_thread_pool;
     m_no_requests = 0;
@@ -387,6 +391,20 @@ void yf::FrontendNet::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
             report(hreq);
             return;
         }
+        std::string peername = p->origin().get_address();
+
+        m_limit_connect.add_connect(peername.c_str());
+        m_limit_connect.cleanup(false);
+        int con_sz = m_limit_connect.get_total(peername.c_str());
+
+        if (m_p->m_http_req_max && con_sz >= m_p->m_http_req_max)
+        {
+            mp::odr o;
+            Z_GDU *gdu_res = o.create_HTTP_Response(m_session, hreq, 500);
+            int len;
+            send_GDU(gdu_res, &len);
+            return;
+        }
     }
 
     ThreadPoolPackage *tp = new ThreadPoolPackage(p, this, m_p);
@@ -476,7 +494,7 @@ yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocServer::sessionNotify(
     }
     ZAssocChild *my = new ZAssocChild(the_PDU_Observable,
                                       m_thread_pool_observer,
-                                      m_package, m_port, m_p);
+                                      m_package, m_port, m_p, limit_connect);
     return my;
 }
 
@@ -697,6 +715,10 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
         else if (!strcmp((const char *) ptr->name, "connect-max"))
         {
             m_p->m_connect_max = mp::xml::get_int(ptr, 0);
+        }
+        else if (!strcmp((const char *) ptr->name, "http-req-max"))
+        {
+            m_p->m_http_req_max = mp::xml::get_int(ptr, 0);
         }
         else if (!strcmp((const char *) ptr->name, "message"))
         {
