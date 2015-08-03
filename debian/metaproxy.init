@@ -132,9 +132,15 @@ case "$1" in
 	# If do_reload() is not implemented then leave this commented out
 	# and leave 'force-reload' as an alias for 'restart'.
 	#
-	log_daemon_msg "Reloading $DESC" "$NAME"
-	do_reload
-	log_end_msg $?
+	# our reload makes a new PID. systemd doesn't allow it. MP-620
+	if test -n "$_use_systemctl"; then
+		log_daemon_msg "Using systemd. Not reloading $DESC" "$NAME"
+		log_end_msg 0
+	else
+		log_daemon_msg "Reloading $DESC" "$NAME"
+		do_reload
+		log_end_msg $?
+	fi
 	;;
   restart)
 	#
