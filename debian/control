@@ -16,7 +16,7 @@ Build-Depends: debhelper (>= 7),
 Package: metaproxy
 Section: net
 Architecture: any
-Depends: ${shlibs:Depends}, libmetaproxy6 (= ${Source-Version})
+Depends: ${shlibs:Depends}, libmetaproxy6 (= ${source:Version})
 Conflicts: cf-engine (<= 2.12.5)
 Provides: metaproxy6
 Description: Z39.50/SRU router (main executable)
@@ -59,7 +59,7 @@ Section: libdevel
 Architecture: any
 Provides: libmetaproxy-dev
 Replaces: libmetaproxy-dev
-Depends: libmetaproxy6 (= ${Source-Version}),
+Depends: libmetaproxy6 (= ${source:Version}),
 	libyazpp6-dev (>= 1.5.2),
 	libxslt1-dev,
 	libboost-dev,
