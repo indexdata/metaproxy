@@ -162,10 +162,8 @@ void yf::CQLtoRPN::Impl::process(mp::Package &package)
                                                 odr, &addinfo);
             if (r)
             {
-                int error_code = yaz_diag_srw_to_bib1(r);
-
                 Z_APDU *f_apdu =
-                    odr.create_searchResponse(apdu_req, error_code, addinfo);
+                    odr.create_searchResponse(apdu_req, r, addinfo);
                 package.response() = f_apdu;
                 return;
             }
