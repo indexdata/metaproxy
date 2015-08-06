@@ -1,3 +1,17 @@
+--- 1.9.0 2015/08/06
+
+Fix incorrect diagnostic for reverse cql2pqf MP-619
+The cql_transform_rpn2cql_stream_r returns Bib-1 diagnostics; not
+SRU diagnostics.
+
+deb: deprecated substitution ${Source-Version} MP-621
+
+Fix systemd: reload stops metaproxy MP-620
+Detect systemd and just do nothing when reload/force-reload is
+used. Log, however, that it really is not reloading.
+
+Add http-req-max to frontend_net MP-617
+
 --- 1.8.10 2015/06/24
 
 Fix multi: hideunavailable don't hide target that timeout MP-615
