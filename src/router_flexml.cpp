@@ -203,12 +203,12 @@ void mp::RouterFleXML::Rep::parse_xml_filters1(xmlDocPtr doc,
                             type_value.c_str(), m_dl_path.c_str());
                     m_factory->add_creator_dl(type_value, m_dl_path);
                 }
-                mp::filter::Base* filter_base = m_factory->create(type_value);
+                boost::shared_ptr<mp::filter::Base>
+                     filter_base(m_factory->create(type_value));
 
                 filter_base->configure(node, test_only, file_include_path);
 
-                route.m_list.push_back(
-                    boost::shared_ptr<mp::filter::Base>(filter_base));
+                route.m_list.push_back(filter_base);
             }
 
         }
