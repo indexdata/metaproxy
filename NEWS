@@ -1,3 +1,9 @@
+--- 1.9.1 2015/08/19
+
+Avoid naked ptr in filter configure MP-623
+
+Update to debhelper 9 MP-622
+
 --- 1.9.0 2015/08/06
 
 Fix incorrect diagnostic for reverse cql2pqf MP-619
