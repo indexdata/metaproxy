@@ -30,7 +30,9 @@
    <literal>&lt;target&gt;</literal> elements.
    If a target matches a given target specified as CDATA in the
    target element, the multi filter will route traffic to the route
-   given by the route attribute.
+   given by the route attribute. The target element may also apply
+   credentials to be sent to the target. This is given by the
+   <literal>auth</literal> attribute.
   </para>
   <para>
    A target element is not required for multi-plexing to work.
@@ -70,7 +72,8 @@
    <screen><![CDATA[
     <filter type="multi">
      <target route="route1">lx2.loc.gov:210/LCDB_MARC8</target>
-     <target route="route2">bagel.indexdata.dk/gils</target>
+     <target route="route2">z3950.indexdata.com/gils</target>
+     <target route="route3" auth="myuser/mypass">localhost:9999</target>
      <target route="other">*</target>
     </filter>
 ]]>
