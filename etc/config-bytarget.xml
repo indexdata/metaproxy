@@ -17,17 +17,17 @@
         </virtual>
         <virtual>
           <database>idgils</database>
-          <target>indexdata.dk/gils</target>
+          <target>z3950.indexdata.com/gils</target>
         </virtual>
         <virtual>
           <database>all</database>
-          <target>indexdata.dk/gils</target>
+          <target>z3950.indexdata.com/gils</target>
           <target>lx2.loc.gov:210/LCDB_MARC8</target>
         </virtual>
       </filter>
       <filter type="multi">
         <target route="group1">lx2.loc.gov:210/LCDB_MARC8</target>
-        <target route="group2">indexdata.dk/gils</target>
+        <target route="group2">z3950.indexdata.com/gils</target>
       </filter>
       <filter type="bounce"/>
     </route>
@@ -44,13 +44,6 @@
       <filter type="bounce"/>
     </route>
     <route id="group2">
-<!--
-      <filter type="auth-set">
-        <username>mike</username>
-        <password>fishy</password>
-        <group></group>
-      </filter>
--->
       <filter type="log">
 	<message>Gils</message>
       </filter>

@@ -25,7 +25,7 @@
         </virtual>
         <virtual>
           <database>db3</database>
-          <target>bagel.indexdata.dk:80</target>
+          <target>localhost:9998/Slow</target>
         </virtual>
         <virtual>
           <database>db4</database>
@@ -37,11 +37,11 @@
         </virtual>
         <virtual>
           <database>gils</database>
-          <target>z3950.indexdata.dk/gils</target>
+          <target>z3950.indexdata.com/gils</target>
         </virtual>
         <virtual>
           <database>marc</database>
-          <target>z3950.indexdata.dk/marc1</target>
+          <target>z3950.indexdata.com/marc1</target>
         </virtual>
         <virtual>
           <database>loc</database>

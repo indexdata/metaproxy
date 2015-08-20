@@ -216,7 +216,7 @@
     </filter>
     <filter id="backend" type="z3950_client">
      <timeout>30</timeout>
-     <default_target>z3950.indexdata.dk</default_target>
+     <default_target>z3950.indexdata.com</default_target>
     </filter>
   </filters>
   <routes>

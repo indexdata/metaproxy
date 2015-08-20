@@ -84,16 +84,16 @@
       </virtual>
       <virtual>
         <database>db2</database>
-        <target>indexdata.com/gils</target>
+        <target>z3950.indexdata.com/gils</target>
       </virtual>
       <virtual>
         <database>combined</database>
-        <target>indexdata.com/gils</target>
+        <target>z3950.indexdata.com/gils</target>
         <target>localhost:9999/Default</target>
       </virtual>
       <virtual route="special">
         <database>db3</database>
-        <target>indexdata.com/special</target>
+        <target>z3950.indexdata.com/special</target>
       </virtual>
       <virtual>
         <database>*</database><!-- default -->

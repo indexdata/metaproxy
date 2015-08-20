@@ -14,12 +14,16 @@
         </virtual>
         <virtual>
           <database>marc</database>
-          <target>indexdata.dk/marc</target>
+          <target>z3950.indexdata.com/marc</target>
+        </virtual>
+        <virtual>
+          <database>Default</database>
+          <target>localhost:9999</target>
         </virtual>
         <virtual>
           <database>all</database>
 	  <target>lx2.loc.gov:210/LCDB_MARC8</target>
-          <target>indexdata.dk/marc</target>
+          <target>z3950.indexdata.com/marc</target>
         </virtual>
       </filter>
       <filter type="multi"/>

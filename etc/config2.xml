@@ -25,7 +25,7 @@
         </virtual>
         <virtual>
           <database>idgils</database>
-          <target>indexdata.dk/gils</target>
+          <target>z3950.indexdata.com/gils</target>
         </virtual>
         <virtual>
           <database>Default</database>
@@ -38,7 +38,7 @@
         <virtual>
           <database>all</database>
           <target>lx2.loc.gov:210/LCDB_MARC8</target>
-          <target>indexdata.dk/gils</target>
+          <target>z3950.indexdata.com/gils</target>
           <target>localhost:9999/Default</target>
         </virtual>
       </filter>

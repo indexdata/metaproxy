@@ -12,8 +12,8 @@
 # This file is accessed by an Auth-Simple filter containing a
 # <targetRegister> element whose content is the filename.
 
-mike:lx2.loc.gov:210/LCDB_MARC8,indexdata.dk/gils
-adam:indexdata.dk/gils,localhost:9999/Default,something_for_backend_test_to_know
+mike:lx2.loc.gov:210/LCDB_MARC8,z3950.indexdata.com/gils
+adam:z3950.indexdata.com/gils,localhost:9999/Default,something_for_backend_test_to_know
 rob:localhost:9999/Default,something_for_backend_test_to_know
 AllDbsUser:*
 FooOnlyUser:zurg:9991/foo
