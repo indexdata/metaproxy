@@ -26,7 +26,9 @@
           <target>z3950.indexdata.com/marc</target>
         </virtual>
       </filter>
-      <filter type="multi"/>
+      <filter type="multi">
+	<target auth="myuser/mypassword">localhost:9999</target>
+      </filter>
       <filter type="z3950_client">
         <timeout>30</timeout>
       </filter>
