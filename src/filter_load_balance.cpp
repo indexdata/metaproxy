@@ -150,8 +150,8 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
             // they turn out to be bad..
             while (1)
             {
-                std::string target;
                 std::list<std::string>::iterator ivh = vhosts.begin();
+                std::list<std::string>::iterator ivh_pick = vhosts.end();
 
                 Package init_pkg(package.session(), package.origin());
                 init_pkg.copy_filter(package);
@@ -160,7 +160,7 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
                 {
                     boost::mutex::scoped_lock scoped_lock(m_mutex);
 
-                    for (; ivh != vhosts.end(); )
+                    for (; ivh != vhosts.end(); ivh++)
                     {
                         if ((*ivh).size() != 0)
                         {
@@ -170,21 +170,17 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
                                     (*ivh).c_str(), cost, vhcost);
                             if (cost > vhcost)
                             {
+                                ivh_pick = ivh;
                                 cost = vhcost;
-                                target = *ivh;
-                                ivh = vhosts.erase(ivh);
                             }
-                            else
-                                ivh++;
                         }
-                        else
-                            ivh++;
                     }
                 }
-                if (target.length() == 0)
+                if (ivh_pick == vhosts.end())
                     break;
+                std::string target = *ivh_pick;
+                vhosts.erase(ivh_pick);
                 // copying new target into init package
-
                 yazpp_1::GDU init_gdu(base_req);
                 Z_InitRequest *init_req = init_gdu.get()->u.z3950->u.initRequest;
 
