@@ -377,10 +377,20 @@ void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
         package.session().close();
         return;
     }
-    b->m_number_of_sets++;
 
-    m_sets[resultSetId] = VirtualDB::Set(b, backend_setname);
-    fixup_package(search_package, b);
+    Z_GDU *gdu = search_package.response().get();
+    if (gdu && gdu->which == Z_GDU_Z3950
+        && gdu->u.z3950->which == Z_APDU_searchResponse)
+    {
+        Z_SearchResponse *b_resp = gdu->u.z3950->u.searchResponse;
+        Z_Records *z_records = b_resp->records;
+        if (!z_records || (z_records && z_records->which == Z_Records_DBOSD))
+        {
+            b->m_number_of_sets++;
+            m_sets[resultSetId] = VirtualDB::Set(b, backend_setname);
+            fixup_package(search_package, b);
+        }
+    }
     package.response() = search_package.response();
 }
 
