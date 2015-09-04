@@ -1,3 +1,7 @@
+--- 1.9.3 2015/09/04
+
+Fix virt_db creates result-set for failed search MP-627
+
 --- 1.9.2 2015/09/04
 
 Fix load_balance: does not retry dead target MP-626
