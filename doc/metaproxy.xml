@@ -56,14 +56,14 @@
    <varlistentry>
     <term>--help</term>
     <listitem><para>
-      Displays help message.
+      Display help message.
      </para></listitem>
    </varlistentry>
 
    <varlistentry>
     <term>--version</term>
     <listitem><para>
-      Displays Metaproxy version.
+      Display Metaproxy version.
      </para></listitem>
    </varlistentry>
 
@@ -98,7 +98,7 @@
    <varlistentry>
     <term>-m <replaceable>timeformat</replaceable></term>
     <listitem><para>
-     Sets the format of time-stamps for all logging performed via yaz_log.
+     Set the format of time-stamps for all logging performed via yaz_log.
      Refer to
        <ulink
 	   url="http://pubs.opengroup.org/onlinepubs/009695399/functions/strftime.html">
@@ -110,35 +110,35 @@
    <varlistentry>
     <term>-p <replaceable>pidfile</replaceable></term>
     <listitem><para>
-      Specifies file which holds PID after startup.
+      Specify file which holds PID after startup.
      </para></listitem>
    </varlistentry>
 
    <varlistentry>
     <term>-t</term>
     <listitem><para>
-      Tests configuration. Returns exit code 0 on success; non-zero on failure.
+      Test configuration. Returns exit code 0 on success; non-zero on failure.
      </para></listitem>
    </varlistentry>
 
    <varlistentry>
     <term>-u <replaceable>ID</replaceable></term>
     <listitem><para>
-      Makes Metaproxy changes its identity to ID after startup.
+      Change user ID upon startup.
      </para></listitem>
    </varlistentry>
 
    <varlistentry>
     <term>-w <replaceable>dir</replaceable></term>
     <listitem><para>
-      Changes working directory to <replaceable>dir</replaceable>.
+      Change working directory to <replaceable>dir</replaceable>.
      </para></listitem>
    </varlistentry>
 
    <varlistentry>
     <term>-X</term>
     <listitem><para>
-      Makes Metaproxy operate in debug mode.
+      Operate in debug mode.
      </para></listitem>
    </varlistentry>
 
