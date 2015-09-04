@@ -1,3 +1,14 @@
+--- 1.9.2 2015/09/04
+
+Fix load_balance: does not retry dead target MP-626
+
+Provide example of target auth MP-625
+Also update schema, becuase route is optional for target element.
+
+Replace indexdata.dk/gils with z3950.indexdata.com MP-624
+
+Describe auth attribute for multi filter
+
 --- 1.9.1 2015/08/19
 
 Avoid naked ptr in filter configure MP-623
