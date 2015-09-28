@@ -4,7 +4,8 @@
   <routes>
     <route id="start">
       <filter type="frontend_net">
-	<threads>10</threads>
+	<threads>1</threads>
+	<max-threads>10</max-threads>
 	<port>127.0.0.2:9000</port>
 	<port>127.0.0.1:9000</port>
 	<message>FN</message>

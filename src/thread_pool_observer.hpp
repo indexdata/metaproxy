@@ -38,7 +38,7 @@ namespace metaproxy_1 {
         class Worker;
     public:
         ThreadPoolSocketObserver(yazpp_1::ISocketObservable *obs,
-                                 int no_threads);
+                                 unsigned min_threads, unsigned max_threads);
         virtual ~ThreadPoolSocketObserver();
         void put(IThreadPoolMsg *m);
         void cleanup(IThreadPoolMsg *m, void *info);
