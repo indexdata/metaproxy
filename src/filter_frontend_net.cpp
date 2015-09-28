@@ -56,6 +56,7 @@ namespace metaproxy_1 {
 
             int m_no_threads;
             int m_max_threads;
+            int m_stack_size;
             std::vector<Port> m_ports;
             int m_listen_duration;
             int m_session_timeout;
@@ -526,6 +527,7 @@ yf::FrontendNet::FrontendNet() : m_p(new Rep)
 yf::FrontendNet::Rep::Rep()
 {
     m_max_threads = m_no_threads = 5;
+    m_stack_size = 0;
     m_listen_duration = 0;
     m_session_timeout = 300; // 5 minutes
     m_connect_max = 0;
@@ -616,7 +618,8 @@ void yf::FrontendNet::process(mp::Package &package) const
                                  m_p->m_listen_duration);
 
     ThreadPoolSocketObserver tp(&m_p->mySocketManager, m_p->m_no_threads,
-                                m_p->m_max_threads);
+                                m_p->m_max_threads,
+                                m_p->m_stack_size);
 
     for (i = 0; i<m_p->m_ports.size(); i++)
     {
@@ -710,9 +713,18 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
             std::string threads_str = mp::xml::get_text(ptr);
             int threads = atoi(threads_str.c_str());
             if (threads < 1)
-                throw yf::FilterException("Bad value for threads: "
+                throw yf::FilterException("Bad value for max-threads: "
                                                    + threads_str);
             m_p->m_max_threads = threads;
+        }
+        else if (!strcmp((const char *) ptr->name, "stack-size"))
+        {
+            std::string sz_str = mp::xml::get_text(ptr);
+            int sz = atoi(sz_str.c_str());
+            if (sz < 0)
+                throw yf::FilterException("Bad value for stack-size: "
+                                                   + sz_str);
+            m_p->m_stack_size = sz * 1024;
         }
         else if (!strcmp((const char *) ptr->name, "timeout"))
         {

@@ -68,6 +68,7 @@ namespace metaproxy_1 {
         std::deque<IThreadPoolMsg *> m_input;
         std::deque<IThreadPoolMsg *> m_output;
         bool m_stop_flag;
+        unsigned m_stack_size;
         unsigned m_no_threads;
         unsigned m_min_threads;
         unsigned m_max_threads;
@@ -97,7 +98,8 @@ IThreadPoolMsg::~IThreadPoolMsg()
 
 ThreadPoolSocketObserver::ThreadPoolSocketObserver(
     yazpp_1::ISocketObservable *obs,
-    unsigned min_threads, unsigned max_threads)
+    unsigned min_threads, unsigned max_threads,
+    unsigned stack_size)
     : m_p(new Rep(obs))
 {
     obs->addObserver(m_p->m_pipe.read_fd(), this);
@@ -107,11 +109,18 @@ ThreadPoolSocketObserver::ThreadPoolSocketObserver(
     m_p->m_min_threads = m_p->m_no_threads = min_threads;
     m_p->m_max_threads = max_threads;
     m_p->m_waiting_threads = 0;
+    m_p->m_stack_size = stack_size;
     unsigned i;
     for (i = 0; i < m_p->m_no_threads; i++)
     {
         Worker w(this);
-        m_p->m_thrds.add_thread(new boost::thread(w));
+        boost::thread::attributes attrs;
+        if (m_p->m_stack_size)
+            attrs.set_stack_size(m_p->m_stack_size);
+
+        boost::thread *x = new boost::thread(attrs, w);
+
+        m_p->m_thrds.add_thread(x);
     }
 }
 
@@ -238,7 +247,13 @@ void ThreadPoolSocketObserver::put(IThreadPoolMsg *m)
     {
         m_p->m_no_threads++;
         Worker w(this);
-        m_p->m_thrds.add_thread(new boost::thread(w));
+
+        boost::thread::attributes attrs;
+        if (m_p->m_stack_size)
+            attrs.set_stack_size(m_p->m_stack_size);
+        boost::thread *x = new boost::thread(attrs, w);
+
+        m_p->m_thrds.add_thread(x);
     }
     while (m_p->m_input.size() >= m_p->m_no_threads * queue_size_per_thread)
         m_p->m_cond_input_full.wait(input_lock);

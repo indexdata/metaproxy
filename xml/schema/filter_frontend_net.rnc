@@ -8,6 +8,7 @@ filter_frontend_net =
   attribute name { xsd:NCName }?,
   element mp:threads { xsd:integer }?,
   element mp:max-threads { xsd:integer }?,
+  element mp:stack-size { xsd:integer }?,
   element mp:port {
     attribute route { xsd:NCName }?,
     attribute max_recv_bytes { xsd:integer }?,
