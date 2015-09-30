@@ -26,11 +26,13 @@
       </xslt>
     </backend>
   </retrieval>
+<!--
   <retrieval syntax="unimarc" name="F">
     <backend syntax="usmarc" name="F">
       <usemarcon stage1="/etc/usemarcon/uni2us/uni2us.ini"/>
     </backend>
   </retrieval>
+-->
   <retrieval syntax="opac" name="OP">
     <backend syntax="opac" name="F">
       <marc inputformat="marc" outputformat="marcxchange"
