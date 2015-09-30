@@ -614,7 +614,7 @@ void yf::Sort::Frontend::handle_search(mp::Package &package, Z_APDU *apdu_req)
             mp::util::piggyback_to_RecordComposition(odr,
                                                      *res->resultCount, req);
         s->hit_count = *res->resultCount;
-        handle_records(b_package, apdu_req, res->records, 1, s,
+        handle_records(package, apdu_req, res->records, 1, s,
                        syntax, record_comp, resultSetId.c_str());
         package.response() = gdu_res;
     }
@@ -687,12 +687,12 @@ void yf::Sort::Frontend::handle_present(mp::Package &package, Z_APDU *apdu_req)
     b_package.copy_filter(package);
     b_package.request() = apdu_req;
     b_package.move();
-    Z_GDU *gdu_res = package.response().get();
+    Z_GDU *gdu_res = b_package.response().get();
     if (gdu_res && gdu_res->which == Z_GDU_Z3950 && gdu_res->u.z3950->which ==
         Z_APDU_presentResponse)
     {
         Z_PresentResponse *res = gdu_res->u.z3950->u.presentResponse;
-        handle_records(b_package, apdu_req, res->records,
+        handle_records(package, apdu_req, res->records,
                        start, rset, syntax, req->recordComposition,
                        resultSetId.c_str());
         package.response() = gdu_res;
