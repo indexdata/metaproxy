@@ -16,6 +16,20 @@
       <filter type="log">
         <message>Front</message>
       </filter>
+      <filter type="record_transform">
+	<retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
+	  <retrieval syntax="usmarc">
+	    <backend syntax="xml" name="marcxml">
+	      <marc inputformat="xml" outputformat="marc"
+		    inputcharset="utf-8" outputcharset="marc-8"/>
+	    </backend>
+	  </retrieval>
+	  <retrieval syntax="xml"/>
+	  <retrieval syntax="opac"/>
+	  <retrieval syntax="grs-1"/>
+	  <retrieval syntax="unimarc"/>
+	</retrievalinfo>
+      </filter>
       <filter type="sort">
         <sort
 	    xpath="/marc:record/marc:datafield[@tag='245']/marc:subfield[@code='a']"
