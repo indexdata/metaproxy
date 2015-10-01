@@ -47,6 +47,7 @@ namespace metaproxy_1 {
         void run(void *p);
         void get_thread_info(int &tbusy, int &total);
     private:
+        void add_worker(void);
         void socketNotify(int event);
         boost::scoped_ptr<Rep> m_p;
 
