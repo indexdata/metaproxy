@@ -61,14 +61,9 @@ public:
 
 mp::IThreadPoolMsg *My_Msg::handle()
 {
-    My_Msg *res = new My_Msg;
-
     if (m_val == 7)
         sleep(1);
-
-    res->m_val = m_val;
-    res->m_timer = m_timer;
-    return res;
+    return this;
 }
 
 bool My_Msg::cleanup(void *info)
@@ -80,6 +75,7 @@ void My_Msg::result(const char *t_info)
 {
     m_timer->m_sum += m_val;
     m_timer->m_responses++;
+    delete this;
 }
 
 My_Timer_Thread::My_Timer_Thread(ISocketObservable *obs,
@@ -97,26 +93,24 @@ My_Timer_Thread::My_Timer_Thread(ISocketObservable *obs,
 
 void My_Timer_Thread::socketNotify(int event)
 {
-    My_Msg *m = new My_Msg;
-    m->m_val = m_requests++;
-    m->m_timer = this;
-    m_t->put(m);
-#if 0
-    // prevent input queue from being filled up..
-    // bug #1064: Test test_thread_pool_observer hangs
-    // fortunately we don't need this hack. because put (ebove)
-    // will block itself if needed
-    if (m->m_val == 30)
+    if (m_requests == 30)
          m_obs->deleteObserver(this);
-#endif
+    else
+    {
+        My_Msg *m = new My_Msg;
+        m->m_val = m_requests++;
+        m->m_timer = this;
+        m_t->put(m);
+    }
 }
 
 BOOST_AUTO_TEST_CASE( thread_pool_observer1 )
 {
     SocketManager mySocketManager;
 
-    mp::ThreadPoolSocketObserver m(&mySocketManager, 3);
-    My_Timer_Thread t(&mySocketManager, &m) ;
+    mp::ThreadPoolSocketObserver m(&mySocketManager, 3, 3, 16*1024);
+    My_Timer_Thread t(&mySocketManager, &m);
+
     while (t.m_responses < 30 && mySocketManager.processEvent() > 0)
         ;
     BOOST_CHECK_EQUAL(t.m_responses, 30);
