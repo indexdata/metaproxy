@@ -1,3 +1,12 @@
+--- 1.10.0 2015/10/01
+
+Fix sort: does not sort during leading present MP-630
+
+Filter frontend_net: dynamic thread pool. max-threads and stack-size
+may be configured MP-629
+
+Fix boost not found on debian-testing MP-628
+
 --- 1.9.3 2015/09/04
 
 Fix virt_db creates result-set for failed search MP-627
