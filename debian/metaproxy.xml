@@ -4,7 +4,9 @@
   <start route="start"/>
   <filters>
     <filter id="frontend" type="frontend_net">
-      <threads>50</threads>
+      <threads>10</threads>
+      <max-threads>1000</max-threads>
+      <stack-size>512</stack-size>
       <port>@:9000</port>
       <include src="ports.d/*.xml"/>
       <message>FN</message>
