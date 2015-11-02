@@ -35,7 +35,7 @@ fi
 AC_CHECK_LIB([dl],[dlopen])
 AC_CHECK_LIB([m],[main])
 
-AC_CHECK_FUNCS([localtime_r])
+AC_CHECK_FUNCS([localtime_r getrlimit])
 
 USEMARCON_INIT
 

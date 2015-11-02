@@ -18,6 +18,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 
+#if HAVE_GETRLIMIT
+#include <sys/resource.h>
+#endif
 #include <sstream>
 #include <iomanip>
 #include <metaproxy/util.hpp>
@@ -583,6 +586,16 @@ yf::FrontendNet::~FrontendNet()
 void yf::FrontendNet::stop(int signo) const
 {
     m_p->m_stop_signo = signo;
+}
+
+void yf::FrontendNet::start() const
+{
+#if HAVE_GETRLIMIT
+    struct rlimit limit_data;
+    getrlimit(RLIMIT_NOFILE, &limit_data);
+    yaz_log(YLOG_LOG, "getrlimit NOFILE cur=%ld max=%ld",
+            (long) limit_data.rlim_cur, (long) limit_data.rlim_max);
+#endif
 }
 
 bool yf::FrontendNet::My_Timer_Thread::timeout()
