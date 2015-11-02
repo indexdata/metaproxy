@@ -534,6 +534,7 @@ yf::FrontendNet::Rep::Rep()
     m_listen_duration = 0;
     m_session_timeout = 300; // 5 minutes
     m_connect_max = 0;
+    m_http_req_max = 0;
     az = 0;
     size_t i;
     for (i = 0; i < 22; i++)
