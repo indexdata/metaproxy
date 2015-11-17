@@ -1,3 +1,12 @@
+--- 1.11.0 2015/11/17
+
+frontend_net: connect-max anx http-req-max may be specified
+based on originating IP. MP-632
+
+frontend_net: fix leaks that would occur if http-req-max takes effect.
+
+Report file descriptor limit (RLIMIT_NOFILE) upon startup MP-631 
+
 --- 1.10.0 2015/10/01
 
 Fix sort: does not sort during leading present MP-630
