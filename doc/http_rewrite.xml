@@ -5,6 +5,11 @@
      %idcommon;
 ]>
 <refentry id="ref-http_rewrite">
+ <refentryinfo>
+  <productname>Metaproxy</productname>
+  <orgname>Index Data</orgname>
+ </refentryinfo>
+
  <refmeta>
   <refentrytitle>http_rewrite</refentrytitle>
   <manvolnum>3mp</manvolnum>

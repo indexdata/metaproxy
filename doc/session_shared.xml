@@ -7,7 +7,7 @@
 <refentry id="ref-session_shared">
  <refentryinfo>
   <productname>Metaproxy</productname>
-  <info><orgname>Index Data</orgname></info>
+  <orgname>Index Data</orgname>
  </refentryinfo>
 
  <refmeta>

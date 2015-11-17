@@ -5,6 +5,11 @@
      %idcommon;
 ]>
 <refentry id="ref-limit">
+ <refentryinfo>
+  <productname>Metaproxy</productname>
+  <orgname>Index Data</orgname>
+ </refentryinfo>
+
  <refmeta>
   <refentrytitle>limit</refentrytitle>
   <manvolnum>3mp</manvolnum>
