@@ -32,12 +32,28 @@
  <refsect1><title>CONFIGURATION</title>
   <para>
    Element <literal>port</literal> is a repeating element (1 or more). The
-   text content specifies a listening port.
+   text content specifies a listening port. A few attributes may be
+   given for each port element. Attribute <literal>route</literal> specifies
+   the route to use for the port. Attribute <literal>max_recv_bytes</literal>
+   specifies maximum package size that YAZ should accept (it calls
+   cs_set_max_recv_bytes function of YAZ).
   </para>
   <para>
    Element <literal>threads</literal> is an optional element. The
    text content specifies number of worker threads for the following
    filters to use. The default value is 5 (5 worker threads).
+  </para>
+  <para>
+   Element <literal>max-threads</literal> is an optional element. The
+   text content specifies maximum number of worker threads for the following
+   filters to use. By default the thread count is fixed.
+   By using this setting with a higher value than the treads
+   setting extra worker threads will be added as necessary.
+  </para>
+  <para>
+   Element <literal>stack-size</literal> is an optional element. The
+   text content specifies stack size in kilo bytes for worker threads.
+   If omitted, the system default stack size for threads is used.
   </para>
   <para>
    Element <literal>timeout</literal> is an optional element. The
@@ -46,10 +62,29 @@
    default value is 300 (5 minutes).
   </para>
   <para>
-   Element <literal>connect-max</literal> is an optional element. The
-   text content is treated as an integer that specifies maximum number
-   of TCP sessions from the same original IP. The special value 0 means
-   : no connection limit. This is also the default if this element is omitted.
+   Element <literal>connect-max</literal> is an optional repeatable element.
+   The text content is treated as an integer that specifies maximum number
+   of accepted TCP sessions from the same original IP. A value of 0
+   means unlimited (no limit). The attribute <literal>ip</literal>
+   specifies an IP-pattern to match. If the IP pattern  is matched, the
+   limit takes effect. By repeating this element with different IP
+   patterns, limits may be configured "per-IP". If no patterns are
+   matched, no limit takes place. The IP pattern is a glob pattern.
+   Blanks in a pattern may be used to provide alternatives.
+   For example:
+   <literal>ip="::1 127*"</literal> would match <literal>::1</literal> or
+   <literal>127.0.0.1</literal> , but not <literal>128.0.0.1</literal>.
+  </para>
+  <para>
+   Element <literal>http-req-max</literal> is an optional repeatable element.
+   The text content is treated as an integer that specifies maximum number
+   of accepted HTTP requests from the same original IP. A value of 0
+   means unlimited (no limit). The attribute <literal>ip</literal>
+   specifies an IP-pattern to match. If the IP pattern is matched, the
+   limit takes effect. By repeating this element with different IP
+   patterns, limits may be configured "per-IP". If no patterns are
+   matched, no limit takes place. The IP pattern is a glob pattern.
+   Blanks in a pattern may be used to provide alternatives.
   </para>
   <para>
    Element <literal>message</literal> is an optional element. If
@@ -80,6 +115,11 @@
     <filter type="frontend_net">
      <threads>10</threads>
      <port>@:9000</port>
+     <connect-max>100</connect-max>
+     <!-- allow many HTTP requests from localhost -->
+     <http-req-max ip="::1 127.*">10000</http-req-max>
+     <!-- fewer for outsiders -->
+     <http-req-max>100</http-req-max>
      <message>FN</message>
      <stat-req>/fn_stat</stat-req>
     </filter>
