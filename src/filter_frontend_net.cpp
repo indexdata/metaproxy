@@ -427,9 +427,10 @@ void yf::FrontendNet::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
         {
             if (mp::util::match_ip(it->pattern, peername))
             {
-                if (it->verbose > 1 || (con_sz >= it->value && it->verbose > 0))
+                if (it->verbose > 1 ||
+                    (it->value && con_sz >= it->value && it->verbose > 0))
                     yaz_log(YLOG_LOG, "http-req-max pattern=%s ip=%s con_sz=%d value=%d", it->pattern.c_str(), peername.c_str(), con_sz, it->value);
-                if (con_sz < it->value)
+                if (it->value == 0 || con_sz < it->value)
                     break;
                 mp::odr o;
                 Z_GDU *gdu_res = o.create_HTTP_Response(m_session, hreq, 500);
@@ -520,9 +521,10 @@ yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocServer::sessionNotify(
         {
             if (mp::util::match_ip(it->pattern, peername))
             {
-                if (it->verbose > 1 || (con_sz >= it->value && it->verbose > 0))
+                if (it->verbose > 1 ||
+                    (it->value && con_sz >= it->value && it->verbose > 0))
                     yaz_log(YLOG_LOG, "connect-max pattern=%s ip=%s con_sz=%d value=%d", it->pattern.c_str(), peername, con_sz, it->value);
-                if (con_sz < it->value)
+                if (it->value == 0 || con_sz < it->value)
                     break;
                 return 0;
             }
