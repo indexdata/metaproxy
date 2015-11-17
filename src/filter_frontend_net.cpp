@@ -54,6 +54,12 @@ namespace metaproxy_1 {
             std::string cert_fname;
             int max_recv_bytes;
         };
+        class FrontendNet::IP_Pattern {
+            friend class Rep;
+            friend class FrontendNet;
+            std::string pattern;
+            int value;
+        };
         class FrontendNet::Rep {
             friend class FrontendNet;
 
@@ -64,7 +70,7 @@ namespace metaproxy_1 {
             int m_listen_duration;
             int m_session_timeout;
             int m_connect_max;
-            int m_http_req_max;
+            std::list<IP_Pattern> http_req_max;
             std::string m_msg_config;
             std::string m_stat_req;
             yazpp_1::SocketManager mySocketManager;
@@ -401,14 +407,19 @@ void yf::FrontendNet::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
         m_limit_connect.add_connect(peername.c_str());
         m_limit_connect.cleanup(false);
         int con_sz = m_limit_connect.get_total(peername.c_str());
-
-        if (m_p->m_http_req_max && con_sz >= m_p->m_http_req_max)
+        std::list<IP_Pattern>::const_iterator it = m_p->http_req_max.begin();
+        for (; it != m_p->http_req_max.end(); it++)
         {
-            mp::odr o;
-            Z_GDU *gdu_res = o.create_HTTP_Response(m_session, hreq, 500);
-            int len;
-            send_GDU(gdu_res, &len);
-            return;
+            if (mp::util::match_ip(it->pattern, peername))
+            {
+                if (con_sz < it->value)
+                    break;
+                mp::odr o;
+                Z_GDU *gdu_res = o.create_HTTP_Response(m_session, hreq, 500);
+                int len;
+                send_GDU(gdu_res, &len);
+                return;
+            }
         }
     }
 
@@ -534,7 +545,6 @@ yf::FrontendNet::Rep::Rep()
     m_listen_duration = 0;
     m_session_timeout = 300; // 5 minutes
     m_connect_max = 0;
-    m_http_req_max = 0;
     az = 0;
     size_t i;
     for (i = 0; i < 22; i++)
@@ -755,7 +765,14 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
         }
         else if (!strcmp((const char *) ptr->name, "http-req-max"))
         {
-            m_p->m_http_req_max = mp::xml::get_int(ptr, 0);
+            const char *names[2] = {"ip", 0};
+            std::string values[1];
+
+            mp::xml::parse_attr(ptr, names, values);
+            IP_Pattern m;
+            m.value = mp::xml::get_int(ptr, 0);
+            m.pattern = values[0];
+            m_p->http_req_max.push_back(m);
         }
         else if (!strcmp((const char *) ptr->name, "message"))
         {

@@ -31,6 +31,7 @@ namespace metaproxy_1 {
         class FrontendNet : public Base {
             class Rep;
             class Port;
+            class IP_Pattern;
             class ZAssocServer;
             class ZAssocChild;
             class ThreadPoolPackage;

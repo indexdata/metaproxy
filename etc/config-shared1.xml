@@ -5,7 +5,7 @@
     <filter id="frontend" type="frontend_net">
       <port>@:9000</port>
       <connect-max>10</connect-max>
-      <http-req-max>50</http-req-max>
+      <http-req-max ip="::1">2</http-req-max>
     </filter>
     <filter id="backend" type="z3950_client">
     </filter>

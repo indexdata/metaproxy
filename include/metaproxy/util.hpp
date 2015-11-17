@@ -130,6 +130,8 @@ namespace metaproxy_1 {
                        Odr_int &number_to_present,
                        const char **element_set_name);
 
+        bool match_ip(const std::string &pattern, const std::string &value);
+
         std::string uri_encode(std::string s);
         std::string uri_decode(std::string s);
     };

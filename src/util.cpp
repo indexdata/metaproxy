@@ -26,6 +26,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/querytowrbuf.h>
 #include <yaz/oid_db.h>
 #include <yaz/srw.h>
+#include <yaz/match_glob.h>
+
+#include <boost/algorithm/string.hpp>
 
 #include <iostream>
 
@@ -735,6 +738,25 @@ const char *mp::wrbuf::c_str()
 const char *mp::wrbuf::c_str_null()
 {
     return wrbuf_cstr_null(m_wrbuf);
+}
+
+bool mp::util::match_ip(const std::string &pattern, const std::string &value)
+{
+    std::vector<std::string> globitems;
+    boost::split(globitems, pattern, boost::is_any_of(" "));
+    std::vector<std::string>::const_iterator it = globitems.begin();
+    bool ret_value = true; // for now (if only empty values)
+    for (; it != globitems.end(); it++)
+    {
+        const char *c_str = (*it).c_str();
+        if (*c_str)
+        {
+            ret_value = false; // at least one non-empty value
+            if (yaz_match_glob(c_str, value.c_str()))
+                return true;
+        }
+    }
+    return ret_value;
 }
 
 /*
