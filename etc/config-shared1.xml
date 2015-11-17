@@ -4,8 +4,9 @@
   <filters>
     <filter id="frontend" type="frontend_net">
       <port>@:9000</port>
-      <connect-max>10</connect-max>
-      <http-req-max ip="::1">2</http-req-max>
+      <connect-max verbose="2" ip="::1">2000</connect-max>
+      <http-req-max verbose="2" ip="::1">2</http-req-max>
+      <message>FN</message>
     </filter>
     <filter id="backend" type="z3950_client">
     </filter>

@@ -743,9 +743,11 @@ const char *mp::wrbuf::c_str_null()
 bool mp::util::match_ip(const std::string &pattern, const std::string &value)
 {
     std::vector<std::string> globitems;
+    // split may produce empty strings as results - in particular
+    // the empty pattern produces one empty string (vector size 1)
     boost::split(globitems, pattern, boost::is_any_of(" "));
-    std::vector<std::string>::const_iterator it = globitems.begin();
     bool ret_value = true; // for now (if only empty values)
+    std::vector<std::string>::const_iterator it = globitems.begin();
     for (; it != globitems.end(); it++)
     {
         const char *c_str = (*it).c_str();

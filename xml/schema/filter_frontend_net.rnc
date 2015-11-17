@@ -17,9 +17,14 @@ filter_frontend_net =
    xsd:string
   }+,
   element mp:timeout { xsd:integer }?,
-  element mp:connect-max { xsd:integer }?,
+  element mp:connect-max {
+    attribute ip { xsd:string }?,
+    attribute verbose { xsd:integer }?,
+    xsd:integer
+  }*,
   element mp:http-req-max {
     attribute ip { xsd:string }?,
+    attribute verbose { xsd:integer }?,
     xsd:integer
   }*,
   element mp:message { xsd:string }?,

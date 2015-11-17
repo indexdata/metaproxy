@@ -58,6 +58,7 @@ namespace metaproxy_1 {
             friend class Rep;
             friend class FrontendNet;
             std::string pattern;
+            int verbose;
             int value;
         };
         class FrontendNet::Rep {
@@ -69,7 +70,7 @@ namespace metaproxy_1 {
             std::vector<Port> m_ports;
             int m_listen_duration;
             int m_session_timeout;
-            int m_connect_max;
+            std::list<IP_Pattern> connect_max;
             std::list<IP_Pattern> http_req_max;
             std::string m_msg_config;
             std::string m_stat_req;
@@ -104,7 +105,8 @@ namespace metaproxy_1 {
                         const mp::Package *package,
                         Port *port,
                         Rep *rep,
-                        yazpp_1::LimitConnect &limit_connect);
+                        yazpp_1::LimitConnect &limit,
+                        const char *peername);
             int m_no_requests;
             Port *m_port;
         private:
@@ -123,7 +125,7 @@ namespace metaproxy_1 {
             bool m_delete_flag;
             const mp::Package *m_package;
             Rep *m_p;
-            yazpp_1::LimitConnect &m_limit_connect;
+            yazpp_1::LimitConnect &m_limit_http_req;
         };
         class FrontendNet::ThreadPoolPackage : public mp::IThreadPoolMsg {
         public:
@@ -161,6 +163,7 @@ namespace metaproxy_1 {
             mp::ThreadPoolSocketObserver *m_thread_pool_observer;
             const mp::Package *m_package;
             yazpp_1::LimitConnect limit_connect;
+            yazpp_1::LimitConnect limit_http_req;
             Port *m_port;
             Rep *m_p;
         };
@@ -282,23 +285,15 @@ yf::FrontendNet::ZAssocChild::ZAssocChild(
     mp::ThreadPoolSocketObserver *my_thread_pool,
     const mp::Package *package,
     Port *port, Rep *rep,
-    yazpp_1::LimitConnect &limit_connect)
-    :  Z_Assoc(PDU_Observable), m_p(rep), m_limit_connect(limit_connect)
+    yazpp_1::LimitConnect &limit_http_req,
+    const char *peername)
+    :  Z_Assoc(PDU_Observable), m_p(rep), m_limit_http_req(limit_http_req)
 {
     m_thread_pool_observer = my_thread_pool;
     m_no_requests = 0;
     m_delete_flag = false;
     m_package = package;
     m_port = port;
-    const char *peername = PDU_Observable->getpeername();
-    if (!peername)
-        peername = "unknown";
-    else
-    {
-        const char *cp = strchr(peername, ':');
-        if (cp)
-            peername = cp + 1;
-    }
     std::string addr;
     addr.append(peername);
     addr.append(" ");
@@ -400,30 +395,11 @@ void yf::FrontendNet::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
             && !strcmp(hreq->path, m_p->m_stat_req.c_str()))
         {
             report(hreq);
+            delete p;
             return;
-        }
-        std::string peername = p->origin().get_address();
-
-        m_limit_connect.add_connect(peername.c_str());
-        m_limit_connect.cleanup(false);
-        int con_sz = m_limit_connect.get_total(peername.c_str());
-        std::list<IP_Pattern>::const_iterator it = m_p->http_req_max.begin();
-        for (; it != m_p->http_req_max.end(); it++)
-        {
-            if (mp::util::match_ip(it->pattern, peername))
-            {
-                if (con_sz < it->value)
-                    break;
-                mp::odr o;
-                Z_GDU *gdu_res = o.create_HTTP_Response(m_session, hreq, 500);
-                int len;
-                send_GDU(gdu_res, &len);
-                return;
-            }
         }
     }
 
-    ThreadPoolPackage *tp = new ThreadPoolPackage(p, this, m_p);
     p->copy_route(*m_package);
     p->request() = yazpp_1::GDU(z_pdu);
 
@@ -439,6 +415,33 @@ void yf::FrontendNet::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
             yaz_log(YLOG_LOG, "%s", os.str().c_str());
         }
     }
+    if (z_pdu && z_pdu->which == Z_GDU_HTTP_Request)
+    {
+        Z_HTTP_Request *hreq = z_pdu->u.HTTP_Request;
+        std::string peername = p->origin().get_address();
+
+        m_limit_http_req.cleanup(false);
+        int con_sz = m_limit_http_req.get_total(peername.c_str());
+        std::list<IP_Pattern>::const_iterator it = m_p->http_req_max.begin();
+        for (; it != m_p->http_req_max.end(); it++)
+        {
+            if (mp::util::match_ip(it->pattern, peername))
+            {
+                if (it->verbose > 1 || (con_sz >= it->value && it->verbose > 0))
+                    yaz_log(YLOG_LOG, "http-req-max pattern=%s ip=%s con_sz=%d value=%d", it->pattern.c_str(), peername.c_str(), con_sz, it->value);
+                if (con_sz < it->value)
+                    break;
+                mp::odr o;
+                Z_GDU *gdu_res = o.create_HTTP_Response(m_session, hreq, 500);
+                int len;
+                send_GDU(gdu_res, &len);
+                delete p;
+                return;
+            }
+        }
+        m_limit_http_req.add_connect(peername.c_str());
+    }
+    ThreadPoolPackage *tp = new ThreadPoolPackage(p, this, m_p);
     m_thread_pool_observer->put(tp);
 }
 
@@ -500,17 +503,36 @@ yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocServer::sessionNotify(
 {
 
     const char *peername = the_PDU_Observable->getpeername();
+    if (!peername)
+        peername = "unknown";
+    else
+    {
+        const char *cp = strchr(peername, ':');
+        if (cp)
+            peername = cp + 1;
+    }
     if (peername)
     {
-        limit_connect.add_connect(peername);
         limit_connect.cleanup(false);
         int con_sz = limit_connect.get_total(peername);
-        if (m_p->m_connect_max && con_sz > m_p->m_connect_max)
-            return 0;
+        std::list<IP_Pattern>::const_iterator it = m_p->connect_max.begin();
+        for (; it != m_p->connect_max.end(); it++)
+        {
+            if (mp::util::match_ip(it->pattern, peername))
+            {
+                if (it->verbose > 1 || (con_sz >= it->value && it->verbose > 0))
+                    yaz_log(YLOG_LOG, "connect-max pattern=%s ip=%s con_sz=%d value=%d", it->pattern.c_str(), peername, con_sz, it->value);
+                if (con_sz < it->value)
+                    break;
+                return 0;
+            }
+        }
+        limit_connect.add_connect(peername);
     }
     ZAssocChild *my = new ZAssocChild(the_PDU_Observable,
                                       m_thread_pool_observer,
-                                      m_package, m_port, m_p, limit_connect);
+                                      m_package, m_port, m_p, limit_http_req,
+                                      peername);
     return my;
 }
 
@@ -544,7 +566,6 @@ yf::FrontendNet::Rep::Rep()
     m_stack_size = 0;
     m_listen_duration = 0;
     m_session_timeout = 300; // 5 minutes
-    m_connect_max = 0;
     az = 0;
     size_t i;
     for (i = 0; i < 22; i++)
@@ -761,17 +782,26 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
         }
         else if (!strcmp((const char *) ptr->name, "connect-max"))
         {
-            m_p->m_connect_max = mp::xml::get_int(ptr, 0);
-        }
-        else if (!strcmp((const char *) ptr->name, "http-req-max"))
-        {
-            const char *names[2] = {"ip", 0};
-            std::string values[1];
+            const char *names[3] = {"ip", "verbose", 0};
+            std::string values[2];
 
             mp::xml::parse_attr(ptr, names, values);
             IP_Pattern m;
             m.value = mp::xml::get_int(ptr, 0);
             m.pattern = values[0];
+            m.verbose = values[1].length() ? atoi(values[1].c_str()) : 1;
+            m_p->connect_max.push_back(m);
+        }
+        else if (!strcmp((const char *) ptr->name, "http-req-max"))
+        {
+            const char *names[3] = {"ip", "verbose", 0};
+            std::string values[2];
+
+            mp::xml::parse_attr(ptr, names, values);
+            IP_Pattern m;
+            m.value = mp::xml::get_int(ptr, 0);
+            m.pattern = values[0];
+            m.verbose = values[1].length() ? atoi(values[1].c_str()) : 1;
             m_p->http_req_max.push_back(m);
         }
         else if (!strcmp((const char *) ptr->name, "message"))
