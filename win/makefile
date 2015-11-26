@@ -15,10 +15,10 @@ YAZ_DIR=..\..\yaz
 YAZPP_DIR=..\..\yazpp
 
 # Boost
-BOOST=\local\boost_1_57_0
-BOOST_VERSION=1_57
-BOOST_LIBPATH=$(BOOST)\lib32-msvc-12.0
-BOOST_TOOLSET=vc120 # vs120 for VS2013, vc90 for VS2008, vc80 for VS 2005
+BOOST=\local\boost_1_59_0
+BOOST_VERSION=1_59
+BOOST_LIBPATH=$(BOOST)\lib32-msvc-14.0
+BOOST_TOOLSET=vc140 # vs120 for VS2013, vc90 for VS2008, vc80 for VS 2005
 BOOST_MODEL=mt
 
 # libxml2 + libxslt + associates
