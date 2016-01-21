@@ -157,7 +157,7 @@
    </variablelist>
   </para>
   <para>
-   In order to compile Metaproxy a modern C++ compiler is
+   In order to compile Metaproxy, a modern C++ compiler is
    required. Boost, in particular, requires the C++ compiler
    to facilitate the newest features. Refer to Boost
    <ulink url="&url.boost.compilers.status;">Compiler Status</ulink>
@@ -179,8 +179,8 @@
    <para>
     Here is a quick step-by-step guide on how to compile all the
     tools that Metaproxy uses. Only few systems have none of the required
-    tools binary packages. If, for example, Libxml2/libxslt are already
-    installed as development packages use those (and omit compilation).
+    tools as binary packages. If, for example, Libxml2/libxslt are already
+    installed as development packages, use those (and omit compilation).
    </para>
 
    <note>
@@ -287,7 +287,7 @@
      You may have to tell configure where Boost is installed by supplying
      options <literal>--with-boost</literal> and <literal>--with-boost-toolset</literal>.
      The former sets the PREFIX for Boost (same as --prefix for Boost above).
-     The latter the compiler toolset (eg. gcc34).
+     The latter the compiler toolset (e.g. gcc34).
     </para>
     <para>
      Pass <literal>--help</literal> to configure to get a list of
@@ -304,7 +304,7 @@
    </para>
    <para>
     The procedures for Debian based systems, such as
-    <ulink url="&url.ubuntu;">Ubuntu</ulink> is probably similar
+    <ulink url="&url.ubuntu;">Ubuntu</ulink> is probably similar.
    </para>
    <para>
     There is currently no official Debian package for YAZ++.
@@ -379,7 +379,7 @@
      For Windows, it's easiest to get the precompiled Boost
      package from <ulink url="&url.boost.windows.download;">here</ulink>.
      Several versions of the Boost libraries may be selected when
-     installing Boost for windows. Please choose at least the
+     installing Boost for Windows. Please choose at least the
      <emphasis>multithreaded</emphasis> (non-DLL) version because
      the Metaproxy makefile uses that.
     </para>
@@ -497,7 +497,7 @@
 <chapter id="yazproxy-comparison">
  <title>YAZ Proxy Comparison</title>
  <para>
-  The table below lists facilities either supported by either
+  The table below lists facilities that are supported by either
    <ulink url="&url.yazproxy;">YAZ Proxy</ulink> or Metaproxy.
  </para>
 <table id="yazproxy-comparison-table">
@@ -590,7 +590,7 @@
    <row>
     <entry>Query check</entry>
     <entry>
-      Supported by <literal>query_rewrite</literal> which may be check
+      Supported by <literal>query_rewrite</literal> which may check
       a query and throw diagnostics (errors)
     </entry>
     <entry>Supported</entry>
@@ -613,7 +613,7 @@
    </row>
 
    <row>
-    <entry>Extensability</entry>
+    <entry>Extensibility</entry>
     <entry>Most functionality implemented as loadable modules</entry>
     <entry>Unsupported and experimental</entry>
    </row>
@@ -632,7 +632,7 @@
     </entry>
     <entry>
      Requires YAZ and YAZ++.
-     STL is not required so pretty much any C++ compiler out there should work.
+     STL is not required, so pretty much any C++ compiler out there should work.
     </entry>
    </row>
 
@@ -646,7 +646,7 @@
   <para>
    The Metaproxy architecture is based on three concepts:
    the <emphasis>package</emphasis>,
-   the <emphasis>route</emphasis>
+   the <emphasis>route</emphasis>,
    and the <emphasis>filter</emphasis>.
   </para>
   <variablelist>
@@ -654,8 +654,8 @@
     <term>Packages</term>
     <listitem>
      <para>
-      A package is request or response, encoded in some protocol,
-      issued by a client, making its way through Metaproxy, send to or
+      A package is a request or response, encoded in some protocol,
+      issued by a client, making its way through Metaproxy, sent to or
       received from a server, or sent back to the client.
      </para>
      <para>
@@ -697,23 +697,23 @@
       Filters provide the individual instructions within a route, and
       effect the necessary transformations on packages.  A particular
       configuration of Metaproxy is essentially a set of filters,
-      described by configuration details and arranged in order in one
+      described by configuration details and arranged in order, in one
       or more routes.  There are many kinds of filter - about a dozen
       at the time of writing with more appearing all the time - each
       performing a specific function and configured by different
       information.
      </para>
      <para>
-      The word ``filter'' is sometimes used rather loosely, in two
+      The word "filter" is sometimes used rather loosely, in two
       different ways: it may be used to mean a particular
-      <emphasis>type</emphasis> of filter, as when we speak of ``the
-      auth_simple filter'' or ``the multi filter''; or it may be used
+      <emphasis>type</emphasis> of filter, as when we speak of "the
+      auth_simple filter" or "the multi filter"; or it may be used
       to be a specific <emphasis>instance</emphasis> of a filter
       within a Metaproxy configuration.  For example, a single
       configuration will often contain multiple instances of the
       <literal>z3950_client</literal> filter.  In
-      operational terms, of these is a separate filter.  In practice,
-      context always make it clear which sense of the word ``filter''
+      operational terms, each of these is a separate filter.  In practice,
+      context always make it clear which sense of the word "filter"
       is being used.
      </para>
      <para>
@@ -744,9 +744,9 @@
   <section id="filters-introductory-notes">
    <title>Introductory notes</title>
    <para>
-    It's useful to think of Metaproxy as an interpreter providing a small
+    It is useful to think of Metaproxy as an interpreter providing a small
     number of primitives and operations, but operating on a very
-    complex data type, namely the ``package''.
+    complex data type, namely the "package".
    </para>
    <para>
     A package represents a Z39.50 or SRU/W request (whether for Init,
@@ -781,7 +781,7 @@
     <literal>http_file</literal>,
     <literal>z3950_client</literal>);
     the others are true filters, that read, process and pass on the
-    packages they are fed
+    packages that they are fed
     (<literal>auth_simple</literal>,
     <literal>log</literal>,
     <literal>multi</literal>,
@@ -821,7 +821,7 @@
 
 ### New filters:
 
-New virt_db-alike that does inteligent peer choice, explain merging,
+New virt_db-alike that does intelligent peer choice, explain merging,
 adds FD&N to explain.  Keeps init responses (like "virt_db Classic"),
 makes routing choices based on local explain knowledge.  Ref IDDI
 paper.
@@ -847,11 +847,11 @@ Figure out what additional information we need in:
      Simple authentication and authorization.  The configuration
      specifies the name of a file that is the user register, which
      lists <varname>username</varname>:<varname>password</varname>
-     pairs, one per line, colon separated. When a session begins, it
-     is rejected unless username and passsword are supplied, and match
-     a pair in the register.  The configuration file may also specific
+     pairs, one per line, colon-separated. When a session begins, it
+     is rejected unless username and password are supplied, and match
+     a pair in the register.  The configuration file may also specify
      the name of another file that is the target register: this lists
-     lists <varname>username</varname>:<varname>dbname</varname>,<varname>dbname</varname>...
+     <varname>username</varname>:<varname>dbname</varname>,<varname>dbname</varname>...
      sets, one per line, with multiple database names separated by
      commas.  When a search is processed, it is rejected unless the
      database to be searched is one of those listed as available to
@@ -880,8 +880,8 @@ Figure out what additional information we need in:
      sets Z39.50 packages to Z_Close, and HTTP_Request packages to
      HTTP_Response err code 400 packages, and adds a suitable bounce
      message.
-     The bounce filter is usually added at end of each filter chain route
-     to prevent infinite hanging of for example HTTP
+     The bounce filter is usually added at the end of each filter chain route
+     to prevent infinite hanging of, for example, HTTP
      requests packages when only the Z39.50 client partial sink
      filter is found in the
      route.
@@ -897,7 +897,7 @@ Figure out what additional information we need in:
      packages containing <literal>CQL</literal> queries, transforms
      those to <literal>RPN</literal> queries,
      and sends the <literal>searchRequests</literal> on to the next
-     filters. It is among other things useful in a SRU context.
+     filters. It is, among other things, useful in a SRU context.
     </para>
    </section>
 
@@ -935,14 +935,14 @@ Figure out what additional information we need in:
     <para>
      Performs load balancing for incoming Z39.50 init requests.
      It is used together with the <literal>virt_db</literal> filter,
-     but unlike the <literal>multi</literal> filter it does send an
+     but unlike the <literal>multi</literal> filter, it does send an
      entire session to only one of the virtual backends. The
      <literal>load_balance</literal> filter is assuming that
      all backend targets have equal content, and chooses the backend
      with least load cost for a new session.
     <warning>
      <para>
-      This filter is experimental and yet not mature for heavy load
+      This filter is experimental and not yet mature for heavy load
       production sites.
      </para>
     </warning>
@@ -975,7 +975,7 @@ Figure out what additional information we need in:
      (mp::filter::QueryRewrite)</title>
     <para>
      Rewrites Z39.50 <literal>Type-1</literal>
-     and <literal>Type-101</literal> (``<literal>RPN</literal>'')
+     and <literal>Type-101</literal> ("<literal>RPN</literal>")
      queries by a
      three-step process: the query is transliterated from Z39.50
      packet structures into an XML representation; that XML
@@ -990,13 +990,13 @@ Figure out what additional information we need in:
     <title><literal>record_transform</literal>
     (mp::filter::RecordTransform)</title>
     <para>
-     This filter acts only on Z3950 present requests, and let all
+     This filter acts only on Z39.50 present requests, and let all
      other types of packages and requests pass untouched. It's use is
-     twofold: blocking Z3950  present requests, which the backend
+     twofold: blocking Z39.50  present requests, which the backend
      server does not understand and can not honor, and transforming
      the present syntax and elementset name according to the rules
      specified, to fetch only existing record formats, and transform
-     them on the fly to requested record syntaxes.
+     them on-the-fly to requested record syntaxes.
     </para>
    </section>
 
@@ -1016,7 +1016,7 @@ Figure out what additional information we need in:
     (mp::filter::SRUtoZ3950)</title>
     <para>
      This filter transforms valid
-     SRU GET/POST/SOAP searchRetrieve requests to Z3950 init, search,
+     SRU GET/POST/SOAP searchRetrieve requests to Z39.50 init, search,
      and present requests, and wraps the
      received hit counts and XML records into suitable SRU response
      messages.
@@ -1272,7 +1272,7 @@ Figure out what additional information we need in:
     a <literal>log</literal> filter that emits a message for each
     request; they are then fed into a <literal>z3950_client</literal>
     filter, which forwards all Z39.50 requests to the client-specified
-    back-end Z39.509 server. Those Z39.50 packages are returned by the
+    back-end Z39.50 server. Those Z39.50 packages are returned by the
     <literal>z3950_client</literal> filter, with the response data
     filled by the external Z39.50 server targeted.
     All non-Z39.50 packages are passed through to the
@@ -1307,9 +1307,9 @@ Figure out what additional information we need in:
   <section id="config-file-syntax-check">
    <title>Config file syntax checking</title>
    <para>
-    The distribution contains RelaxNG Compact and XML syntax checking
+    The distribution contains RELAX NG Compact and XML syntax checking
     files, as well as XML Schema files. These are found in the
-    distribution paths
+    distribution paths:
    <screen>
     xml/schema/metaproxy.rnc
     xml/schema/metaproxy.rng
@@ -1326,8 +1326,8 @@ Figure out what additional information we need in:
     support for XML Schemas is a relatively recent addition.)
    </para>
    <para>
-    You can of course use any other RelaxNG or XML Schema compliant tool
-    you wish.
+    You can of course use any other RELAX NG or XML Schema compliant tool
+    that you wish.
    </para>
    </section>
  </chapter>
@@ -1346,7 +1346,7 @@ Figure out what additional information we need in:
     to control the routing of searches to one of a number of servers,
     while <literal>multi</literal> can work together with
     <literal>virt_db</literal> to perform multi-database searching, merging
-    the results into a unified result-set - ``metasearch in a box''.
+    the results into a unified result-set - "metasearch in a box".
    </para>
    <para>
     The interaction between
@@ -1359,10 +1359,10 @@ Figure out what additional information we need in:
    <para>
     It's possible to use these filters without understanding the
     details of their functioning and the interaction between them; the
-    next two sections of this chapter are ``HOW-TO'' guides for doing
+    next two sections of this chapter are "HOW-TO" guides for doing
     just that.  However, debugging complex configurations will require
     a deeper understanding, which the last two sections of this
-    chapters attempt to provide.
+    chapter attempts to provide.
    </para>
   </section>
 
@@ -1384,8 +1384,8 @@ Figure out what additional information we need in:
    <para>
     For example, a <literal>virt_db</literal>
     filter could be set up so that searches in the virtual database
-    ``lc'' are forwarded to the Library of Congress bibliographic
-    catalogue server, and searches in the virtual database ``marc''
+    "lc" are forwarded to the Library of Congress bibliographic
+    catalogue server, and searches in the virtual database "marc"
     are forwarded to the toy database of MARC records that Index Data
     hosts for testing purposes.  A <literal>virt_db</literal>
     configuration to make this switch would look like this:
@@ -1458,9 +1458,9 @@ Figure out what additional information we need in:
     <literal>virt_db</literal>
     filter that specifies multiple
     <literal>&lt;target&gt;</literal>
-    elements but without a subsequent
+    elements, but without a subsequent
     <literal>multi</literal>
-    filter yields surprising and undesirable results, as will be
+    filter, yields surprising and undesirable results, as will be
     described below.  Don't do that.)
    </para>
    <para>
@@ -1771,7 +1771,7 @@ Z>
       <entry>The stateless nature of web services requires frequent
       re-searching of the same targets for display of paged result set
       records. This might be an unacceptable burden for the accessed
-      backend Z39.50 targets, and this mosule can be added for
+      backend Z39.50 targets, and this module can be added for
       efficient backend target resource pooling.</entry>
      </row>
      <row>
@@ -1798,7 +1798,7 @@ Z>
    <literal>etc/config-sru-to-z3950.xml</literal>.
   </para>
   <para>
-   Off course, any other metaproxy modules can be integrated into a
+   Of course, any other metaproxy modules can be integrated into a
    SRU server solution, including, but not limited to, load balancing,
    multiple target querying
    (see  <xref linkend="multidb"/>), and complex RPN query rewrites.
@@ -1829,13 +1829,13 @@ Z>
     which tells
     <!-- The remainder of this paragraph is lifted verbatim from
     Douglas Adams' _Hitch Hiker's Guide to the Galaxy_, chapter 8 -->
-    you things you really need to know, like the fact that the
+    "you things you really need to know, like the fact that the
     fabulously beautiful planet Bethselamin is now so worried about
     the cumulative erosion by ten billion visiting tourists a year
     that any net imbalance between the amount you eat and the amount
     you excrete whilst on the planet is surgically removed from your
     bodyweight when you leave: so every time you go to the lavatory it
-    is vitally important to get a receipt.
+    is vitally important to get a receipt." [Douglas Adams]
    </para>
    <para>
     This chapter contains documentation of the Metaproxy source code, and is
