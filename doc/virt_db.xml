@@ -23,12 +23,12 @@
 
  <refsect1><title>DESCRIPTION</title>
   <para>
-   This filter allows one Z39.50 database to be me mapped to
+   This filter allows one Z39.50 database to be be mapped to
    another target; or even multiple targets.
   </para>
   <para>
    The configuration of virt_db consists of zero or more
-   <literal>&lt;virtual&gt;</literal> elements each describing the
+   <literal>&lt;virtual&gt;</literal> elements, each describing the
    Z39.50 virtual database recognized.
    The name of the database is the text content of the
    <literal>&lt;database&gt;</literal> element which should be
@@ -42,14 +42,14 @@
   </para>
   <para>
    Following that is one or more <literal>&lt;target&gt;</literal>
-   elements with the identifier of each target that the virtual database
+   elements, with the identifier of each target that the virtual database
    maps to. If a database is given for a target (following a slash), that
    database name is used as Z39.50 database for this target. If the
    database is omitted for the target, the original (virtual) database
    is used as Z39.50 database.
   </para>
   <para>
-   If multiple targets are given that has special meaning depending on the
+   If multiple targets are given, that has special meaning depending on the
    filter following virt_db. If the following filter is load_balance, then
    the load_balance filter will load balance between the targets given
    (assuming they serve same content). If the following filter is multi,
@@ -105,8 +105,8 @@
    This will offer 4 databases, <literal>db1</literal>,
    <literal>db2</literal>, <literal>combined</literal> and
    <literal>db3</literal>. If a Z39.50 specifies <literal>db1</literal>
-   and <literal>db2</literal> that will have same effect as specifying
-   the single database <literal>combined</literal>.
+   and <literal>db2</literal>, that will have the same effect as specifying
+   the single databases <literal>combined</literal>.
   </para>
   <para>
    Since <literal>db3</literal> routes differently from the other databases,

@@ -26,8 +26,8 @@
    Simple authentication and authorization.  The configuration
    specifies the name of a file that is the user register, which
    lists <varname>username</varname>:<varname>password</varname>
-   pairs, one per line, colon separated. When a session begins, it
-   is rejected unless username and passsword are supplied, and match
+   pairs, one per line, colon-separated. When a session begins, it
+   is rejected unless username and password are supplied, and match
    a pair in the register.
   </para>
   <!-- TODO: discuss authorization phase -->

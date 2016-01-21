@@ -33,21 +33,21 @@
   <para>
    This filter only deals with Z39.50 on input. The following services
    are supported: init, search, present and close. The backend target
-   is selected based on the database as part search and
+   is selected based on the database as part of search and
    <emphasis>not</emphasis> as part of init.
   </para>
 
   <para>
    This filter is an alternative to the z3950_client filter but also
    shares properties of the virt_db - in that the target is selected
-   for a specific database
+   for a specific database.
   </para>
 
   <para>
    The ZOOM filter relies on a target profile description, which is
-   XML based. It picks the profile for a given database from a web service
+   XML based. It picks the profile for a given database from a web service,
    or it may be locally given for each unique database (AKA virtual database
-   in virt_db). Target profiles are directly and indrectly given as part
+   in virt_db). Target profiles are directly and indirectly given as part
    of the <literal>torus</literal> element in the configuration.
   </para>
 
@@ -72,7 +72,7 @@
      <term>attribute <literal>url</literal></term>
      <listitem>
       <para>
-       URL of Web service to be used when fetch target profiles from
+       URL of Web service to be used to fetch target profiles from
        a remote service (Torus normally).
       </para>
       <para>
@@ -80,8 +80,8 @@
        query for the Torus search.
       </para>
       <para>
-       The special sequence <literal>%realm</literal> is replaced by value
-       of attribute <literal>realm</literal> or by realm DATABASE argument.
+       The special sequence <literal>%realm</literal> is replaced by the value
+       of attribute <literal>realm</literal> or by the realm DATABASE argument.
       </para>
       <para>
        The special sequence <literal>%db</literal> is replaced with
@@ -97,7 +97,7 @@
      <listitem>
       <para>
        URL of Web service to be used to fetch target profile
-       for a given database (udb) of type content. Semantics otherwise like
+       for a given database (udb) of type content. Semantics are otherwise like
        <literal>url</literal> attribute above.
       </para>
      </listitem>
@@ -106,9 +106,9 @@
      <term>attribute <literal>auth_url</literal></term>
      <listitem>
       <para>
-       URL of Web service to be used to for auth/IP lookup. If this
+       URL of Web service to be used for auth/IP lookup. If this is
        defined, all access is granted or denied as part of Z39.50 Init
-       by the ZOOM module and the use of database parameters realm and
+       by the ZOOM module, and the use of database parameters realm and
        torus_url is not allowed. If this setting is not defined,
        all access is allowed and realm and/or torus_url may be used.
       </para>
@@ -135,7 +135,7 @@
      <term>attribute <literal>proxy</literal></term>
      <listitem>
       <para>
-       HTTP proxy to bse used for fetching target profiles.
+       HTTP proxy to be used for fetching target profiles.
       </para>
      </listitem>
     </varlistentry>
@@ -178,7 +178,7 @@
      <listitem>
       <para>
        Specifies a stylesheet that converts one or more Torus records
-       to ZeeExplain records. The content of recordData is assumed to be
+       to ZeeRex Explain records. The content of recordData is assumed to be
        holding each Explain record.
       </para>
      </listitem>
@@ -200,7 +200,7 @@
      <term>element <literal>records</literal></term>
      <listitem>
       <para>
-       Local target profiles. This element may includes zero or
+       Local target profiles. This element may include zero or
        more <literal>record</literal> elements (one per target
        profile). See section TARGET PROFILE.
       </para>
@@ -211,8 +211,8 @@
   <refsect2 id="fieldmap">
    <title>fieldmap</title>
    <para>
-    The <literal>fieldmap</literal> may be specified zero or more times and
-    specifies the map from CQL fields to CCL fields and takes the
+    The <literal>fieldmap</literal> may be specified zero or more times. It
+    specifies the map from CQL fields to CCL fields, and takes the
     following content:
    </para>
    <variablelist>
@@ -238,7 +238,7 @@
    <title>cclmap</title>
    <para>
     The third part of the configuration consists of zero or more
-    <literal>cclmap</literal> elements that specifies
+    <literal>cclmap</literal> elements that specify the
     <emphasis>base</emphasis> CCL profile to be used for all targets.
     This configuration, thus, will be combined with cclmap-definitions
     from the target profile.
@@ -247,9 +247,9 @@
   <refsect2>
    <title>contentProxy</title>
    <para>
-    The <literal>contentProxy</literal> element controls content proxy'in.
+    The <literal>contentProxy</literal> element controls content proxying.
     This section
-    is optional and must only be defined if content proxy'ing is enabled.
+    is optional and must only be defined if content proxying is enabled.
    </para>
    <variablelist>
     <varlistentry>
@@ -268,8 +268,8 @@
      <listitem>
       <para>
        Specifies the content proxy host. The host is of the form
-       host[:port]. That is without a method (such as HTTP) and optional
-       port number.
+       host[:port]. That is without a method (such as <literal>http://</literal>).
+       The port number is optional.
       </para>
       <note>
        <para>
@@ -283,7 +283,7 @@
      <term>attribute <literal>tmp_file</literal></term>
      <listitem>
       <para>
-       Specifies a filename of a session file for content proxy'ing. The
+       Specifies the filename of a session file for content proxying. The
        file should be an absolute filename that includes
        <literal>XXXXXX</literal> which is replaced by a unique filename
        using the mkstemp(3) system call. The default value of this
@@ -377,7 +377,7 @@
    CQL fields to CCL fields are handled by
    <link linkend="fieldmap"><literal>fieldmap</literal></link>
    elements as part of the target profile. The resulting query, CCL,
-   is the converted to RPN using the schema mentioned earlier (via
+   is then converted to RPN using the schema mentioned earlier (via
    <literal>cclmap</literal>).
   </para>
   <para>
@@ -391,9 +391,9 @@
  <refsect1>
   <title>SORTING</title>
   <para>
-   The ZOOM module actively handle CQL sorting - using the SORTBY parameter
+   The ZOOM module actively handles CQL sorting - using the SORTBY parameter
    which was introduced in SRU version 1.2. The conversion from SORTBY clause
-   to native sort for some target is driven by the two parameters:
+   to native sort for some target, is driven by the two parameters:
    <link linkend="zoom-torus-sortStrategy">
     <literal>sortStrategy</literal>
    </link>
@@ -403,7 +403,7 @@
   </para>
   <para>
    If a sort field that does not have an equivalent
-   <literal>sortmap_</literal>-mapping is passed un-modified through the
+   <literal>sortmap_</literal>-mapping, it is passed un-modified through the
    conversion. It doesn't throw a diagnostic.
   </para>
  </refsect1>
@@ -411,7 +411,7 @@
  <refsect1>
   <title>TARGET PROFILE</title>
   <para>
-   The ZOOM module is driven by a number of settings that specifies how
+   The ZOOM module is driven by a number of settings that specify how
    to handle each target.
    Note that unknown elements are silently <emphasis>ignored</emphasis>.
   </para>
@@ -428,7 +428,7 @@
      and password, separated by a slash.
     </para>
     <para>
-     If this value is omitted or empty no authentication information is sent.
+     If this value is omitted or empty, no authentication information is sent.
     </para>
    </listitem>
    </varlistentry>
@@ -441,12 +441,12 @@
      and <literal>basic</literal>. For the url mode username and password
      are carried in URL arguments x-username and x-password.
      For the basic mode, HTTP basic authentication is used.
-     The settings only takes effect
+     The settings only take effect
      if <link linkend="zoom-torus-authentication">authentication</link>
      is set.
     </para>
     <para>
-     If this value is omitted HTTP basic authencation is used.
+     If this value is omitted, HTTP basic authentication is used.
     </para>
    </listitem>
    </varlistentry>
@@ -454,7 +454,7 @@
    <varlistentry id="zoom-torus-cclmap">
     <term>cclmap_<replaceable>field</replaceable></term><listitem>
     <para>
-     This value specifies CCL field (qualifier) definition for some
+     This value specifies the CCL field (qualifier) definition for some
      field. For Z39.50 targets this most likely will specify the
      mapping to a numeric use attribute + a structure attribute.
      For SRU targets, the use attribute should be string based, in
@@ -467,7 +467,7 @@
     <term>cfAuth</term><listitem>
     <para>
      When cfAuth is defined, its value will be used as authentication
-     to backend target and authentication setting will be specified
+     to the backend target, and the authentication setting will be specified
      as part of a database. This is like a "proxy" for authentication and
      is used for Connector Framework based targets.
     </para>
@@ -503,7 +503,7 @@
    <varlistentry id="zoom-torus-contentConnector">
     <term>contentConnector</term><listitem>
     <para>
-     Specifies a database for content-based proxy'ing.
+     Specifies a database for content-based proxying.
     </para>
    </listitem>
    </varlistentry>
@@ -512,9 +512,9 @@
     <term>elementSet</term><listitem>
     <para>
      Specifies the elementSet to be sent to the target if record
-     transform is enabled (not to be confused' with the record_transform
+     transform is enabled (not to be confused with the record_transform
      module). The record transform is enabled only if the client uses
-     record syntax = XML and a element set determined by
+     record syntax = XML and an element set determined by
      the <literal>element_transform</literal> /
      <literal>element_raw</literal> from the configuration.
      By default that is the element sets <literal>pz2</literal>
@@ -529,8 +529,8 @@
    <varlistentry>
     <term>literalTransform</term><listitem>
     <para>
-     Specifies a XSL stylesheet to be used if record
-     transform is anabled; see description of elementSet.
+     Specifies an XSL stylesheet to be used if record
+     transform is enabled; see description of elementSet.
      The XSL transform is only used if the element set is set to the
      value of <literal>element_transform</literal> in the configuration.
     </para>
@@ -544,7 +544,7 @@
     <term>piggyback</term><listitem>
     <para>
      A value of 1/true is a hint to the ZOOM module that this Z39.50
-     target supports piggyback searches, ie Search Response with
+     target supports piggyback searches, i.e. Search Response with
      records. Any other value (false) will prevent the ZOOM module
      to make use of piggyback (all records part of Present Response).
     </para>
@@ -599,7 +599,7 @@
      <literal>z3950</literal>, <literal>type7</literal>,
      <literal>cql</literal>, <literal>sru11</literal> or
      <literal>embed</literal>. The <literal>embed</literal> chooses type-7
-     or CQL sortby depending on whether Type-1 or CQL is
+     or CQL sortby, depending on whether Type-1 or CQL is
      actually sent to the target.
     </para>
    </listitem>
@@ -621,7 +621,7 @@
     <para>
      Specifies the SRU version to use. It unset, version 1.2 will be
      used. Some servers do not support this version, in which case
-     version 1.1 or even 1.0 could be set it.
+     version 1.1 or even 1.0 could be set.
     </para>
    </listitem>
    </varlistentry>
@@ -629,8 +629,8 @@
    <varlistentry id="transform">
     <term>transform</term><listitem>
     <para>
-     Specifies a XSL stylesheet filename to be used if record
-     transform is anabled; see description of elementSet.
+     Specifies an XSL stylesheet filename to be used if record
+     transform is enabled; see description of elementSet.
      The XSL transform is only used if the element set is set to the
      value of <literal>element_transform</literal> in the configuration.
     </para>
@@ -641,7 +641,7 @@
     <term>udb</term><listitem>
     <para>
      This value is required and specifies the unique database for
-     this profile . All target profiles should hold a unique database.
+     this profile. All target profiles should hold a unique database.
     </para>
    </listitem>
    </varlistentry>
@@ -655,8 +655,8 @@
      <literal>type="generated-url"</literal> is generated.
      The contents of this field is the result of the URL recipe conversion.
      The urlRecipe value may refer to an existing metadata element by
-     ${field[pattern/result/flags]}, which will take content
-     of field and perform a regular expression conversion using the pattern
+     ${field[pattern/result/flags]}, which will take the content
+     of the field, and perform a regular expression conversion using the pattern
      given. For example: <literal>${md-title[\s+/+/g]}</literal> takes
      metadata element <literal>title</literal> and converts one or more
      spaces to a plus character.
@@ -667,7 +667,7 @@
    <varlistentry id="zurl">
     <term>zurl</term><listitem>
     <para>
-     This is setting is mandatory and specifies the ZURL of the
+     This setting is mandatory. It specifies the ZURL of the
      target in the form of host/database. The HTTP method should
      not be provided as this is guessed from the "sru" attribute value.
     </para>
@@ -680,17 +680,17 @@
   <para>
    Extra information may be carried in the Z39.50 Database or SRU path,
    such as authentication to be passed to backend etc. Some of
-   the parameters override TARGET profile values. The format is
+   the parameters override TARGET profile values. The format is:
   </para>
   <para>
    udb,parm1=value1&amp;parm2=value2&amp;...
   </para>
   <para>
-   Where udb is the unique database recognised by the backend and parm1,
+   Where udb is the unique database recognised by the backend. The parm1,
    value1, .. are parameters to be passed. The following describes the
-   supported parameters. Like form values in HTTP the parameters and
+   supported parameters. Like form values in HTTP, the parameters and
    values are URL encoded. The separator, though, between udb and parameters
-   is a comma rather than a question mark. What follows question mark are
+   is a comma rather than a question mark. What follows the question mark are
    HTTP arguments (in this case SRU arguments).
   </para>
   <para>
@@ -751,7 +751,7 @@
     <listitem>
      <para>
       Specifies password to be passed to backend. It is also passed
-      to content proxy session unless overriden by content-password.
+      to content proxy session, unless overridden by content-password.
       If this parameter is omitted, the password will be taken from
       TARGET profile setting
       <link linkend="zoom-torus-authentication">
@@ -770,7 +770,7 @@
       <link linkend="zoom-torus-cfproxy">
        <literal>cfProxy</literal></link>.
        The parameter is a list of  comma-separated  host:port entries.
-       Bost host and port must be given for each proxy.
+       Both host and port must be given for each proxy.
      </para>
     </listitem>
    </varlistentry>
@@ -791,7 +791,7 @@
     <term>retry</term>
     <listitem>
      <para>
-      Optional paramater. If the value is 0, retry on failure is
+      Optional parameter. If the value is 0, retry on failure is
       disabled for the ZOOM module. Any other value enables retry
       on failure. If this parameter is omitted, then the value of
       <literal>retryOnFailure</literal>
@@ -804,7 +804,7 @@
     <term>torus_url</term>
     <listitem>
      <para>
-      Sets the URL to be used for Torus records fetch - overriding value
+      Sets the URL to be used for Torus records to be fetched - overriding value
       of <literal>url</literal> attribute of element <literal>torus</literal>
       in zoom configuration. This parameter is not allowed if access is
       controlled by
@@ -818,7 +818,7 @@
     <listitem>
      <para>
       Specifies user to be passed to backend. It is also passed
-      to content proxy session unless overriden by content-user.
+      to content proxy session unless overridden by content-user.
       If this parameter is omitted, the user will be taken from TARGET
       profile setting
       <link linkend="zoom-torus-authentication">
@@ -832,7 +832,7 @@
     <term>x-parm</term>
     <listitem>
      <para>
-      All parameters that has prefix x, dash are passed verbatim
+      All parameters that have prefix "<literal>x-</literal>" are passed verbatim
       to the backend.
      </para>
     </listitem>
@@ -851,10 +851,10 @@
  <refsect1>
   <title>EXAMPLES</title>
   <para>
-   In example below Target definitions (Torus records) are fetched
+   In example below, Target definitions (Torus records) are fetched
    from a web service via a proxy. A CQL profile is configured which
    maps to a set of CCL fields ("no field", au, tu and su). Presumably
-   the target definitions fetched maps the CCL to their native RPN.
+   the target definitions fetched, will map the CCL to their native RPN.
    A CCL "ocn" is mapped for all targets. Logging of APDUs are enabled,
    and a timeout is given.
    <screen><![CDATA[

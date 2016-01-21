@@ -20,8 +20,8 @@
   <para>
    This filter removes surrogate-diagnostics from Z39.50 records. It
    replaces the surrogate diagnostics records with SUTRS records. This
-   module has no general use. It was only implemented to avoid a particualr
-   Z39.50 from crashing.
+   module has no general use. It was only implemented to avoid a particular
+   Z39.50 target server from crashing.
   </para>
  </refsect1>
 

@@ -45,7 +45,7 @@
 	strftime(3)</ulink>.
       </para>
       <para>
-       Use option -m in invocation of Metaproxy command to set format if yaz_log is used (no filename given).
+       Use option -m in the invocation of Metaproxy command to set format if yaz_log is used (no filename given).
       </para>
      </listitem>
     </varlistentry>
@@ -70,7 +70,7 @@
 	<varlistentry><term>access</term>
 	 <listitem>
 	  <para>
-	   One line log messages inspired by Apache access log entries.
+	   One-line log messages inspired by Apache httpd access log entries.
 	   This is a brief message stating the request and response.
 	   This is enabled by default. All other categories are disabled by
 	   default. See the section ACCESS LOG.
@@ -80,7 +80,7 @@
 	<varlistentry><term>user-access</term>
 	 <listitem>
 	  <para>
-	   One line log messages similar to <literal>access</literal> but
+	   One-line log messages similar to <literal>access</literal> but
 	   with the authenticated user on each log line.
 	  </para>
 	 </listitem>
@@ -156,12 +156,12 @@
   <para>
    The access is is strictly one line per entry and aims for
    easy mangling with tools such as awk, grep, perl etc.
-   Many values may be omitted in the packages in which case a single
+   Many values may be omitted in the packages, in which case a single
    dash is printed instead. This is to ensure that all values have
    well-defined position.
   </para>
   <para>
-   The basic format and order is
+   The basic format and order is:
    <variablelist>
     <varlistentry><term>time (position 1)</term>
      <listitem><para>
@@ -182,7 +182,7 @@
        IP address of origin (peer)
       </para>
       <para>
-       If category <literal>user-acesss</literal> is used the
+       If category <literal>user-acesss</literal> is used, the
        user is written on position 3 and the IP is written on position 4.
       </para>
      </listitem>
@@ -192,18 +192,18 @@
      <listitem><para>
        Session ID. Can be used to identify a particular Z39.50 session.
        For HTTP this session ID only tracks the HTTP socket (kept alive).
-       NOT to be confused the the HTTP cookie mechanism.
+       NOT to be confused with the HTTP cookie mechanism.
       </para>
      </listitem>
     </varlistentry>
 
     <varlistentry><term>elapsed (position 5)</term>
      <listitem><para>
-       Elapsed time .
+       Elapsed time.
        The elapsed time is the time between the point in time
-       where a package was received form the client and the
+       where a package was received from the client and the
        point where a response was received from the next filter
-       in chain (backend eventually).
+       in the chain (backend eventually).
       </para>
      </listitem>
     </varlistentry>
@@ -219,15 +219,15 @@
   </para>
 
   <para>
-   For packages of with protocol marker <literal>Z3950</literal>
-   the the access log line is followed by the APDU type + information
+   For packages with protocol marker <literal>Z3950</literal>,
+   the access log line is followed by the APDU type + information
    depending on the type. The APDU type is on position 7.
 
    <variablelist>
 
     <varlistentry><term>initRequest</term>
      <listitem><para>
-       Z39.50 Initialize Request with the information
+       Z39.50 Initialize Request with the information:
        username, vhost,
        implementation ID, implementation name, implementation version.
       </para>
@@ -237,7 +237,7 @@
     <varlistentry><term>initResponse</term>
      <listitem><para>
        Z39.50 Initialize Response with the information:
-       status (OK or FAIL), implementatino ID, implementation name,
+       status (OK or FAIL), implementation ID, implementation name,
        implementation version.
       </para>
      </listitem>
@@ -291,7 +291,7 @@
        response, step size, start point.
       </para>
       <para>
-       start point is a multi token value in PQF notation.
+       The start point is a multi-token value in PQF notation.
       </para>
      </listitem>
     </varlistentry>

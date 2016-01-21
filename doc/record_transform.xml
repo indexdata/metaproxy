@@ -28,7 +28,7 @@
    use is twofold: blocking Z39.50 present/search requests that the backend
    server does not understand or can not honor, and transforming the present
    syntax and elementset name according to the rules specified, to fetch
-   only existing record formats, and transform them on the fly to requested
+   only existing record formats, and transform them on-the-fly to requested
    record syntaxes.
   </para>
   <para>
@@ -50,18 +50,18 @@
     of the YAZ manual.
   </para>
   <para>
-   From Metaproxy version 1.3.26 and onwards the backend conversion ma
+   From Metaproxy version 1.3.26 and onwards, the backend conversion may
    also use <ulink url="&url.usemarcon;">USEMARCON</ulink>.
    If USEMARCON is enabled, the <literal>backend</literal> may include
    a <literal>usemarcon</literal> element with two attributes:
-   <literal>stage1</literal> and <literal>stage2</literal> that points to
+   <literal>stage1</literal> and <literal>stage2</literal> that point to
    conversion files as interpreted by USEMARCON. One or both must be given.
   </para>
  </refsect1>
 
  <refsect1><title>SCHEMA</title>
  <para>
-  Schema is in two parts.. One for the filter itself and one for the
+  Schema is in two parts.. One for the filter itself, and one for the
   retrieval info.
  </para>
  <literallayout>

@@ -27,8 +27,8 @@
    The sorting criteria is selected via an X-Path expression. Only
    XML records are supported. The sorting is done only for the first
    present request following a search. The number of records to prefetch
-   can is configurable. For example, if a client asks initially for 10
-   records this module may extend that and fetch more records and only
+   is configurable. For example, if a client asks initially for 10
+   records this module may extend that, and fetch more records and only
    return the results in the 10 record window - after sorting.
   </para>
   <para>

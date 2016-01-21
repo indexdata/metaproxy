@@ -18,7 +18,7 @@
 
  <refnamediv>
   <refname>session_shared</refname>
-  <refpurpose> Metaproxy Module for sharing system ressorces between
+  <refpurpose> Metaproxy Module for sharing system resources between
    threads</refpurpose>
  </refnamediv>
 
@@ -64,10 +64,10 @@
     <varlistentry><term>Session max</term>
      <listitem>
       <para>
-       Specifiers maximum number of sessions to any particular
+       Specifies the maximum number of sessions to any particular
        target. If this number (limit) is reached, the session_shared
        module will re-use result sets even if TTL is not met.
-       Failing that the session_shared will return a diagnostic.
+       Failing that, the session_shared will return a diagnostic.
        Default value is 100 sessions.
       </para>
      </listitem>
@@ -94,7 +94,7 @@
     <varlistentry><term>Result-Set restart</term>
      <listitem>
       <para>
-       Boolean which specifies whether session_shared should to try to
+       Boolean which specifies whether session_shared should try to
        recover a failed search. If a search results in diagnostic 2:
        temporary system error, or a negative hit count, the search
        will be performed once again on another or new Z39.50 session.
