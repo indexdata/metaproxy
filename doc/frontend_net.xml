@@ -40,19 +40,19 @@
   </para>
   <para>
    Element <literal>threads</literal> is an optional element. The
-   text content specifies number of worker threads for the following
+   text content specifies the number of worker threads for the following
    filters to use. The default value is 5 (5 worker threads).
   </para>
   <para>
    Element <literal>max-threads</literal> is an optional element. The
    text content specifies maximum number of worker threads for the following
    filters to use. By default the thread count is fixed.
-   By using this setting with a higher value than the treads
-   setting extra worker threads will be added as necessary.
+   By using this setting with a higher value than the threads
+   setting, extra worker threads will be added as necessary.
   </para>
   <para>
    Element <literal>stack-size</literal> is an optional element. The
-   text content specifies stack size in kilo bytes for worker threads.
+   text content specifies stack size in kilobytes for worker threads.
    If omitted, the system default stack size for threads is used.
   </para>
   <para>
@@ -63,7 +63,7 @@
   </para>
   <para>
    Element <literal>connect-max</literal> is an optional repeatable element.
-   The text content is treated as an integer that specifies maximum number
+   The text content is treated as an integer that specifies the maximum number
    of accepted TCP sessions from the same original IP. A value of 0
    means unlimited (no limit). The attribute <literal>ip</literal>
    specifies an IP-pattern to match. If the IP pattern  is matched, the
@@ -88,8 +88,8 @@
   </para>
   <para>
    Element <literal>message</literal> is an optional element. If
-   given and non-empty logging is performed by the frontend_net filter
-   (to the log file as given ny option -l).
+   given and non-empty, logging is performed by the frontend_net filter
+   (to the log file as given by option -l).
   </para>
   <para>
    Element <literal>stat-req</literal> is an optional element. It

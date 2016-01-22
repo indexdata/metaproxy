@@ -39,7 +39,7 @@
    "from" and the corresponding attribute "from" specifies the result.
    The "to" result may refer to named groups in any "from" pattern already
    executed. For example, in the response section a rule may refer to both
-   groups in the response already executed and all rules exectuted in the
+   groups in the response already executed and all rules executed in the
    request section.
   </para>
   <para>
@@ -48,19 +48,19 @@
    "html" (for HTML content), "headers" for HTTP headers or
    "quoted-literal" for Java Script type of content.
    The content section takes one or more "within" elements. That specifies
-   where inside the content, each rule is being exectuted. All within
-   must have a "rule" attribtue that specifies the rule section to be
+   where inside the content, each rule is being executed. All within
+   must have a "rule" attribute that specifies the rule section to be
    invoked (rule@name as mentioned earlier).
   </para>
   <para>
    For "html" content, the within element takes also attributes "tag"
-   and "attr",that specifies tag and attributes to be inspected.
-   The attr attributes takes one or more attributes (comma separated).
+   and "attr", that specifies tag and attributes to be inspected.
+   The attr attributes takes one or more attributes (comma-separated).
    If no "tag" is given, the rule is performed on all attributes
    with the name given.
   </para>
   <para>
-   For "headers" content the within element takes "header" or "reqline" +
+   For "headers" content, the within element takes "header" or "reqline" +
    the "rule" attribute. For "header", the rule is performed on all
    HTTP headers with the name in header. For "reqline", the
    HTTP Request line is rewritten.

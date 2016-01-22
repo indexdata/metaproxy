@@ -27,7 +27,7 @@
    rewritten using an XSLT stylesheet to specify the rewrite rules.
    This can be useful for several purposes, including the provision of
    index aliases (e.g. BIB-1 access-point 1, personal name, rewritten
-   to access-point 1003, author); and protecting fragile Z39.50 server
+   to access-point 1003, author); and protecting fragile Z39.50 servers
    from attribute combinations that cause them problems.
   </para>
   <para>

@@ -38,13 +38,13 @@
    configuration file syntax and details.
   </para>
   <para>
-   A common and wellknown challenge is that the ZeeRex SRU
+   A common and well-known challenge is that the ZeeRex SRU
    Explain config file used in the <literal>sru_z3950</literal>
    filter and the <literal>CQL</literal> translation configuration
-   file used in this filter must be kept in syncronization.
-   Syncronization can be eased by using the provided XSLT stylesheet,
+   file used in this filter must be kept in synchronization.
+   Synchronization can be eased by using the provided XSLT stylesheet,
    <literal>xml/xslt/explain2cqlpqftxt.xsl</literal>, which transforms
-   from ZeeReX Explain to the later. The example configurations have
+   from ZeeReX Explain to the latter. The example configurations have
    been created by running:
    <screen>
      xsltproc xml/xslt/explain2cqlpqftxt.xsl etc/explain.xml > etc/cql2pqf.txt

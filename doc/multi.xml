@@ -35,7 +35,7 @@
    <literal>auth</literal> attribute.
   </para>
   <para>
-   A target element is not required for multi-plexing to work.
+   A target element is not required for multiplexing to work.
    It merely serves as a way to route differently.
   </para>
   <para>
@@ -52,7 +52,7 @@
    <literal>&lt;hideerrors&gt;</literal>
    element is placed inside the
    <literal>multi</literal>
-   filter, then databases that reports diagnostics are not reported back
+   filter, then databases that report diagnostics are not reported back
    to the client, but simply ignored (unless every one of the databases report
    diagnostics).
   </para>

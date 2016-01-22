@@ -69,7 +69,7 @@
    <varlistentry>
     <term>--libs</term>
     <listitem><para>
-      Library specification be used when linking with Metaproxy libraries.
+      Library specification to be used when linking with Metaproxy libraries.
      </para></listitem>
    </varlistentry>
 

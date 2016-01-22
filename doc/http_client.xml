@@ -18,7 +18,7 @@
 
  <refnamediv>
   <refname>http_client</refname>
-  <refpurpose>Metaproxy HTTP File Server Module</refpurpose>
+  <refpurpose>Metaproxy HTTP Client Module</refpurpose>
  </refnamediv>
 
  <refsect1><title>DESCRIPTION</title>
@@ -28,7 +28,7 @@
   </para>
   <para>
    The element default-host of configuration specifies the default host
-   in remote URL. If this is set, frontend_net + http_client acts as a
+   in the remote URL. If this is set, frontend_net + http_client acts as a
    transparent HTTP proxy as well.
   </para>
   <para>
@@ -40,7 +40,7 @@
     <varlistentry><term>default-host</term>
     <listitem>
      <para>
-      Specifies host for transparant proxy mode.
+      Specifies host for transparent proxy mode.
      </para>
     </listitem>
     </varlistentry>

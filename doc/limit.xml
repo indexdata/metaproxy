@@ -32,7 +32,7 @@
    seconds (1 minute). The limit may include the elements bandwidth, pdu,
    retrieve and search. The bandwidth measures the number of bytes
    transferred within the last minute. The pdu is the number of requests
-   in the last minute. The retrieve holds the maximum records to which may
+   in the last minute. The retrieve holds the maximum number of records which may
    be retrieved in one Present Request.
    The search is the maximum number of searches within the last minute.
   </para>

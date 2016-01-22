@@ -84,8 +84,8 @@
     <varlistentry><term>client_ip</term>
      <listitem>
       <para>
-       Is a boolean value (false, true). If true, the Z39.50 client will
-       as part of the Init Request include Client-IP information (the
+       Is a boolean value (false, true). If true, the Z39.50 client will,
+       as part of the Init Request, include Client-IP information (the
        Z39.50 equivalent of HTTP X-Forwarded-To information). By default
        this is false (not included).
       </para>
@@ -95,16 +95,16 @@
      <listitem>
       <para>
        If set, holds Z39.50 negotiation charset (encoding) that is
-       sent via the Initialize Request. If Initalize Request already
-       contains negotaition information it will be left un-modified.
+       sent via the Initialize Request. If the Initialize Request already
+       contains negotiation information, it will be left un-modified.
       </para>
      </listitem>
     </varlistentry>
     <varlistentry><term>bind_host</term>
      <listitem>
       <para>
-       Is a boolean value (false, true). If true, the out going
-       TCP connection will be bound to the same as listening IP.
+       Is a boolean value (false, true). If true, the outgoing
+       TCP connection will be bound to the same as the listening IP.
       </para>
      </listitem>
     </varlistentry>

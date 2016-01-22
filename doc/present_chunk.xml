@@ -18,8 +18,8 @@
 
  <refsect1><title>DESCRIPTION</title>
   <para>
-   This module converts a present requests to one or more present
-   requests (chunks). Some Z39.50 server software may crash or large
+   This module converts a present request to one or more present
+   requests (chunks). Some Z39.50 server software may crash on large
    present requests (number of records requested).
    This module tries to fix that. It takes a "chunk" element in
    configuration that specifies the maximum number of records to fetch

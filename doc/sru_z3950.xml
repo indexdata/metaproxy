@@ -35,14 +35,14 @@
    Notice that explain
    records come in SRU and Z39.50 flavors, and this filter requires
    the SRU version. See the
-   <ulink url="&url.zeerex.explain;">ZeeReX Explain</ulink>
+   <ulink url="&url.zeerex.explain;">ZeeRex Explain</ulink>
    standard pages and the
    <ulink url="&url.sru.explain;">SRU Explain</ulink> pages
    for more information.
   </para>
   <para>
    Optionally the default stylesheet may be specified. If the client
-   do not specify a stylesheet, the CDATA of element
+   does not specify a stylesheet, the CDATA of element
    <literal>stylesheet</literal> is used.
   </para>
   <para>
@@ -53,7 +53,7 @@
   <para>
    The SRU <literal>explain</literal> operation is supported,
    returning either the absolute minimum required by the standard, or
-   a  full  pre-defined ZeeReX explain record.
+   a  full  pre-defined ZeeRex explain record.
   </para>
   <para>
    It supports the SRU <literal>searchRetrieve</literal> operation, which
@@ -64,7 +64,7 @@
    The SRU <literal>scan</literal> operation is not supported.
    </para>
   <para>
-   This filter does not handle CQL-to-PQF translations. In case that
+   This filter does not handle CQL-to-PQF translations. In the case that
    the backends do not understand CQL, you need to append the
    <literal>cql_pqf</literal> metaproxy filter.
   </para>
@@ -106,7 +106,7 @@
 	  <para>
             Controls whether log is to be collected for filters that
             sru_z3950. Log data is extra response data's log element.
-            A value of 1 enables logging; other value disables
+            A value of 1 enables logging; any other value disables
             logging (default).
 	  </para>
 	</listitem>
