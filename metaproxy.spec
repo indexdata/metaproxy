@@ -77,7 +77,7 @@ install -m 644 rpm/metaproxy.logrotate  ${RPM_BUILD_ROOT}/etc/logrotate.d/metapr
 rm -fr ${RPM_BUILD_ROOT}
 
 %files -n libmetaproxy6
-%doc README LICENSE NEWS
+%doc README.md LICENSE NEWS
 %defattr(-,root,root)
 %{_libdir}/*.so.*
 %dir %{_libdir}/metaproxy6/modules
