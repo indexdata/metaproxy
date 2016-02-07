@@ -35,7 +35,6 @@ addons:
    - libtool
    - libwrap0-dev
    - libxslt1-dev
-#   - libyaz5-dev
    - make
    - pkg-config
    - tcl8.5
