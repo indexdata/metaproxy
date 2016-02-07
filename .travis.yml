@@ -44,6 +44,7 @@ addons:
    - libboost-thread-dev
    - libboost-test-dev
    - libboost-regex-dev
+   - inkscape
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
