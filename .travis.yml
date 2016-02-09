@@ -55,4 +55,7 @@ before_install:
 before_script:
  - ./buildconf.sh
 script:
- - ./configure && make INKSCAPE=true && make check
+ - ./configure
+ - make INKSCAPE=true
+ - make INKSCAPE=true check
+
