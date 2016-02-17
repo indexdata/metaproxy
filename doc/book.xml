@@ -247,26 +247,20 @@
    <section>
     <title id="boost.fromsource">Boost</title>
     <para>
-     Metaproxy needs components thread and test from
-     Boost.
+     Metaproxy needs some Boost libraries.
+     This is most easily installed from source, as explained in
+     <ulink url="&url.boost.getting.started;">getting started</ulink>.
     </para>
     <screen>
      gunzip -c boost-version.tar.gz|tar xf -
      cd boost-version
-     ./configure --with-libraries=thread,test,regex --with-toolset=gcc
-     make
-     su
-     make install
+     ./bootsrap.sh --with-libraries=thread,test,regex
+     ./b2 install
     </screen>
     <para>
-     However, under the hood bjam is used. You can invoke that with
-    </para>
-    <screen>
-     ./bjam --toolset=gcc --with-thread --with-test --with-regex stage
-    </screen>
-    <para>
-     Replace <literal>stage</literal> with <literal>clean</literal> /
-     <literal>install</literal> to perform clean and install respectively.
+     The bootstrap should automatically detect the "toolset", otherwise specify
+     this as explained in
+     <ulink url="&url.boost.getting.started;">getting started</ulink>.
     </para>
     <para>
      Add <literal>--prefix=DIR</literal> to install Boost in other
