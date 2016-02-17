@@ -1181,7 +1181,7 @@ Figure out what additional information we need in:
     All four are non-repeatable.
    </para>
    <para>
-     The &lt;dlpath;&gt; element contains a text element which
+     The &lt;dlpath&gt; element contains a text element which
      specifies the location of filter modules. This is only needed
      if Metaproxy must load 3rd party filters (most filters with Metaproxy
      are built into the Metaproxy application).
