@@ -1,4 +1,7 @@
-# Metaproxy XML config file schema
+# Metaproxy XML config file schemas
+#
+#   Copyright (C) Index Data
+#   See the LICENSE file for details.
 
 namespace mp = "http://indexdata.com/metaproxy"
 
@@ -10,4 +13,3 @@ filter_cql_rpn =
     attribute file { xsd:string },
     attribute reverse { xsd:boolean }?
   }
-
