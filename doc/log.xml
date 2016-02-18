@@ -323,8 +323,8 @@
    <screen><![CDATA[
     <filter type="log">
      <message>B</message>
-     <category access="true"/>
      <filename>logs/metaproxy.log</filename>
+     <category access="true"/>
     </filter>
 ]]>
    </screen>

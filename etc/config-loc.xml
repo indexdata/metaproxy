@@ -84,9 +84,9 @@ the following databaseNames (virtual databases):
   <routes>
     <route id="start">
       <filter type="frontend_net">
+        <threads>100</threads>
         <port>@:7090</port>
         <!-- maximum connections within a minute from same IP -->
-        <threads>100</threads>
         <connect-max>10</connect-max>
       </filter>
 

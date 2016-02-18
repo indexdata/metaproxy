@@ -97,7 +97,7 @@
       </virtual>
       <virtual>
         <database>*</database><!-- default -->
-        <target>localhost:9999</target><-- database not altered -->
+        <target>localhost:9999</target><!-- database not altered -->
       </virtual>
     </filter>
 ]]>
