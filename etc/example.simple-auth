@@ -1,6 +1,6 @@
 # $Id: example.simple-auth,v 1.5 2006-01-18 13:52:19 robstyles Exp $
 #
-# Sample user-register for YP2's simple authentication.  Each
+# Sample user-register for Metaproxy's simple authentication.  Each
 # non-blank line either begins with a hash (in which case it is a
 # comment, and is ignored) or is a user-register entry.  Each entry
 # consists of three colon-separated fields: a username, a
