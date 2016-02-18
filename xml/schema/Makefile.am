@@ -18,6 +18,7 @@ filter_limit.rnc \
 filter_load_balance.rnc \
 filter_log.rnc \
 filter_multi.rnc \
+filter_present_chunk.rnc \
 filter_query_rewrite.rnc \
 filter_record_transform.rnc \
 filter_sd_remove.rnc \
