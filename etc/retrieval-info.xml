@@ -1,48 +1,41 @@
 <?xml version="1.0"?>
-<retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
+<retrievalinfo xmlns="http://indexdata.com/yaz" version="1.0">
   <retrieval syntax="grs-1"/>
-  <retrieval syntax="usmarc" name="F"/>
-  <retrieval syntax="usmarc" name="B"/>
-  <retrieval syntax="xml" name="marcxml"
-             identifier="info:srw/schema/1/marcxml-v1.1">
-    <backend syntax="usmarc" name="F">
-      <marc inputformat="marc" outputformat="marcxml"
-            inputcharset="marc-8" outputcharset="utf-8"/>
+  <retrieval name="F" syntax="usmarc"/>
+  <retrieval name="B" syntax="usmarc"/>
+  <retrieval identifier="info:srw/schema/1/marcxml-v1.1" name="marcxml" syntax="xml">
+    <backend name="F" syntax="usmarc">
+      <marc inputcharset="marc-8" inputformat="marc" outputcharset="utf-8" outputformat="marcxml"/>
     </backend>
   </retrieval>
-  <retrieval syntax="xml" name="danmarc">
-    <backend syntax="usmarc" name="F">
-      <marc inputformat="marc" outputformat="marcxchange"
-            inputcharset="marc-8"/>
+  <retrieval name="danmarc" syntax="xml">
+    <backend name="F" syntax="usmarc">
+      <marc inputcharset="marc-8" inputformat="marc" outputformat="marcxchange"/>
     </backend>
   </retrieval>
-  <retrieval syntax="xml" name="dc"
-             identifier="info:srw/schema/1/dc-v1.1">
-    <backend syntax="usmarc" name="F">
-      <marc inputformat="marc" outputformat="marcxml"
-            inputcharset="marc-8"/>
+  <retrieval identifier="info:srw/schema/1/dc-v1.1" name="dc" syntax="xml">
+    <backend name="F" syntax="usmarc">
+      <marc inputcharset="marc-8" inputformat="marc" outputformat="marcxml"/>
       <xslt stylesheet="../xml/xslt/MARC21slim2DC.xsl">
-         <param name="myparameter" value="myvalue"/>
+        <param name="myparameter" value="myvalue"/>
       </xslt>
     </backend>
   </retrieval>
-<!--
+  <!--
   <retrieval syntax="unimarc" name="F">
     <backend syntax="usmarc" name="F">
       <usemarcon stage1="/etc/usemarcon/uni2us/uni2us.ini"/>
     </backend>
   </retrieval>
 -->
-  <retrieval syntax="opac" name="OP">
-    <backend syntax="opac" name="F">
-      <marc inputformat="marc" outputformat="marcxchange"
-            inputcharset="marc-8"/>
+  <retrieval name="OP" syntax="opac">
+    <backend name="F" syntax="opac">
+      <marc inputcharset="marc-8" inputformat="marc" outputformat="marcxchange"/>
     </backend>
   </retrieval>
-  <retrieval syntax="xml" name="OP">
-    <backend syntax="opac" name="F">
-      <marc inputformat="marc" outputformat="marcxchange"
-            inputcharset="marc-8"/>
+  <retrieval name="OP" syntax="xml">
+    <backend name="F" syntax="opac">
+      <marc inputcharset="marc-8" inputformat="marc" outputformat="marcxchange"/>
     </backend>
   </retrieval>
 </retrievalinfo>

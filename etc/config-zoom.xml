@@ -8,227 +8,206 @@
       <message>FN</message>
     </filter>
     <filter id="backend" type="zoom">
-      <torus
-	    url="http://usi.indexdata.com/torus2/searchable.%realm/records/?query=%query"
-            realm="production"
-            xsldir="."
-            element_transform="pz2"
-            element_raw="raw"
-            element_passthru="F"
-            explain_xsl="torus2zeerex.xsl"
-            record_xsl="pz2dc.xsl"
-	    >
-
-	<!--
+      <torus element_passthru="F" element_raw="raw" element_transform="pz2" explain_xsl="torus2zeerex.xsl" realm="production" record_xsl="pz2dc.xsl" url="http://usi.indexdata.com/torus2/searchable.%realm/records/?query=%query" xsldir=".">
+        <!--
 	http://usi.indexdata.com/torus2/admin.admin/records/?query=userName==test+and+password==test
 	-->
-
-
         <!-- these records are examples only -->
-	<records>
-
+        <records>
           <!-- local z-target and content connector -->
-	  <record>
-	    <piggyback>1</piggyback>
-	    <queryEncoding>UTF-8</queryEncoding>
-	    <udb>z-local</udb>
-	    <cclmap_term>1=1016 s=al</cclmap_term>
-	    <cclmap_ti>1=4 s=pw t=l,r</cclmap_ti>
-	    <requestSyntax>usmarc</requestSyntax>
-	    <transform>tmarc.xsl</transform>
-	    <urlRecipe>http://sever.com?title=${md-title[\s+/+/g]}&amp;parm=1</urlRecipe>
-	    <zurl>localhost:9998/Default</zurl>
-	    <retryOnFailure>0</retryOnFailure>
-	  </record>
-	  <record>
-	    <udb>heikki/content1</udb>
-	    <zurl>localhost:9999/heikki/content1</zurl>
-	    <cfAuth>cfuser/cfpassword</cfAuth>
-	  </record>
-
+          <record>
+            <piggyback>1</piggyback>
+            <queryEncoding>UTF-8</queryEncoding>
+            <udb>z-local</udb>
+            <cclmap_term>1=1016 s=al</cclmap_term>
+            <cclmap_ti>1=4 s=pw t=l,r</cclmap_ti>
+            <requestSyntax>usmarc</requestSyntax>
+            <transform>tmarc.xsl</transform>
+            <urlRecipe>http://sever.com?title=${md-title[\s+/+/g]}&amp;parm=1</urlRecipe>
+            <zurl>localhost:9998/Default</zurl>
+            <retryOnFailure>0</retryOnFailure>
+          </record>
+          <record>
+            <udb>heikki/content1</udb>
+            <zurl>localhost:9999/heikki/content1</zurl>
+            <cfAuth>cfuser/cfpassword</cfAuth>
+          </record>
           <!-- sru local connector -->
-	  <record>
+          <record>
             <authentication>a/b</authentication>
             <authenticationMode>url</authenticationMode>
-	    <piggyback>1</piggyback>
-	    <queryEncoding>UTF-8</queryEncoding>
-	    <udb>sru-local</udb>
-	    <cclmap_term>s=al</cclmap_term>
-	    <cclmap_ti>1=title s=pw t=l,r</cclmap_ti>
-	    <sru>get</sru>
-	    <sruVersion>1.1</sruVersion>
-	    <transform>tmarc.xsl</transform>
-	    <zurl>localhost:9998/db01</zurl>
+            <piggyback>1</piggyback>
+            <queryEncoding>UTF-8</queryEncoding>
+            <udb>sru-local</udb>
+            <cclmap_term>s=al</cclmap_term>
+            <cclmap_ti>1=title s=pw t=l,r</cclmap_ti>
+            <sru>get</sru>
+            <sruVersion>1.1</sruVersion>
+            <transform>tmarc.xsl</transform>
+            <zurl>localhost:9998/db01</zurl>
             <sortStrategy>embed</sortStrategy>
             <sortmap_title>dc.title</sortmap_title>
             <rpn2cql>pqf.properties</rpn2cql>
-	  </record>
-
-	  <record>
-	    <piggyback>1</piggyback>
-	    <queryEncoding>UTF-8</queryEncoding>
-	    <udb>solr-local</udb>
-	    <cclmap_term>s=al</cclmap_term>
-	    <cclmap_ti>1=title s=pw t=l,r</cclmap_ti>
-	    <sru>solr</sru>
-	    <transform>tmarc.xsl</transform>
-	    <zurl>lui.indexdata.com/solr/#5002</zurl>
+          </record>
+          <record>
+            <piggyback>1</piggyback>
+            <queryEncoding>UTF-8</queryEncoding>
+            <udb>solr-local</udb>
+            <cclmap_term>s=al</cclmap_term>
+            <cclmap_ti>1=title s=pw t=l,r</cclmap_ti>
+            <sru>solr</sru>
+            <transform>tmarc.xsl</transform>
+            <zurl>lui.indexdata.com/solr/#5002</zurl>
             <sortStrategy>embed</sortStrategy>
             <sortmap_title>dc.title</sortmap_title>
             <rpn2cql>pqf.properties</rpn2cql>
-	  </record>
-
+          </record>
           <!-- jstor1 -->
-	  <record>
-	    <piggyback>1</piggyback>
-	    <queryEncoding>UTF-8</queryEncoding>
-	    <udb>jstor1</udb>
-	    <cclmap_term>s=al</cclmap_term>
-	    <cclmap_ti>1=title s=pw t=l,r</cclmap_ti>
-	    <sru>get</sru>
-	    <transform>dc.xsl</transform>
-	    <literalTransform>&lt;?xml version="1.0" encoding="UTF-8"?>
+          <record>
+            <piggyback>1</piggyback>
+            <queryEncoding>UTF-8</queryEncoding>
+            <udb>jstor1</udb>
+            <cclmap_term>s=al</cclmap_term>
+            <cclmap_ti>1=title s=pw t=l,r</cclmap_ti>
+            <sru>get</sru>
+            <transform>dc.xsl</transform>
+            <literalTransform>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!--
 
     This stylesheet expects oai/dc records
--->
+--&gt;
 &lt;xsl:stylesheet
     version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:pz="http://www.indexdata.com/pazpar2/1.0"
     xmlns:dc="http://purl.org/dc/elements/1.1/"
-    xmlns:dcterms="http://purl.org/dc/terms/">
+    xmlns:dcterms="http://purl.org/dc/terms/"&gt;
 
  &lt;xsl:output indent="yes"
         method="xml"
         version="1.0"
-        encoding="UTF-8"/>
+        encoding="UTF-8"/&gt;
 
-  &lt;xsl:param name="medium" />
+  &lt;xsl:param name="medium" /&gt;
 
-  &lt;xsl:template match="/*">
-    &lt;pz:record>
+  &lt;xsl:template match="/*"&gt;
+    &lt;pz:record&gt;
 
-      &lt;pz:metadata type="id">
-        &lt;xsl:value-of select="dc:identifier"/>
-      &lt;/pz:metadata>
+      &lt;pz:metadata type="id"&gt;
+        &lt;xsl:value-of select="dc:identifier"/&gt;
+      &lt;/pz:metadata&gt;
 
-      &lt;xsl:for-each select="dc:title">
-        &lt;pz:metadata type="title">
-          &lt;xsl:value-of select="."/>
-        &lt;/pz:metadata>
-      &lt;/xsl:for-each>
+      &lt;xsl:for-each select="dc:title"&gt;
+        &lt;pz:metadata type="title"&gt;
+          &lt;xsl:value-of select="."/&gt;
+        &lt;/pz:metadata&gt;
+      &lt;/xsl:for-each&gt;
 
-      &lt;xsl:for-each select="dc:date">
-        &lt;pz:metadata type="date">
-      	  &lt;xsl:value-of select="."/>
-	      &lt;/pz:metadata>
-      &lt;/xsl:for-each>
+      &lt;xsl:for-each select="dc:date"&gt;
+        &lt;pz:metadata type="date"&gt;
+      	  &lt;xsl:value-of select="."/&gt;
+	      &lt;/pz:metadata&gt;
+      &lt;/xsl:for-each&gt;
 
-      &lt;xsl:for-each select="dc:subject">
-        &lt;pz:metadata type="subject">
-	        &lt;xsl:value-of select="."/>
-	      &lt;/pz:metadata>
-      &lt;/xsl:for-each>
+      &lt;xsl:for-each select="dc:subject"&gt;
+        &lt;pz:metadata type="subject"&gt;
+	        &lt;xsl:value-of select="."/&gt;
+	      &lt;/pz:metadata&gt;
+      &lt;/xsl:for-each&gt;
 
-      &lt;xsl:for-each select="dc:creator">
-	      &lt;pz:metadata type="author">
-          &lt;xsl:value-of select="."/>
-	      &lt;/pz:metadata>
-      &lt;/xsl:for-each>
+      &lt;xsl:for-each select="dc:creator"&gt;
+	      &lt;pz:metadata type="author"&gt;
+          &lt;xsl:value-of select="."/&gt;
+	      &lt;/pz:metadata&gt;
+      &lt;/xsl:for-each&gt;
 
-      &lt;xsl:for-each select="dc:description">
-        &lt;pz:metadata type="description">
-	        &lt;xsl:value-of select="."/>
-	      &lt;/pz:metadata>
-      &lt;/xsl:for-each>
+      &lt;xsl:for-each select="dc:description"&gt;
+        &lt;pz:metadata type="description"&gt;
+	        &lt;xsl:value-of select="."/&gt;
+	      &lt;/pz:metadata&gt;
+      &lt;/xsl:for-each&gt;
 
-      &lt;xsl:for-each select="dc:identifier">
-        &lt;pz:metadata type="electronic-url">
-	        &lt;xsl:value-of select="."/>
-	      &lt;/pz:metadata>
-      &lt;/xsl:for-each>
+      &lt;xsl:for-each select="dc:identifier"&gt;
+        &lt;pz:metadata type="electronic-url"&gt;
+	        &lt;xsl:value-of select="."/&gt;
+	      &lt;/pz:metadata&gt;
+      &lt;/xsl:for-each&gt;
 
-      &lt;xsl:for-each select="dc:type">
-        &lt;pz:metadata type="medium">
-	        &lt;xsl:value-of select="."/>
-	      &lt;/pz:metadata>
-      &lt;/xsl:for-each>
+      &lt;xsl:for-each select="dc:type"&gt;
+        &lt;pz:metadata type="medium"&gt;
+	        &lt;xsl:value-of select="."/&gt;
+	      &lt;/pz:metadata&gt;
+      &lt;/xsl:for-each&gt;
 
-      &lt;xsl:for-each select="dcterms:bibliographicCitation">
-        &lt;pz:metadata type="citation">
-          &lt;xsl:value-of select="."/>
-        &lt;/pz:metadata>
-      &lt;/xsl:for-each>
+      &lt;xsl:for-each select="dcterms:bibliographicCitation"&gt;
+        &lt;pz:metadata type="citation"&gt;
+          &lt;xsl:value-of select="."/&gt;
+        &lt;/pz:metadata&gt;
+      &lt;/xsl:for-each&gt;
 
-      &lt;pz:metadata type="medium">
-        &lt;xsl:value-of select="$medium" />
-      &lt;/pz:metadata>
+      &lt;pz:metadata type="medium"&gt;
+        &lt;xsl:value-of select="$medium" /&gt;
+      &lt;/pz:metadata&gt;
 
-    &lt;/pz:record>
-  &lt;/xsl:template>
+    &lt;/pz:record&gt;
+  &lt;/xsl:template&gt;
 
-  &lt;xsl:template match="text()"/>
+  &lt;xsl:template match="text()"/&gt;
 
-&lt;/xsl:stylesheet></literalTransform>
-	    <zurl>dfr.jstor.org/sru</zurl>
-	  </record>
-
+&lt;/xsl:stylesheet&gt;</literalTransform>
+            <zurl>dfr.jstor.org/sru</zurl>
+          </record>
           <!-- jstor2 -->
-	  <record>
-	    <piggyback>1</piggyback>
-	    <queryEncoding>UTF-8</queryEncoding>
-	    <udb>jstor2</udb>
-	    <cclmap_term>s=al</cclmap_term>
-	    <cclmap_ti>1=title s=pw t=l,r</cclmap_ti>
+          <record>
+            <piggyback>1</piggyback>
+            <queryEncoding>UTF-8</queryEncoding>
+            <udb>jstor2</udb>
+            <cclmap_term>s=al</cclmap_term>
+            <cclmap_ti>1=title s=pw t=l,r</cclmap_ti>
             <elementSet>info:srw/schema/srw_jstor</elementSet>
-	    <sru>get</sru>
-	    <transform>jstor-pz2.xsl</transform>
-	    <zurl>dfr.jstor.org/sru</zurl>
-	  </record>
-
-
+            <sru>get</sru>
+            <transform>jstor-pz2.xsl</transform>
+            <zurl>dfr.jstor.org/sru</zurl>
+          </record>
           <!-- cf connector -->
-	  <record>
-	    <piggyback>1</piggyback>
-	    <queryEncoding>UTF-8</queryEncoding>
-	    <udb>cf-local</udb>
-	    <cclmap_term>1=1016 s=al</cclmap_term>
-	    <cclmap_ti>1=4 s=pw t=l,r</cclmap_ti>
-	    <requestSyntax>xml</requestSyntax>
-	    <transform>cf.xsl</transform>
-	    <zurl>localhost:9999/db01</zurl>
-	    <cfAuth>cfuser/cfpassword</cfAuth>
-	    <cfProxy>localhost:3128</cfProxy>
-	    <cfSubDB>mysub</cfSubDB>
-	  </record>
-	</records>
+          <record>
+            <piggyback>1</piggyback>
+            <queryEncoding>UTF-8</queryEncoding>
+            <udb>cf-local</udb>
+            <cclmap_term>1=1016 s=al</cclmap_term>
+            <cclmap_ti>1=4 s=pw t=l,r</cclmap_ti>
+            <requestSyntax>xml</requestSyntax>
+            <transform>cf.xsl</transform>
+            <zurl>localhost:9999/db01</zurl>
+            <cfAuth>cfuser/cfpassword</cfAuth>
+            <cfProxy>localhost:3128</cfProxy>
+            <cfSubDB>mysub</cfSubDB>
+          </record>
+        </records>
       </torus>
       <fieldmap cql="cql.anywhere"/>
       <fieldmap cql="cql.serverChoice"/>
-      <fieldmap cql="dc.creator" ccl="au"/>
-      <fieldmap cql="dc.title" ccl="ti"/>
-      <fieldmap cql="dc.subject" ccl="su"/>
-      <fieldmap cql="bath.isbn" ccl="isbn"/>
-      <fieldmap cql="bath.issn" ccl="issn"/>
-      <fieldmap cql="dc.date" ccl="date"/>
+      <fieldmap ccl="au" cql="dc.creator"/>
+      <fieldmap ccl="ti" cql="dc.title"/>
+      <fieldmap ccl="su" cql="dc.subject"/>
+      <fieldmap ccl="isbn" cql="bath.isbn"/>
+      <fieldmap ccl="issn" cql="bath.issn"/>
+      <fieldmap ccl="date" cql="dc.date"/>
       <cclmap>
         <qual name="ocn">
           <attr type="1" value="12"/>
         </qual>
       </cclmap>
-      <contentProxy
-         config_file="/etc/cf-proxy/cproxy.cfg"
-      />
+      <contentProxy config_file="/etc/cf-proxy/cproxy.cfg"/>
       <log apdu="true"/>
-      <zoom timeout="20" proxy_timeout="1"/>
+      <zoom proxy_timeout="1" timeout="20"/>
     </filter>
   </filters>
   <routes>
     <route id="start">
       <filter refid="frontend"/>
       <filter type="sru_z3950"/>
-<!--
+      <!--
       <filter type="session_shared">
         <resultset ttl="0" restart="false"/>
         <session ttl="60" max="100"/>
@@ -236,11 +215,10 @@
 -->
       <filter type="log">
         <message>B</message>
-	<category apdu="false" session="true"/>
+        <category apdu="false" session="true"/>
       </filter>
       <filter refid="backend"/>
       <filter type="bounce"/>
     </route>
   </routes>
 </metaproxy>
-

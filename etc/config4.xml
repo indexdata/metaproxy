@@ -16,23 +16,22 @@
         <mimetypes>/etc/mime.types</mimetypes>
         <area>
           <documentroot>.</documentroot>
-	  <prefix>/etc</prefix>
+          <prefix>/etc</prefix>
         </area>
         <area>
           <documentroot>.</documentroot>
           <prefix>/raw</prefix>
-	  <raw>true</raw>
+          <raw>true</raw>
         </area>
       </filter>
       <filter type="http_rewrite1">
         <replace content-type="text/html" pattern="YAZ" replacement="yaz"/>
       </filter>
       <filter type="http_client">
-	<default-host>http://localhost:9999</default-host>
+        <default-host>http://localhost:9999</default-host>
         <x-forwarded-for>true</x-forwarded-for>
       </filter>
       <filter type="bounce"/>
     </route>
   </routes>
 </metaproxy>
-

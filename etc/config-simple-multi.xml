@@ -10,7 +10,7 @@
       <filter type="virt_db">
         <virtual>
           <database>lc</database>
-	  <target>lx2.loc.gov:210/LCDB_MARC8</target>
+          <target>lx2.loc.gov:210/LCDB_MARC8</target>
         </virtual>
         <virtual>
           <database>marc</database>
@@ -22,12 +22,12 @@
         </virtual>
         <virtual>
           <database>all</database>
-	  <target>lx2.loc.gov:210/LCDB_MARC8</target>
+          <target>lx2.loc.gov:210/LCDB_MARC8</target>
           <target>z3950.indexdata.com/marc</target>
         </virtual>
       </filter>
       <filter type="multi">
-	<target auth="myuser/mypassword">localhost:9999</target>
+        <target auth="myuser/mypassword">localhost:9999</target>
       </filter>
       <filter type="z3950_client">
         <timeout>30</timeout>

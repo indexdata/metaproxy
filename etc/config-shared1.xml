@@ -4,8 +4,8 @@
   <filters>
     <filter id="frontend" type="frontend_net">
       <port>@:9000</port>
-      <connect-max verbose="2" ip="::1">2000</connect-max>
-      <http-req-max verbose="2" ip="::1">2</http-req-max>
+      <connect-max ip="::1" verbose="2">2000</connect-max>
+      <http-req-max ip="::1" verbose="2">2</http-req-max>
       <message>FN</message>
     </filter>
     <filter id="backend" type="z3950_client">
@@ -15,24 +15,23 @@
     <route id="start">
       <filter refid="frontend"/>
       <filter type="log">
-	<message>F</message>
-	<category init-options="true" apdu="false"/>
+        <message>F</message>
+        <category apdu="false" init-options="true"/>
       </filter>
       <filter type="limit">
-        <limit bandwidth="50000" pdu="100" search="5" retrieve="50"/>
+        <limit bandwidth="50000" pdu="100" retrieve="50" search="5"/>
       </filter>
       <filter type="session_shared">
-	<resultset ttl="10" max="3" optimizesearch="false" restart="true"/>
-	<session ttl="30"/>
-	<init maximum-record-size="320000" preferred-message-size="310000"/>
+        <resultset max="3" optimizesearch="false" restart="true" ttl="10"/>
+        <session ttl="30"/>
+        <init maximum-record-size="320000" preferred-message-size="310000"/>
       </filter>
       <filter type="log">
-	<message>B</message>
-	<category init-options="true" apdu="false"/>
+        <message>B</message>
+        <category apdu="false" init-options="true"/>
       </filter>
       <filter refid="backend"/>
       <filter type="bounce"/>
     </route>
   </routes>
 </metaproxy>
-

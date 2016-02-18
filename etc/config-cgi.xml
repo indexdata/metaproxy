@@ -4,16 +4,17 @@
   <routes>
     <route id="start">
       <filter type="frontend_net">
-	<port>@:9000</port>
+        <port>@:9000</port>
       </filter>
-      <filter type="log"><category user-access="true" apdu="true" /></filter>
+      <filter type="log">
+        <category apdu="true" user-access="true"/>
+      </filter>
       <filter type="cgi">
-         <documentroot>.</documentroot>
-         <env name="HTTP_HOST" value="localhost"/>
-         <map path="/mycgi" exec="cgi.sh"/>
+        <documentroot>.</documentroot>
+        <env name="HTTP_HOST" value="localhost"/>
+        <map exec="cgi.sh" path="/mycgi"/>
       </filter>
       <filter type="bounce"/>
     </route>
   </routes>
 </metaproxy>
-
