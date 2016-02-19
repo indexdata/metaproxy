@@ -209,6 +209,7 @@ truncation.z3958                        = 5=104
 # always                                        = 6=1
 # 6=1: completeness = incomplete subfield
     </xsl:text>
+    <xsl:text>&#10;</xsl:text>
   </xsl:template>
 
 
