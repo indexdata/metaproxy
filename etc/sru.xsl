@@ -129,7 +129,7 @@
           <input type="text" name="maximumTerms" value="15"/>
           <xsl:text> stylesheet: </xsl:text>
           <select name="stylesheet">
-            <option value="sru.xsl">SRU</option>
+            <option value="/etc/sru.xsl">SRU</option>
             <option value="">NONE</option>
           </select>
         </div>
