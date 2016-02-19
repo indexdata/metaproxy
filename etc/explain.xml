@@ -85,7 +85,7 @@
         <name set="dc">subject</name>
       </map>
       <map>
-        <attr set="bib1" type="1">47</attr>
+        <attr set="bib1" type="1">21</attr>
       </map>
     </index>
     <index scan="true" search="true" sort="false">
