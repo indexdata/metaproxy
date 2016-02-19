@@ -78,6 +78,7 @@
         <input type="hidden" name="version" value="1.1"/>
         <input type="hidden" name="operation" value="searchRetrieve"/>
         <div class="query">
+          <xsl:text>Search query: </xsl:text>
           <input type="text" name="query"/>
         </div>
         <div class="parameters">
@@ -118,6 +119,7 @@
         <input type="hidden" name="version" value="1.1"/>
         <input type="hidden" name="operation" value="scan"/>
         <div class="scanClause">
+          <xsl:text>Scan clause: </xsl:text>
           <input type="text" name="scanClause"/>
         </div>
         <div class="parameters">
@@ -149,7 +151,7 @@
           <xsl:text>.</xsl:text>
           <xsl:value-of select="zr:map/zr:name/text()"/>
         </xsl:variable>
-        <b><xsl:value-of select="$index"/><br/></b>
+        <b><xsl:value-of select="$index"/></b><br/>
       </xsl:for-each>
      </div>
   </xsl:template>
@@ -159,11 +161,11 @@
     <!--
       <xsl:variable name="defrel"
                     select="//zr:configInfo/zr:default[@type='relation']"/>
-      <b><xsl:value-of select="$defrel"/><br/></b>
+      <b><xsl:value-of select="$defrel"/></b><br/>
       -->
       <xsl:for-each select="//zr:configInfo/zr:supports[@type='relation']">
         <xsl:variable name="rel" select="text()"/>
-        <b><xsl:value-of select="$rel"/><br/></b>
+        <b><xsl:value-of select="$rel"/></b><br/>
       </xsl:for-each>
   </xsl:template>
 
