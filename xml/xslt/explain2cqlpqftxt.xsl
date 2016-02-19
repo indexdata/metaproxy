@@ -10,7 +10,7 @@
   <!-- match zeerex xml record -->
   <xsl:template match="e:explain">
     <xsl:text>
-# Propeties file to drive org.z3950.zing.cql.CQLNode's toPQF()
+# Properties file to drive org.z3950.zing.cql.CQLNode's toPQF()
 # back-end and the YAZ CQL-to-PQF converter.  This specifies the
 # interpretation of various CQL indexes, relations, etc. in terms
 # of Type-1 query attributes.
@@ -18,7 +18,7 @@
 # This file is created from a valid ZeeRex Explain XML record using the 
 # XSLT transformation 'explain2cqlpqftxt.xsl'
 #
-# xsltproc explain2cqlpqf.xsl explain.xml
+# xsltproc explain2cqlpqftxt.xsl explain.xml
     </xsl:text>
     <xsl:text>&#10;</xsl:text>
     <xsl:text>&#10;</xsl:text>    
@@ -182,7 +182,7 @@ position.last                           = 3=4 6=1
 position.firstAndLast                   = 3=3 6=3
 
 # Structure attributes may be specified for individual relations; a
-# default structure attribute my be specified by the pseudo-relation
+# default structure attribute may be specified by the pseudo-relation
 # "*", to be used whenever a relation not listed here occurs.
 #
 structure.exact                         = 4=108
