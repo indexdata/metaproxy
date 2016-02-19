@@ -1,5 +1,5 @@
 
-# Propeties file to drive org.z3950.zing.cql.CQLNode's toPQF()
+# Properties file to drive org.z3950.zing.cql.CQLNode's toPQF()
 # back-end and the YAZ CQL-to-PQF converter.  This specifies the
 # interpretation of various CQL indexes, relations, etc. in terms
 # of Type-1 query attributes.
@@ -7,7 +7,7 @@
 # This file is created from a valid ZeeRex Explain XML record using the 
 # XSLT transformation 'explain2cqlpqftxt.xsl'
 #
-# xsltproc explain2cqlpqf.xsl explain.xml
+# xsltproc explain2cqlpqftxt.xsl explain.xml
     
 
 # Title: Metaproxy SRU explain record
@@ -27,7 +27,7 @@ index.cql.all = 1=1010
 index.rec.id = 1=12 4=3 
 index.dc.title = 1=4 
 index.dc.creator = 1=1003 
-index.dc.subject = 1=21
+index.dc.subject = 1=21 
 index.dc.description = 1=62 
 index.dc.publisher = 1=1018 
 index.dc.contributor = 1=1003 
@@ -56,7 +56,7 @@ position.last                           = 3=4 6=1
 position.firstAndLast                   = 3=3 6=3
 
 # Structure attributes may be specified for individual relations; a
-# default structure attribute my be specified by the pseudo-relation
+# default structure attribute may be specified by the pseudo-relation
 # "*", to be used whenever a relation not listed here occurs.
 #
 structure.exact                         = 4=108
@@ -82,4 +82,4 @@ truncation.z3958                        = 5=104
 #
 # always                                        = 6=1
 # 6=1: completeness = incomplete subfield
-
+    
