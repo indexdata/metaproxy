@@ -23,6 +23,8 @@ AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AM_PROG_LIBTOOL
 
+AC_CHECK_PROGS([TRANG], [trang], [echo])
+
 # Default language to use for tests (some tests may switch to C++)
 AC_LANG([C])
 

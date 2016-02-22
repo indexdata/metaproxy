@@ -1,5 +1,5 @@
 
-TRANG=/usr/bin/trang
+TRANG=@TRANG@
 
 xmlschemadatadir = $(pkgdatadir)/xml/schema
 
@@ -41,11 +41,7 @@ clean-local:
 	rm -f *.xsd *.rng
 
 metaproxy.rng:$(rnc)
-	if test -x $(TRANG); then \
-		$(TRANG) $(srcdir)/metaproxy.rnc metaproxy.rng; \
-	fi
+	$(TRANG) $(srcdir)/metaproxy.rnc metaproxy.rng
 
 metaproxy.xsd:$(rnc)
-	if test -x $(TRANG); then \
-		$(TRANG) $(srcdir)/metaproxy.rnc metaproxy.xsd; \
-	fi
+	$(TRANG) $(srcdir)/metaproxy.rnc metaproxy.xsd
