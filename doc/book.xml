@@ -1285,6 +1285,7 @@ Figure out what additional information we need in:
      A collection of Metaproxy configuration examples are
      included in the distribution at
      <literal>metaproxy/etc/config*.xml</literal>
+    </para>
    </section>
   </section>
 
