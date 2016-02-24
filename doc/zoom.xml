@@ -886,7 +886,6 @@
    Here is another example with two locally defined targets: A
    Solr target and a Z39.50 target.
    <screen><![CDATA[
-      </filter>
       <filter type="zoom">
         <torus>
           <records>

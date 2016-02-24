@@ -7,7 +7,7 @@
       <port>@:9000</port>
     </filter>
     <filter id="backend" type="z3950_client">
-     <timeout>30</timeout>
+      <timeout>30</timeout>
     </filter>
   </filters>
   <routes>
@@ -17,31 +17,23 @@
         <message>Front</message>
       </filter>
       <filter type="record_transform">
-	<retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
-	  <retrieval syntax="usmarc">
-	    <backend syntax="xml" name="marcxml">
-	      <marc inputformat="xml" outputformat="marc"
-		    inputcharset="utf-8" outputcharset="marc-8"/>
-	    </backend>
-	  </retrieval>
-	  <retrieval syntax="xml"/>
-	  <retrieval syntax="opac"/>
-	  <retrieval syntax="grs-1"/>
-	  <retrieval syntax="unimarc"/>
-	</retrievalinfo>
+        <retrievalinfo xmlns="http://indexdata.com/yaz" version="1.0">
+          <retrieval syntax="usmarc">
+            <backend name="marcxml" syntax="xml">
+              <marc inputcharset="utf-8" inputformat="xml" outputcharset="marc-8" outputformat="marc"/>
+            </backend>
+          </retrieval>
+          <retrieval syntax="xml"/>
+          <retrieval syntax="opac"/>
+          <retrieval syntax="grs-1"/>
+          <retrieval syntax="unimarc"/>
+        </retrievalinfo>
       </filter>
       <filter type="sort">
-        <sort
-	    xpath="/marc:record/marc:datafield[@tag='245']/marc:subfield[@code='a']"
-	    namespaces="marc=http://www.loc.gov/MARC21/slim"
-	    prefetch="5"
-	    ascending="true"
-	    debug="true"
-	      />
+        <sort ascending="true" debug="true" namespaces="marc=http://www.loc.gov/MARC21/slim" prefetch="5" xpath="/marc:record/marc:datafield[@tag='245']/marc:subfield[@code='a']"/>
       </filter>
       <filter type="record_transform">
-        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-                    href="retrieval-info.xml"/>
+        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="retrieval-info.xml"/>
       </filter>
       <filter type="log">
         <message>Back</message>
@@ -51,4 +43,3 @@
     </route>
   </routes>
 </metaproxy>
-

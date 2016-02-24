@@ -45,10 +45,10 @@
     </route>
     <route id="group2">
       <filter type="log">
-	<message>Gils</message>
+        <message>Gils</message>
       </filter>
       <filter type="z3950_client">
-	<timeout>30</timeout>
+        <timeout>30</timeout>
       </filter>
       <filter type="bounce"/>
     </route>

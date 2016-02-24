@@ -1278,6 +1278,14 @@ Figure out what additional information we need in:
     message; and then to the <literal>frontend_net</literal> filter,
     which returns the response to the client.
    </para>
+
+   <section id="example.configuration.other">
+    <title>Other configuration examples</title>
+    <para>
+     A collection of Metaproxy configuration examples are
+     included in the distribution at
+     <literal>metaproxy/etc/config*.xml</literal>
+   </section>
   </section>
 
   <section id="config-file-modularity">

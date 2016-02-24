@@ -84,7 +84,7 @@
    Configuration:
    <screen><![CDATA[
    <filter type="http_rewrite">
-     <request>
+     <request verbose="1">
        <!-- save pxhost and pxpath for later -->
        <rule name="url">
          <rewrite
@@ -96,14 +96,14 @@
          <within reqline="1" rule="url"/>
        </content>
      </request>
-     <response>
+     <response verbose="1">
        <!-- rewrite "back" - using pxhost and pxpath -->
        <rule name="url">
          <rewrite
            from='(?&lt;proto>https?://)(?&lt;host>[^/?# &quot;&apos;>]+)/(?&lt;path>[^  &quot;&apos;>]+)'
            to='${proto}${pxhost}/${pxpath}/${host}/${path}' />
        </rule>
-       <content type="headers"
+       <content type="headers">
          <within header="link" rule="url"/>
        </content>
        <content type="html">

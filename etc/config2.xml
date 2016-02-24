@@ -44,7 +44,7 @@
       </filter>
       <filter type="auth_simple">
         <targetRegister>../etc/example.target-auth</targetRegister>
-	<discardUnauthorisedTargets/>
+        <discardUnauthorisedTargets/>
       </filter>
       <filter type="multi">
       </filter>
@@ -58,11 +58,10 @@
     </route>
     <route id="test">
       <filter type="log">
-       <message>T</message>
+        <message>T</message>
       </filter>
       <filter type="backend_test"/>
       <filter type="bounce"/>
     </route>
   </routes>
 </metaproxy>
-

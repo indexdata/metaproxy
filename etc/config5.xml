@@ -12,22 +12,19 @@
       <filter refid="frontend"/>
       <filter type="log">
         <message>F</message>
-	<time-format>%Y%m%d-%H%M%S</time-format>
+        <time-format>%Y%m%d-%H%M%S</time-format>
       </filter>
       <filter type="query_rewrite">
-       <xslt stylesheet="../etc/pqf2pqf.xsl"/>
-       <charset to="iso-8859-1"/>
+        <xslt stylesheet="../etc/pqf2pqf.xsl"/>
+        <charset to="iso-8859-1"/>
       </filter>
       <filter type="log">
         <message>B</message>
-	<time-format>%Y%m%d-%H%M%S</time-format>
-	<category init-options="true" request-session="true" response-session="true"
-		  request-apdu="true" response-apdu="true"
-		  />
+        <time-format>%Y%m%d-%H%M%S</time-format>
+        <category init-options="true" request-apdu="true" request-session="true" response-apdu="true" response-session="true"/>
       </filter>
       <filter type="backend_test"/>
       <filter type="bounce"/>
     </route>
   </routes>
 </metaproxy>
-
