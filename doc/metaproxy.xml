@@ -176,7 +176,7 @@
 	 <term>filters</term>
 	 <listitem>
 	   <para>
-	     Specifies all filters. Includes one ore more
+	     Specifies all filters. Includes one or more
 	     <literal>filter</literal> elements with filter-specific
 	     configuration material.
 	   </para>
@@ -201,7 +201,7 @@
  </refsect1>
  <refsect1><title>EXAMPLES</title>
    <para>
-     The configuration below specifies a simple Z39.50 proxy and
+     The configuration below specifies a simple Z39.50 proxy, and
      illustrates most configuration elements of Metaproxy.
    </para>
    <screen><![CDATA[

@@ -1,5 +1,5 @@
 
-TRANG=/usr/bin/trang
+TRANG=@TRANG@
 
 xmlschemadatadir = $(pkgdatadir)/xml/schema
 
@@ -18,6 +18,7 @@ filter_limit.rnc \
 filter_load_balance.rnc \
 filter_log.rnc \
 filter_multi.rnc \
+filter_present_chunk.rnc \
 filter_query_rewrite.rnc \
 filter_record_transform.rnc \
 filter_sd_remove.rnc \
@@ -40,11 +41,7 @@ clean-local:
 	rm -f *.xsd *.rng
 
 metaproxy.rng:$(rnc)
-	if test -x $(TRANG); then \
-		$(TRANG) $(srcdir)/metaproxy.rnc metaproxy.rng; \
-	fi
+	$(TRANG) $(srcdir)/metaproxy.rnc metaproxy.rng
 
 metaproxy.xsd:$(rnc)
-	if test -x $(TRANG); then \
-		$(TRANG) $(srcdir)/metaproxy.rnc metaproxy.xsd; \
-	fi
+	$(TRANG) $(srcdir)/metaproxy.rnc metaproxy.xsd

@@ -247,26 +247,20 @@
    <section>
     <title id="boost.fromsource">Boost</title>
     <para>
-     Metaproxy needs components thread and test from
-     Boost.
+     Metaproxy needs some Boost libraries.
+     This is most easily installed from source, as explained in
+     <ulink url="&url.boost.getting.started;">getting started</ulink>.
     </para>
     <screen>
      gunzip -c boost-version.tar.gz|tar xf -
      cd boost-version
-     ./configure --with-libraries=thread,test,regex --with-toolset=gcc
-     make
-     su
-     make install
+     ./bootsrap.sh --with-libraries=thread,test,regex
+     ./b2 install
     </screen>
     <para>
-     However, under the hood bjam is used. You can invoke that with
-    </para>
-    <screen>
-     ./bjam --toolset=gcc --with-thread --with-test --with-regex stage
-    </screen>
-    <para>
-     Replace <literal>stage</literal> with <literal>clean</literal> /
-     <literal>install</literal> to perform clean and install respectively.
+     The bootstrap should automatically detect the "toolset", otherwise specify
+     this as explained in
+     <ulink url="&url.boost.getting.started;">getting started</ulink>.
     </para>
     <para>
      Add <literal>--prefix=DIR</literal> to install Boost in other
@@ -1181,7 +1175,7 @@ Figure out what additional information we need in:
     All four are non-repeatable.
    </para>
    <para>
-     The &lt;dlpath;&gt; element contains a text element which
+     The &lt;dlpath&gt; element contains a text element which
      specifies the location of filter modules. This is only needed
      if Metaproxy must load 3rd party filters (most filters with Metaproxy
      are built into the Metaproxy application).
@@ -1284,6 +1278,15 @@ Figure out what additional information we need in:
     message; and then to the <literal>frontend_net</literal> filter,
     which returns the response to the client.
    </para>
+
+   <section id="example.configuration.other">
+    <title>Other configuration examples</title>
+    <para>
+     A collection of Metaproxy configuration examples are
+     included in the distribution at
+     <literal>metaproxy/etc/config*.xml</literal>
+    </para>
+   </section>
   </section>
 
   <section id="config-file-modularity">
@@ -1307,16 +1310,24 @@ Figure out what additional information we need in:
   <section id="config-file-syntax-check">
    <title>Config file syntax checking</title>
    <para>
-    The distribution contains RELAX NG Compact and XML syntax checking
-    files, as well as XML Schema files. These are found in the
-    distribution paths:
+    The distribution contains
+    <ulink url="&url.relaxng;">RELAX NG</ulink> Compact schema files.
+    These are found in the distribution at:
    <screen>
     xml/schema/metaproxy.rnc
+   </screen>
+   </para>
+   <para>
+    If <ulink url="&url.jing_trang;">Trang</ulink> is found on your system,
+    then the Metaproxy build system will convert these to:
+   <screen>
     xml/schema/metaproxy.rng
     xml/schema/metaproxy.xsd
    </screen>
-    and can be used to verify or debug the XML structure of
-    configuration files. For example, using the utility
+   </para>
+   <para>
+    These schema can then be used to verify or debug the XML structure of
+    Metaproxy configuration files. For example, using the utility
     <filename>xmllint</filename>, syntax checking is done like this:
    <screen>
     xmllint --noout --schema xml/schema/metaproxy.xsd etc/config-local.xml

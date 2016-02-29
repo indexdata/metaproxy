@@ -11,37 +11,37 @@
         <message>F</message>
       </filter>
       <filter type="auth_simple">
-	<userRegister>../etc/example.simple-auth</userRegister>
+        <userRegister>../etc/example.simple-auth</userRegister>
       </filter>
       <filter type="virt_db">
         <virtual>
           <database>bdsbkm21</database>
           <target>zurg:9901/bdsbkm21</target>
         </virtual>
-	<virtual>
-	  <database>foo</database>
-	  <target>zurg:9991/foo</target>
-	</virtual>
-	<virtual>
-	  <database>bar</database>
-	  <target>zurg:9992/bar</target>
-	</virtual>
-	<virtual>
-	  <database>baz</database>
-	  <target>zurg:9993/baz</target>
-	</virtual>
-	<virtual>
-	  <database>foobaralias</database>
-	  <target>zurg:9991/foo</target>
-	  <target>zurg:9992/bar</target>
-	</virtual>
-	<virtual>
-	  <database>foobazalias</database>
-	  <target>zurg:9991/foo</target>
-	  <target>zurg:9993/baz</target>
-	</virtual>
-	<virtual>
-	  <database>blconm21</database>
+        <virtual>
+          <database>foo</database>
+          <target>zurg:9991/foo</target>
+        </virtual>
+        <virtual>
+          <database>bar</database>
+          <target>zurg:9992/bar</target>
+        </virtual>
+        <virtual>
+          <database>baz</database>
+          <target>zurg:9993/baz</target>
+        </virtual>
+        <virtual>
+          <database>foobaralias</database>
+          <target>zurg:9991/foo</target>
+          <target>zurg:9992/bar</target>
+        </virtual>
+        <virtual>
+          <database>foobazalias</database>
+          <target>zurg:9991/foo</target>
+          <target>zurg:9993/baz</target>
+        </virtual>
+        <virtual>
+          <database>blconm21</database>
           <target>zurg:9902/blconm21</target>
         </virtual>
         <virtual>
@@ -65,7 +65,7 @@
       </filter>
       <filter type="auth_simple">
         <targetRegister>../etc/example.target-auth</targetRegister>
-	<discardUnauthorisedTargets/>
+        <discardUnauthorisedTargets/>
       </filter>
       <filter type="multi">
       </filter>
@@ -79,4 +79,3 @@
     </route>
   </routes>
 </metaproxy>
-

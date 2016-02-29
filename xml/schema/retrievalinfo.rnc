@@ -1,4 +1,7 @@
 # Schema for YAZ retrieval info and USEMARCON extension
+#
+#   Copyright (C) Index Data
+#   See the LICENSE file for details.
 
 namespace y = "http://indexdata.com/yaz"
 

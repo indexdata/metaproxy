@@ -9,31 +9,30 @@
       </filter>
       <filter type="log">
         <message>F</message>
-	<category session="true" apdu="true"/>
+        <category apdu="true" session="true"/>
       </filter>
       <filter type="zoom">
-	<torus>
-	  <records>
-	    <record>
-	      <udb>ocs-test</udb>
-	      <cclmap_term>t=z</cclmap_term>
-	      <cclmap_ti>u=title t=z</cclmap_ti>
-	      <sru>solr</sru>
-	      <zurl>ocs-test.indexdata.com/solr/select</zurl>
-	    </record>
-	    <record>
-	      <udb>loc</udb>
-	      <cclmap_term>t=l,r</cclmap_term>
-	      <cclmap_ti>u=4 t=l,r</cclmap_ti>
-	      <zurl>lx2.loc.gov:210/LCDB_MARC8</zurl>
-	    </record>
-	  </records>
-	</torus>
-	<fieldmap cql="cql.serverChoice"/>
-	<fieldmap cql="dc.title" ccl="ti"/>
+        <torus>
+          <records>
+            <record>
+              <udb>ocs-test</udb>
+              <cclmap_term>t=z</cclmap_term>
+              <cclmap_ti>u=title t=z</cclmap_ti>
+              <sru>solr</sru>
+              <zurl>ocs-test.indexdata.com/solr/select</zurl>
+            </record>
+            <record>
+              <udb>loc</udb>
+              <cclmap_term>t=l,r</cclmap_term>
+              <cclmap_ti>u=4 t=l,r</cclmap_ti>
+              <zurl>lx2.loc.gov:210/LCDB_MARC8</zurl>
+            </record>
+          </records>
+        </torus>
+        <fieldmap cql="cql.serverChoice"/>
+        <fieldmap ccl="ti" cql="dc.title"/>
       </filter>
       <filter type="bounce"/>
     </route>
   </routes>
 </metaproxy>
-

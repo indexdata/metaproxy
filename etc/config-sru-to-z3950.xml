@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
-<metaproxy
-    xmlns="http://indexdata.com/metaproxy"
-    version="1.0">
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <filters>
     <filter id="frontend" type="frontend_net">
@@ -11,42 +9,36 @@
     <filter id="sru" type="sru_z3950">
       <stylesheet>/etc/sru.xsl</stylesheet>
       <database name="Default">
-       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-                    href="../etc/explain.xml"/>
+        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../etc/explain.xml"/>
       </database>
       <database name="test">
-       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
-                    href="../etc/explain.xml"/>
+        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../etc/explain.xml"/>
       </database>
     </filter>
     <filter id="cql" type="cql_rpn">
       <conversion file="../etc/cql2pqf.txt"/>
     </filter>
     <filter id="retrieve" type="record_transform">
-      <retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
-        <retrieval syntax="xml" name="dc"
-                   identifier="info:srw/schema/1/dc-v1.1">
-          <backend syntax="usmarc" name="F">
-            <marc inputformat="marc" outputformat="marcxml"
-                  inputcharset="marc-8"/>
+      <retrievalinfo xmlns="http://indexdata.com/yaz" version="1.0">
+        <retrieval identifier="info:srw/schema/1/dc-v1.1" name="dc" syntax="xml">
+          <backend name="F" syntax="usmarc">
+            <marc inputcharset="marc-8" inputformat="marc" outputformat="marcxml"/>
             <xslt stylesheet="../xml/xslt/MARC21slim2DC.xsl"/>
           </backend>
         </retrieval>
         <retrieval syntax="opac"/>
-        <retrieval syntax="xml" name="opac">
-          <backend syntax="opac" name="F">
-          <marc inputformat="marc" outputformat="marcxml"
-                inputcharset="marc-8"/>
+        <retrieval name="opac" syntax="xml">
+          <backend name="F" syntax="opac">
+            <marc inputcharset="marc-8" inputformat="marc" outputformat="marcxml"/>
           </backend>
         </retrieval>
-        <retrieval syntax="xml" name="marcxml">
-          <backend syntax="usmarc" name="F">
-          <marc inputformat="marc" outputformat="marcxml"
-                inputcharset="marc-8"/>
+        <retrieval name="marcxml" syntax="xml">
+          <backend name="F" syntax="usmarc">
+            <marc inputcharset="marc-8" inputformat="marc" outputformat="marcxml"/>
           </backend>
         </retrieval>
         <retrieval syntax="usmarc">
-          <backend syntax="usmarc" name="F">
+          <backend name="F" syntax="usmarc">
           </backend>
         </retrieval>
       </retrievalinfo>
@@ -59,11 +51,10 @@
         <message>remote</message>
       </filter>
       <filter type="z3950_client">
-	<timeout>30</timeout>
+        <timeout>30</timeout>
       </filter>
       <filter type="bounce"/>
     </route>
-
     <!-- shared Z39.50 clients -->
     <route id="shared">
       <filter type="log">
@@ -71,22 +62,20 @@
       </filter>
       <filter type="session_shared"/>
       <filter type="z3950_client">
-	<timeout>30</timeout>
+        <timeout>30</timeout>
       </filter>
       <filter type="bounce"/>
     </route>
-
     <!-- local built-in server -->
     <route id="local">
       <filter type="backend_test"/>
       <filter type="bounce"/>
     </route>
-
     <route id="start">
       <filter refid="frontend"/>
       <filter type="log">
         <message>HTTP</message>
-	<!-- <category apdu="true"/> -->
+        <!-- <category apdu="true"/> -->
       </filter>
       <filter type="http_file">
         <area>
@@ -110,13 +99,11 @@
           <target>someid</target>
         </virtual>
       </filter>
-
       <filter type="session_shared"/>
       <filter type="z3950_client">
-	<timeout>30</timeout>
+        <timeout>30</timeout>
       </filter>
       <filter type="bounce"/>
     </route>
   </routes>
 </metaproxy>
-

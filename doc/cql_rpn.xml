@@ -33,8 +33,8 @@
   <para>
    The filter takes only one configuration parameter, namely the path
    of the standard <literal>YAZ</literal>
-   <literal>CQL</literal>-to-<literal>CQL</literal> configuration
-   file. See the  <ulink url="&url.yaz;">YAZ</ulink> manual for
+   <literal>CQL</literal>-to-<literal>PQF</literal> configuration
+   file. See the  <ulink url="&url.yaz.cql2pqf;">YAZ</ulink> manual for
    configuration file syntax and details.
   </para>
   <para>

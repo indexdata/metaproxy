@@ -1,21 +1,22 @@
 # Metaproxy XML config file schemas
-# 
-#   Copyright (C) Index Data.
-# 
-#   See the LICENSE file for details
-# 
-# 
-# The RelaxNG Compact Syntax file 'metaproxy.rnc' is the master copy.
-# 
-# The RelaxNG XML Syntax and XML Schema are generated using 'trang':
-# trang metaproxy.rnc metaproxy.rng 
-# trang metaproxy.rnc metaproxy.xsd 
+#
+#   Copyright (C) Index Data
+#   See the LICENSE file for details.
+#
+#
+# The RELAX NG Compact Syntax file 'metaproxy.rnc' is the master copy.
+#
+# See http://www.indexdata.com/metaproxy/doc/config-file-syntax-check.html
+#
+# The RELAX NG XML Syntax and XML Schema are generated using 'trang':
+# trang metaproxy.rnc metaproxy.rng
+# trang metaproxy.rnc metaproxy.xsd
 # 
 # Config file validation is done using 'xmllint':
-# xmllint -/-relaxng metaproxy.rng ../../../etc/config1.xml 
-# xmllint -/-schema metaproxy.xsd config-bytarget.xml
-# 
-# For information on RelaxNG see http://relaxng.org 
+# xmllint --noout --relaxng metaproxy.rng ../../etc/config1.xml
+# xmllint --noout --schema metaproxy.xsd ../../etc/config1.xml
+#
+# For information on RELAX NG see http://relaxng.org/
 # see also http://books.xmlschemata.org/relaxng/
 
 namespace mp = "http://indexdata.com/metaproxy"
@@ -102,4 +103,3 @@ filter =
   }
 
 filter_refid = attribute refid { xsd:NCName }
-

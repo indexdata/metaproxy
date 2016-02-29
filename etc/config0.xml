@@ -13,10 +13,11 @@
   <routes>
     <route id="start">
       <filter refid="frontend"/>
-      <filter type="log"><category access="false" line="true" apdu="true" /></filter>
+      <filter type="log">
+        <category access="false" apdu="true" line="true"/>
+      </filter>
       <filter type="backend_test"/>
       <filter type="bounce"/>
     </route>
   </routes>
 </metaproxy>
-

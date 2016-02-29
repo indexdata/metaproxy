@@ -1,13 +1,10 @@
 <?xml version="1.0"?>
-
 <!-- This an example of an SRU enabled server which allows holdings to
 be fetched from Z39.50 OPAC records from a Z39.50 target. The virt_db
 is NOT used and, thus, the database does not map to a Z93.50 target.
 The Z39.50 is set, instead via the new x-target SRU parameter .
 -->
-<metaproxy
-    xmlns="http://indexdata.com/metaproxy"
-    version="1.0">
+<metaproxy xmlns="http://indexdata.com/metaproxy" version="1.0">
   <start route="start"/>
   <filters>
     <filter id="frontend" type="frontend_net">
@@ -18,31 +15,26 @@ The Z39.50 is set, instead via the new x-target SRU parameter .
       <database name="Default"/>
     </filter>
     <filter id="retrieve" type="record_transform">
-      <retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
-	<!-- Offer Dublin core from MARC -->
-        <retrieval syntax="xml" name="dc"
-                   identifier="info:srw/schema/1/dc-v1.1">
-          <backend syntax="usmarc" name="F">
-            <marc inputformat="marc" outputformat="marcxml"
-                  inputcharset="marc-8"/>
+      <retrievalinfo xmlns="http://indexdata.com/yaz" version="1.0">
+        <!-- Offer Dublin core from MARC -->
+        <retrieval identifier="info:srw/schema/1/dc-v1.1" name="dc" syntax="xml">
+          <backend name="F" syntax="usmarc">
+            <marc inputcharset="marc-8" inputformat="marc" outputformat="marcxml"/>
             <xslt stylesheet="../xml/xslt/MARC21slim2DC.xsl"/>
           </backend>
         </retrieval>
         <!-- Native OPAC.. Z39.50 only -->
         <retrieval syntax="opac"/>
         <!-- OPAC XML.. For SRU (recordSchema=opac) and Z39.50-->
-        <retrieval syntax="xml" name="opac">
-          <backend syntax="opac" name="F">
-          <marc inputformat="marc" outputformat="marcxml"
-                inputcharset="marc-8"/>
-           <!-- XSLT transforms could be performed here -->
+        <retrieval name="opac" syntax="xml">
+          <backend name="F" syntax="opac">
+            <marc inputcharset="marc-8" inputformat="marc" outputformat="marcxml"/>
+            <!-- XSLT transforms could be performed here -->
           </backend>
         </retrieval>
-        <retrieval syntax="xml" name="marcxml"
-                   identifier="info:srw/schema/1/marcxml-v1.1">
-          <backend syntax="usmarc" name="F">
-            <marc inputformat="marc" outputformat="marcxml"
-                  inputcharset="marc-8"/>
+        <retrieval identifier="info:srw/schema/1/marcxml-v1.1" name="marcxml" syntax="xml">
+          <backend name="F" syntax="usmarc">
+            <marc inputcharset="marc-8" inputformat="marc" outputformat="marcxml"/>
           </backend>
         </retrieval>
       </retrievalinfo>
@@ -53,23 +45,21 @@ The Z39.50 is set, instead via the new x-target SRU parameter .
       <filter refid="frontend"/>
       <filter type="log">
         <message>HTTP</message>
-	<!-- <category apdu="true"/> -->
+        <!-- <category apdu="true"/> -->
       </filter>
       <filter refid="sru"/>
       <filter type="log">
         <message>FrontendZ3950</message>
       </filter>
       <filter refid="retrieve"/>
-
       <filter type="session_shared"/>
       <filter type="log">
         <message>BackendZ3950</message>
       </filter>
       <filter type="z3950_client">
-	<timeout>30</timeout>
+        <timeout>30</timeout>
       </filter>
       <filter type="bounce"/>
     </route>
   </routes>
 </metaproxy>
-
