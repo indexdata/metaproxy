@@ -335,7 +335,7 @@ of the YAZ Generic Frontend Server.
 
 Allow base attribute in configuration file tags - the attributes are
 inserted by XInclude usage as mentioned on
-yazlist: http://lists.indexdata.dk/pipermail/yazlist/2012-Au
+yazlist: http://lists.indexdata.dk/pipermail/yazlist/2012-August/003531.html
 and noted in a gist: https://gist.github.com/3551094
 
 Package metaproxy provides virtual package metaproxy6 MP-508
