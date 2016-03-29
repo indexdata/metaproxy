@@ -5,7 +5,7 @@ See the file LICENSE for details.
 
 For more information about Metaproxy refer to the documentation in sub
 directory `doc` or 
-[online](http://www.indexdata.com/metaproxy/doc).
+[online](http://www.indexdata.com/metaproxy/doc/).
 
 To get more information or assistance, send mail to yaz-help@indexdata.dk.
 Even better, sign on to the

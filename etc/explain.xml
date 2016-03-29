@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!-- this file configures the SRU/SRW explain response -->
-<!-- see: http://explain.z3950.org/dtd/commentary.html -->
+<!-- see: http://zeerex.z3950.org/dtd/commentary.html -->
 <!-- validate this using zeerex-2.0.xsd -->
-<!-- Extensions see: http://explain.z3950.org/dtd/extensions.html -->
+<!-- Extensions see: http://zeerex.z3950.org/dtd/extensions.html -->
 <explain xmlns="http://explain.z3950.org/dtd/2.0/">
   <serverInfo protocol="SRU">
     <host>foo.somehost.somewhere</host>

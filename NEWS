@@ -335,7 +335,7 @@ of the YAZ Generic Frontend Server.
 
 Allow base attribute in configuration file tags - the attributes are
 inserted by XInclude usage as mentioned on
-yazlist: http://lists.indexdata.dk/pipermail/yazlist/2012-Au
+yazlist: http://lists.indexdata.dk/pipermail/yazlist/2012-August/003531.html
 and noted in a gist: https://gist.github.com/3551094
 
 Package metaproxy provides virtual package metaproxy6 MP-508
@@ -1320,7 +1320,7 @@ RELAX NG XML schemas and XML Schema's are generated from RNC syntax.
 XML config files are checked against RNG and XML Schema's.
 
 XSLT transformation framework added in xml/xslt/*.xsl, consisting mainly of 
-LOC Marc21 stylesheets found at http://www.loc.gov/marcxml/xslt.
+LOC Marc21 stylesheets found at http://www.loc.gov/standards/marcxml/xslt/
 Added stylesheet explain2cqlpqftxt.xsl which transforms a standard SRU ZeeReX 
 explain record to YAZ CQL-to-PQF text config file. 
 
