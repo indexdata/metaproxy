@@ -1,3 +1,11 @@
+--- 1.11.2 2016/04/07
+
+load_balance: extend logging a bit and include session info.
+
+Various typos and updates for documentation.
+
+zoom: fix two un-init variables (socket mask)
+
 --- 1.11.1 2016/01/19
 
 Build for Ununtu Wily Werewolf.
