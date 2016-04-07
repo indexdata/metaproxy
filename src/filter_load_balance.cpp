@@ -156,7 +156,7 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
                 Package init_pkg(package.session(), package.origin());
                 init_pkg.copy_filter(package);
 
-                unsigned int cost = std::numeric_limits<unsigned int>::max();
+                unsigned int cost_i = std::numeric_limits<unsigned int>::max();
                 {
                     boost::mutex::scoped_lock scoped_lock(m_mutex);
 
@@ -164,7 +164,7 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
                     {
                         if ((*ivh).size() != 0)
                         {
-                            unsigned int vhcost
+                            unsigned int cost
                                 = yf::LoadBalance::Impl::cost(*ivh);
 
                             std::ostringstream os;
@@ -172,12 +172,12 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
                                 << package << " "
                                 << "0.000000" << " "
                                 << "Consider " << *ivh
-                                << " cost=" << vhcost;
+                                << " cost=" << cost;
                             yaz_log(YLOG_LOG, "%s", os.str().c_str());
-                            if (cost > vhcost)
+                            if (cost_i > cost)
                             {
                                 ivh_pick = ivh;
-                                cost = vhcost;
+                                cost_i = cost;
                             }
                         }
                     }
