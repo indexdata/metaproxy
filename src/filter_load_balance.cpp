@@ -166,8 +166,14 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
                         {
                             unsigned int vhcost
                                 = yf::LoadBalance::Impl::cost(*ivh);
-                            yaz_log(YLOG_LOG, "Consider %s cost=%u vhcost=%u",
-                                    (*ivh).c_str(), cost, vhcost);
+
+                            std::ostringstream os;
+                            os  << "LB" << " "
+                                << package << " "
+                                << "0.000000" << " "
+                                << "Consider " << *ivh
+                                << " cost=" << vhcost;
+                            yaz_log(YLOG_LOG, "%s", os.str().c_str());
                             if (cost > vhcost)
                             {
                                 ivh_pick = ivh;
@@ -200,6 +206,12 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
                     package.response() = init_pkg.response();
                     return;
                 }
+                std::ostringstream os;
+                os  << "LB" << " "
+                    << package << " "
+                    << "0.000000" << " "
+                    << "Failed " << target;
+                yaz_log(YLOG_LOG, "%s", os.str().c_str());
             }
             mp::odr odr;
             package.response() = odr.create_initResponse(
