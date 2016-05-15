@@ -362,34 +362,25 @@ void yf::LoadBalance::Impl::add_session(unsigned long session_id,
 
 void yf::LoadBalance::Impl::remove_session(unsigned long session_id)
 {
-    std::string target;
-
-    // finding session
     std::map<unsigned long, std::string>::iterator isess;
     isess = m_session_target.find(session_id);
     if (isess == m_session_target.end())
         return;
-    else
-        target = isess->second;
+
+    std::string target = isess->second;
+    m_session_target.erase(isess);
 
     // finding target statistics
     std::map<std::string, TargetStat>::iterator itarg;
     itarg = m_target_stat.find(target);
     if (itarg == m_target_stat.end())
-    {
-        m_session_target.erase(isess);
         return;
-    }
 
-    // counting session down
     if (itarg->second.sessions > 0)
         itarg->second.sessions -= 1;
 
-    if (itarg->second.sessions == 0 && itarg->second.deads == 0)
-    {
+    if (itarg->second.sessions == 0 || itarg->second.deads == 0)
         m_target_stat.erase(itarg);
-        m_session_target.erase(isess);
-    }
 }
 
 std::string yf::LoadBalance::Impl::find_session_target(unsigned long session_id)
