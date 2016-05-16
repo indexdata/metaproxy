@@ -1,3 +1,7 @@
+--- 1.11.3 2016/05/16
+
+load_balance: fix memory leak
+
 --- 1.11.2 2016/04/07
 
 load_balance: extend logging a bit and include session info.
