@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <yaz/zgdu.h>
 #include <yaz/diagbib1.h>
+#include <yaz/tpath.h>
 #include <stdio.h>
 #include <errno.h>
 
@@ -131,9 +132,9 @@ void mp::filter::AuthSimple::configure(const xmlNode * ptr, bool test_only,
             "filename specified");
 
     if (m_p->got_userRegister)
-        config_userRegister(userRegisterName);
+        config_userRegister(userRegisterName, path);
     if (m_p->got_targetRegister)
-        config_targetRegister(targetRegisterName);
+        config_targetRegister(targetRegisterName, path);
 }
 
 static void split_db(std::list<std::string> &dbs,
@@ -148,12 +149,15 @@ static void split_db(std::list<std::string> &dbs,
     dbs.push_back(std::string(databasesp));
 }
 
-void mp::filter::AuthSimple::config_userRegister(std::string filename)
+void mp::filter::AuthSimple::config_userRegister(std::string filename,
+                                                 const char *path)
 {
-    FILE *fp = fopen(filename.c_str(), "r");
-    if (fp == 0)
-        die("can't open auth_simple user-register '" + filename + "': " +
-            strerror(errno));
+    char fullpath[1024];
+    if (!yaz_filepath_resolve(filename.c_str(), path, 0, fullpath))
+        die("Could not open " + filename);
+    FILE *fp = fopen(fullpath, "r");
+    if (!fp)
+        die("Could not open " + filename);
 
     char buf[1000];
     while (fgets(buf, sizeof buf, fp))
@@ -190,12 +194,15 @@ void mp::filter::AuthSimple::config_userRegister(std::string filename)
 // I feel a little bad about the duplication of code between this and
 // config_userRegister().  But not bad enough to refactor.
 //
-void mp::filter::AuthSimple::config_targetRegister(std::string filename)
+void mp::filter::AuthSimple::config_targetRegister(std::string filename,
+                                                   const char *path)
 {
-    FILE *fp = fopen(filename.c_str(), "r");
-    if (fp == 0)
-        die("can't open auth_simple target-register '" + filename + "': " +
-            strerror(errno));
+    char fullpath[1024];
+    if (!yaz_filepath_resolve(filename.c_str(), path, 0, fullpath))
+        die("Could not open " + filename);
+    FILE *fp = fopen(fullpath, "r");
+    if (!fp)
+        die("Could not open " + filename);
 
     char buf[1000];
     while (fgets(buf, sizeof buf, fp)) {

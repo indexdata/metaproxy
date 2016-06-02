@@ -35,8 +35,8 @@ namespace metaproxy_1 {
                            const char *path);
             void process(metaproxy_1::Package & package) const;
         private:
-            void config_userRegister(std::string filename);
-            void config_targetRegister(std::string filename);
+            void config_userRegister(std::string filename, const char *path);
+            void config_targetRegister(std::string filename, const char *path);
             void process_init(metaproxy_1::Package & package) const;
             void process_search(metaproxy_1::Package & package) const;
             void process_scan(metaproxy_1::Package & package) const;
