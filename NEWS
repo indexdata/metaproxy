@@ -1,3 +1,10 @@
+--- 1.11.4 2016/07/26
+
+sru_z3950: fix leak that would occur when hand-crafted explain was
+returned. MP-635
+
+auth_simple: path relative config
+
 --- 1.11.3 2016/05/16
 
 load_balance: fix memory leak
