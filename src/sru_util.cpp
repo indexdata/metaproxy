@@ -122,16 +122,13 @@ bool mp_util::build_sru_explain(metaproxy_1::Package &package,
     }
     else
     {
-        // make new XML DOC with given explain node
-        xmlDocPtr doc =  xmlNewDoc(BAD_CAST "1.0");
-        xmlDocSetRootElement(doc, (xmlNode*)explain);
+        xmlNode *tmp = xmlCopyNode((xmlNode*) explain, 1);
+        xmlBufferPtr buf = xmlBufferCreate();
+        xmlNodeDump(buf, tmp->doc, tmp, 2, 1);
+        xmlFreeNode(tmp);
 
-        xmlChar *xmlbuff;
-        int xmlbuffsz;
-        xmlDocDumpFormatMemory(doc, &xmlbuff, &xmlbuffsz, 1);
-
-        explain_xml.assign((const char*)xmlbuff, 0, xmlbuffsz);
-        xmlFree(xmlbuff);
+        explain_xml.assign((const char*)buf->content, 0, buf->size);
+        xmlBufferFree(buf);
     }
 
 
