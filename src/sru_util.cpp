@@ -127,7 +127,7 @@ bool mp_util::build_sru_explain(metaproxy_1::Package &package,
         xmlNodeDump(buf, tmp->doc, tmp, 2, 1);
         xmlFreeNode(tmp);
 
-        explain_xml.assign((const char*)buf->content, 0, buf->size);
+        explain_xml.assign((const char*)buf->content, 0, buf->use);
         xmlBufferFree(buf);
     }
 
