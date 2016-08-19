@@ -187,8 +187,12 @@ yf::FrontendNet::ThreadPoolPackage::~ThreadPoolPackage()
 bool yf::FrontendNet::ThreadPoolPackage::cleanup(void *info)
 {
     mp::Session *ses = (mp::Session *) info;
-
-    return *ses == m_package->session();
+    if (*ses == m_package->session())
+    {
+        m_assoc_child->m_no_requests--;
+        return true;
+    }
+    return false;
 }
 
 void yf::FrontendNet::ThreadPoolPackage::result(const char *t_info)
