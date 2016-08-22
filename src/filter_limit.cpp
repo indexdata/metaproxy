@@ -211,7 +211,13 @@ void yf::Limit::Impl::process(mp::Package &package)
     }
     if (reduce)
     {
-        yaz_log(YLOG_LOG, "sleeping %d seconds", reduce);
+        std::ostringstream os;
+        os << "S" << " "
+           << package
+           << " sleeping "
+           << reduce
+           << " seconds";
+        yaz_log(YLOG_LOG, "%s", os.str().c_str());
 #ifdef WIN32
         Sleep(reduce * 1000);
 #else
