@@ -1,3 +1,7 @@
+--- 1.11.5 2016/08/22
+
+frontend_net: fix memory leak for incoming packages MP-636
+
 --- 1.11.4 2016/07/26
 
 sru_z3950: fix leak that would occur when hand-crafted explain was
