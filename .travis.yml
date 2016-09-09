@@ -16,8 +16,24 @@ matrix:
        - MY_OS=precise
        - INKSCAPE=true
     - os: osx
+      osx_image: xcode8
       env:
-       - MY_OS=macos
+       - MY_OS=macos10.11
+       - INKSCAPE=true
+    - os: osx
+      osx_image: xcode7.3
+      env:
+       - MY_OS=macos10.11
+       - INKSCAPE=true
+    - os: osx
+      osx_image: xcode6.4
+      env:
+       - MY_OS=macos10.10
+       - INKSCAPE=true
+    - os: osx
+      osx_image: beta-xcode6.1
+      env:
+       - MY_OS=macos10.9
        - INKSCAPE=true
 
 addons:
