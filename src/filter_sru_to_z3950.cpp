@@ -56,6 +56,7 @@ namespace metaproxy_1 {
         };
         class SRUtoZ3950::Impl {
         public:
+            Impl();
             void configure(const xmlNode *xmlnode);
             void process(metaproxy_1::Package &package);
         private:
@@ -69,6 +70,7 @@ namespace metaproxy_1 {
             boost::mutex m_mutex_session;
             boost::condition m_cond_session_ready;
             std::map<mp::Session, FrontendPtr> m_clients;
+            int conf_max_recs;
         private:
             void sru(metaproxy_1::Package &package, Z_GDU *zgdu_req);
             int z3950_build_query(
@@ -138,6 +140,11 @@ void yf::SRUtoZ3950::process(mp::Package &package) const
     m_p->process(package);
 }
 
+yf::SRUtoZ3950::Impl::Impl()
+{
+    conf_max_recs = 0;
+}
+
 void yf::SRUtoZ3950::Impl::configure(const xmlNode *confignode)
 {
     const xmlNode * dbnode;
@@ -173,6 +180,20 @@ void yf::SRUtoZ3950::Impl::configure(const xmlNode *confignode)
         else if (!strcmp((const char *) dbnode->name, "stylesheet"))
         {
             default_stylesheet = mp::xml::get_text(dbnode);
+        }
+        else if (!strcmp((const char *) dbnode->name, "limit"))
+        {
+            const struct _xmlAttr *attr;
+            for (attr = dbnode->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "retrieve"))
+                    conf_max_recs =
+                        mp::xml::get_int(attr->children, 0);
+                else
+                    throw mp::filter::FilterException(
+                        "Bad attribute " + std::string((const char *)
+                                                       attr->name));
+            }
         }
         else
         {
@@ -743,6 +764,9 @@ bool yf::SRUtoZ3950::Impl::z3950_present_request(
     // exit on all these above diagnostics
     if (!send_z3950_present)
         return false;
+
+    if (conf_max_recs > 0 && max_recs > conf_max_recs)
+        max_recs = conf_max_recs;
 
     if (max_recs > *sru_pdu_res->u.response->numberOfRecords - start)
         max_recs = *sru_pdu_res->u.response->numberOfRecords - start + 1;

@@ -10,7 +10,10 @@ filter_sru_z3950 =
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
   element mp:stylesheet { xsd:string }?,
-  element mp:database {  
+  element mp:database {
      attribute name { xsd:NCName },
-     any        
-  }*
+     any
+  }*,
+  element mp:limit {
+    attribute retrieve { xsd:integer }?
+  }?

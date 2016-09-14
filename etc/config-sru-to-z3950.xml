@@ -14,6 +14,7 @@
       <database name="test">
         <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../etc/explain.xml"/>
       </database>
+      <limit retrieve="50"/>
     </filter>
     <filter id="cql" type="cql_rpn">
       <conversion file="../etc/cql2pqf.txt"/>
