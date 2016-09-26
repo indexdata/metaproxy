@@ -81,6 +81,17 @@
       </para>
      </listitem>
     </varlistentry>
+    <varlistentry><term>max-sockets</term>
+     <listitem>
+      <para>
+       Is an integer value. If set, will limit number of outgoing
+       connections to the value given (sockets). If limit is reached and
+       some clients are idle, the z3950_client filter will wait until a
+       connection becomes available. If waiting for 15 seconds, the
+       connection will be rejected - and a diagnostic will be returned.
+      </para>
+     </listitem>
+    </varlistentry>
     <varlistentry><term>client_ip</term>
      <listitem>
       <para>
