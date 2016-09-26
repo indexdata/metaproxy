@@ -441,6 +441,7 @@ void yf::FrontendNet::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
                 int len;
                 send_GDU(gdu_res, &len);
                 delete p;
+                delete this;
                 return;
             }
         }
