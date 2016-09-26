@@ -400,6 +400,7 @@ void yf::FrontendNet::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
         {
             report(hreq);
             delete p;
+            delete this;
             return;
         }
     }
