@@ -1,3 +1,13 @@
+--- 1.11.6 2016/09/28
+
+frontend_net: fix leak when http-req-max limit is met
+
+frontend_net: fix leak when reporting statistics
+
+z3950_client: schema+doc for max-sockets
+
+sru_z3950: Allow limit of retrieval of records (maximumRecords)
+
 --- 1.11.5 2016/08/22
 
 frontend_net: fix memory leak for incoming packages MP-636
