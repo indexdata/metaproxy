@@ -1,3 +1,7 @@
+--- 1.11.7 2016/11/16
+
+frontend_net: report malloc and nmem status
+
 --- 1.11.6 2016/09/28
 
 frontend_net: fix leak when http-req-max limit is met
