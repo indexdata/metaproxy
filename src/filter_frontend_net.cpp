@@ -363,7 +363,7 @@ void yf::FrontendNet::ZAssocChild::report(Z_HTTP_Request *hreq)
             w, "    <response duration_average=\"%f\"/>\n",
             m_p->m_duration_total / number_total);
 
-    wrbuf_puts(w, " </responses>\n");
+    wrbuf_puts(w, "  </responses>\n");
 
     int thread_busy;
     int thread_total;
