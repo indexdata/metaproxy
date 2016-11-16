@@ -827,6 +827,10 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
                                                     ptr->name));
         }
     }
+    if (m_p->m_msg_config.length() > 0 && m_p->m_stat_req.length() == 0)
+    {   // allow stats if message is enabled for filter
+        m_p->m_stat_req = "/fn_stat";
+    }
     if (test_only)
         return;
     set_ports(ports);
