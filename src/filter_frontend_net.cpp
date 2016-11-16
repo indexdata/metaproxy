@@ -36,6 +36,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/timing.h>
 #include <yaz/log.h>
 #include <yaz/daemon.h>
+#include <yaz/malloc_info.h>
 #include "gduutil.hpp"
 #include <signal.h>
 
@@ -372,6 +373,13 @@ void yf::FrontendNet::ZAssocChild::report(Z_HTTP_Request *hreq)
     wrbuf_printf(w, " <thread_info busy=\"%d\" total=\"%d\"/>\n",
                  thread_busy, thread_total);
 
+    wrbuf_malloc_info(w);
+
+    {
+        char buf[200];
+        if (nmem_get_status(buf, sizeof(buf) - 1) == 0)
+            wrbuf_puts(w, buf);
+    }
     wrbuf_puts(w, "</frontend_net>\n");
 
     hres->content_len = w.len();
