@@ -83,6 +83,7 @@ namespace metaproxy_1 {
             std::string extraArgs;
             std::string rpn2cql_fname;
             std::string retry_on_failure;
+            std::string no_cproxy;
             std::map<std::string, std::string> cf_param;
             bool use_turbomarc;
             bool piggyback;
@@ -715,6 +716,10 @@ yf::Zoom::SearchablePtr yf::Zoom::Impl::parse_torus_record(const xmlNode *ptr)
                           "retryOnFailure"))
         {
             s->retry_on_failure = mp::xml::get_text(ptr);
+        }
+        else if (!strcmp((const char *) ptr->name, "noCproxy"))
+        {
+            s->no_cproxy = mp::xml::get_text(ptr);
         }
         else if (strlen((const char *) ptr->name) > 3 &&
                  !memcmp((const char *) ptr->name, "cf_", 3))
@@ -1438,6 +1443,12 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     b->sptr = sptr;
     b->xsp = xsp;
     b->m_frontend_database = database;
+
+    if (!param_nocproxy)
+    {
+        if (sptr->no_cproxy.compare("1") == 0)
+            param_nocproxy = "1";
+    }
     b->enable_cproxy = param_nocproxy ? false : true;
 
     if (param_retry)
