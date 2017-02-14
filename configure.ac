@@ -4,7 +4,7 @@
 # Autoconf and automake setup
 AC_PREREQ([2.60])
 AC_INIT([metaproxy],
-m4_esyscmd([. ./IDMETA; echo $VERSION|tr -d '\n']),
+m4_esyscmd([. ./IDMETA; printf $VERSION]),
 [metaproxy-help@indexdata.dk])
 
 AC_CONFIG_HEADERS([src/config.hpp])
