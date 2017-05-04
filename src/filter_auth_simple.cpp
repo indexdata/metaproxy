@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <metaproxy/util.hpp>
 #include "filter_auth_simple.hpp"
-
+#include <fstream>
 #include <yaz/zgdu.h>
 #include <yaz/diagbib1.h>
 #include <yaz/tpath.h>
@@ -155,16 +155,17 @@ void mp::filter::AuthSimple::config_userRegister(std::string filename,
     char fullpath[1024];
     if (!yaz_filepath_resolve(filename.c_str(), path, 0, fullpath))
         die("Could not open " + filename);
-    FILE *fp = fopen(fullpath, "r");
-    if (!fp)
+
+    std::ifstream fp(fullpath);
+    if (!fp.is_open())
         die("Could not open " + filename);
 
-    char buf[1000];
-    while (fgets(buf, sizeof buf, fp))
+    while (!fp.eof())
     {
-        if (*buf == '\n' || *buf == '#')
+        char buf[1000];
+        fp.getline(buf, sizeof buf);
+        if (*buf == '\0' || *buf == '#')
             continue;
-        buf[strlen(buf)-1] = 0;
         char *passwdp = strchr(buf, ':');
         if (passwdp == 0)
             die("auth_simple user-register '" + filename + "': " +
@@ -187,7 +188,6 @@ void mp::filter::AuthSimple::config_userRegister(std::string filename,
                 printf("db '%s'\n", (*i).c_str());
         }
     }
-    fclose(fp);
 }
 
 
@@ -200,15 +200,15 @@ void mp::filter::AuthSimple::config_targetRegister(std::string filename,
     char fullpath[1024];
     if (!yaz_filepath_resolve(filename.c_str(), path, 0, fullpath))
         die("Could not open " + filename);
-    FILE *fp = fopen(fullpath, "r");
-    if (!fp)
+    std::ifstream fp(fullpath);
+    if (!fp.is_open())
         die("Could not open " + filename);
 
-    char buf[1000];
-    while (fgets(buf, sizeof buf, fp)) {
-        if (*buf == '\n' || *buf == '#')
+    while (!fp.eof()) {
+        char buf[1000];
+        fp.getline(buf, sizeof buf);
+        if (*buf == '\0' || *buf == '#')
             continue;
-        buf[strlen(buf)-1] = 0;
         char *targetsp = strchr(buf, ':');
         if (targetsp == 0)
             die("auth_simple target-register '" + filename + "': " +
