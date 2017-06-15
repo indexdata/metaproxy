@@ -406,6 +406,10 @@ void mp::RouterFleXML::Rep::parse_xml_config_dom(xmlDocPtr doc,
         }
         node = mp::xml::jump_to_next(node, XML_ELEMENT_NODE);
     }
+    std::map<std::string,RouterFleXML::Route>::iterator it;
+    it = m_routes.find(m_start_route);
+    if (it == m_routes.end())
+        throw mp::XMLError("Start route '" + m_start_route + "' not found");
 }
 
 mp::RouterFleXML::Rep::Rep() : m_xinclude(false)
@@ -416,8 +420,8 @@ void mp::RouterFleXML::Rep::base(xmlDocPtr doc, mp::FactoryFilter &factory,
                                  bool test_only, const char *file_include_path)
 {
     m_factory = &factory;
-    parse_xml_config_dom(doc, test_only, file_include_path);
     m_start_route = "start";
+    parse_xml_config_dom(doc, test_only, file_include_path);
 }
 
 mp::RouterFleXML::RouterFleXML(xmlDocPtr doc, mp::FactoryFilter &factory,
