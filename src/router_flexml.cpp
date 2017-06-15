@@ -416,8 +416,8 @@ void mp::RouterFleXML::Rep::base(xmlDocPtr doc, mp::FactoryFilter &factory,
                                  bool test_only, const char *file_include_path)
 {
     m_factory = &factory;
-    parse_xml_config_dom(doc, test_only, file_include_path);
     m_start_route = "start";
+    parse_xml_config_dom(doc, test_only, file_include_path);
 }
 
 mp::RouterFleXML::RouterFleXML(xmlDocPtr doc, mp::FactoryFilter &factory,
