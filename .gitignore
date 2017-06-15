@@ -15,4 +15,6 @@ bin
 ChangeLog
 build-stamp
 metaproxy-config
+build
+deb-src
 *~
