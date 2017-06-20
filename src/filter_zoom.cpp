@@ -167,7 +167,8 @@ namespace metaproxy_1 {
                                   bool &enable_pz2_retrieval,
                                   bool &enable_pz2_transform,
                                   bool &enable_record_transform,
-                                  bool &assume_marc8_charset);
+                                  bool &assume_marc8_charset,
+                                  bool &use_turbomarc);
 
             Z_Records *get_records(Package &package,
                                    Odr_int start,
@@ -236,6 +237,7 @@ namespace metaproxy_1 {
             CCL_bibset bibset;
             std::string element_transform;
             std::string element_raw;
+            std::string element_marcxml;
             std::string element_passthru;
             std::string proxy;
             xsltStylesheetPtr explain_xsp;
@@ -560,7 +562,7 @@ void yf::Zoom::Impl::release_frontend(mp::Package &package)
 
 yf::Zoom::Impl::Impl() :
     apdu_log(false), element_transform("pz2") , element_raw("raw") ,
-    element_passthru("F"),
+    element_marcxml("marcxml"), element_passthru("F"),
     zoom_timeout("40"), proxy_timeout(1)
 {
     bibset = ccl_qual_mk();
@@ -815,6 +817,8 @@ void yf::Zoom::Impl::configure(const xmlNode *ptr, bool test_only,
                     element_transform = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "element_raw"))
                     element_raw = mp::xml::get_text(attr->children);
+                else if (!strcmp((const char *) attr->name, "element_marcxml"))
+                    element_marcxml = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "element_passthru"))
                     element_passthru = mp::xml::get_text(attr->children);
                 else if (!strcmp((const char *) attr->name, "proxy"))
@@ -1621,13 +1625,31 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
     return b;
 }
 
+static bool match_element(const char *actual_element_set_name,
+                          const std::string &config_element)
+{
+    if (config_element.length() == 0)
+        return false;
+    const char *cp = config_element.c_str();
+    if (*cp == '?')
+    {
+        if (actual_element_set_name == 0)
+            return true;
+        cp++;
+    }
+    if (actual_element_set_name && !strcmp(cp, actual_element_set_name))
+        return true;
+    return false;
+}
+
 void yf::Zoom::Frontend::prepare_elements(BackendPtr b,
                                           Odr_oid *preferredRecordSyntax,
                                           const char *element_set_name,
                                           bool &enable_pz2_retrieval,
                                           bool &enable_pz2_transform,
                                           bool &enable_record_transform,
-                                          bool &assume_marc8_charset)
+                                          bool &assume_marc8_charset,
+                                          bool &use_turbomarc)
 {
     char oid_name_str[OID_STR_MAX];
     const char *syntax_name = 0;
@@ -1635,22 +1657,28 @@ void yf::Zoom::Frontend::prepare_elements(BackendPtr b,
     if (preferredRecordSyntax &&
         !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml))
     {
-        if (element_set_name &&
-            !strcmp(element_set_name, m_p->element_transform.c_str()))
+        if (match_element(element_set_name, m_p->element_transform))
         {
             enable_pz2_retrieval = true;
             enable_pz2_transform = true;
+            use_turbomarc = true;
         }
-        else if (element_set_name &&
-                 !strcmp(element_set_name, m_p->element_raw.c_str()))
+        else if (match_element(element_set_name, m_p->element_raw))
         {
             enable_pz2_retrieval = true;
+            use_turbomarc = true;
+        }
+        else if (match_element(element_set_name, m_p->element_marcxml))
+        {
+            enable_pz2_retrieval = true;
+            use_turbomarc = false;
         }
         else if (m_p->record_xsp)
         {
             enable_pz2_retrieval = true;
             enable_pz2_transform = true;
             enable_record_transform = true;
+            use_turbomarc = true;
         }
     }
 
@@ -1771,13 +1799,15 @@ Z_Records *yf::Zoom::Frontend::get_records(mp::Package &package,
     bool enable_pz2_transform = false; // whether XSLT is used as well
     bool assume_marc8_charset = false;
     bool enable_record_transform = false;
+    bool use_turbomarc = false;
 
     prepare_elements(b, preferredRecordSyntax,
                      element_set_name,
                      enable_pz2_retrieval,
                      enable_pz2_transform,
                      enable_record_transform,
-                     assume_marc8_charset);
+                     assume_marc8_charset,
+                     use_turbomarc);
 
     package.log("zoom", YLOG_LOG, "pz2_retrieval: %s . pz2_transform: %s",
                 enable_pz2_retrieval ? "yes" : "no",
@@ -1865,7 +1895,7 @@ Z_Records *yf::Zoom::Frontend::get_records(mp::Package &package,
                 else if (assume_marc8_charset)
                     record_encoding = "marc8";
 
-                strcpy(rec_type_str, b->sptr->use_turbomarc ? "txml" : "xml");
+                strcpy(rec_type_str, use_turbomarc ? "txml" : "xml");
                 if (record_encoding)
                 {
                     strcat(rec_type_str, "; charset=");
@@ -2277,11 +2307,13 @@ next_proxy:
     bool enable_pz2_transform = false;
     bool enable_record_transform = false;
     bool assume_marc8_charset = false;
+    bool use_turbomarc = false;
     prepare_elements(b, sr->preferredRecordSyntax, 0 /*element_set_name */,
                      enable_pz2_retrieval,
                      enable_pz2_transform,
                      enable_record_transform,
-                     assume_marc8_charset);
+                     assume_marc8_charset,
+                     use_turbomarc);
 
     Odr_int hits = 0;
     Z_Query *query = sr->query;
