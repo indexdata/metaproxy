@@ -1,3 +1,9 @@
+--- 1.12.0 2017/06/20
+
+zoom: Attribute element_marcxml enables MARCXML fetch MP-646
+Also with this change element pattern may include leading ? - which
+will make it match the omitted actual element set as well.
+
 --- 1.11.10 2017/06/15
 
 Fix start route config has no effect MP-645
