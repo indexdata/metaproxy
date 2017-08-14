@@ -68,7 +68,9 @@ namespace metaproxy_1 {
         std::deque<IThreadPoolMsg *> m_input;
         std::deque<IThreadPoolMsg *> m_output;
         bool m_stop_flag;
-        unsigned m_stack_size;
+#if BOOST_VERSION >= 105000
+        boost::thread::attributes attrs;
+#endif
         unsigned m_no_threads;
         unsigned m_min_threads;
         unsigned m_max_threads;
@@ -110,8 +112,14 @@ ThreadPoolSocketObserver::ThreadPoolSocketObserver(
     m_p->m_min_threads = min_threads;
     m_p->m_max_threads = max_threads;
     m_p->m_waiting_threads = 0;
-    m_p->m_stack_size = stack_size;
     unsigned i;
+#if BOOST_VERSION >= 105000
+    if (stack_size > 0)
+        m_p->attrs.set_stack_size(stack_size);
+#else
+    if (stack_size)
+        yaz_log(YLOG_WARN, "stack_size has no effect (Requires Boost 1.50)");
+#endif
     for (i = 0; i < min_threads; i++)
         add_worker();
 }
@@ -130,11 +138,8 @@ ThreadPoolSocketObserver::~ThreadPoolSocketObserver()
 void ThreadPoolSocketObserver::add_worker(void)
 {
     Worker w(this);
-#if BOOST_VERSION >= 1050000
-    boost::thread::attributes attrs;
-    if (m_p->m_stack_size)
-        attrs.set_stack_size(m_stack_size);
-    boost::thread *x = new boost::thread(attrs, w);
+#if BOOST_VERSION >= 105000
+    boost::thread *x = new boost::thread(m_p->attrs, w);
 #else
     boost::thread *x = new boost::thread(w);
 #endif
