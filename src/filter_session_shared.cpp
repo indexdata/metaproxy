@@ -890,6 +890,7 @@ restart:
                          apdu_req, found_backend, &z_records))
     {
         bc->remove_backend(found_backend);
+        found_set.reset();
         return; // search error
     }
 
