@@ -1,3 +1,9 @@
+--- 1.12.2 2017/08/29
+
+z3950_client: fix incorrect waiting for max-sockets condition MP-652
+The z3950_client could in some cases wait a very long time for a free
+Z39.50 socket. The proper behavior is to give up after 15 seconds.
+
 --- 1.12.1 2017/08/16
 
 session_shared: fix 0 hits for search timeout MP-649
