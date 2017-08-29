@@ -420,7 +420,15 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
     }
 
     // see if we have reached max number of clients (max-sockets)
-
+    boost::xtime xt;
+    xtime_get(&xt,
+#if BOOST_VERSION >= 105000
+              boost::TIME_UTC_
+#else
+              boost::TIME_UTC
+#endif
+        );
+    xt.sec += 15;
     while (max_sockets)
     {
         int no_not_in_use = 0;
@@ -450,16 +458,6 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
             package.session().close();
             return 0;
         }
-        boost::xtime xt;
-        xtime_get(&xt,
-#if BOOST_VERSION >= 105000 
-                boost::TIME_UTC_
-#else
-                boost::TIME_UTC
-#endif 
-                );
-
-        xt.sec += 15;
         if (!m_cond_session_ready.timed_wait(lock, xt))
         {
             mp::odr odr;
