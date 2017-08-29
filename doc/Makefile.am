@@ -119,8 +119,8 @@ manref.xml: $(XMLMAN) $(srcdir)/common/stripref.xsl \
 multi.png: multi.svg
 	unset DISPLAY; ${INKSCAPE} --export-png=$@ --export-area=0:0:1050:500 $?
 
-multi.eps: multi.svg
-	unset DISPLAY; ${INKSCAPE} --export-eps=$@ --export-area-page $?
+multi.pdf: multi.svg
+	unset DISPLAY; ${INKSCAPE} --export-pdf=$@ --export-area-page $?
 
 .eps.pdf:
 	epstopdf -hires $?
