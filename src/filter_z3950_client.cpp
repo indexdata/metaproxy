@@ -52,7 +52,8 @@ namespace metaproxy_1 {
             Assoc(yazpp_1::SocketManager *socket_manager,
                   yazpp_1::IPDU_Observable *PDU_Observable,
                   std::string host, int connect_timeout,
-                  int init_timeout, int general_timeout);
+                  int init_timeout, int max_sockets_timeout,
+                  int general_timeout);
             ~Assoc();
             void connectNotify();
             void failNotify();
@@ -77,6 +78,7 @@ namespace metaproxy_1 {
             int m_time_elapsed;
             int m_connect_time_max;
             int m_init_time_max;
+            int m_max_sockets_timeout_sec;
             int m_general_time_max;
             std::string m_host;
         };
@@ -87,6 +89,7 @@ namespace metaproxy_1 {
             int m_general_timeout_sec;
             int m_connect_timeout_sec;
             int m_init_timeout_sec;
+            int m_max_sockets_timeout_sec;
             int m_max_sockets;
             bool m_force_close;
             bool m_client_ip;
@@ -111,7 +114,8 @@ yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
                               yazpp_1::IPDU_Observable *PDU_Observable,
                               std::string host,
                               int connect_timeout,
-                              int init_timeout, int general_timeout)
+                              int init_timeout, int max_sockets_timeout,
+                              int general_timeout)
     :  Z_Assoc(PDU_Observable),
        m_socket_manager(socket_manager), m_PDU_Observable(PDU_Observable),
        m_package(0), m_in_use(true), m_waiting(false),
@@ -120,6 +124,7 @@ yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
        m_time_elapsed(0),
        m_connect_time_max(connect_timeout),
        m_init_time_max(init_timeout),
+       m_max_sockets_timeout_sec(max_sockets_timeout),
        m_general_time_max(general_timeout),
        m_host(host)
 {
@@ -428,7 +433,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
               boost::TIME_UTC
 #endif
         );
-    xt.sec += 15;
+    xt.sec += m_max_sockets_timeout_sec;
     while (max_sockets)
     {
         int no_not_in_use = 0;
@@ -476,6 +481,7 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
         new yf::Z3950Client::Assoc(sm, pdu_as, target.c_str(),
                                    m_connect_timeout_sec,
                                    m_init_timeout_sec,
+                                   m_max_sockets_timeout_sec,
                                    m_general_timeout_sec);
     m_clients[package.session()] = as;
     return as;
@@ -673,6 +679,10 @@ void yf::Z3950Client::configure(const xmlNode *ptr, bool test_only,
         else if (!strcmp((const char *) ptr->name, "init-timeout"))
         {
             m_p->m_init_timeout_sec = mp::xml::get_int(ptr, 10);
+        }
+        else if (!strcmp((const char *) ptr->name, "max-sockets-timeout"))
+        {
+            m_p->m_max_sockets_timeout_sec = mp::xml::get_int(ptr, 15);
         }
         else if (!strcmp((const char *) ptr->name, "default_target"))
         {

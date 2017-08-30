@@ -47,6 +47,15 @@
       </para>
      </listitem>
     </varlistentry>
+    <varlistentry><term>max-sockets-timeout</term>
+     <listitem>
+      <para>
+       Specifies how long the client will wait until giving up
+       in waiting for a free socket (max-sockets condition). The
+       default value is 15.
+      </para>
+     </listitem>
+    </varlistentry>
     <varlistentry><term>timeout</term>
      <listitem>
       <para>
@@ -87,8 +96,9 @@
        Is an integer value. If set, will limit number of outgoing
        connections to the value given (sockets). If limit is reached and
        some clients are idle, the z3950_client filter will wait until a
-       connection becomes available. If waiting for 15 seconds, the
-       connection will be rejected - and a diagnostic will be returned.
+       connection becomes available. If waiting for 15 seconds (or as
+       configured by max-sockets-timeout), the connection will be rejected
+       - and a diagnostic will be returned.
       </para>
      </listitem>
     </varlistentry>
