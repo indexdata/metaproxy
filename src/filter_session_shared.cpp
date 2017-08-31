@@ -120,9 +120,11 @@ namespace metaproxy_1 {
             friend struct Frontend;
             bool m_named_result_sets;
             BackendInstanceList m_backend_list;
-            BackendInstancePtr create_backend(const Package &package);
+            BackendInstancePtr create_backend(const Package &package,
+                                              int &code, std::string &addinfo);
             void remove_backend(BackendInstancePtr b);
-            BackendInstancePtr get_backend(const Package &package);
+            BackendInstancePtr get_backend(const Package &package,
+                                           int &code, std::string &addinfo);
             void use_backend(BackendInstancePtr b);
             void release_backend(BackendInstancePtr b);
             bool expire_instances();
@@ -335,7 +337,8 @@ void yf::SessionShared::BackendClass::remove_backend(BackendInstancePtr b)
 
 yf::SessionShared::BackendInstancePtr
 yf::SessionShared::BackendClass::get_backend(
-    const mp::Package &frontend_package)
+    const mp::Package &frontend_package,
+    int &code, std::string &addinfo)
 {
     {
         boost::mutex::scoped_lock lock(m_mutex_backend_class);
@@ -359,7 +362,7 @@ yf::SessionShared::BackendClass::get_backend(
             return backend1;
         }
     }
-    return create_backend(frontend_package);
+    return create_backend(frontend_package, code, addinfo);
 }
 
 void yf::SessionShared::BackendClass::use_backend(BackendInstancePtr backend)
@@ -388,17 +391,10 @@ yf::SessionShared::BackendInstance::~BackendInstance()
 }
 
 yf::SessionShared::BackendInstancePtr yf::SessionShared::BackendClass::create_backend(
-    const mp::Package &frontend_package)
+    const mp::Package &frontend_package,
+    int &code, std::string &addinfo)
 {
     BackendInstancePtr null;
-    {
-        boost::mutex::scoped_lock lock(m_mutex_backend_class);
-        if (m_no_failed && !m_no_succeeded)
-        {
-            m_no_failed++;
-            return null;
-        }
-    }
     BackendInstancePtr bp(new BackendInstance);
     bp->m_close_package =
         new mp::Package(bp->m_session, frontend_package.origin());
@@ -442,6 +438,8 @@ yf::SessionShared::BackendInstancePtr yf::SessionShared::BackendClass::create_ba
 
     boost::mutex::scoped_lock lock(m_mutex_backend_class);
 
+    addinfo.clear();
+    code = 0;
     m_named_result_sets = false;
     Z_GDU *gdu = init_package.response().get();
 
@@ -449,11 +447,14 @@ yf::SessionShared::BackendInstancePtr yf::SessionShared::BackendClass::create_ba
         && gdu->u.z3950->which == Z_APDU_initResponse)
     {
         Z_InitResponse *res = gdu->u.z3950->u.initResponse;
-        m_init_response = gdu->u.z3950;
+
         if (ODR_MASK_GET(res->options, Z_Options_namedResultSets))
         {
             m_named_result_sets = true;
         }
+        // save init-response until we get one that succeeds
+        if (m_no_succeeded == 0)
+            m_init_response = gdu->u.z3950;
         if (*gdu->u.z3950->u.initResponse->result
             && !init_package.session().is_closed())
         {
@@ -465,13 +466,50 @@ yf::SessionShared::BackendInstancePtr yf::SessionShared::BackendClass::create_ba
             m_no_succeeded++;
             return bp;
         }
+        else
+        {
+            Z_External *uif =
+                gdu->u.z3950->u.initResponse->userInformationField;
+            if (uif && uif->which == Z_External_userInfo1)
+            {
+                Z_OtherInformation *ui = uif->u.userInfo1;
+                if (ui && ui->num_elements >= 1)
+                {
+                    Z_OtherInformationUnit *unit = ui->list[0];
+                    if (unit->which == Z_OtherInfo_externallyDefinedInfo &&
+                        unit->information.externallyDefinedInfo &&
+                        unit->information.externallyDefinedInfo->which ==
+                        Z_External_diag1)
+                    {
+                        Z_DiagnosticFormat *diag =
+                            unit->information.externallyDefinedInfo->u.diag1;
+                        if (diag->num >= 1)
+                        {
+                            Z_DiagnosticFormat_s *ds = diag->elements[0];
+                            if (ds->which ==
+                                Z_DiagnosticFormat_s_defaultDiagRec)
+                            {
+                                Z_DefaultDiagFormat *e =
+                                    ds->u.defaultDiagRec;
+                                code = *e->condition;
+                                if (e->which == Z_DefaultDiagFormat_v2Addinfo
+                                    && e->u.v2Addinfo)
+                                {
+                                    addinfo = e->u.v2Addinfo;
+                                }
+                                else if (
+                                    e->which == Z_DefaultDiagFormat_v3Addinfo
+                                    && e->u.v3Addinfo)
+                                {
+                                    addinfo = e->u.v3Addinfo;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-    else
-    {
-        yazpp_1::GDU empty_gdu;
-        m_init_response = empty_gdu;
-    }
-
     if (!init_package.session().is_closed())
     {
         init_package.copy_filter(frontend_package);
@@ -556,11 +594,11 @@ void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
     bool create_first_one = false;
     {
         boost::mutex::scoped_lock lock(bc->m_mutex_backend_class);
-        if (!bc->m_no_failed && !bc->m_no_succeeded && !bc->m_no_init)
+        if (!bc->m_no_succeeded)
             create_first_one = true;
         else
         {
-            // first for first one to finish
+            // wait for first one to finish
             while (!bc->m_no_failed && !bc->m_no_succeeded && bc->m_no_init)
             {
                 bc->m_cond_set_ready.wait(lock);
@@ -569,7 +607,10 @@ void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
     }
     if (create_first_one)
     {
-        BackendInstancePtr backend = bc->create_backend(package);
+
+        int code;
+        std::string addinfo;
+        BackendInstancePtr backend = bc->create_backend(package, code, addinfo);
         if (backend)
             bc->release_backend(backend);
     }
@@ -830,34 +871,42 @@ restart:
     }
     if (!found_backend)
     {
+        int code;
+        std::string addinfo;
         // create a new backend set (and new set) if we're not out of sessions
         if (!out_of_sessions)
-            found_backend = bc->create_backend(package);
-
+            found_backend = bc->create_backend(package, code, addinfo);
         if (!found_backend)
         {
             Z_APDU *f_apdu = 0;
             mp::odr odr;
-            const char *addinfo = 0;
 
             if (out_of_sessions)
+            {
+                code = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
                 addinfo = "session_shared: all sessions in use";
+            }
             else
-                addinfo = "session_shared: could not create backend";
+            {
+                if (code == 0)
+                    code = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+                if (addinfo.length() == 0)
+                    addinfo = "session_shared: could not create backend";
+            }
             if (apdu_req->which == Z_APDU_searchRequest)
             {
                 f_apdu = odr.create_searchResponse(
-                    apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, addinfo);
+                    apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, addinfo.c_str());
             }
             else if (apdu_req->which == Z_APDU_presentRequest)
             {
                 f_apdu = odr.create_presentResponse(
-                    apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, addinfo);
+                    apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, addinfo.c_str());
             }
             else
             {
                 f_apdu = odr.create_close(
-                    apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, addinfo);
+                    apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR, addinfo.c_str());
             }
             package.response() = f_apdu;
             return;
@@ -1220,13 +1269,19 @@ void yf::SessionShared::Frontend::scan(mp::Package &frontend_package,
                                        Z_APDU *apdu_req)
 {
     BackendClassPtr bc = m_backend_class;
-    BackendInstancePtr backend = bc->get_backend(frontend_package);
+    int code;
+    std::string addinfo;
+    BackendInstancePtr backend = bc->get_backend(frontend_package,
+                                                 code, addinfo);
     if (!backend)
     {
         mp::odr odr;
+        if (code == 0)
+            code = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
+        if (addinfo.length() == 0)
+            addinfo = "session_shared: could not create backend";
         Z_APDU *apdu = odr.create_scanResponse(
-            apdu_req, YAZ_BIB1_TEMPORARY_SYSTEM_ERROR,
-            "session_shared: could not create backend");
+            apdu_req, code, addinfo.c_str());
         frontend_package.response() = apdu;
     }
     else
