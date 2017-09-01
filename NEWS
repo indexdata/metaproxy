@@ -1,3 +1,15 @@
+--- 1.13.0 2017/09/01
+
+sru_z3950: avoid suffix slash after parsing x-target
+
+session_shared: relay diagnostics better MP-654
+Until this commit init response failures would be converted to
+temporary system error: "session_shared: could not create backend".
+However, in the cases where init response from a target does contain
+diagnostics those will now be returned as is.
+
+z3950_client: configurable max-sockets-timeout
+
 --- 1.12.2 2017/08/29
 
 z3950_client: fix incorrect waiting for max-sockets condition MP-652
