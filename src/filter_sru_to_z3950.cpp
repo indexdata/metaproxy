@@ -515,6 +515,7 @@ yf::SRUtoZ3950::Impl::z3950_init_request(mp::Package &package,
         std::string host;
         std::list<std::string> dblist;
         mp_util::split_zurl(zurl, host, dblist);
+        yaz_log(YLOG_LOG, "host = %s", host.c_str());
         mp_util::set_vhost_otherinfo(&init_req->otherInfo, odr_en, host, 1);
     }
 
