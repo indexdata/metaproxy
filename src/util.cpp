@@ -413,7 +413,7 @@ void mp_util::split_zurl(std::string zurl, std::string &host,
 
     if (args && *args)
     {
-        host = std::string(zurl_cstr, args - zurl_cstr);
+        host = std::string(zurl_cstr, args - zurl_cstr - 1);
 
         const char *cp1 = args;
         while (1)
