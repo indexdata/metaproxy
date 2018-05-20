@@ -454,12 +454,11 @@ const mp::filter::Base *mp::RouterFleXML::Pos::move(const char *route)
 {
     if (route && *route)
     {
-        //std::cout << "move to " << route << "\n";
         m_route_it = m_p->m_routes.find(route);
         if (m_route_it == m_p->m_routes.end())
         {
-            std::cout << "no such route " << route << "\n";
-            throw mp::XMLError("bad route " + std::string(route));
+            yaz_log(YLOG_FATAL, "no such route %s", route);
+            return 0;
         }
         m_filter_it = m_route_it->second.m_list.begin();
     }
