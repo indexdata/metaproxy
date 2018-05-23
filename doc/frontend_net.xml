@@ -64,7 +64,7 @@
   <para>
    Element <literal>connect-max</literal> is an optional repeatable element.
    The text content is treated as an integer that specifies the maximum number
-   of accepted TCP sessions from the same original IP. A value of 0
+   of accepted TCP sessions from the same IP within a minute. A value of 0
    means unlimited (no limit). The attribute <literal>ip</literal>
    specifies an IP-pattern to match. If the IP pattern  is matched, the
    limit takes effect. By repeating this element with different IP
@@ -74,6 +74,12 @@
    For example:
    <literal>ip="::1 127*"</literal> would match <literal>::1</literal> or
    <literal>127.0.0.1</literal> , but not <literal>128.0.0.1</literal>.
+  </para>
+  <para>
+   Element <literal>connect-total</literal> is an optional repeatable element.
+   The text content is treated as an integer that specifies the maximum number
+   of TCP sessions from the same IP. Otherwise similar
+   <literal>connect-max</literal>.
   </para>
   <para>
    Element <literal>http-req-max</literal> is an optional repeatable element.
