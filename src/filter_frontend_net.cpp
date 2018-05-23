@@ -47,6 +47,21 @@ namespace yf = metaproxy_1::filter;
 
 namespace metaproxy_1 {
     namespace filter {
+        class FrontendNet::PeerStat {
+            friend class FrontendNet;
+            PeerStat();
+            ~PeerStat();
+            size_t get(const std::string &peer);
+            size_t add(const std::string &peer);
+            size_t remove(const std::string &peer);
+            class Item {
+                friend class PeerStat;
+                std::string m_peer;
+                size_t cnt;
+                Item *next;
+            };
+            Item *items;
+        };
         class FrontendNet::Port {
             friend class Rep;
             friend class FrontendNet;
@@ -72,6 +87,7 @@ namespace metaproxy_1 {
             int m_listen_duration;
             int m_session_timeout;
             std::list<IP_Pattern> connect_max;
+            std::list<IP_Pattern> connect_total;
             std::list<IP_Pattern> http_req_max;
             std::string m_msg_config;
             std::string m_stat_req;
@@ -84,6 +100,7 @@ namespace metaproxy_1 {
             double m_duration_min;
             double m_duration_total;
             int m_stop_signo;
+            PeerStat m_peerStat;
         public:
             Rep();
             ~Rep();
@@ -127,6 +144,7 @@ namespace metaproxy_1 {
             const mp::Package *m_package;
             Rep *m_p;
             yazpp_1::LimitConnect &m_limit_http_req;
+            std::string m_peer;
         };
         class FrontendNet::ThreadPoolPackage : public mp::IThreadPoolMsg {
         public:
@@ -293,6 +311,7 @@ yf::FrontendNet::ZAssocChild::ZAssocChild(
     yazpp_1::LimitConnect &limit_http_req,
     const char *peername)
     :  Z_Assoc(PDU_Observable), m_p(rep), m_limit_http_req(limit_http_req)
+    , m_peer(peername)
 {
     m_thread_pool_observer = my_thread_pool;
     m_no_requests = 0;
@@ -303,6 +322,7 @@ yf::FrontendNet::ZAssocChild::ZAssocChild(
     addr.append(peername);
     addr.append(" ");
     addr.append(port->port);
+    m_p->m_peerStat.add(m_peer);
     m_origin.set_tcpip_address(addr, m_session.id());
     timeout(m_p->m_session_timeout);
 }
@@ -315,6 +335,14 @@ yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocChild::sessionNotify(
 
 yf::FrontendNet::ZAssocChild::~ZAssocChild()
 {
+    int d = m_p->m_peerStat.remove(m_peer);
+    if (m_p->m_msg_config.length())
+    {
+        std::ostringstream os;
+        os  << m_p->m_msg_config << " "
+            << m_peer << " closing cnt=" << d;
+        yaz_log(YLOG_LOG, "%s", os.str().c_str());
+    }
 }
 
 void yf::FrontendNet::ZAssocChild::report(Z_HTTP_Request *hreq)
@@ -528,9 +556,23 @@ yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocServer::sessionNotify(
     }
     if (peername)
     {
+        int total_sz = m_p->m_peerStat.get(peername);
+        std::list<IP_Pattern>::const_iterator it = m_p->connect_total.begin();
+        for (; it != m_p->connect_total.end(); it++)
+        {
+            if (mp::util::match_ip(it->pattern, peername))
+            {
+                if (it->verbose > 1 ||
+                    (it->value && total_sz >= it->value && it->verbose > 0))
+                    yaz_log(YLOG_LOG, "connect-total pattern=%s ip=%s con_sz=%d value=%d", it->pattern.c_str(), peername, total_sz, it->value);
+                if (it->value == 0 || total_sz < it->value)
+                    break;
+                return 0;
+            }
+        }
         limit_connect.cleanup(false);
         int con_sz = limit_connect.get_total(peername);
-        std::list<IP_Pattern>::const_iterator it = m_p->connect_max.begin();
+        it = m_p->connect_max.begin();
         for (; it != m_p->connect_max.end(); it++)
         {
             if (mp::util::match_ip(it->pattern, peername))
@@ -808,6 +850,18 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
             m.verbose = values[1].length() ? atoi(values[1].c_str()) : 1;
             m_p->connect_max.push_back(m);
         }
+        else if (!strcmp((const char *) ptr->name, "connect-total"))
+        {
+            const char *names[3] = {"ip", "verbose", 0};
+            std::string values[2];
+
+            mp::xml::parse_attr(ptr, names, values);
+            IP_Pattern m;
+            m.value = mp::xml::get_int(ptr, 0);
+            m.pattern = values[0];
+            m.verbose = values[1].length() ? atoi(values[1].c_str()) : 1;
+            m_p->connect_total.push_back(m);
+        }
         else if (!strcmp((const char *) ptr->name, "http-req-max"))
         {
             const char *names[3] = {"ip", "verbose", 0};
@@ -899,6 +953,73 @@ void yf::FrontendNet::set_ports(std::vector<Port> &ports)
 void yf::FrontendNet::set_listen_duration(int d)
 {
     m_p->m_listen_duration = d;
+}
+
+
+yf::FrontendNet::PeerStat::PeerStat()
+{
+    items = 0;
+}
+
+yf::FrontendNet::PeerStat::~PeerStat()
+{
+    while (items)
+    {
+        Item *n = items->next;
+        delete items;
+        items = n;
+    }
+}
+
+
+size_t yf::FrontendNet::PeerStat::add(const std::string &peer)
+{
+    Item *n = items;
+    for (; n; n = n->next)
+    {
+        if (peer == n->m_peer)
+        {
+            n->cnt++;
+            return n->cnt;
+        }
+    }
+    n = new Item();
+    n->cnt = 1;
+    n->m_peer = peer;
+    n->next = items;
+    items = n;
+    return n->cnt;
+}
+
+size_t yf::FrontendNet::PeerStat::get(const std::string &peer)
+{
+    Item *n = items;
+    for (; n; n = n->next)
+    {
+        if (peer == n->m_peer)
+            return n->cnt;
+    }
+    return 0;
+}
+
+size_t yf::FrontendNet::PeerStat::remove(const std::string &peer)
+{
+    Item **np = &items;
+    for (; *np; np = &(*np)->next)
+    {
+        Item *n = *np;
+        if (peer == n->m_peer)
+        {
+            if (--n->cnt == 0)
+            {
+                *np = n->next;
+                delete n;
+                return 0;
+            }
+            return n->cnt;
+        }
+    }
+    return 0;
 }
 
 static yf::Base* filter_creator()

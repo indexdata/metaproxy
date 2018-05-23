@@ -4,7 +4,8 @@
   <filters>
     <filter id="frontend" type="frontend_net">
       <port>@:9000</port>
-      <connect-max ip="::1" verbose="2">2000</connect-max>
+      <connect-max ip="::1" verbose="2">20</connect-max>
+      <connect-total verbose="1">200</connect-total>
       <http-req-max ip="::1" verbose="2">2</http-req-max>
       <message>FN</message>
     </filter>

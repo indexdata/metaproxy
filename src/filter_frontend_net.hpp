@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace metaproxy_1 {
     namespace filter {
         class FrontendNet : public Base {
+            class PeerStat;
             class Rep;
             class Port;
             class IP_Pattern;
