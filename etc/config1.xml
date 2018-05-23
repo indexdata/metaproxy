@@ -22,8 +22,8 @@
       <filter type="z3950_client">
         <timeout>30</timeout>
         <default_target>127.0.0.1:9999</default_target>
-        <max-sockets>5</max-sockets>
         <force_close>true</force_close>
+        <max-sockets>5</max-sockets>
         <client_ip>true</client_ip>
         <charset>utf-8</charset>
         <bind_host>true</bind_host>
