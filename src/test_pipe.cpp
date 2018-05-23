@@ -94,7 +94,7 @@ void Timer::socketNotify(int event)
             std::cout << "Error read: "<< strerror(errno) << std::endl;
         }
     }
-    else if (event && yazpp_1::SOCKET_OBSERVE_TIMEOUT)
+    else if (event & yazpp_1::SOCKET_OBSERVE_TIMEOUT)
     {
         m_timeout = true;
         m_obs->deleteObserver(this);
