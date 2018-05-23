@@ -166,24 +166,33 @@ void ThreadPoolSocketObserver::socketNotify(int event)
                         "ThreadPoolSocketObserver::socketNotify. read returned 0");
         }
 #endif
-        IThreadPoolMsg *out;
+        while (1)
         {
-            boost::mutex::scoped_lock output_lock(m_p->m_mutex_output_data);
-            out = m_p->m_output.front();
-            m_p->m_output.pop_front();
-        }
-        if (out)
-        {
-            std::ostringstream os;
+            IThreadPoolMsg *out;
+            size_t output_size = 0;
             {
-                boost::mutex::scoped_lock input_lock(m_p->m_mutex_input_data);
-                os  << "tbusy/total " <<
-                    m_p->m_no_threads - m_p->m_waiting_threads <<
-                    "/" << m_p->m_no_threads
-                    << " queue in/out " << m_p->m_input.size() << "/"
-                    << m_p->m_output.size();
+                boost::mutex::scoped_lock output_lock(m_p->m_mutex_output_data);
+                if (m_p->m_output.empty()) {
+                    break;
+                }
+                out = m_p->m_output.front();
+                m_p->m_output.pop_front();
+                output_size = m_p->m_output.size();
             }
-            out->result(os.str().c_str());
+            if (out)
+            {
+                size_t input_size = 0;
+                std::ostringstream os;
+                {
+                    boost::mutex::scoped_lock input_lock(m_p->m_mutex_input_data);
+                    input_size = m_p->m_input.size();
+                }
+                os << "tbusy/total "
+                    << m_p->m_no_threads - m_p->m_waiting_threads
+                    << "/" << m_p->m_no_threads
+                    << " queue in/out " << input_size << "/" <<  output_size;
+                out->result(os.str().c_str());
+            }
         }
     }
 }
