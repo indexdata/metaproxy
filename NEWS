@@ -1,3 +1,8 @@
+--- 1.14.0 2018/05/23
+
+frontend_net: allow limit of connections from same IP MP-657
+Achived by configuration element connect-total.
+
 --- 1.13.1 2018/05/20
 
 Fix Unknown route exits Metaproxy at run time MP-656
