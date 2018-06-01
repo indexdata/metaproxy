@@ -1,3 +1,7 @@
+--- 1.15.0 2018/06/01
+
+metaproxy: option -s sets resource limit for open files (ulimit -n)
+
 --- 1.14.0 2018/05/23
 
 frontend_net: allow limit of connections from same IP MP-657
