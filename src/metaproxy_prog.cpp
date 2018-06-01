@@ -18,6 +18,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 
+#if HAVE_GETRLIMIT
+#include <sys/resource.h>
+#endif
+
 #include <yaz/log.h>
 #include <yaz/options.h>
 #include <yaz/daemon.h>
@@ -123,11 +127,14 @@ static int sc_main(
     unsigned mode = 0;
     const char *pidfile = 0;
     const char *uid = 0;
+#if HAVE_GETRLIMIT
+    const char *socket_limit = 0;
+#endif
 
     yaz_enable_panic_backtrace(argv[0]);
     set_log_prefix();
 
-    while ((ret = options("c{config}:Dh{help}l:m:p:tu:v:V{version}w:X",
+    while ((ret = options("c{config}:Dh{help}l:m:p:s:tu:v:V{version}w:X",
                           argv, argc, &arg)) != -2)
     {
         switch (ret)
@@ -148,6 +155,7 @@ static int sc_main(
                 " -l f          log file f\n"
                 " -m logformat  log time format (strftime)\n"
                 " -p f          pid file f\n"
+                " -s n          socket limit\n"
                 " -t            test configuration\n"
                 " -u id         change uid to id\n"
                 " -w dir        changes working directory to dir\n"
@@ -167,6 +175,13 @@ static int sc_main(
             break;
         case 'p':
             pidfile = arg;
+            break;
+        case 's':
+#if HAVE_GETRLIMIT
+            socket_limit = arg;
+#else
+            yaz_log(YLOG_WARN, "Option -s unsuppoted on this platform");
+#endif
             break;
         case 't':
             test_config = true;
@@ -262,7 +277,21 @@ static int sc_main(
             new mp::RouterXML(doc, test_config, wrbuf_cstr(base_path));
         if (!test_config)
         {
+#if HAVE_GETRLIMIT
+            if (socket_limit)
+            {
+                struct rlimit limit_data;
+                limit_data.rlim_cur = atoi(socket_limit);
+                limit_data.rlim_max = atoi(socket_limit);
+                int r = setrlimit(RLIMIT_NOFILE, &limit_data);
+                if (r)
+                {
+                    yaz_log(YLOG_FATAL,"setrlimit: %s", strerror(errno));
+                    return 1;
+                }
 
+            }
+#endif
             yaz_sc_running(s);
 
             yaz_daemon("metaproxy", mode | YAZ_DAEMON_LOG_REOPEN,

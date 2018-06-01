@@ -35,6 +35,7 @@
    <arg choice="opt"><option>-l <replaceable>logfile</replaceable></option></arg>
    <arg choice="opt"><option>-m <replaceable>timeformat</replaceable></option></arg>
    <arg choice="opt"><option>-p <replaceable>pidfile</replaceable></option></arg>
+   <arg choice="opt"><option>-s <replaceable>num</replaceable></option></arg>
    <arg choice="opt"><option>-t</option></arg>
    <arg choice="opt"><option>-u <replaceable>ID</replaceable></option></arg>
    <arg choice="opt"><option>-w <replaceable>dir</replaceable></option></arg>
@@ -111,6 +112,16 @@
     <term>-p <replaceable>pidfile</replaceable></term>
     <listitem><para>
       Specify file which holds PID after startup.
+     </para></listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term>-s <replaceable>num</replaceable></term>
+    <listitem><para>
+      Set soft and hard limit for total files in use (includes sockets).
+      This uses <literal>setrlimit</literal> type
+      <literal>RLIMIT_NOFILE</literal>
+       - <literal>ulimit -n</literal> in shell.
      </para></listitem>
    </varlistentry>
 
