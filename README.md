@@ -1,6 +1,6 @@
 ## Metaproxy - a universal Z39.50/SRU router.
 
-Copyright (C) 2005-2018, Index Data.
+Copyright (C) 2005-2019, Index Data.
 See the file LICENSE for details.
 
 For more information about Metaproxy refer to the documentation in sub
