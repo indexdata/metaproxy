@@ -92,7 +92,7 @@ namespace metaproxy_1 {
             void read_skip_headers(Z_HTTP_Request *hreq,
                                    std::list<boost::regex> &skip_list);
             void rewrite_reqline(mp::odr & o, Z_HTTP_Request *hreq,
-                std::map<std::string, std::string> & vars) const;
+                std::map<std::string, std::string> & vars, std::string bind_addr) const;
             void rewrite_headers(mp::odr & o, Z_HTTP_Header *headers,
                 std::map<std::string, std::string> & vars) const;
             void rewrite_body(mp::odr & o,
@@ -148,7 +148,8 @@ void yf::HttpRewrite::process(mp::Package & package) const
     {
         Z_HTTP_Request *hreq = gdu->u.HTTP_Request;
         mp::odr o;
-        req_phase->rewrite_reqline(o, hreq, vars);
+        std::string bind_addr = package.origin(). get_bind_address();
+        req_phase->rewrite_reqline(o, hreq, vars, bind_addr);
         res_phase->read_skip_headers(hreq, skip_list);  
         yaz_log(YLOG_LOG, ">> Request headers");
         req_phase->rewrite_headers(o, hreq->headers, vars);
@@ -217,24 +218,32 @@ void yf::HttpRewrite::Phase::read_skip_headers(Z_HTTP_Request *hreq,
 
 void yf::HttpRewrite::Phase::rewrite_reqline (mp::odr & o,
         Z_HTTP_Request *hreq,
-        std::map<std::string, std::string> & vars) const
+        std::map<std::string, std::string> & vars,
+        std::string bind_addr) const
 {
-    //rewrite the request line
+    std::string proto;
+    if (bind_addr.find("ssl:") == 0) {
+      proto = "https";
+    } else {
+      proto = "http";
+    }
+    yaz_log(YLOG_LOG,"rewrite_reqline: p='%s' ba='%s'",
+            hreq->path, proto.c_str() );
     std::string path;
-    if (strstr(hreq->path, "http://") == hreq->path)
+    if ((strstr(hreq->path, "http://") == hreq->path) ||
+        (strstr(hreq->path, "https://") == hreq->path) )
     {
         yaz_log(YLOG_LOG, "Path in the method line is absolute, "
             "possibly a proxy request");
-        path += hreq->path;
+        path = hreq->path;
     }
     else
     {
-        //TODO what about proto
         const char *host = z_HTTP_header_lookup(hreq->headers, "Host");
         if (!host)
             return;
 
-        path += "http://";
+        path = proto;
         path += host;
         path += hreq->path;
     }
