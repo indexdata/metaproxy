@@ -136,7 +136,7 @@ dist-hook:
 	done
 
 doc-clean:
-	rm -f manref.xml *.html *.[0-9] *.?mp *.pdf *.tkl
+	rm -f manref.xml *.html *.[0-9] *.?mp *.pdf toc.hhc htmlhelp.hhp local.ent
 
 install-data-hook:
 	if test -f index.html; then d=.; else d="$(srcdir)"; fi; \
@@ -147,3 +147,4 @@ install-data-hook:
 uninstall-hook:
 	rm -r $(DESTDIR)$(docdir)
 
+distclean-local: doc-clean
