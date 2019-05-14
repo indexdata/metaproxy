@@ -234,7 +234,7 @@ void yf::HttpRewrite::Phase::rewrite_reqline (mp::odr & o,
         (strstr(hreq->path, "https://") == hreq->path) )
     {
         yaz_log(YLOG_LOG, "Path in the method line is absolute, "
-            "possibly a proxy request");
+            "possibly a proxy request"); // the usual case with cf_proxy
         path = hreq->path;
     }
     else
@@ -243,7 +243,7 @@ void yf::HttpRewrite::Phase::rewrite_reqline (mp::odr & o,
         if (!host)
             return;
 
-        path = proto;
+        path = proto + "://";
         path += host;
         path += hreq->path;
     }
