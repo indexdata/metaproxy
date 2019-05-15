@@ -1,3 +1,9 @@
+--- 1.16.0 2019/05/15
+filter_http_rewrite: Better handling of https requests (MP-660, MP-662)
+ - Considers both http:// and https:// as absolute URLs in the request line
+ - for relative requests, expands to http:// or https:// depending on how the
+   request came in
+
 --- 1.15.0 2018/06/01
 
 metaproxy: option -s sets resource limit for open files (ulimit -n)
