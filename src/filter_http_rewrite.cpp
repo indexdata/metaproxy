@@ -90,7 +90,7 @@ namespace metaproxy_1 {
             int m_verbose;
             std::list<Content> content_list;
             void read_skip_headers(Z_HTTP_Request *hreq,
-                                   std::list<boost::regex> &skip_list);
+                                   std::list<boost::regex> &skip_list, std::string bind_addr);
             void rewrite_reqline(mp::odr & o, Z_HTTP_Request *hreq,
                 std::map<std::string, std::string> & vars, std::string bind_addr) const;
             void rewrite_headers(mp::odr & o, Z_HTTP_Header *headers,
@@ -150,7 +150,7 @@ void yf::HttpRewrite::process(mp::Package & package) const
         mp::odr o;
         std::string bind_addr = package.origin(). get_bind_address();
         req_phase->rewrite_reqline(o, hreq, vars, bind_addr);
-        res_phase->read_skip_headers(hreq, skip_list);  
+        res_phase->read_skip_headers(hreq, skip_list, bind_addr);
         yaz_log(YLOG_LOG, ">> Request headers");
         req_phase->rewrite_headers(o, hreq->headers, vars);
         req_phase->rewrite_body(o,
@@ -180,14 +180,22 @@ void yf::HttpRewrite::process(mp::Package & package) const
 
 // Read (and remove) the X-Metaproxy-SkipLink headers
 void yf::HttpRewrite::Phase::read_skip_headers(Z_HTTP_Request *hreq,
-                                 std::list<boost::regex> &skip_list )
+                                 std::list<boost::regex> &skip_list,
+                                 std::string bind_addr  )
 {
     std::string url(hreq->path);
     if ( url.substr(0,7) != "http://" )
     { // path was relative, as it usually is
+       // make absolute, so we can match the page regex against it
         const char *host =  z_HTTP_header_lookup(hreq->headers, "Host");
+        std::string proto;
+        if (bind_addr.find("ssl:") == 0) {
+          proto = "https";
+        } else {
+          proto = "http";
+        }
         if (host)
-          url = "http://" + std::string(host) + hreq->path ;
+          url = proto + "://" + std::string(host) + hreq->path ;
     }
 
     while ( const char *hv = z_HTTP_header_remove( &(hreq->headers),
