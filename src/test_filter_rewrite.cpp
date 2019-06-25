@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE( test_filter_rewrite_1 )
 
         mp::odr odr;
         Z_GDU *gdu_req = z_get_HTTP_Request_uri(odr,
-            "http://proxyhost/proxypath/targetsite/page1.html", 0, 1);
+            "https://proxyhost/proxypath/targetsite/page1.html", 0, 1);
         
         Z_HTTP_Request *hreq = gdu_req->u.HTTP_Request;
         z_HTTP_header_set(odr, &hreq->headers,

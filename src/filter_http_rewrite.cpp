@@ -184,8 +184,8 @@ void yf::HttpRewrite::Phase::read_skip_headers(Z_HTTP_Request *hreq,
                                  std::string bind_addr  )
 {
     std::string url(hreq->path);
-    if ( url.substr(0,7) != "http://" )
-    { // path was relative, as it usually is
+    if ( url.substr(0,7) != "http://" &&  url.substr(0,8) != "https://")
+    { // path was relative, as it often is
        // make absolute, so we can match the page regex against it
         const char *host =  z_HTTP_header_lookup(hreq->headers, "Host");
         std::string proto;
@@ -975,7 +975,7 @@ void yf::HttpRewrite::configure(const xmlNode * ptr, bool test_only,
             throw mp::filter::FilterException
                 ("Bad element "
                  + std::string((const char *) ptr->name)
-                 + " in http_rewrite1 filter");
+                 + " in http_rewrite filter");
         }
     }
 }
