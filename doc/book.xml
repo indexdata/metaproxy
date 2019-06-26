@@ -785,6 +785,7 @@
     <literal>sru_z3950</literal>,
     <literal>template</literal>,
     <literal>virt_db</literal>).
+    <literal>http_rewrite</literal>).
    </para>
  </section>
 
@@ -921,6 +922,24 @@ Figure out what additional information we need in:
      far it does not contain either an email-reader or a Lisp
      interpreter, but that day is surely coming.)
     </para>
+   </section>
+
+   <section id="http_rewrite">
+    <title><literal>http_rewrite</literal>
+     (mp::filter::HttpRewrite)</title>
+    <para>
+     A true filter that can rewrite HTTP requests and responses. Passes all
+     other types through unmodified. There is a configuration example file
+     <literal>config-rewrite.xml</literal> under the <literal>etc</literal>
+     directory.
+     </para>
+    <warning>
+     <para>
+      This filter is somehat experimental. Its main use is in connection with our
+      cf-proxy filter, which unfortunately can not be released as Open Source.
+     </para>
+    </warning>
+
    </section>
 
    <section id="load_balance">
