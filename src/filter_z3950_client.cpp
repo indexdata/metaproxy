@@ -318,6 +318,7 @@ yf::Z3950Client::Z3950Client() :  m_p(new yf::Z3950Client::Rep)
     m_p->m_init_timeout_sec = 10;
     m_p->m_general_timeout_sec = 30;
     m_p->m_max_sockets = 0;
+    m_p->m_max_sockets_timeout_sec = 15;
     m_p->m_force_close = false;
     m_p->m_client_ip = false;
     m_p->m_bind_host = false;
