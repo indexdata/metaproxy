@@ -450,8 +450,8 @@ yf::Z3950Client::Assoc *yf::Z3950Client::Rep::get_assoc(Package &package)
                     no_not_in_use++;
             }
         }
-        yaz_log(YLOG_LOG, "Found %d/%d connections for %s", number, max_sockets,
-                target.c_str());
+        yaz_log(YLOG_LOG, "Found num=%d/max=%d/idle=%d connections for %s",
+                number, max_sockets, no_not_in_use, target.c_str());
         if (number < max_sockets)
             break;
         if (no_not_in_use == 0) // all in use..
