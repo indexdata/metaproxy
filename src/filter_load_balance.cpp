@@ -58,8 +58,8 @@ namespace metaproxy_1
             //void clear_dead(unsigned long session_id);
             void add_package(unsigned long session_id);
             void remove_package(unsigned long session_id);
-            void add_session(unsigned long session_id, std::string target);
-            void remove_session(unsigned long session_id);
+            void add_session(metaproxy_1::Package &pkg, std::string target);
+            void remove_session(metaproxy_1::Package &pkg);
             std::string find_session_target(unsigned long session_id);
 
             // cost functions
@@ -201,7 +201,7 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
                 // checking for closed back end packages
                 if (!init_pkg.session().is_closed())
                 {
-                    add_session(package.session().id(), target);
+                    add_session(package, target);
 
                     package.response() = init_pkg.response();
                     return;
@@ -273,7 +273,7 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
         if (is_closed_front == false)
             add_dead(package.session().id());
 
-        remove_session(package.session().id());
+        remove_session(package);
 
         // making sure that package is closed
         package.session().close();
@@ -332,15 +332,23 @@ void yf::LoadBalance::Impl::remove_package(unsigned long session_id)
     }
 }
 
-void yf::LoadBalance::Impl::add_session(unsigned long session_id,
+void yf::LoadBalance::Impl::add_session(mp::Package &package,
                                         std::string target)
 {
     // finding and adding session
+    unsigned long session_id = package.session().id();
     std::map<unsigned long, std::string>::iterator isess;
     isess = m_session_target.find(session_id);
     if (isess == m_session_target.end())
     {
         m_session_target.insert(std::make_pair(session_id, target));
+
+        std::ostringstream os;
+        os  << "LB" << " "
+            << package << " "
+            << "0.000000 Add " << target << " size="
+            << m_session_target.size();
+        yaz_log(YLOG_LOG, "%s", os.str().c_str());
     }
 
     // finding and adding target statistics
@@ -360,8 +368,9 @@ void yf::LoadBalance::Impl::add_session(unsigned long session_id,
     }
 }
 
-void yf::LoadBalance::Impl::remove_session(unsigned long session_id)
+void yf::LoadBalance::Impl::remove_session(mp::Package &package)
 {
+    unsigned long session_id = package.session().id();
     std::map<unsigned long, std::string>::iterator isess;
     isess = m_session_target.find(session_id);
     if (isess == m_session_target.end())
@@ -369,6 +378,13 @@ void yf::LoadBalance::Impl::remove_session(unsigned long session_id)
 
     std::string target = isess->second;
     m_session_target.erase(isess);
+
+    std::ostringstream os;
+    os  << "LB" << " "
+        << package << " "
+        << "0.000000 Remove " << target << " size="
+        << m_session_target.size();
+    yaz_log(YLOG_LOG, "%s", os.str().c_str());
 
     // finding target statistics
     std::map<std::string, TargetStat>::iterator itarg;
