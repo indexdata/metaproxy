@@ -100,7 +100,7 @@ the following databaseNames (virtual databases):
       </filter>
       <filter type="session_shared">
         <resultset max="3" ttl="10"/>
-        <session ttl="30"/>
+        <session ttl="15"/>
       </filter>
       <filter type="virt_db">
         <virtual>
