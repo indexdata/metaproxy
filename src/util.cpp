@@ -154,7 +154,6 @@ int mp_util::memcmp2(const void *buf1, int len1,
 bool mp_util::match(const std::list<std::string> &db1,
                     const std::list<std::string> &db2)
 {
-    yaz_log(YLOG_LOG, "mp_util::match");
     std::list<std::string>::const_iterator it1 = db1.begin();
     std::list<std::string>::const_iterator it2 = db2.begin();
     while (it1 != db1.end() && it2 != db2.end())
