@@ -66,7 +66,6 @@ namespace metaproxy_1 {
             std::list<std::string> m_targets;
             std::string m_route;
             bool m_named_result_sets;
-            int m_number_of_sets;
         };
         struct VirtualDB::Frontend {
             Frontend(Rep *rep);
@@ -126,7 +125,6 @@ yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::create_backend_from_databases
     BackendPtr b(new Backend);
     std::list<std::string>::const_iterator db_it = databases.begin();
 
-    b->m_number_of_sets = 0;
     b->m_frontend_databases = databases;
     b->m_named_result_sets = false;
 
@@ -275,6 +273,7 @@ void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
         databases.push_back(req->databaseNames[i]);
 
     Sets_it sets_it = m_sets.find(req->resultSetName);
+    bool override_set = false;
     if (sets_it != m_sets.end())
     {
         // result set already exist
@@ -291,10 +290,10 @@ void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
 
             return;
         }
-        sets_it->second.m_backend->m_number_of_sets--;
+        override_set = true;
     }
     // pick up any existing database with named result sets ..
-    // or one which has no result sets.. yet.
+    // or one if we are overriding it
     BackendPtr b; // null for now
     std::list<BackendPtr>::const_iterator map_it;
     map_it = m_backend_list.begin();
@@ -302,7 +301,7 @@ void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     {
         BackendPtr tmp = *map_it;
         if (mp::util::match(tmp->m_frontend_databases, databases) &&
-            (tmp->m_named_result_sets || tmp->m_number_of_sets == 0))
+            (tmp->m_named_result_sets || override_set))
         {
             b = *map_it;
             break;
@@ -371,7 +370,6 @@ void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
         Z_Records *z_records = b_resp->records;
         if (!z_records || (z_records && z_records->which == Z_Records_DBOSD))
         {
-            b->m_number_of_sets++;
             m_sets[resultSetId] = VirtualDB::Set(b, backend_setname);
             fixup_package(search_package, b);
         }
