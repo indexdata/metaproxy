@@ -2,6 +2,8 @@
 
 session_shared: log when sessions expire
 
+virt_db: session reuse when overriding result-set
+
 virt_db, session_shared: case-insensitive db compare
 
 z3950_client: fix un-initialized variable max-sockets-timeout
