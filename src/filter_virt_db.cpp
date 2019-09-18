@@ -92,8 +92,6 @@ namespace metaproxy_1 {
             void fixup_npr_records(ODR odr, Z_Records *records,
                                    BackendPtr b);
 
-            BackendPtr lookup_backend_from_databases(
-                std::list<std::string> databases);
             BackendPtr create_backend_from_databases(
                 std::list<std::string> databases,
                 int &error_code,
@@ -120,18 +118,6 @@ namespace metaproxy_1 {
             bool pass_vhosts;
         };
     }
-}
-
-yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::lookup_backend_from_databases(
-    std::list<std::string> databases)
-{
-    std::list<BackendPtr>::const_iterator map_it;
-    map_it = m_backend_list.begin();
-    for (; map_it != m_backend_list.end(); map_it++)
-        if ((*map_it)->m_frontend_databases == databases)
-            return *map_it;
-    BackendPtr null;
-    return null;
 }
 
 yf::VirtualDB::BackendPtr yf::VirtualDB::Frontend::create_backend_from_databases(
@@ -315,9 +301,8 @@ void yf::VirtualDB::Frontend::search(mp::Package &package, Z_APDU *apdu_req)
     for (; map_it != m_backend_list.end(); map_it++)
     {
         BackendPtr tmp = *map_it;
-        if (tmp->m_frontend_databases == databases &&
-            (tmp->m_named_result_sets ||
-             tmp->m_number_of_sets == 0))
+        if (mp::util::match(tmp->m_frontend_databases, databases) &&
+            (tmp->m_named_result_sets || tmp->m_number_of_sets == 0))
         {
             b = *map_it;
             break;
@@ -680,7 +665,7 @@ void yf::VirtualDB::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
     for (; map_it != m_backend_list.end(); map_it++)
     {
         BackendPtr tmp = *map_it;
-        if (tmp->m_frontend_databases == databases)
+        if (mp::util::match(tmp->m_frontend_databases, databases))
             break;
     }
     if (map_it != m_backend_list.end())

@@ -151,6 +151,23 @@ int mp_util::memcmp2(const void *buf1, int len1,
     return 0;
 }
 
+bool mp_util::match(const std::list<std::string> &db1,
+                    const std::list<std::string> &db2)
+{
+    yaz_log(YLOG_LOG, "mp_util::match");
+    std::list<std::string>::const_iterator it1 = db1.begin();
+    std::list<std::string>::const_iterator it2 = db2.begin();
+    while (it1 != db1.end() && it2 != db2.end())
+    {
+        std::string s1 = database_name_normalize(*it1);
+        std::string s2 = database_name_normalize(*it2);
+        if (s1.compare(s2) != 0)
+            return false;
+        it1++;
+        it2++;
+    }
+    return it1 == db1.end() && it2 == db2.end();
+}
 
 std::string mp_util::database_name_normalize(const std::string &s)
 {

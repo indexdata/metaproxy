@@ -768,7 +768,9 @@ void yf::SessionShared::Frontend::override_set(
             BackendSetList::iterator set_it = (*it)->m_sets.begin();
             for (; set_it != (*it)->m_sets.end(); set_it++)
             {
-                if ((max_sets > 1 || (*set_it)->m_databases == databases)
+                bool same_databases = mp::util::match((*set_it)->m_databases,
+                                                     databases);
+                if ((max_sets > 1 || same_databases)
                     &&
                     (out_of_sessions ||
                      now < (*set_it)->m_time_last_use ||
@@ -836,7 +838,7 @@ restart:
                 {
                     // for real present request we don't care
                     // if additionalSearchInfo matches: same records
-                    if ((*set_it)->m_databases == databases
+                    if (mp::util::match((*set_it)->m_databases, databases)
                         && query.match(&(*set_it)->m_query)
                         && (apdu_req->which != Z_APDU_searchRequest ||
                             yaz_compare_z_OtherInformation(
@@ -1030,7 +1032,8 @@ int yf::SessionShared::Frontend::result_set_ref(ODR o,
             {
                 ret = YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST;
             }
-            else if (fset_it->second->get_databases() != databases)
+            else if (!mp::util::match(fset_it->second->get_databases(),
+                                      databases))
             {
                 ret = YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST;
             }
