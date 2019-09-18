@@ -1,8 +1,18 @@
+--- 1.16.2 2019/09/18
+
+session_shared: log when sessions expire
+
+virt_db, session_shared: case-insensitive db compare
+
+z3950_client: fix un-initialized variable max-sockets-timeout
+
 --- 1.16.1 2019/06/26
+
 filter_http_rewrite: Fix missing https processing in skiplinks (MP-663)
 Add a bit of documentation for http_rewrite
 
 --- 1.16.0 2019/05/15
+
 filter_http_rewrite: Better handling of https requests (MP-660, MP-662)
  - Considers both http:// and https:// as absolute URLs in the request line
  - for relative requests, expands to http:// or https:// depending on how the
