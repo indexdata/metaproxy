@@ -1326,14 +1326,20 @@ bool yf::SessionShared::BackendClass::expire_instances()
 
         if ((*bit)->m_in_use)
         {
+            yaz_log(YLOG_LOG, "session_shared id=%ld in_use",
+                    (*bit)->m_session.id());
             bit++;
         }
         else if (now < last_use || now - last_use > m_backend_expiry_ttl)
         {
+            yaz_log(YLOG_LOG, "session_shared id=%ld erase",
+                    (*bit)->m_session.id());
             bit = m_backend_list.erase(bit);
         }
         else
         {
+            yaz_log(YLOG_LOG, "session_shared id=%ld skip now-last_use=%ld",
+                    (*bit)->m_session.id(), (long) (now - last_use));
             bit++;
         }
     }
