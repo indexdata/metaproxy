@@ -78,8 +78,6 @@ the following databaseNames (virtual databases):
       <filter type="frontend_net">
         <threads>100</threads>
         <port>@:7090</port>
-        <!-- maximum connections within a minute from same IP -->
-        <connect-max>10</connect-max>
       </filter>
       <!-- converts SRU to Z39.50 and back -->
       <filter type="sru_z3950"/>
@@ -99,8 +97,8 @@ the following databaseNames (virtual databases):
         <limit bandwidth="50000" pdu="100" retrieve="50" search="5"/>
       </filter>
       <filter type="session_shared">
-        <resultset max="3" ttl="10"/>
-        <session ttl="15"/>
+        <resultset max="3" ttl="5"/>
+        <session ttl="15" max="30"/>
       </filter>
       <filter type="virt_db">
         <virtual>
@@ -177,6 +175,10 @@ the following databaseNames (virtual databases):
     </route>
     <!-- idtest -->
     <route id="idtest">
+      <filter type="log">
+        <message>V</message>
+        <category init-options="true" session="true"/>
+      </filter>
       <filter type="virt_db">
         <virtual>
           <database>Default</database>
@@ -184,8 +186,16 @@ the following databaseNames (virtual databases):
           <target>localhost:9002/Default</target>
         </virtual>
       </filter>
+      <filter type="log">
+        <message>L</message>
+        <category init-options="true" session="true"/>
+      </filter>
       <filter type="load_balance"/>
       <filter refid="marc8-records"/>
+      <filter type="log">
+        <message>O</message>
+        <category init-options="true" session="true"/>
+      </filter>
       <filter type="z3950_client"/>
       <filter type="bounce"/>
     </route>
