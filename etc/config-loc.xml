@@ -99,6 +99,7 @@ the following databaseNames (virtual databases):
       <filter type="session_shared">
         <resultset max="3" ttl="5"/>
         <session ttl="15" max="30"/>
+        <init ignore-auth="true"/>
       </filter>
       <filter type="virt_db">
         <virtual>

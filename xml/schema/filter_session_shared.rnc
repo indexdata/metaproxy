@@ -21,5 +21,6 @@ filter_session_shared =
   }?,
   element mp:init {
     attribute preferred-message-size { xsd:integer }?,
-    attribute maximum-record-size { xsd:integer }?
+    attribute maximum-record-size { xsd:integer }?,
+    attribute ignore-auth { xsd:boolean }?
   }?

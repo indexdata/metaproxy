@@ -9,6 +9,7 @@ xmlconfig = $(srcdir)/config-bytarget.xml \
     $(srcdir)/config-load-balance.xml \
     $(srcdir)/config-record-transform.xml \
     $(srcdir)/config-shared1.xml \
+    $(srcdir)/config-loc.xml \
     $(srcdir)/config-simple-multi.xml \
     $(srcdir)/config-sru-to-z3950.xml \
     $(srcdir)/config-sru-holdings.xml \

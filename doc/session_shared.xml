@@ -52,6 +52,22 @@
   <para>
    Configurable values:
    <variablelist>
+    <varlistentry><term>Init ignore-auth</term>
+     <listitem>
+      <para>
+       By default, authentication information is passed on for
+       session_shared and no sessions with different authentication
+       parameters are ever shared. By setting
+       <literal>ignore-auth</literal> to true, session_shared will
+       ignore the authentication sent by client (or previous filter in
+       chain) and always make it absent in the following init request.
+       This is useful a service is truly open and clients, by mistake,
+       send authentication information anyway and you want session_shared
+       to share more sessions.
+      </para>
+     </listitem>
+    </varlistentry>
+
     <varlistentry><term>Session TTL</term>
      <listitem>
       <para>
@@ -121,6 +137,7 @@
     <filter type="session_shared">
      <resultset ttl="10" max="3" restart="true"/>
      <session ttl="30" max="100"/>
+     <init ignore-auth="true"/>
     </filter>
 ]]>
    </screen>

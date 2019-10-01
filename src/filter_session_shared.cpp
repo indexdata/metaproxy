@@ -221,6 +221,7 @@ namespace metaproxy_1 {
             int m_session_ttl;
             bool m_optimize_search;
             bool m_restart;
+            bool m_ignore_auth;
             int m_session_max;
             Odr_int m_preferredMessageSize;
             Odr_int m_maximumRecordSize;
@@ -564,6 +565,8 @@ void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
 
     frontend->m_is_virtual = true;
     frontend->m_init_options = *req->options;
+    if (m_ignore_auth)
+        req->idAuthentication = 0;
     InitKey k(req);
     {
         boost::mutex::scoped_lock lock(m_mutex_backend_map);
@@ -1394,6 +1397,7 @@ yf::SessionShared::Rep::Rep()
     m_resultset_max = 10;
     m_session_ttl = 90;
     m_optimize_search = true;
+    m_ignore_auth = false;
     m_restart = false;
     m_session_max = 100;
     m_preferredMessageSize = 0;
@@ -1609,6 +1613,10 @@ void yf::SessionShared::configure(const xmlNode *ptr, bool test_only,
                                  "preferred-message-size"))
                     m_p->m_preferredMessageSize =
                         mp::xml::get_int(attr->children, 0);
+                else if (!strcmp((const char *) attr->name,
+                                 "ignore-auth"))
+                    m_p->m_ignore_auth =
+                        mp::xml::get_bool(attr->children, false);
                 else
                     throw mp::filter::FilterException(
                         "Bad attribute " + std::string((const char *)
