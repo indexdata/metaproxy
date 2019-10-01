@@ -1,3 +1,9 @@
+--- 1.17.0 2019/10/02
+
+session_shared: new facility ignore-auth. This is a new configuration
+for session_shared to make it ignore authentication info sent by clients
+and, thus, increase session reuse.
+
 --- 1.16.2 2019/09/18
 
 session_shared: log when sessions expire
