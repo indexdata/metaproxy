@@ -201,7 +201,10 @@ void yf::LoadBalance::Impl::process(mp::Package &package)
                 // checking for closed back end packages
                 if (!init_pkg.session().is_closed())
                 {
-                    add_session(package, target);
+                    {
+                        boost::mutex::scoped_lock scoped_lock(m_mutex);
+                        add_session(package, target);
+                    }
 
                     package.response() = init_pkg.response();
                     return;
