@@ -1,3 +1,9 @@
+--- 1.17.1 2019/11/08
+
+Fix SIGTERM may leave metaproxy behind MP-668
+
+Fix SEGV in load_balance filter MP-667
+
 --- 1.17.0 2019/10/02
 
 session_shared: new facility ignore-auth. This is a new configuration
