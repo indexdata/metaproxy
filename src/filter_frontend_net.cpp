@@ -720,14 +720,16 @@ void yf::FrontendNet::process(mp::Package &package) const
         tt = new My_Timer_Thread(&m_p->mySocketManager,
                                  m_p->m_listen_duration);
 
-    ThreadPoolSocketObserver tp(&m_p->mySocketManager, m_p->m_no_threads,
-                                m_p->m_max_threads,
-                                m_p->m_stack_size);
+    ThreadPoolSocketObserver *tp =
+        new ThreadPoolSocketObserver(&m_p->mySocketManager, m_p->m_no_threads,
+                                     m_p->m_max_threads,
+                                     m_p->m_stack_size);
 
     for (i = 0; i<m_p->m_ports.size(); i++)
     {
 	m_p->az[i]->set_package(&package);
-	m_p->az[i]->set_thread_pool(&tp);
+	m_p->az[i]->set_thread_pool(
+            tp);
     }
     while (m_p->mySocketManager.processEvent() > 0)
     {
@@ -744,7 +746,7 @@ void yf::FrontendNet::process(mp::Package &package) const
                 }
                 yaz_daemon_stop();
             }
-            break; /* stop right away */
+            return; // do not even attempt to destroy tp or tt
         }
 #ifndef WIN32
         if (m_p->m_stop_signo == SIGUSR1)
@@ -766,6 +768,7 @@ void yf::FrontendNet::process(mp::Package &package) const
 	if (tt && tt->timeout())
 	    break;
     }
+    delete tp;
     delete tt;
 }
 
