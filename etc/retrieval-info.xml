@@ -33,7 +33,13 @@
       <marc inputcharset="marc-8" inputformat="marc" outputformat="marcxchange"/>
     </backend>
   </retrieval>
-  <retrieval name="OP" syntax="xml">
+  <retrieval name="opac8" syntax="opac">
+    <backend name="F" syntax="opac">
+      <marc leaderspec="9=' '" inputcharset="marc-8" inputformat="marc"
+          outputcharset="marc-8" outputformat="marcxml"/>
+    </backend>
+  </retrieval>
+   <retrieval name="OP" syntax="xml">
     <backend name="F" syntax="opac">
       <marc inputcharset="marc-8" inputformat="marc" outputformat="marcxchange"/>
     </backend>

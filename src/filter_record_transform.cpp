@@ -241,6 +241,85 @@ void yf::RecordTransform::Impl::configure(const xmlNode *xml_node,
     }
 }
 
+static void convert_npr(yaz_record_conv_t rc,
+                        Odr_oid *match_syntax,
+                        ODR odr_en,
+                        Z_NamePlusRecordList *records, int i)
+{
+    Z_NamePlusRecord *npr = records->records[i];
+    const char *details = 0;
+    mp::wrbuf output_record;
+    Z_External *r = npr->u.databaseRecord;
+    int ret_trans = -1;
+    if (npr->which != Z_NamePlusRecord_databaseRecord)
+        return;
+    r = npr->u.databaseRecord;
+    if (r->which == Z_External_OPAC)
+    {
+        ret_trans = yaz_record_conv_opac_record(rc, r->u.opac,
+                                                output_record);
+        details = yaz_record_conv_get_error(rc);
+    }
+    else if (r->which == Z_External_octet)
+    {
+        ret_trans =
+            yaz_record_conv_record(
+                rc, (const char *) r->u.octet_aligned->buf,
+                r->u.octet_aligned->len, output_record);
+        details = yaz_record_conv_get_error(rc);
+    }
+    else
+    {
+        details = "unsupported record type for record_conv";
+    }
+    if (ret_trans)
+    {
+        records->records[i] =
+            zget_surrogateDiagRec(
+                odr_en, npr->databaseName,
+                YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                details);
+    }
+    else
+    {
+        if (!oid_oidcmp(match_syntax, yaz_oid_recsyn_opac))
+        {
+            yaz_iconv_t cd = 0;
+            yaz_marc_t mt = yaz_marc_create();
+            Z_OPACRecord *opac = 0;
+            const char *output_charset =
+                yaz_record_get_output_charset(rc);
+            if (output_charset)
+                cd = yaz_iconv_open(output_charset, "utf-8");
+            if (yaz_xml_to_opac(mt, output_record.buf(),
+                                output_record.len(),
+                                &opac, cd,
+                                ((ODR )odr_en)->mem, 0)
+                && opac)
+            {
+                npr->u.databaseRecord =
+                    z_ext_record_oid(odr_en, match_syntax,
+                                     (const char *) opac, -1);
+            }
+            else
+            {
+                records->records[i] =
+                    zget_surrogateDiagRec(
+                        odr_en, npr->databaseName,
+                        YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
+                        "XML to OPAC conversion failed");
+            }
+            yaz_marc_destroy(mt);
+        }
+        else
+        {
+            npr->u.databaseRecord = z_ext_record_oid(odr_en, match_syntax,
+                                                     output_record.buf(),
+                                                     output_record.len());
+        }
+    }
+}
+
 void yf::RecordTransform::Impl::process(mp::Package &package) const
 {
 
@@ -458,78 +537,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     {
         int i;
         for (i = 0; i < records->num_records; i++)
-        {
-            Z_NamePlusRecord *npr = records->records[i];
-            if (npr->which == Z_NamePlusRecord_databaseRecord)
-            {
-                const char *details = 0;
-                mp::wrbuf output_record;
-                Z_External *r = npr->u.databaseRecord;
-                int ret_trans = -1;
-                if (r->which == Z_External_OPAC)
-                {
-                    ret_trans =
-                        yaz_record_conv_opac_record(rc, r->u.opac,
-                                                    output_record);
-                    details = yaz_record_conv_get_error(rc);
-                }
-                else if (r->which == Z_External_octet)
-                {
-                    ret_trans =
-                        yaz_record_conv_record(rc, (const char *)
-                                               r->u.octet_aligned->buf,
-                                               r->u.octet_aligned->len,
-                                               output_record);
-                    details = yaz_record_conv_get_error(rc);
-                }
-                else
-                {
-                    details = "unsupported record type for record_conv";
-                }
-                if (ret_trans)
-                {
-                    records->records[i] =
-                        zget_surrogateDiagRec(
-                            odr_en, npr->databaseName,
-                            YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
-                            details);
-                }
-                else
-                {
-                    if (!oid_oidcmp(match_syntax, yaz_oid_recsyn_opac))
-                    {
-                        yaz_marc_t mt = yaz_marc_create();
-                        Z_OPACRecord *opac = 0;
-                        if (yaz_xml_to_opac(mt, output_record.buf(),
-                                            output_record.len(),
-                                            &opac, 0 /* iconv */,
-                                            ((ODR )odr_en)->mem, 0)
-                            && opac)
-                        {
-                            npr->u.databaseRecord =
-                                z_ext_record_oid(odr_en, match_syntax,
-                                                 (const char *) opac, -1);
-                        }
-                        else
-                        {
-                            records->records[i] =
-                                zget_surrogateDiagRec(
-                                    odr_en, npr->databaseName,
-                                    YAZ_BIB1_SYSTEM_ERROR_IN_PRESENTING_RECORDS,
-                                    "XML to OPAC conversion failed");
-                        }
-                        yaz_marc_destroy(mt);
-                    }
-                    else
-                    {
-                        npr->u.databaseRecord =
-                            z_ext_record_oid(odr_en, match_syntax,
-                                             output_record.buf(),
-                                             output_record.len());
-                    }
-                }
-            }
-        }
+            convert_npr(rc, match_syntax, odr_en, records, i);
         package.response() = gdu_res;
     }
     return;
