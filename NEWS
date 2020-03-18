@@ -1,3 +1,7 @@
+--- 1.17.2 2020/03/18
+
+Fix OPAC encoding WRT charset and leaderspec MP-669
+
 --- 1.17.1 2019/11/08
 
 Fix SIGTERM may leave metaproxy behind MP-668
