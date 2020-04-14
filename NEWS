@@ -1,3 +1,7 @@
+--- 1.18.0 2020/04/14
+
+Use YAZPP 1.7.0.
+
 --- 1.17.2 2020/03/18
 
 Fix OPAC encoding WRT charset and leaderspec MP-669
