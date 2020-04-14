@@ -1,5 +1,5 @@
-debian/tmp/usr/include/metaproxy
-debian/tmp/usr/lib/*/lib*.a
-debian/tmp/usr/lib/*/lib*.so
-debian/tmp/usr/bin/metaproxy-config
-debian/tmp/usr/share/man/man1/metaproxy-config.1
+usr/include/metaproxy
+usr/lib/*/lib*.a
+usr/lib/*/lib*.so
+usr/bin/metaproxy-config
+usr/share/man/man1/metaproxy-config.1

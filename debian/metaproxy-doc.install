@@ -1,2 +1,2 @@
-debian/tmp/usr/share/doc/metaproxy-doc/*
-debian/tmp/usr/share/doc/metaproxy-doc/common/*
+usr/share/doc/metaproxy-doc/*
+usr/share/doc/metaproxy-doc/common/*
