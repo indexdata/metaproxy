@@ -101,7 +101,8 @@ AC_OUTPUT([
 	doc/common/print.dsl
 	etc/Makefile
 ],[
-        sed s%echo_source=yes%echo_source=no%g < metaproxy-config > src/metaproxy-config && chmod +x metaproxy-config src/metaproxy-config
+	sed -e 's%echo_source=yes%echo_source=no%g; s%src_root=.*$%%g; s%build_root=.*%%g' \
+		< metaproxy-config > src/metaproxy-config && chmod +x metaproxy-config src/metaproxy-config
 	diff doc/local.ent doc/local0.ent >/dev/null 2>/dev/null \
 		|| cp doc/local0.ent doc/local.ent
 ])

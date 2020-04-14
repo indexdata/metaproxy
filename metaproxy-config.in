@@ -9,8 +9,6 @@ echo_help=no
 echo_tabs=no
 echo_source=yes
 echo_lalibs=no
-src_root="@abs_top_srcdir@"
-build_root="@abs_top_builddir@"
 
 libs="@BOOST_LIB@ @BOOST_SYSTEM_LIB@ @BOOST_REGEX_LIB@ @BOOST_THREAD_LIB@ @YAZPPLIB@ @LIBS@"
 lalibs="@YAZPPLALIB@ @LIBS@"
@@ -74,6 +72,8 @@ done
 INC="@YAZPPINC@ @BOOST_CPPFLAGS@"
 
 if test "$echo_source" = "yes"; then
+    src_root="@abs_top_srcdir@"
+    build_root="@abs_top_builddir@"
     LIB="-L${build_root}/src/.libs -lmetaproxy $libs"
     LALIB="${build_root}/src/libmetaproxy.la $lalibs"
     INC="-I${src_root}/include $INC"
