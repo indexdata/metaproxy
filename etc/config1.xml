@@ -7,6 +7,8 @@
         <threads>10</threads>
         <port>127.0.0.2:9000</port>
         <port>127.0.0.1:9000</port>
+        <timeout verbose="2" ip="127.*">300</timeout>
+        <timeout verbose="2">60</timeout>
         <message>FN</message>
       </filter>
       <filter type="cql_rpn">

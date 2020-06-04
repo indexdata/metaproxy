@@ -85,7 +85,7 @@ namespace metaproxy_1 {
             int m_stack_size;
             std::vector<Port> m_ports;
             int m_listen_duration;
-            int m_session_timeout;
+            std::list<IP_Pattern> session_timeout;
             std::list<IP_Pattern> connect_max;
             std::list<IP_Pattern> connect_total;
             std::list<IP_Pattern> http_req_max;
@@ -324,7 +324,21 @@ yf::FrontendNet::ZAssocChild::ZAssocChild(
     addr.append(port->port);
     m_p->m_peerStat.add(m_peer);
     m_origin.set_tcpip_address(addr, m_session.id());
-    timeout(m_p->m_session_timeout);
+    int session_timeout = 300; // 5 minutes
+    if (peername) {
+        std::list<IP_Pattern>::const_iterator it = m_p->session_timeout.begin();
+        for (; it != m_p->session_timeout.end(); it++)
+            if (mp::util::match_ip(it->pattern, peername))
+            {
+                if (it->verbose > 1)
+                    yaz_log(YLOG_LOG, "timeout pattern=%s ip=%s value=%d",
+                            it->pattern.c_str(),
+                            peername, it->value);
+                session_timeout = it->value;
+                break;
+            }
+    }
+    timeout(session_timeout);
 }
 
 yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocChild::sessionNotify(
@@ -623,7 +637,6 @@ yf::FrontendNet::Rep::Rep()
     m_max_threads = m_no_threads = 5;
     m_stack_size = 0;
     m_listen_duration = 0;
-    m_session_timeout = 300; // 5 minutes
     az = 0;
     size_t i;
     for (i = 0; i < 22; i++)
@@ -834,12 +847,15 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
         }
         else if (!strcmp((const char *) ptr->name, "timeout"))
         {
-            std::string timeout_str = mp::xml::get_text(ptr);
-            int timeout = atoi(timeout_str.c_str());
-            if (timeout < 1)
-                throw yf::FilterException("Bad value for timeout: "
-                                                   + timeout_str);
-            m_p->m_session_timeout = timeout;
+            const char *names[3] = {"ip", "verbose", 0};
+            std::string values[2];
+
+            mp::xml::parse_attr(ptr, names, values);
+            IP_Pattern m;
+            m.value = mp::xml::get_int(ptr, 0);
+            m.pattern = values[0];
+            m.verbose = values[1].length() ? atoi(values[1].c_str()) : 1;
+            m_p->session_timeout.push_back(m);
         }
         else if (!strcmp((const char *) ptr->name, "connect-max"))
         {

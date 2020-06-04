@@ -56,10 +56,11 @@
    If omitted, the system default stack size for threads is used.
   </para>
   <para>
-   Element <literal>timeout</literal> is an optional element. The
+   Element <literal>timeout</literal> is an optional repeatable element. The
    text content is treated as an integer that specifies the session timeout
    in seconds for a client session (using the frontend net filter). The
-   default value is 300 (5 minutes).
+   default value is 300 (5 minutes). The element may be repeated and an IP
+   pattern may be given for each element.
   </para>
   <para>
    Element <literal>connect-max</literal> is an optional repeatable element.

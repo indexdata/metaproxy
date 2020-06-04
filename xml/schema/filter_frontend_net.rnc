@@ -19,7 +19,11 @@ filter_frontend_net =
     attribute cert_fname { xsd:string }?,
    xsd:string
   }+,
-  element mp:timeout { xsd:integer }?,
+  element mp:timeout {
+    attribute ip { xsd:string }?,
+    attribute verbose { xsd:integer }?,
+    xsd:integer
+  }*,
   element mp:connect-max {
     attribute ip { xsd:string }?,
     attribute verbose { xsd:integer }?,
