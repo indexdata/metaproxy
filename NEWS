@@ -1,3 +1,8 @@
+--- 1.19.0 2020/06/08
+
+frontend_net filter with timeout with ip attribute. Similar to connect-max,
+connect-total configuration.
+
 --- 1.18.0 2020/04/14
 
 Use YAZPP 1.7.0.
