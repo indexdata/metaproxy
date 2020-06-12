@@ -764,13 +764,18 @@ bool mp::util::match_ip(const std::string &pattern, const std::string &value)
     boost::split(globitems, pattern, boost::is_any_of(" "));
     bool ret_value = true; // for now (if only empty values)
     std::vector<std::string>::const_iterator it = globitems.begin();
+    const char *value_c = value.c_str();
+    int ipv4_mapped = strlen(value_c) > 7 && memcmp(value_c, "::ffff:", 7) == 0;
     for (; it != globitems.end(); it++)
     {
         const char *c_str = (*it).c_str();
         if (*c_str)
         {
             ret_value = false; // at least one non-empty value
-            if (yaz_match_glob(c_str, value.c_str()))
+            if (yaz_match_glob(c_str, value_c))
+                return true;
+            if (!strchr(c_str, ':') && ipv4_mapped &&
+                yaz_match_glob(c_str, value_c + 7))
                 return true;
         }
     }
