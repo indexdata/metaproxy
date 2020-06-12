@@ -1,3 +1,8 @@
+--- 1.19.1 2020/06/12
+
+Ignore Ignore ::ffff: to match IPV4 addresses. That's for the ip
+properties for connect-max, connect-total, timeout in frontend_net filter.
+
 --- 1.19.0 2020/06/08
 
 frontend_net filter with timeout with ip attribute. Similar to connect-max,
