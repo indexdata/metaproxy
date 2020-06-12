@@ -763,9 +763,9 @@ bool mp::util::match_ip(const std::string &pattern, const std::string &value)
     // the empty pattern produces one empty string (vector size 1)
     boost::split(globitems, pattern, boost::is_any_of(" "));
     bool ret_value = true; // for now (if only empty values)
-    std::vector<std::string>::const_iterator it = globitems.begin();
     const char *value_c = value.c_str();
     int ipv4_mapped = strlen(value_c) > 7 && memcmp(value_c, "::ffff:", 7) == 0;
+    std::vector<std::string>::const_iterator it = globitems.begin();
     for (; it != globitems.end(); it++)
     {
         const char *c_str = (*it).c_str();
