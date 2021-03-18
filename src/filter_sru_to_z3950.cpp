@@ -606,10 +606,6 @@ bool yf::SRUtoZ3950::Impl::z3950_search_request(mp::Package &package,
     Z_APDU *apdu = zget_APDU(odr_en, Z_APDU_searchRequest);
     Z_SearchRequest *z_searchRequest = apdu->u.searchRequest;
 
-    // RecordSyntax will always be XML
-    z_searchRequest->preferredRecordSyntax
-        = odr_oiddup(odr_en, yaz_oid_recsyn_xml);
-
     if (!mp_util::set_databases_from_zurl(odr_en, zurl,
                                           &z_searchRequest->num_databaseNames,
                                           &z_searchRequest->databaseNames))
