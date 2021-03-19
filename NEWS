@@ -1,3 +1,8 @@
+--- 1.19.2 2021/03/19
+
+sru_z3950 filter omits preferredRecordSyntax for search. Some servers
+reject searches with preferedRecordSyntax set.
+
 --- 1.19.1 2020/06/12
 
 Ignore Ignore ::ffff: to match IPV4 addresses. That's for the ip
