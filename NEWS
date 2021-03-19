@@ -1,3 +1,7 @@
+--- 1.19.3 2021/03/19
+
+record_transform: simple search on piggyback.
+
 --- 1.19.2 2021/03/19
 
 sru_z3950 filter omits preferredRecordSyntax for search. Some servers
