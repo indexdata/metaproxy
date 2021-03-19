@@ -363,8 +363,8 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         {
             input_schema = sr_req->smallSetElementSetNames->u.generic;
         }
-        else if (!sr_req->smallSetElementSetNames &&
-                 !sr_req->mediumSetElementSetNames)
+        else if (*sr_req->largeSetLowerBound > 1
+                 && !sr_req->smallSetElementSetNames && !sr_req->mediumSetElementSetNames)
             ; // input_schema is 0 already
         else
         {
