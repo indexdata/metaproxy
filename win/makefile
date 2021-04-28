@@ -83,7 +83,7 @@ YAZPPD=yazpp6
 
 # YAZ includes & libs
 YAZ_LIB="$(YAZ_DIR)\lib\$(YAZD).lib"
-YAZ_DEF=/DYAZ_HAVE_XML2=1 /DYAZ_HAVE_XSLT=1 /DYAZ_USE_NEW_LOG=1 /I"$(YAZ_DIR)\include"
+YAZ_DEF=/DYAZ_HAVE_XML2=1 /DYAZ_HAVE_XSLT=1 /DYAZ_USE_NEW_LOG=1 /I"$(YAZ_DIR)\src"
 
 # Copy yaz.dll to our bin
 yaz: $(BINDIR)\$(YAZD).dll
