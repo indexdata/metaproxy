@@ -370,7 +370,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         {
             // disable piggyback (perhaps it was disabled already)
             *sr_req->smallSetUpperBound = 0;
-            *sr_req->largeSetLowerBound = 0;
+            *sr_req->largeSetLowerBound = 1;
             *sr_req->mediumSetPresentNumber = 0;
             package.move();
             return;
