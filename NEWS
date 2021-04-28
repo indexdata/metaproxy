@@ -1,3 +1,8 @@
+--- 1.19.4 2021/04/28
+
+record_transform: fix setting of largeSetLowerBound (issue
+introduced in 1.19.3).
+
 --- 1.19.3 2021/03/19
 
 record_transform: simple search on piggyback.
