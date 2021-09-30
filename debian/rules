@@ -5,7 +5,7 @@ export DH_VERBOSE=1
 	dh $@ --parallel --without python-support
 
 override_dh_auto_configure:
-	dh_auto_configure -- --with-yazpp=/usr/bin --without-usemarcon
+	dh_auto_configure -- --with-yazpp=pkg --without-usemarcon
 
 override_dh_strip:
 	dh_strip --dbg-package=libmetaproxy6-dbg

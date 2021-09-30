@@ -9,7 +9,7 @@ Vendor: Index Data ApS <info@indexdata.dk>
 Source: metaproxy-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Prefix: %{_prefix} /etc/metaproxy
-BuildRequires: pkgconfig, libyaz5-devel >= 5.30.0, libyazpp7-devel >= 1.7.0
+BuildRequires: pkgconfig, libyaz5-devel >= 5.30.0, libyazpp7-devel >= 1.8.0
 BuildRequires: libxslt-devel, boost-devel
 Conflicts: cf-engine <= 2.12.5
 Packager: Adam Dickmeiss <adam@indexdata.dk>
@@ -30,7 +30,7 @@ Metaproxy documentation.
 %package -n libmetaproxy6
 Summary: Metaproxy library
 Group: Libraries
-Requires: libyazpp7 >= 1.7.0, libyaz5 >= 5.30.0
+Requires: libyazpp7 >= 1.8.0, libyaz5 >= 5.30.0
 
 %description -n libmetaproxy6
 The Metaproxy libraries.
@@ -51,7 +51,7 @@ Development libraries and include files for the Metaproxy package.
 
 CFLAGS="$RPM_OPT_FLAGS" \
  ./configure --prefix=%{_prefix} --libdir=%{_libdir} --mandir=%{_mandir} \
-	--enable-shared --with-yazpp=/usr/bin
+	--enable-shared --with-yazpp=pkg
 %if %{?make_build:1}%{!?make_build:0}
 %make_build
 %else
