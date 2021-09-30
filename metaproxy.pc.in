@@ -7,6 +7,7 @@ includedir="@includedir@"
 Name: metaproxy
 Version: @VERSION@
 Description: Z39.50/SRU proxy
+# Note: Boost libs does not exist as pkg-config files yet
 Requires: yazpp
 Libs: -L${libdir} -lmetaproxy
 Libs.private: @BOOST_LIB@ @BOOST_SYSTEM_LIB@ @BOOST_REGEX_LIB@ @BOOST_THREAD_LIB@ @YAZPPLIB@ @LIBS@
