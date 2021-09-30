@@ -93,6 +93,7 @@ rm -fr ${RPM_BUILD_ROOT}
 %files -n libmetaproxy6-devel
 %defattr(-,root,root)
 %{_includedir}/metaproxy
+%{_libdir}/pkgconfig/*.pc
 %{_libdir}/*.so
 %{_libdir}/*.a
 %{_bindir}/metaproxy-config

@@ -1,4 +1,5 @@
 usr/include/metaproxy
+usr/lib/*/pkgconfig/*.pc
 usr/lib/*/lib*.a
 usr/lib/*/lib*.so
 usr/bin/metaproxy-config

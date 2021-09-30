@@ -101,6 +101,7 @@ AC_OUTPUT([
 	doc/common/Makefile
 	doc/common/print.dsl
 	etc/Makefile
+	metaproxy.pc
 ],[
 	sed -e 's%echo_source=yes%echo_source=no%g; s%src_root=.*$%%g; s%build_root=.*%%g' \
 		< metaproxy-config > src/metaproxy-config && chmod +x metaproxy-config src/metaproxy-config

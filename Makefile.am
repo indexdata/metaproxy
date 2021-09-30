@@ -14,6 +14,9 @@ EXTRA_DIST = Doxyfile.in IDMETA README.md LICENSE NEWS m4/id-config.sh \
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure 
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = metaproxy.pc
+
 dist-hook:
 	if test -x /usr/bin/git -a -d .git; then git log >ChangeLog ; cp ChangeLog $(distdir); fi
 	mkdir $(distdir)/win
