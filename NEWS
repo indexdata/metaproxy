@@ -1,3 +1,9 @@
+--- 1.20.0 2021/09/30
+
+Use yaz++ pkg-config configuration yazpp.pc.
+
+Provide metaproxy.pc as an alternative to metaproxy-config.
+
 --- 1.19.4 2021/04/28
 
 record_transform: fix setting of largeSetLowerBound (issue
