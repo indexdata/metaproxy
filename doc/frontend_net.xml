@@ -85,8 +85,8 @@
   <para>
    Element <literal>http-req-max</literal> is an optional repeatable element.
    The text content is treated as an integer that specifies maximum number
-   of accepted HTTP requests from the same original IP. A value of 0
-   means unlimited (no limit). The attribute <literal>ip</literal>
+   of accepted HTTP requests from the same original IP within a minute.
+   A value of 0 means unlimited (no limit). The attribute <literal>ip</literal>
    specifies an IP-pattern to match. If the IP pattern is matched, the
    limit takes effect. By repeating this element with different IP
    patterns, limits may be configured "per-IP". If no patterns are
