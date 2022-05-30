@@ -2,16 +2,14 @@
 ## Process this file with autoconf to produce a configure script.
 
 # Autoconf and automake setup
-AC_PREREQ([2.60])
-AC_INIT([metaproxy],
-m4_esyscmd([. ./IDMETA; printf $VERSION]),
-[metaproxy-help@indexdata.dk])
+AC_PREREQ([2.69])
+AC_INIT([metaproxy],[m4_esyscmd([. ./IDMETA; printf $VERSION])],[info@indexdata.com])
 
 AC_CONFIG_HEADERS([src/config.hpp])
 
 AC_CONFIG_SRCDIR([configure.ac]) 
 AC_CONFIG_AUX_DIR([config])
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 
 AM_INIT_AUTOMAKE([1.9])
 
@@ -21,7 +19,7 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
-AM_PROG_LIBTOOL
+LT_INIT
 
 AC_CHECK_PROGS([TRANG], [trang], [echo])
 
@@ -87,7 +85,7 @@ else
 fi
 AC_DEFINE_UNQUOTED([VERSION_SHA1], "$SHA1", [SHA-1 from Git])
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 	metaproxy-config
         Doxyfile
 	Makefile
@@ -102,12 +100,14 @@ AC_OUTPUT([
 	doc/common/print.dsl
 	etc/Makefile
 	metaproxy.pc
-],[
+])
+AC_CONFIG_COMMANDS([default],[
 	sed -e 's%echo_source=yes%echo_source=no%g; s%src_root=.*$%%g; s%build_root=.*%%g' \
 		< metaproxy-config > src/metaproxy-config && chmod +x metaproxy-config src/metaproxy-config
 	diff doc/local.ent doc/local0.ent >/dev/null 2>/dev/null \
 		|| cp doc/local0.ent doc/local.ent
-])
+],[])
+AC_OUTPUT
 
 echo \
 "------------------------------------------------------------------------
