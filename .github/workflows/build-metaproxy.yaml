@@ -1,0 +1,49 @@
+# Build yazproxy
+name: Build yazproxy
+on: [push, pull_request]
+jobs:
+ build:
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v3
+     with:
+      fetch-depth: 1
+   - name: Clone YAZ
+     uses: actions/checkout@v3
+     with:
+      repository: indexdata/yaz
+      path: yaz
+      ref: master
+   - name: Clone YAZPP
+     uses: actions/checkout@v3
+     with:
+      repository: indexdata/yazpp
+      path: yazpp
+      ref: master
+   - name: Install required and optional dependencies
+     run: >
+      sudo apt install autoconf automake libtool gcc g++ make bison
+      tclsh xsltproc docbook docbook-xml docbook-xsl inkscape
+      pkg-config libxslt1-dev libgnutls28-dev libicu-dev
+   - name: Run buildconf for YAZ
+     run: cd yaz && ./buildconf.sh
+   - name: Run configure for YAZ
+     run: >
+      cd yaz && ./configure --disable-shared --enable-static
+   - name: Run make for YAZ
+     run: cd yaz && make -j4
+   - name: Run buildconf for YAZ++
+     run: cd yazpp && ./buildconf.sh
+   - name: Run configure for YAZ++
+     run: >
+      cd yazpp && ./configure --with-yaz=../yaz
+      --disable-shared --enable-static
+   - name: Run make for YAZ++
+     run: cd yazpp && make -j4
+   - name: Run buildconf for metaproxy
+     run: ./buildconf.sh
+   - name: Run configure for metaproxy
+     run: >
+      ./configure --with-yazpp=yazpp --disable-shared --enable-static
+   - name: Run make check for yazproxy
+     run: make -j4 check
