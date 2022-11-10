@@ -1,5 +1,5 @@
-# Build yazproxy
-name: Build yazproxy
+# Build metaproxy
+name: Build metaproxy
 on: [push, pull_request]
 jobs:
  build:
@@ -25,6 +25,8 @@ jobs:
       sudo apt install autoconf automake libtool gcc g++ make bison
       tclsh xsltproc docbook docbook-xml docbook-xsl inkscape
       pkg-config libxslt1-dev libgnutls28-dev libicu-dev
+      libboost-dev libboost-system-dev libboost-thread-dev
+      libboost-test-dev libboost-regex-dev
    - name: Run buildconf for YAZ
      run: cd yaz && ./buildconf.sh
    - name: Run configure for YAZ
@@ -45,5 +47,7 @@ jobs:
    - name: Run configure for metaproxy
      run: >
       ./configure --with-yazpp=yazpp --disable-shared --enable-static
-   - name: Run make check for yazproxy
+   - name: Run make check for metaproxy
      run: make -j4 check
+   - name: Run make dist metaproxy
+     run: make dist
