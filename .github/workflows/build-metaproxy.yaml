@@ -20,6 +20,8 @@ jobs:
       repository: indexdata/yazpp
       path: yazpp
       ref: master
+   - name: Update packages
+     run: sudo apt update
    - name: Install required and optional dependencies
      run: >
       sudo apt install autoconf automake libtool gcc g++ make bison
