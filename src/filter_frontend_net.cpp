@@ -485,7 +485,7 @@ void yf::FrontendNet::ZAssocChild::recv_GDU(Z_GDU *z_pdu, int len)
                 if (it->verbose > 1 ||
                     (it->value && con_sz >= it->value && it->verbose > 0))
                     yaz_log(YLOG_LOG, "http-req-max pattern=%s ip=%s con_sz=%d value=%d", it->pattern.c_str(), peername.c_str(), con_sz, it->value);
-                if (it->value == 0 || con_sz < it->value)
+                if (con_sz < it->value)
                     break;
                 mp::odr o;
                 Z_GDU *gdu_res = o.create_HTTP_Response(m_session, hreq, 500);
@@ -579,7 +579,7 @@ yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocServer::sessionNotify(
                 if (it->verbose > 1 ||
                     (it->value && total_sz >= it->value && it->verbose > 0))
                     yaz_log(YLOG_LOG, "connect-total pattern=%s ip=%s con_sz=%d value=%d", it->pattern.c_str(), peername, total_sz, it->value);
-                if (it->value == 0 || total_sz < it->value)
+                if (total_sz < it->value)
                     break;
                 return 0;
             }
@@ -594,7 +594,7 @@ yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocServer::sessionNotify(
                 if (it->verbose > 1 ||
                     (it->value && con_sz >= it->value && it->verbose > 0))
                     yaz_log(YLOG_LOG, "connect-max pattern=%s ip=%s con_sz=%d value=%d", it->pattern.c_str(), peername, con_sz, it->value);
-                if (it->value == 0 || con_sz < it->value)
+                if (con_sz < it->value)
                     break;
                 return 0;
             }
@@ -864,7 +864,7 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
 
             mp::xml::parse_attr(ptr, names, values);
             IP_Pattern m;
-            m.value = mp::xml::get_int(ptr, 0);
+            m.value = mp::xml::get_int(ptr, INT_MAX);
             m.pattern = values[0];
             m.verbose = values[1].length() ? atoi(values[1].c_str()) : 1;
             m_p->connect_max.push_back(m);
@@ -876,7 +876,7 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
 
             mp::xml::parse_attr(ptr, names, values);
             IP_Pattern m;
-            m.value = mp::xml::get_int(ptr, 0);
+            m.value = mp::xml::get_int(ptr, INT_MAX);
             m.pattern = values[0];
             m.verbose = values[1].length() ? atoi(values[1].c_str()) : 1;
             m_p->connect_total.push_back(m);
@@ -888,7 +888,7 @@ void yf::FrontendNet::configure(const xmlNode * ptr, bool test_only,
 
             mp::xml::parse_attr(ptr, names, values);
             IP_Pattern m;
-            m.value = mp::xml::get_int(ptr, 0);
+            m.value = mp::xml::get_int(ptr, INT_MAX);
             m.pattern = values[0];
             m.verbose = values[1].length() ? atoi(values[1].c_str()) : 1;
             m_p->http_req_max.push_back(m);
