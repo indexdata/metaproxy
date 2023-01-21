@@ -65,16 +65,27 @@
   <para>
    Element <literal>connect-max</literal> is an optional repeatable element.
    The text content is treated as an integer that specifies the maximum number
-   of accepted TCP sessions from the same IP within a minute. A value
-   of 0 will not allow any connections. The attribute <literal>ip</literal>
-   specifies an IP-pattern to match. If the IP pattern is matched, the
-   limit takes effect. By repeating this element with different IP
-   patterns, limits may be configured "per-IP". If no patterns are
-   matched, no limit takes place. The IP pattern is a glob pattern.
+   of accepted TCP sessions from the same IP within a minute. A value of 0
+   will not allow any connections. The attribute <literal>ip</literal>
+   specifies an IP address pattern. If the IP pattern is matched, the limit
+   takes effect. The elements are inspected in the order they appear and
+   processing stops at first element with a pattern that matches the IP.
+   If no element matches, no limit takes place, which is same behavior as if
+   no elements are specified. The IP pattern is a glob pattern.
    Blanks in a pattern may be used to provide alternatives.
    For example:
    <literal>ip="::1 127*"</literal> would match <literal>::1</literal> or
    <literal>127.0.0.1</literal> , but not <literal>128.0.0.1</literal>.
+  </para>
+  <para>
+  In this example the 100 connections are allowed from localhost.
+  No connections are allowed from <literal>1.2.3.4</literal>.
+  10 connections are allowed from every other address.
+    <screen><![CDATA[
+     <connect-max ip="127.0.0.1">100</connect-max>
+     <connect-max ip="1.2.3.4">0</connect-max>
+     <connect-max>10</connect-max>
+]]></screen>
   </para>
   <para>
    Element <literal>connect-total</literal> is an optional repeatable element.
