@@ -90,19 +90,14 @@
   <para>
    Element <literal>connect-total</literal> is an optional repeatable element.
    The text content is treated as an integer that specifies the maximum number
-   of TCP sessions from the same IP. Otherwise similar
+   of TCP sessions from the same IP. Otherwise similar to
    <literal>connect-max</literal>.
   </para>
   <para>
    Element <literal>http-req-max</literal> is an optional repeatable element.
    The text content is treated as an integer that specifies maximum number
    of accepted HTTP requests from the same original IP within a minute.
-   A value of 0 means HTTP connections are rejected. The attribute <literal>ip</literal>
-   specifies an IP-pattern to match. If the IP pattern is matched, the
-   limit takes effect. By repeating this element with different IP
-   patterns, limits may be configured "per-IP". If no patterns are
-   matched, no limit takes place. The IP pattern is a glob pattern.
-   Blanks in a pattern may be used to provide alternatives.
+   Otherwise similar to <literal>connect-max</literal>.
   </para>
   <para>
    Element <literal>message</literal> is an optional element. If
