@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <metaproxy/xmlutil.hpp>
 
-#define BOOST_AUTO_TEST_MAIN
+#define BOOST_TEST_MAIN
 #define BOOST_TEST_DYN_LINK
-#include <boost/test/auto_unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 
 #include <yaz/zgdu.h>
 #include <yaz/otherinfo.h>

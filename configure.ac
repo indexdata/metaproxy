@@ -60,7 +60,7 @@ AC_COMPILE_IFELSE(
 )
 YAZ_DOC
 
-ID_BOOST([system thread test regex],[1.33])
+ID_BOOST([system thread test regex],[1.34])
 if test -z "${BOOST_THREAD_LIB}"; then
     AC_MSG_ERROR([Boost thread development libraries required])
 fi
