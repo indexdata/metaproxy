@@ -1,3 +1,9 @@
+--- 1.21.0 2023/01/31
+
+frontend_net: 0 limit means no connections allowed.
+
+Avoid deprecated headers in unit tests. Require Boost 1.34 or later. Until now, Boost 1.33 was still supported.
+
 --- 1.20.1 2022/12/14
 
 Upgrade to autoconf 2.69.
