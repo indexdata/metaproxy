@@ -74,7 +74,7 @@ mkdir -p ${RPM_BUILD_ROOT}/etc/sysconfig
 mkdir -p ${RPM_BUILD_ROOT}/etc/systemd/system
 install -m 644 rpm/metaproxy.xml ${RPM_BUILD_ROOT}/etc/metaproxy/metaproxy.xml
 install -m 644 rpm/metaproxy.user ${RPM_BUILD_ROOT}/etc/metaproxy/metaproxy.user
-install -m 755 rpm/metaproxy.service ${RPM_BUILD_ROOT}/etc/systemd/system/metaproxy.service
+install -m 644 rpm/metaproxy.service ${RPM_BUILD_ROOT}/etc/systemd/system/metaproxy.service
 install -m 644 rpm/metaproxy.sysconfig ${RPM_BUILD_ROOT}/etc/sysconfig/metaproxy
 install -m 644 rpm/metaproxy.logrotate  ${RPM_BUILD_ROOT}/etc/logrotate.d/metaproxy
 
