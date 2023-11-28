@@ -71,9 +71,10 @@ mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/routes.d
 mkdir -p ${RPM_BUILD_ROOT}/etc/logrotate.d
 mkdir -p ${RPM_BUILD_ROOT}/etc/init.d
 mkdir -p ${RPM_BUILD_ROOT}/etc/sysconfig
+mkdir -p ${RPM_BUILD_ROOT}/etc/systemd/system
 install -m 644 rpm/metaproxy.xml ${RPM_BUILD_ROOT}/etc/metaproxy/metaproxy.xml
 install -m 644 rpm/metaproxy.user ${RPM_BUILD_ROOT}/etc/metaproxy/metaproxy.user
-install -m 755 rpm/metaproxy.init ${RPM_BUILD_ROOT}/etc/init.d/metaproxy
+install -m 644 rpm/metaproxy.service ${RPM_BUILD_ROOT}/etc/systemd/system/metaproxy.service
 install -m 644 rpm/metaproxy.sysconfig ${RPM_BUILD_ROOT}/etc/sysconfig/metaproxy
 install -m 644 rpm/metaproxy.logrotate  ${RPM_BUILD_ROOT}/etc/logrotate.d/metaproxy
 
@@ -109,7 +110,7 @@ rm -fr ${RPM_BUILD_ROOT}
 %{_bindir}/metaproxy
 %{_mandir}/man3/*
 %{_mandir}/man1/metaproxy.*
-%config /etc/init.d/metaproxy
+%config /etc/systemd/system/metaproxy.service
 %config(noreplace) /etc/metaproxy/metaproxy.xml
 %config /etc/metaproxy/metaproxy.user
 %dir /etc/metaproxy/filters-available
@@ -147,16 +148,17 @@ if test ! -d $SERVER_HOME; then
 fi
 
 if [ $1 = 1 ]; then
-        /sbin/chkconfig --add metaproxy
-        /sbin/service metaproxy start > /dev/null 2>&1
+        /usr/bin/systemctl daemon-reload > /dev/null 2>&1
+        /usr/bin/systemctl enable metaproxy > /dev/null 2>&1
+        /usr/bin/systemctl start metaproxy > /dev/null 2>&1
 else
-        /sbin/service metaproxy restart > /dev/null 2>&1
+        /usr/bin/systemctl daemon-reload > /dev/null 2>&1
+        /usr/bin/systemctl restart metaproxy > /dev/null 2>&1
 fi
 %preun
 if [ $1 = 0 ]; then
-	if test -f /etc/init.d/metaproxy; then
-        	/sbin/service metaproxy stop > /dev/null 2>&1
-        	/sbin/chkconfig --del metaproxy
+	if test -f /etc/system/systemd/metaproxy.service; then
+        	/usr/bin/systemctl stop metaproxy> /dev/null 2>&1
 	fi
 	. /etc/metaproxy/metaproxy.user
 	test -d $SERVER_HOME && rm -fr $SERVER_HOME
