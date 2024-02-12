@@ -5,17 +5,17 @@ jobs:
  build:
   runs-on: ubuntu-latest
   steps:
-   - uses: actions/checkout@v3
+   - uses: actions/checkout@v4
      with:
       fetch-depth: 1
    - name: Clone YAZ
-     uses: actions/checkout@v3
+     uses: actions/checkout@v4
      with:
       repository: indexdata/yaz
       path: yaz
       ref: master
    - name: Clone YAZPP
-     uses: actions/checkout@v3
+     uses: actions/checkout@v4
      with:
       repository: indexdata/yazpp
       path: yazpp
