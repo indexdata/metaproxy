@@ -39,7 +39,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/malloc_info.h>
 #include "gduutil.hpp"
 #include <signal.h>
-
+#include <stdlib.h>
 #include <iostream>
 
 namespace mp = metaproxy_1;

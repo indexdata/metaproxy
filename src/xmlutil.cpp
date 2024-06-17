@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/xmlutil.hpp>
 
 #include <string.h>
+#include <stdlib.h>
 
 namespace mp = metaproxy_1;
 // Doxygen doesn't like mp::xml, so we use this instead
