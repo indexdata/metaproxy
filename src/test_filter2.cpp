@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <metaproxy/package.hpp>
 
 #include <iostream>
+#include <stdlib.h>
 
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_DYN_LINK

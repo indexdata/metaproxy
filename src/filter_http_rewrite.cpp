@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <boost/algorithm/string.hpp>
 
 #include <map>
+#include <stdlib.h>
 
 namespace mp = metaproxy_1;
 namespace yf = mp::filter;
