@@ -1,7 +1,5 @@
 SUBDIRS = common
 
-INKSCAPE=inkscape
-
 SUFFIXES=.3mp .1 .pdf .tkl .esp .xml
 
 XMLFILES = book.xml manref.xml copyright.xml gpl-2.0.xml local.ent
@@ -117,14 +115,10 @@ manref.xml: $(XMLMAN) $(srcdir)/common/stripref.xsl \
 
 
 multi.png: multi.svg
-	unset DISPLAY; ${INKSCAPE} --export-png=$@ --export-area=0:0:1050:500 $?
+	rsvg-convert -w 1200 -o $@ $?
 
 multi.pdf: multi.svg
-	unset DISPLAY; ${INKSCAPE} --export-pdf=$@ --export-area-page $?
-
-.eps.pdf:
-	epstopdf -hires $?
-
+	rsvg-convert -f pdf -o $@ $?
 
 clean-data-hook:
 	rm -f [0-9]* *.bak

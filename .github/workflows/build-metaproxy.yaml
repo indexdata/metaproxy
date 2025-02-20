@@ -25,7 +25,7 @@ jobs:
    - name: Install required and optional dependencies
      run: >
       sudo apt install autoconf automake libtool gcc g++ make bison
-      tclsh xsltproc docbook docbook-xml docbook-xsl inkscape
+      tclsh xsltproc docbook docbook-xml docbook-xsl librsvg2-bin
       pkg-config libxslt1-dev libgnutls28-dev libicu-dev
       libboost-dev libboost-system-dev libboost-thread-dev
       libboost-test-dev libboost-regex-dev
