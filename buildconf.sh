@@ -35,7 +35,7 @@ Or just build the Debian packages without configuring
 
 When building from Git, you need these Debian packages:
   autoconf automake libtool g++
-  xsltproc docbook docbook-xml docbook-xsl inkscape
+  xsltproc docbook docbook-xml docbook-xsl librsvg2-bin
   libxslt1-dev libgnutls-dev libreadline5-dev libicu-dev
   libboost-dev libboost-thread-dev libboost-test-dev
   libboost-regex-dev libboost-system-dev
