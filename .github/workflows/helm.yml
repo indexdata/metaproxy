@@ -5,8 +5,7 @@ permissions:
   contents: read
 
 on:
-  # we only publish the chart after successful Docker build so we trigger
-  # a full build when chart templates are changed, this is slightly suboptimal
+  # TODO publish for releases
   # TODO automatically bump chart version during build
   workflow_run:
     workflows: ["publish-image"]
