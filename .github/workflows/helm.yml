@@ -12,12 +12,11 @@ on:
     workflows: ["publish-image"]
     types: [completed]
     branches: ["master"]
-  pull_request: #remove this before merge
 
 jobs:
   publish-chart:
     #change this before merge
-    if: ${{ github.event.workflow_run.conclusion == 'success'  || github.event_name == 'pull_request' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
