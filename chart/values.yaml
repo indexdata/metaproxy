@@ -13,21 +13,7 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
-containerPort: 8080
-# envvars passed to the container
-env: {}
-
-# envvars passed to the container as secretKeyRef, format
-# VARIABLE:
-#   name: secret-name
-#   key: secret-key
-envSecrets: {}
-
-# envvars passed to the container as configMapKeyRef, format
-# VARIABLE:
-#   name: config-map-name
-#   key: config-map-key
-envConfigMaps: {}
+containerPort: 9000
 
 nameOverride: ""
 fullnameOverride: ""
@@ -59,7 +45,8 @@ securityContext: {}
 
 service:
   type: LoadBalancer
-  httpPort: 80
+  # must be aligned with frontend_net/port in metaproxy-config
+  httpPort: 9000
 
 serviceAnnotations: {}
 

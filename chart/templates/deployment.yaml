@@ -28,33 +28,6 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          env:
-            - name: HTTP_PORT
-              value: "{{ .Values.containerPort }}"
-            {{- range $k, $v := .Values.env }}
-            {{- if ne $k "HTTP_PORT" }}
-            - name: {{ $k }}
-              value: "{{ $v }}"
-            {{- end }}
-            {{- end }}
-            {{- range $k, $v := .Values.envSecrets }}
-            {{- if ne $k "HTTP_PORT" }}
-            - name: {{ $k }}
-              valueFrom:
-                secretKeyRef:
-                  name: "{{ $v.name }}"
-                  key: "{{ $v.key }}"
-            {{- end }}
-            {{- end }}
-            {{- range $k, $v := .Values.envConfigMaps }}
-            {{- if ne $k "HTTP_PORT" }}
-            - name: {{ $k }}
-              valueFrom:
-                configMapKeyRef:
-                  name: "{{ $v.name }}"
-                  key: "{{ $v.key }}"
-            {{- end }}
-            {{- end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
