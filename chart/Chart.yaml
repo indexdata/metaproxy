@@ -1,0 +1,11 @@
+apiVersion: v2
+name: metaproxy
+description: Index Data's Metaproxy is a Z39.50/SRU router
+
+type: application
+
+# Use semver, note that this is replaced by the publish action
+version: 0.1.0
+
+# appVersion is used as the Docker image tag by the chart
+appVersion: "master"
