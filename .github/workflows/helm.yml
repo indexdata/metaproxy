@@ -5,7 +5,7 @@ permissions:
   contents: read
 
 on:
-  # we only publish the chart after succesful Docker build so we trigger
+  # we only publish the chart after successful Docker build so we trigger
   # a full build when chart templates are changed, this is slightly suboptimal
   # TODO automatically bump chart version during build
   workflow_run:
@@ -16,14 +16,15 @@ on:
 
 jobs:
   publish-chart:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    #change this before merge
+    if: ${{ github.event.workflow_run.conclusion == 'success'  || github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
           - chart_name: metaproxy
-            chart_version: "0.1.0-master.${{ github.run_number || github.event_name == 'pull_request' }}" #change this before merge
+            chart_version: "0.1.0-master.${{ github.run_number }}"
             chart_path: ./chart
     steps:
       - uses: actions/checkout@v4
