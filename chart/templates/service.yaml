@@ -11,9 +11,9 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.httpPort }}
-      targetPort: http
+    - port: {{ .Values.service.frontendPort }}
+      targetPort: frontend
       protocol: TCP
-      name: http
+      name: frontend
   selector:
     {{- include "..selectorLabels" . | nindent 4 }}

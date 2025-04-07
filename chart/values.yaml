@@ -46,7 +46,7 @@ securityContext: {}
 
 service:
   type: LoadBalancer
-  httpPort: 9000
+  frontendPort: 9000
 
 serviceAnnotations: {}
 

@@ -33,15 +33,15 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http
+            - name: frontend
               containerPort: {{ .Values.containerPort }}
               protocol: TCP
           livenessProbe:
             tcpSocket:
-              port: http
+              port: frontend
           readinessProbe:
             tcpSocket:
-              port: http
+              port: frontend
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           {{- with .Values.volumeMounts }}
