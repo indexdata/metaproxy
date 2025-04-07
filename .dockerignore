@@ -1,0 +1,16 @@
+.vscode
+*.lo
+*.o
+*.log
+*.trs
+config.status
+build
+build.status
+src/metaproxy
+config.log
+metaproxy-config
+Doxyfile
+configure
+Makefile
+Makefile.in
+m4
