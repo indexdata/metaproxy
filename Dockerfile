@@ -30,6 +30,10 @@ RUN cd metaproxy && make -j4
 RUN ldd metaproxy/src/metaproxy | tr -s '[:blank:]' '\n' | grep '^/' | \
     xargs -I % sh -c 'mkdir -p $(dirname deps%); cp % deps%;'
 
+RUN mkdir -p /etc/metaproxy/filters-enabled
+RUN mkdir -p /etc/metaproxy/routes.d
+RUN mkdir -p /etc/metaproxy/ports.d
+
 # create runtime user
 RUN adduser \
   --disabled-password \
@@ -53,10 +57,10 @@ COPY --from=build /etc/group /etc/group
 COPY --from=build /app/metaproxy/src/metaproxy .
 COPY --from=build /app/deps /
 
+COPY --from=build /etc/metaproxy /etc/metaproxy
+
 # Nice root XML file
-COPY --from=build /app/metaproxy/debian/metaproxy.xml /etc/metaproxy/
-RUN mkdir -p /etc/metaproxy/filters-enabled
-RUN mkdir -p /etc/metaproxy/routes.d
+COPY --from=build /app/metaproxy/debian/metaproxy.xml /etc/metaproxy
 
 EXPOSE 9000
 
