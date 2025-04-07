@@ -1,0 +1,41 @@
+name: publish-chart
+
+permissions:
+  packages: write
+  contents: read
+
+on:
+  # we only publish the chart after succesful Docker build so we trigger
+  # a full build when chart templates are changed, this is slightly suboptimal
+  # TODO automatically bump chart version during build
+  workflow_run:
+    workflows: ["publish-image"]
+    types: [completed]
+    branches: ["master"]
+  pull_request: #remove this before merge
+
+jobs:
+  publish-chart:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - chart_name: metaproxy
+            chart_version: "0.1.0-master.${{ github.run_number || github.event_name == 'pull_request' }}" #change this before merge
+            chart_path: ./chart
+    steps:
+      - uses: actions/checkout@v4
+      - name: helm lint
+        run: |
+          helm lint ${{ matrix.chart_path }}
+      - name: helm login
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u $ --password-stdin
+      - name: helm package
+        run: |
+          helm package ${{ matrix.chart_path }} --version ${{ matrix.chart_version }}
+      - name: helm push
+        run: |
+          helm push ${{ matrix.chart_name }}-${{ matrix.chart_version }}.tgz oci://ghcr.io/${{ github.repository_owner }}/charts

@@ -8,4 +8,4 @@ type: application
 version: 0.1.0
 
 # appVersion is used as the Docker image tag by the chart
-appVersion: "latest"
+appVersion: "master"
