@@ -13,7 +13,7 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
-# must be aligned with frontend_net/port in metaproxy-config
+# must be aligned with frontend_net/port in the root config bundled with the container
 containerPort: 9000
 
 nameOverride: ""
@@ -72,7 +72,9 @@ autoscaling:
 # Metaproxy image requires a config map volume
 volumes:
   - name: metaproxy-config-volume
-    configMap: metaproxy-config
+    configMap:
+      name: metaproxy-filters-config
+      optional: true
 
 # You can specify additional volumes on the output Deployment below:
 # - name: foo
@@ -82,7 +84,7 @@ volumes:
 
 volumeMounts:
   - name: metaproxy-config-volume
-    mountPath: "/etc/metaproxy"
+    mountPath: "/etc/metaproxy/filters-enabled"
     readOnly: true
 
 # You can specify additional volumeMounts on the output Deployment below:
