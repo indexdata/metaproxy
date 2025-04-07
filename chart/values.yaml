@@ -13,6 +13,7 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
+# must be aligned with frontend_net/port in metaproxy-config
 containerPort: 9000
 
 nameOverride: ""
@@ -45,7 +46,6 @@ securityContext: {}
 
 service:
   type: LoadBalancer
-  # must be aligned with frontend_net/port in metaproxy-config
   httpPort: 9000
 
 serviceAnnotations: {}
