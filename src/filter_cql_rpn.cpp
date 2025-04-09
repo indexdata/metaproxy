@@ -86,60 +86,58 @@ yf::CQLtoRPN::Impl::~Impl()
 
 void yf::CQLtoRPN::Impl::configure(const xmlNode *xmlnode, const char *path)
 {
-
-    /*
-      <filter type="cql_rpn">
-      <conversion file="pqf.properties"/>
-      </filter>
-    */
-
-    std::string fname;
-    for (xmlnode = xmlnode->children; xmlnode; xmlnode = xmlnode->next)
+    int no_conversions = 0;
+    for (const xmlNode *node = xmlnode->children; node; node = node->next)
     {
-        if (xmlnode->type != XML_ELEMENT_NODE)
+        if (node->type != XML_ELEMENT_NODE)
             continue;
-        if (!strcmp((const char *) xmlnode->name, "conversion"))
-        {
-            const struct _xmlAttr *attr;
-            for (attr = xmlnode->properties; attr; attr = attr->next)
-            {
-                if (!strcmp((const char *) attr->name, "file"))
-                    fname = mp::xml::get_text(attr);
-                else if (!strcmp((const char *) attr->name, "reverse"))
-                {
-                    reverse = mp::xml::get_bool(attr->children, 0);
-                }
-                else
-                    throw mp::filter::FilterException(
-                        "Bad attribute " + std::string((const char *)
-                                                       attr->name));
-            }
-        }
-        else
+        if (strcmp((const char *) node->name, "conversion"))
         {
             throw mp::filter::FilterException("Bad element "
-                                               + std::string((const char *)
-                                                             xmlnode->name));
+                + std::string((const char *)
+                              node->name));
+        }
+        const struct _xmlAttr *attr;
+        for (attr = node->properties; attr; attr = attr->next)
+        {
+            if (!strcmp((const char *) attr->name, "file"))
+            {
+                std::string fname = mp::xml::get_text(attr);
+                char fullpath[1024];
+                if (!yaz_filepath_resolve(fname.c_str(), path, 0, fullpath))
+                    throw mp::filter::FilterException("Could not open " + fname);
+                int error = 0;
+                if (!m_cql2rpn.parse_spec_file(fullpath, &error))
+                {
+                    throw mp::filter::FilterException("Bad or missing "
+                                                    "CQL to RPN configuration "
+                                                    + fname);
+                }
+                no_conversions++;
+            }
+            else if (!strcmp((const char *) attr->name, "key"))
+            {
+                std::string key = mp::xml::get_text(attr);
+                std::string val = mp::xml::get_text(node);
+                if (m_cql2rpn.define_pattern(key.c_str(), val.c_str()))
+                    throw mp::filter::FilterException(
+                        "Bad CQL to RPN pattern: " + key + "=" + val);
+                no_conversions++;
+            }
+            else if (!strcmp((const char *) attr->name, "reverse"))
+            {
+                reverse = mp::xml::get_bool(attr->children, 0);
+            }
+            else
+                throw mp::filter::FilterException(
+                    "Bad attribute " + std::string((const char *)
+                                                    attr->name));
         }
     }
-    if (fname.length() == 0)
+    if (no_conversions == 0)
     {
         throw mp::filter::FilterException("Missing conversion configuration "
                                           "for filter cql_rpn");
-    }
-
-
-    char fullpath[1024];
-    if (!yaz_filepath_resolve(fname.c_str(), path, 0, fullpath))
-    {
-        throw mp::filter::FilterException("Could not open " + fname);
-    }
-    int error = 0;
-    if (!m_cql2rpn.parse_spec_file(fullpath, &error))
-    {
-        throw mp::filter::FilterException("Bad or missing "
-                                          "CQL to RPN configuration "
-                                          + fname);
     }
 }
 
