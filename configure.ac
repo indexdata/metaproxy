@@ -40,17 +40,17 @@ AC_CHECK_FUNCS([localtime_r getrlimit])
 USEMARCON_INIT
 
 ## YAZPP checks
-YAZPP_INIT([threads],[1.8.0])
+YAZPP_INIT([threads],[1.9.0])
 if test -z "$YAZPPLIB"; then
     AC_MSG_ERROR([YAZ++ development libraries missing])
 fi
 LIBS="$LIBS -lpthread"
 CPPFLAGS="$YAZPPINC $CPPFLAGS"
-AC_MSG_CHECKING([if YAZ is version 5.30.0 or later])
+AC_MSG_CHECKING([if YAZ is version 5.35.0 or later])
 AC_COMPILE_IFELSE(
         [AC_LANG_PROGRAM([[#include <yaz/yaz-version.h>]],
                          [[
-#if YAZ_VERSIONL < 0x51E00
+#if YAZ_VERSIONL < 0x52300
 #error too old
 #endif
 ]])],
