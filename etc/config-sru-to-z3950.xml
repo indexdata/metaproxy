@@ -18,6 +18,7 @@
     </filter>
     <filter id="cql" type="cql_rpn">
       <conversion file="../etc/cql2pqf.txt"/>
+      <conversion key="rec.id">1=12 4=3</conversion>
     </filter>
     <filter id="retrieve" type="record_transform">
       <retrievalinfo xmlns="http://indexdata.com/yaz" version="1.0">

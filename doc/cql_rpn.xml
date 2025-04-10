@@ -31,10 +31,13 @@
    filters.
   </para>
   <para>
-   The filter takes only one configuration parameter, namely the path
-   of the standard <literal>YAZ</literal>
-   <literal>CQL</literal>-to-<literal>PQF</literal> configuration
-   file. See the  <ulink url="&url.yaz.cql2pqf;">YAZ</ulink> manual for
+   The filter takes a list of conversion elements each of which can either
+   refer to an external file with the <literal>file</literal> attribute
+   or it may be a single specification with the <literal>key</literal> attribute and cdata as
+   value.
+  </para>
+  <para>
+   See the  <ulink url="&url.yaz.cql2pqf;">YAZ</ulink> manual for
    configuration file syntax and details.
   </para>
   <para>
@@ -62,10 +65,14 @@
 
  <refsect1><title>EXAMPLES</title>
   <para>
-   A typical configuration looks like this:
+   In this example, the filter is used to transform CQL queries to RPN
+   queries. The first conversion elements reads from an external file with
+   presumably "core" definitions. This this extended in 2nd conversion element
+   which specifies another search field.
    <screen><![CDATA[
     <filter id="cql" type="cql_rpn">
       <conversion file="etc/cql2pqf.txt"/>
+      <conversion key="index.dc.any">1=1016</conversion>
     </filter>
  ]]>
    </screen>
