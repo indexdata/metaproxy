@@ -31,6 +31,7 @@ usemarcon = element y:usemarcon {
 retrievalinfo = 
   element y:retrievalinfo { 
     attribute version { "1.0" },
+    attribute embed_schema { xsd:boolean }?,
     element y:retrieval {
       attribute syntax { xsd:string },
       attribute name { xsd:string }?,

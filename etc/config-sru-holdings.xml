@@ -15,7 +15,7 @@ The Z39.50 is set, instead via the new x-target SRU parameter .
       <database name="Default"/>
     </filter>
     <filter id="retrieve" type="record_transform">
-      <retrievalinfo xmlns="http://indexdata.com/yaz" version="1.0">
+      <retrievalinfo xmlns="http://indexdata.com/yaz" version="1.0" embed_schema="true">
         <!-- Offer Dublin core from MARC -->
         <retrieval identifier="info:srw/schema/1/dc-v1.1" name="dc" syntax="xml">
           <backend name="F" syntax="usmarc">

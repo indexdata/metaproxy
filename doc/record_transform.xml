@@ -57,6 +57,16 @@
    <literal>stage1</literal> and <literal>stage2</literal> that point to
    conversion files as interpreted by USEMARCON. One or both must be given.
   </para>
+  <para>
+   The filter operates on Z39.50 packages only. Unlike SRU/SRW services, the
+   Z39.50 protocol does not have a concept of record schema for each record.
+   By using specifying the <literal>embed_schema="true"</literal> attribute+value for the
+   <literal>retrievalinfo</literal> element, the filter will embed the matched schema
+   in the descriptor member of the Z39.50 External structure.
+   This is picked up by the <xref linkend="ref-sru_z3950">sru_z3950</xref> filter which will then
+   store the schema in the <literal>recordSchema</literal> member of the
+   <literal>&lt;record&gt;</literal> element.
+  </para>
  </refsect1>
 
  <refsect1><title>SCHEMA</title>
@@ -83,7 +93,7 @@
    A typical configuration looks like this:
    <screen><![CDATA[
     <filter type="record_transform">
-      <retrievalinfo  xmlns="http://indexdata.com/yaz" version="1.0">
+      <retrievalinfo xmlns="http://indexdata.com/yaz" version="1.0">
         <retrieval syntax="xml" name="dc"
                    identifier="info:srw/schema/1/dc-v1.1">
           <backend syntax="usmarc" name="F">
