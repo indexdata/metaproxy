@@ -353,7 +353,7 @@ void yf::SRUtoZ3950::Impl::sru(mp::Package &package, Z_GDU *zgdu_req)
         sru_pdu_res->u.scan_response->num_diagnostics = num_diagnostic;
 
         // we do not do scan at the moment, therefore issuing a diagnostic
-        yaz_add_srw_diagnostic(odr_en, 
+        yaz_add_srw_diagnostic(odr_en,
                                &sru_pdu_res->u.scan_response->diagnostics,
                                &sru_pdu_res->u.scan_response->num_diagnostics,
                                YAZ_SRW_UNSUPP_OPERATION, "scan");
@@ -879,7 +879,10 @@ bool yf::SRUtoZ3950::Impl::z3950_present_request(
                     Z_External *r = npr->u.databaseRecord;
                     sru_res->records[i + num].recordPosition =
                         odr_intdup(odr_en, position);
-                    sru_res->records[i + num].recordSchema = sr_req->recordSchema;
+                    // record_transform may return schema in External
+                    sru_res->records[i + num].recordSchema = npr->u.databaseRecord->descriptor
+                        ? odr_strdup(odr_en, npr->u.databaseRecord->descriptor)
+                        : sr_req->recordSchema;
                     sru_res->records[i + num].recordData_buf
                         = odr_strdupn(odr_en,
                                       (const char *)r->u.octet_aligned->buf,
