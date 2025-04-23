@@ -11,4 +11,4 @@ filter_record_transform =
   attribute type { "record_transform" },
   attribute id { xsd:NCName }?,
   attribute name { xsd:NCName }?,
-  retrievalinfo 
+  retrievalinfo

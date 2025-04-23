@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "config.hpp"
 #include "filter_record_transform.hpp"
+#include <metaproxy/xmlutil.hpp>
 #include <metaproxy/package.hpp>
 #include <metaproxy/util.hpp>
 #include "gduutil.hpp"
@@ -50,6 +51,7 @@ namespace metaproxy_1 {
             void configure(const xmlNode * xml_node, const char *path);
         private:
             yaz_retrieval_t m_retrieval;
+            bool m_embed_schema; // store matched schema in External.descriptor
         };
     }
 }
@@ -196,6 +198,7 @@ yf::RecordTransform::Impl::Impl()
 {
     m_retrieval = yaz_retrieval_create();
     assert(m_retrieval);
+    m_embed_schema = false;
 }
 
 yf::RecordTransform::Impl::~Impl()
@@ -212,17 +215,16 @@ void yf::RecordTransform::Impl::configure(const xmlNode *xml_node,
     if (!xml_node)
         throw mp::XMLError("RecordTransform filter config: empty XML DOM");
 
+
     // parsing down to retrieval node, which can be any of the children nodes
-    xmlNode *retrieval_node;
-    for (retrieval_node = xml_node->children;
-         retrieval_node;
-         retrieval_node = retrieval_node->next)
-    {
-        if (retrieval_node->type != XML_ELEMENT_NODE)
-            continue;
-        if (0 == strcmp((const char *) retrieval_node->name, "retrievalinfo"))
-            break;
-    }
+    const xmlNode *retrieval_node = xml::jump_to_children(xml_node, XML_ELEMENT_NODE);
+    if (strcmp((const char *) retrieval_node->name, "retrievalinfo") != 0)
+        throw mp::XMLError("missing retrievalinfo element in RecordTransform");
+
+    const struct _xmlAttr *attr;
+    for (attr = retrieval_node->properties; attr; attr = attr->next)
+        if (!strcmp((const char *) attr->name, "embed_schema"))
+            m_embed_schema = mp::xml::get_bool(attr->children, false);
 
 #if HAVE_USEMARCON
     struct yaz_record_conv_type mt;
@@ -243,6 +245,7 @@ void yf::RecordTransform::Impl::configure(const xmlNode *xml_node,
 
 static void convert_npr(yaz_record_conv_t rc,
                         Odr_oid *match_syntax,
+                        const char *match_schema,
                         ODR odr_en,
                         Z_NamePlusRecordList *records, int i)
 {
@@ -316,6 +319,8 @@ static void convert_npr(yaz_record_conv_t rc,
             npr->u.databaseRecord = z_ext_record_oid(odr_en, match_syntax,
                                                      output_record.buf(),
                                                      output_record.len());
+            if (match_schema)
+                npr->u.databaseRecord->descriptor = odr_strdup(odr_en, match_schema);
         }
     }
 }
@@ -537,7 +542,7 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
     {
         int i;
         for (i = 0; i < records->num_records; i++)
-            convert_npr(rc, match_syntax, odr_en, records, i);
+            convert_npr(rc, match_syntax, m_embed_schema ? match_schema : 0, odr_en, records, i);
         package.response() = gdu_res;
     }
     return;
