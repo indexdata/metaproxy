@@ -1,8 +1,21 @@
+--- 1.22.0 2025/05/06
+
+zeerex_explain: fix ref to freed memory (#45)
+
+record_transform: embed_schema facility (#43)
+
+cql_rpn: Allow conversion key + text value without an external file. (#42)
+
+doc: Use rsvg-convert rather than inkscape (#34). inkscape is a rather heavy package.
+
+Add support for RHEL/CentOS 9 (#28)
+
 --- 1.21.0 2023/01/31
 
 frontend_net: 0 limit means no connections allowed.
 
-Avoid deprecated headers in unit tests. Require Boost 1.34 or later. Until now, Boost 1.33 was still supported.
+Avoid deprecated headers in unit tests. Require Boost 1.34 or later.
+Until now, Boost 1.33 was still supported.
 
 --- 1.20.1 2022/12/14
 
@@ -199,7 +212,7 @@ based on originating IP. MP-632
 
 frontend_net: fix leaks that would occur if http-req-max takes effect.
 
-Report file descriptor limit (RLIMIT_NOFILE) upon startup MP-631 
+Report file descriptor limit (RLIMIT_NOFILE) upon startup MP-631
 
 --- 1.10.0 2015/10/01
 
@@ -864,7 +877,7 @@ record to be fetched.
 
 --- 1.3.38 2012/07/04
 
-Fixes for 'metaproxy reload' for RPM/Debian packages. 
+Fixes for 'metaproxy reload' for RPM/Debian packages.
 
 zoom: Allow rpn2cql conversion to be augmented with a properties file.
 Element rpn2cql can be specified per-target for the zoom filter.
@@ -880,7 +893,7 @@ and is triggered for a specific URL path. This is set by <stat-req>
 in the configuration of frontend_net. By default this report is
 disabled (same as empty value for <stat-req>).
 
-Fix reload problem in init.d script for RPM/Debian. 
+Fix reload problem in init.d script for RPM/Debian.
 The '/etc/init.d/metaproxy reload' in some cases would stop but not
 start metaproxy - effectively stopping the service.
 
@@ -974,7 +987,7 @@ New class, wrbuf, that wraps YAZ' WRBUF.
 
 Metaproxy daemon is now running as user "metaproxy". This user is
 managed by package maintainer scripts. The user information is stored
-in /etc/metaproxy/metaproxy.user . 
+in /etc/metaproxy/metaproxy.user .
 
 --- 1.3.26 2012/03/20
 
@@ -1094,7 +1107,7 @@ as database argument to a CF target.
 
 --- 1.3.19 2011/12/16
 
-zoom: Multiple proxy hosts may be given for proxy rich database 
+zoom: Multiple proxy hosts may be given for proxy rich database
 parameter. List is comma-separated.
 
 http_file: decodes URI paths properly. Does not return 404: not found
@@ -1165,7 +1178,7 @@ connection before expected and session_shared would return diagnostic
 zoom: new target profile setting: sortmap_field. If sortmap_field is given
 the field is mapped to the value for the sortmap. Values not matching
 sortmap_field are passed verbatim.
-  
+
 zoom: new target profile setting: sortStrategy. One of: "z3950", "type7",
 "cql", "sru11" or "embed". The "embed" chooses type-7 or CQL sortby
 depending on whether RPN or CQL is actually sent to the target.
@@ -1214,10 +1227,10 @@ file was not update for libdir/metaproxy4 in version 1.3.2.
 --- 1.3.2 2011/08/01
 
 Change location of Metaproxy modules from libdir/metaproxy to
-libdir/metaproxy4. Directory libdir/metaproxy is also owned by 
+libdir/metaproxy4. Directory libdir/metaproxy is also owned by
 libmetaproxy3 and, thus, should not be used by libmetaproxy4.
 
-New facility to dump APDUs from zoom filter. Enabled by 
+New facility to dump APDUs from zoom filter. Enabled by
 <log apdu="true"/> in the zoom filter configuration.
 
 zoom filter bug fix: SRU diagnostics received from backend was
@@ -1233,7 +1246,7 @@ zoom: fix a bug WRT passing authentication parameters to backends.
 
 Fixes for windows Makefile.
 
---- 1.2.10 2011/07/25 
+--- 1.2.10 2011/07/25
 
 Change major version of metaproxy library from 3 to 4. This in turn
 makes new package names for Debian and RPM.
@@ -1244,7 +1257,7 @@ zoom: enable marc-8 encoding by default for usmarc and opac (in pz2
 transform mode).
 
 zoom: configurable element sets for record transforms.
-    
+
 zoom: the target profile based transform is specified by element_transform
 in element torus of of the ZOOM filter configuration ; default value
 is "pz2". Target profile based retrieval is specified by element_raw
@@ -1284,7 +1297,7 @@ for z3950_client (force_close).
 
 Filter virt_db and multi: relay close APDU.
 
-Filter virt_db and multi: relay init size parameters 
+Filter virt_db and multi: relay init size parameters
 preferredMessageSize and maximumRecordSize.
 
 Filter sru_z3950: increase init sz parameters from 1MB to 10 MB.
@@ -1455,7 +1468,7 @@ Simplified check for Boost libraries.
 First Debian package.
 
 The sru_z9350 filter now recognizes SRU parameter z-target as being
-a ZURL of the form host/database . 
+a ZURL of the form host/database .
 
 Mergetype may be specified for filter 'multi'.
 
@@ -1505,10 +1518,10 @@ Master RELAX NG Compact schema's are found in xml/schema/*.rnc,
 RELAX NG XML schemas and XML Schema's are generated from RNC syntax.
 XML config files are checked against RNG and XML Schema's.
 
-XSLT transformation framework added in xml/xslt/*.xsl, consisting mainly of 
+XSLT transformation framework added in xml/xslt/*.xsl, consisting mainly of
 LOC Marc21 stylesheets found at http://www.loc.gov/standards/marcxml/xslt/
-Added stylesheet explain2cqlpqftxt.xsl which transforms a standard SRU ZeeReX 
-explain record to YAZ CQL-to-PQF text config file. 
+Added stylesheet explain2cqlpqftxt.xsl which transforms a standard SRU ZeeReX
+explain record to YAZ CQL-to-PQF text config file.
 
 --- 1.0.7 2006/11/07
 
@@ -1539,7 +1552,7 @@ Added documentation for the hidenavailable option for the multi filter.
 
 Fixed bug #573: Hide errors for individual servers. If the element
 'hideunavailable' is given in the configuration, individual servers
-being unavailable are hidden (unless all are unavailable). 
+being unavailable are hidden (unless all are unavailable).
 
 Fixed bug #574: Database names are recognised case-sensitively.
 
