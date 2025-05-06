@@ -122,7 +122,6 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
     Z_SRW_PDU *sru_pdu_req = 0;
 
     mp::odr odr_en(ODR_ENCODE);
-    //Z_SRW_PDU *sru_pdu_res = 0;
     Z_SRW_PDU *sru_pdu_res = yaz_srw_get(odr_en, Z_SRW_explain_response);
 
     // finding correct SRU database and explain XML node fragment from config
@@ -132,18 +131,12 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
     std::map<std::string, const xmlNode *>::iterator idbexp;
     idbexp = m_database_explain.find(sruinfo.database);
 
-    //std::cout << "Finding " << sruinfo.database << "\n";
-    if (idbexp != m_database_explain.end()){
-        //std::cout << "Found " << idbexp->first << " " << idbexp->second << "\n";
-        explainnode = idbexp->second;
-    }
-    else {
-        // need to emmit error ?? or just let package pass ??
-        //std::cout << "Missed " << sruinfo.database << "\n";
+    if (idbexp == m_database_explain.end()) {
+        // need to emit error ?? or just let package pass ??
         package.move();
         return;
     }
-
+    explainnode = idbexp->second;
 
     // if SRU package could not be decoded, send minimal explain and
     // close connection
