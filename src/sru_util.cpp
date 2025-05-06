@@ -144,11 +144,9 @@ bool mp_util::build_sru_explain(metaproxy_1::Package &package,
 
     sru_res->record.recordPosition = odr_intdup(odr_en, 1);
     sru_res->record.recordPacking = record_packing;
-    sru_res->record.recordSchema = (char *)xmlns_explain.c_str();
-    sru_res->record.recordData_len = 1 + explain_xml.size();
-    sru_res->record.recordData_buf
-        = odr_strdupn(odr_en, (const char *)explain_xml.c_str(),
-                      1 + explain_xml.size());
+    sru_res->record.recordSchema = odr_strdup(odr_en, xmlns_explain.c_str());
+    sru_res->record.recordData_len = explain_xml.size();
+    sru_res->record.recordData_buf = odr_strdupn(odr_en, (const char *)explain_xml.c_str(), explain_xml.size());
 
     return true;
 }
