@@ -159,14 +159,6 @@ bool mp_util::build_sru_response(mp::Package &package,
                                  char *charset,
                                  const char *stylesheet)
 {
-
-    // SRU request package translation to Z3950 package
-    //if (sru_pdu_res)
-    //    std::cout << *(const_cast<Z_SRW_PDU *>(sru_pdu_res)) << "\n";
-    //else
-    //    std::cout << "SRU empty\n";
-
-
     Z_GDU *zgdu_req = package.request().get();
     if  (zgdu_req && zgdu_req->which == Z_GDU_HTTP_Request)
     {
@@ -209,7 +201,6 @@ bool mp_util::build_sru_response(mp::Package &package,
         z_soap_codec_enc_xsl(odr_en, &soap,
                              &http_res->content_buf, &http_res->content_len,
                              soap_handlers, charset, stylesheet);
-
 
         package.response() = zgdu_res;
         return true;
@@ -256,7 +247,6 @@ Z_SRW_PDU * mp_util::decode_sru_request(mp::Package &package,
         return sru_pdu_req;
     else
     {
-        //sru_pdu_res = sru_pdu_res_exp;
         package.session().close();
         return 0;
     }
@@ -270,21 +260,19 @@ mp_util::check_sru_query_exists(mp::Package &package,
                                 Z_SRW_PDU *sru_pdu_res,
                                 Z_SRW_searchRetrieveRequest const *sr_req)
 {
-    if (!sr_req->query)
-    {
-        yaz_add_srw_diagnostic(odr_en,
-                               &(sru_pdu_res->u.response->diagnostics),
-                               &(sru_pdu_res->u.response->num_diagnostics),
-                               YAZ_SRW_MANDATORY_PARAMETER_NOT_SUPPLIED,
-                               "query");
-        yaz_add_srw_diagnostic(odr_en,
-                               &(sru_pdu_res->u.response->diagnostics),
-                               &(sru_pdu_res->u.response->num_diagnostics),
-                               YAZ_SRW_QUERY_SYNTAX_ERROR,
-                               "CQL query is empty");
-        return false;
-    }
-    return true;
+    if (sr_req->query)
+        return true;
+    yaz_add_srw_diagnostic(odr_en,
+                           &(sru_pdu_res->u.response->diagnostics),
+                           &(sru_pdu_res->u.response->num_diagnostics),
+                           YAZ_SRW_MANDATORY_PARAMETER_NOT_SUPPLIED,
+                           "query");
+    yaz_add_srw_diagnostic(odr_en,
+                           &(sru_pdu_res->u.response->diagnostics),
+                           &(sru_pdu_res->u.response->num_diagnostics),
+                           YAZ_SRW_QUERY_SYNTAX_ERROR,
+                           "CQL query is empty");
+    return false;
 }
 
 
