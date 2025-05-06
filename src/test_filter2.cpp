@@ -40,7 +40,7 @@ class FilterConstant: public mp::filter::Base {
 public:
     FilterConstant() : m_constant(1234) { };
     void process(mp::Package & package) const {
-	package.move();
+        package.move();
     };
     void configure(const xmlNode* ptr, bool test_only, const char *path);
     int get_constant() const { return m_constant; };
@@ -93,7 +93,7 @@ void FilterConstant::configure(const xmlNode* ptr, bool test_only,
 class FilterDouble: public mp::filter::Base {
 public:
     void process(mp::Package & package) const {
-	package.move();
+        package.move();
     };
     void configure(const xmlNode * ptr, bool test_only,
                    const char *path) { };
@@ -103,42 +103,42 @@ public:
 BOOST_AUTO_TEST_CASE( testfilter2_1 )
 {
     try {
-	FilterConstant fc;
-	FilterDouble fd;
+        FilterConstant fc;
+        FilterDouble fd;
 
-	{
-	    mp::RouterChain router1;
+        {
+            mp::RouterChain router1;
 
-	    // test filter set/get/exception
-	    router1.append(fc);
+            // test filter set/get/exception
+            router1.append(fc);
 
-	    router1.append(fd);
+            router1.append(fd);
 
             mp::Session session;
             mp::Origin origin;
-	    mp::Package pack(session, origin);
+            mp::Package pack(session, origin);
 
-	    pack.router(router1).move();
+            pack.router(router1).move();
 
             //BOOST_CHECK_EQUAL(pack.data(), 2468);
 
         }
 
         {
-	    mp::RouterChain router2;
+            mp::RouterChain router2;
 
-	    router2.append(fd);
-	    router2.append(fc);
+            router2.append(fd);
+            router2.append(fc);
 
             mp::Session session;
             mp::Origin origin;
-	    mp::Package pack(session, origin);
+            mp::Package pack(session, origin);
 
             pack.router(router2).move();
 
             //BOOST_CHECK_EQUAL(pack.data(), 1234);
 
-	}
+        }
 
     }
     catch (std::exception &e) {
@@ -154,7 +154,7 @@ BOOST_AUTO_TEST_CASE( testfilter2_1 )
 BOOST_AUTO_TEST_CASE( testfilter2_2 )
 {
     try {
-	FilterConstant fc;
+        FilterConstant fc;
         BOOST_CHECK_EQUAL(fc.get_constant(), 1234);
 
         mp::filter::Base *base = &fc;

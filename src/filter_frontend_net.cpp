@@ -222,8 +222,8 @@ void yf::FrontendNet::ThreadPoolPackage::result(const char *t_info)
 
     if (gdu->get())
     {
-	int len;
-	m_assoc_child->send_GDU(gdu->get(), &len);
+        int len;
+        m_assoc_child->send_GDU(gdu->get(), &len);
 
         yaz_timing_stop(timer);
         double duration = yaz_timing_get_real(timer);
@@ -509,7 +509,7 @@ void yf::FrontendNet::ZAssocChild::failNotify()
     {
         if (m_no_requests == 0)
             delete this;
-	return;
+        return;
     }
     m_no_requests++;
 
@@ -740,8 +740,8 @@ void yf::FrontendNet::process(mp::Package &package) const
 
     for (i = 0; i<m_p->m_ports.size(); i++)
     {
-	m_p->az[i]->set_package(&package);
-	m_p->az[i]->set_thread_pool(
+        m_p->az[i]->set_package(&package);
+        m_p->az[i]->set_thread_pool(
             tp);
     }
     while (m_p->mySocketManager.processEvent() > 0)
@@ -778,8 +778,8 @@ void yf::FrontendNet::process(mp::Package &package) const
         int no = m_p->mySocketManager.getNumberOfObservers();
         if (no <= 1)
             break;
-	if (tt && tt->timeout())
-	    break;
+        if (tt && tt->timeout())
+            break;
     }
     delete tp;
     delete tt;

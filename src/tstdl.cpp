@@ -31,15 +31,15 @@ int main(int argc, char **argv)
 #if HAVE_DLFCN_H
     if (argc != 3)
     {
-	cerr << "bad args" << endl << "Usage: tstdl filename symbol" << endl;
-	exit(1);
+        cerr << "bad args" << endl << "Usage: tstdl filename symbol" << endl;
+        exit(1);
     }
     void *mod = dlopen(argv[1][0] ? argv[1] : 0, RTLD_NOW|RTLD_LOCAL);
     if (!mod)
     {
-	cerr << "dlopen failed for file '" << argv[1] << "'\n" <<
-	    "dlerror=" << dlerror() << endl;
-	exit(1);
+        cerr << "dlopen failed for file '" << argv[1] << "'\n" <<
+            "dlerror=" << dlerror() << endl;
+        exit(1);
     }
     void *sym = dlsym(mod, argv[2]);
     cout << "sym=" << sym << endl;
