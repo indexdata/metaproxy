@@ -65,7 +65,7 @@ namespace metaproxy_1 {
         bool match(const std::list<std::string> &db1,
                    const std::list<std::string> &db2);
 
-	bool pqf(ODR odr, Z_APDU *apdu, const std::string &q);
+        bool pqf(ODR odr, Z_APDU *apdu, const std::string &q);
 
         std::string zQueryToString(Z_Query *query);
 

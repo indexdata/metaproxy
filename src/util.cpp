@@ -285,8 +285,8 @@ bool mp_util::pqf(ODR odr, Z_APDU *apdu, const std::string &q)
     Z_RPNQuery *rpn = yaz_pqf_parse(pqf_parser, odr, q.c_str());
     if (!rpn)
     {
-	yaz_pqf_destroy(pqf_parser);
-	return false;
+        yaz_pqf_destroy(pqf_parser);
+        return false;
     }
     yaz_pqf_destroy(pqf_parser);
     Z_Query *query = (Z_Query *) odr_malloc(odr, sizeof(Z_Query));

@@ -131,33 +131,33 @@ static void print_xpath_nodes(xmlNodeSetPtr nodes, FILE* output)
 
     fprintf(output, "Result (%d nodes):\n", size);
     for (i = 0; i < size; ++i) {
-	assert(nodes->nodeTab[i]);
+        assert(nodes->nodeTab[i]);
 
-	if (nodes->nodeTab[i]->type == XML_NAMESPACE_DECL)
+        if (nodes->nodeTab[i]->type == XML_NAMESPACE_DECL)
         {
-	    xmlNsPtr ns = (xmlNsPtr)nodes->nodeTab[i];
-	    cur = (xmlNodePtr)ns->next;
-	    if (cur->ns)
-	        fprintf(output, "= namespace \"%s\"=\"%s\" for node %s:%s\n",
+            xmlNsPtr ns = (xmlNsPtr)nodes->nodeTab[i];
+            cur = (xmlNodePtr)ns->next;
+            if (cur->ns)
+                fprintf(output, "= namespace \"%s\"=\"%s\" for node %s:%s\n",
                         ns->prefix, ns->href, cur->ns->href, cur->name);
             else
                 fprintf(output, "= namespace \"%s\"=\"%s\" for node %s\n",
                         ns->prefix, ns->href, cur->name);
-	}
+        }
         else if (nodes->nodeTab[i]->type == XML_ELEMENT_NODE)
         {
-	    cur = nodes->nodeTab[i];
-	    if (cur->ns)
-    	        fprintf(output, "= element node \"%s:%s\"\n",
+            cur = nodes->nodeTab[i];
+            if (cur->ns)
+                fprintf(output, "= element node \"%s:%s\"\n",
                         cur->ns->href, cur->name);
             else
-    	        fprintf(output, "= element node \"%s\"\n",  cur->name);
-	}
+                fprintf(output, "= element node \"%s\"\n",  cur->name);
+        }
         else
         {
-	    cur = nodes->nodeTab[i];
-	    fprintf(output, "= node \"%s\": type %d\n", cur->name, cur->type);
-	}
+            cur = nodes->nodeTab[i];
+            fprintf(output, "= node \"%s\": type %d\n", cur->name, cur->type);
+        }
     }
 }
 
@@ -179,34 +179,34 @@ bool yf::Sort::Record::register_namespaces(xmlXPathContextPtr xpathCtx,
     next = nsListDup;
     while (next)
     {
-	/* skip spaces */
-	while (*next == ' ')
+        /* skip spaces */
+        while (*next == ' ')
             next++;
-	if (*next == '\0')
+        if (*next == '\0')
             break;
 
-	/* find prefix */
-	prefix = next;
-	next = (xmlChar *) xmlStrchr(next, '=');
-	if (next == NULL)
+        /* find prefix */
+        prefix = next;
+        next = (xmlChar *) xmlStrchr(next, '=');
+        if (next == NULL)
         {
-	    xmlFree(nsListDup);
-	    return false;
-	}
-	*next++ = '\0';
+            xmlFree(nsListDup);
+            return false;
+        }
+        *next++ = '\0';
 
-	/* find href */
-	href = next;
-	next = (xmlChar*)xmlStrchr(next, ' ');
-	if (next)
-	    *next++ = '\0';
+        /* find href */
+        href = next;
+        next = (xmlChar*)xmlStrchr(next, ' ');
+        if (next)
+            *next++ = '\0';
 
-	/* do register namespace */
-	if (xmlXPathRegisterNs(xpathCtx, prefix, href) != 0)
+        /* do register namespace */
+        if (xmlXPathRegisterNs(xpathCtx, prefix, href) != 0)
         {
-	    xmlFree(nsListDup);
-	    return false;
-	}
+            xmlFree(nsListDup);
+            return false;
+        }
     }
 
     xmlFree(nsListDup);
