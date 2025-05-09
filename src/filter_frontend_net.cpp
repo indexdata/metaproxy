@@ -350,13 +350,6 @@ yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocChild::sessionNotify(
 yf::FrontendNet::ZAssocChild::~ZAssocChild()
 {
     int d = m_p->m_peerStat.remove(m_peer);
-    if (m_p->m_msg_config.length())
-    {
-        std::ostringstream os;
-        os  << m_p->m_msg_config << " "
-            << m_peer << " closing cnt=" << d;
-        yaz_log(YLOG_LOG, "%s", os.str().c_str());
-    }
 }
 
 void yf::FrontendNet::ZAssocChild::report(Z_HTTP_Request *hreq)
