@@ -349,7 +349,7 @@ yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocChild::sessionNotify(
 
 yf::FrontendNet::ZAssocChild::~ZAssocChild()
 {
-    int d = m_p->m_peerStat.remove(m_peer);
+    m_p->m_peerStat.remove(m_peer);
 }
 
 void yf::FrontendNet::ZAssocChild::report(Z_HTTP_Request *hreq)
