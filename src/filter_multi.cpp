@@ -107,7 +107,7 @@ namespace metaproxy_1 {
             void present(Package &package, Z_APDU *apdu);
             void scan(Package &package, Z_APDU *apdu);
             void relay_apdu(Package &package, Z_APDU *apdu);
-            void record_diagnostics(Z_Records *records, 
+            void record_diagnostics(Z_Records *records,
                                     Z_DiagRecs * &z_diag,
                                     ODR odr,
                                     int &no_successful);
@@ -558,7 +558,7 @@ void yf::Multi::Frontend::init(mp::Package &package, Z_GDU *gdu)
     package.response() = f_apdu;
 }
 
-void yf::Multi::Frontend::record_diagnostics(Z_Records *records, 
+void yf::Multi::Frontend::record_diagnostics(Z_Records *records,
                                              Z_DiagRecs * &z_diag,
                                              ODR odr,
                                              int &no_successful)
@@ -603,7 +603,7 @@ void yf::Multi::Frontend::record_diagnostics(Z_Records *records,
             }
             Z_DiagRec **n = (Z_DiagRec **)
                 odr_malloc(odr,
-                           (dr->num_diagRecs + z_diag->num_diagRecs) * 
+                           (dr->num_diagRecs + z_diag->num_diagRecs) *
                            sizeof(*n));
             if (z_diag->num_diagRecs)
                 memcpy(n, z_diag->diagRecs, z_diag->num_diagRecs * sizeof(*n));
@@ -924,7 +924,7 @@ void yf::Multi::Frontend::present(mp::Package &package, Z_APDU *apdu_req)
             Z_Records *records = b_apdu->u.presentResponse->records;
 
             if (records && records->which == Z_Records_DBOSD
-                && inside_pos < 
+                && inside_pos <
                 records->u.databaseOrSurDiagnostics->num_records)
             {
                 nprl->records[i] = (Z_NamePlusRecord*)
@@ -1154,72 +1154,46 @@ void yf::Multi::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
         }
     }
 
-    if (false)
-    {
-        std::cout << "BEFORE\n";
-        ScanTermInfoList::iterator it = entries_before.begin();
-        for(; it != entries_before.end(); it++)
-        {
-            std::cout << " " << it->m_norm_term << " " << it->m_count << "\n";
-        }
+    mp::odr odr;
+    Z_APDU *f_apdu = odr.create_scanResponse(apdu_req, 0, 0);
+    Z_ScanResponse *resp = f_apdu->u.scanResponse;
 
-        std::cout << "AFTER\n";
-        it = entries_after.begin();
-        for(; it != entries_after.end(); it++)
-        {
-            std::cout << " " << it->m_norm_term << " " << it->m_count << "\n";
-        }
+    int number_returned = *req->numberOfTermsRequested;
+    int position_returned = *req->preferredPositionInResponse;
+
+    resp->entries->num_entries = number_returned;
+    resp->entries->entries = (Z_Entry**)
+        odr_malloc(odr, sizeof(Z_Entry*) * number_returned);
+    int i;
+
+    int lbefore = entries_before.size();
+    if (lbefore < position_returned-1)
+        position_returned = lbefore+1;
+
+    ScanTermInfoList::iterator it = entries_before.begin();
+    for (i = 0; i<position_returned-1 && it != entries_before.end(); i++, it++)
+    {
+        resp->entries->entries[position_returned-2-i] = it->get_entry(odr);
     }
 
-    if (false)
-    {
-        mp::odr odr;
-        Z_APDU *f_apdu = odr.create_scanResponse(apdu_req, 1, "not implemented");
-        package.response() = f_apdu;
-    }
+    it = entries_after.begin();
+
+    if (position_returned <= 0)
+        i = 0;
     else
+        i = position_returned-1;
+    for (; i<number_returned && it != entries_after.end(); i++, it++)
     {
-        mp::odr odr;
-        Z_APDU *f_apdu = odr.create_scanResponse(apdu_req, 0, 0);
-        Z_ScanResponse *resp = f_apdu->u.scanResponse;
-
-        int number_returned = *req->numberOfTermsRequested;
-        int position_returned = *req->preferredPositionInResponse;
-
-        resp->entries->num_entries = number_returned;
-        resp->entries->entries = (Z_Entry**)
-            odr_malloc(odr, sizeof(Z_Entry*) * number_returned);
-        int i;
-
-        int lbefore = entries_before.size();
-        if (lbefore < position_returned-1)
-            position_returned = lbefore+1;
-
-        ScanTermInfoList::iterator it = entries_before.begin();
-        for (i = 0; i<position_returned-1 && it != entries_before.end(); i++, it++)
-        {
-            resp->entries->entries[position_returned-2-i] = it->get_entry(odr);
-        }
-
-        it = entries_after.begin();
-
-        if (position_returned <= 0)
-            i = 0;
-        else
-            i = position_returned-1;
-        for (; i<number_returned && it != entries_after.end(); i++, it++)
-        {
-            resp->entries->entries[i] = it->get_entry(odr);
-        }
-
-        number_returned = i;
-
-        resp->positionOfTerm = odr_intdup(odr, position_returned);
-        resp->numberOfEntriesReturned = odr_intdup(odr, number_returned);
-        resp->entries->num_entries = number_returned;
-
-        package.response() = f_apdu;
+        resp->entries->entries[i] = it->get_entry(odr);
     }
+
+    number_returned = i;
+
+    resp->positionOfTerm = odr_intdup(odr, position_returned);
+    resp->numberOfEntriesReturned = odr_intdup(odr, number_returned);
+    resp->entries->num_entries = number_returned;
+
+    package.response() = f_apdu;
 }
 
 

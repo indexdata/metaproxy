@@ -128,12 +128,10 @@ yf::Z3950Client::Assoc::Assoc(yazpp_1::SocketManager *socket_manager,
        m_general_time_max(general_timeout),
        m_host(host)
 {
-    // std::cout << "create assoc " << this << "\n";
 }
 
 yf::Z3950Client::Assoc::~Assoc()
 {
-    // std::cout << "destroy assoc " << this << "\n";
 }
 
 void yf::Z3950Client::Assoc::connectNotify()

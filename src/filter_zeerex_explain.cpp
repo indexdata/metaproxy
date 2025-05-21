@@ -89,8 +89,6 @@ void yf::ZeeRexExplain::Impl::configure(const xmlNode *confignode)
             mp::xml::check_attribute(attr, "", "name");
             database = mp::xml::get_text(attr);
 
-            std::cout << database << "\n";
-
             const xmlNode *explainnode;
             for (explainnode = dbnode->children;
                  explainnode; explainnode = explainnode->next){
