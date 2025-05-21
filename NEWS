@@ -1,3 +1,10 @@
+--- 1.22.1 2025/05/21
+
+frontend_net: log listening ports on startup.
+
+zeerex_explain: avoid excessive buffer copy when generating
+XML Explain response.
+
 --- 1.22.0 2025/05/06
 
 zeerex_explain: fix ref to freed memory (#45)
