@@ -733,9 +733,9 @@ void yf::FrontendNet::process(mp::Package &package) const
 
     for (i = 0; i<m_p->m_ports.size(); i++)
     {
+        yaz_log(YLOG_LOG, "listening on %s", m_p->m_ports[i].port.c_str());
         m_p->az[i]->set_package(&package);
-        m_p->az[i]->set_thread_pool(
-            tp);
+        m_p->az[i]->set_thread_pool(tp);
     }
     while (m_p->mySocketManager.processEvent() > 0)
     {
