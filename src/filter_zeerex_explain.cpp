@@ -111,13 +111,13 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
     Z_GDU *zgdu_req = package.request().get();
 
     // ignoring all non HTTP_Request packages
-    if (!zgdu_req || !(zgdu_req->which == Z_GDU_HTTP_Request)){
+    if (zgdu_req == 0 || zgdu_req->which != Z_GDU_HTTP_Request)
+    {
         package.move();
         return;
     }
 
     // only working on  HTTP_Request packages now
-
     mp::odr odr_de(ODR_DECODE);
     Z_SRW_PDU *sru_pdu_req = 0;
 
@@ -131,15 +131,13 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
     std::map<std::string, const xmlNode *>::iterator idbexp;
     idbexp = m_database_explain.find(sruinfo.database);
 
-    if (idbexp == m_database_explain.end()) {
+    if (idbexp == m_database_explain.end())
+    {
         // need to emit error ?? or just let package pass ??
         package.move();
         return;
     }
     explainnode = idbexp->second;
-
-    // if SRU package could not be decoded, send minimal explain and
-    // close connection
 
     Z_SOAP *soap = 0;
     char *charset = 0;
@@ -147,10 +145,10 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
     Z_SRW_diagnostic *diagnostic = 0;
     int num_diagnostic = 0;
 
-    if (! (sru_pdu_req = mp_util::decode_sru_request(
+    if ((sru_pdu_req = mp_util::decode_sru_request(
                package, odr_de, odr_en,
                &diagnostic, &num_diagnostic, &soap,
-               charset)))
+               charset)) == 0)
     {
         mp_util::build_sru_explain(package, odr_en, sru_pdu_res,
                                    sruinfo, explainnode);
@@ -159,33 +157,21 @@ void yf::ZeeRexExplain::Impl::process(mp::Package &package)
         package.session().close();
         return;
     }
-
-
     if (sru_pdu_req->which != Z_SRW_explain_request)
     {
-    // Let pass all other SRU actions
+        // Let pass all other SRU actions
         package.move();
         return;
     }
-    // except valid SRU explain request, construct ZeeRex Explain response
-    else
-    {
-        Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
+    Z_SRW_explainRequest *er_req = sru_pdu_req->u.explain_request;
 
-        sru_pdu_res->u.explain_response->diagnostics = diagnostic;
-        sru_pdu_res->u.explain_response->num_diagnostics = num_diagnostic;
-        //mp_util::build_simple_explain(package, odr_en, sru_pdu_res,
-        //                           sruinfo, er_req);
-        mp_util::build_sru_explain(package, odr_en, sru_pdu_res,
-                                   sruinfo, explainnode, er_req);
-        mp_util::build_sru_response(package, odr_en, soap,
-                                    sru_pdu_res, charset, stylesheet);
-        return;
-    }
+    sru_pdu_res->u.explain_response->diagnostics = diagnostic;
+    sru_pdu_res->u.explain_response->num_diagnostics = num_diagnostic;
 
-    // should never arrive here
-    package.session().close();
-    return;
+    mp_util::build_sru_explain(package, odr_en, sru_pdu_res,
+                                sruinfo, explainnode, er_req);
+    mp_util::build_sru_response(package, odr_en, soap,
+                                sru_pdu_res, charset, stylesheet);
 }
 
 

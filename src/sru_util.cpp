@@ -82,29 +82,33 @@ mp_util::SRUServerInfo mp_util::get_sru_server_info(mp::Package &package)
             }
         }
     }
-
-    //std::cout << "sruinfo.database " << sruinfo.database << "\n";
-    //std::cout << "sruinfo.host " << sruinfo.host << "\n";
-    //std::cout << "sruinfo.port " << sruinfo.port << "\n";
-
     return sruinfo;
 }
 
 
-bool mp_util::build_sru_explain(metaproxy_1::Package &package,
+void mp_util::build_sru_explain(metaproxy_1::Package &package,
                                 metaproxy_1::odr &odr_en,
                                 Z_SRW_PDU *sru_pdu_res,
                                 SRUServerInfo sruinfo,
                                 const xmlNode *explain,
                                 Z_SRW_explainRequest const *er_req)
 {
+    // z3950'fy recordPacking
+    int record_packing = Z_SRW_recordPacking_XML;
+    if (er_req && er_req->recordPacking && 's' == *(er_req->recordPacking))
+        record_packing = Z_SRW_recordPacking_string;
 
-    // building SRU explain record
-    std::string explain_xml;
+    // preparing explain record insert
+    Z_SRW_explainResponse *sru_res = sru_pdu_res->u.explain_response;
 
-    if (explain == 0)
+    // inserting one and only explain record
+    sru_res->record.recordPosition = odr_intdup(odr_en, 1);
+    sru_res->record.recordPacking = record_packing;
+    sru_res->record.recordSchema = odr_strdup(odr_en, xmlns_explain.c_str());
+
+    if (explain == 0 || explain->doc == 0)
     {
-        explain_xml
+        std::string explain_xml
             = mp_util::to_string(
                 "<explain  xmlns=\"" + xmlns_explain + "\">\n"
                 "  <serverInfo protocol='SRU'>\n"
@@ -119,38 +123,21 @@ bool mp_util::build_sru_explain(metaproxy_1::Package &package,
             + mp_util::to_string("</database>\n"
                                  "  </serverInfo>\n"
                                  "</explain>\n");
+
+        sru_res->record.recordData_len = explain_xml.size();
+        sru_res->record.recordData_buf = odr_strdup(odr_en, explain_xml.c_str());
     }
     else
     {
-        xmlNode *tmp = xmlCopyNode((xmlNode*) explain, 1);
+        xmlNode *tmp = xmlCopyNode((xmlNode *) explain, 1);
         xmlBufferPtr buf = xmlBufferCreate();
         xmlNodeDump(buf, tmp->doc, tmp, 2, 1);
         xmlFreeNode(tmp);
-
-        explain_xml.assign((const char*)buf->content, 0, buf->use);
+        sru_res->record.recordData_len = buf->use;
+        sru_res->record.recordData_buf = odr_strdupn(odr_en, (const char *) buf->content, buf->use);
         xmlBufferFree(buf);
     }
-
-
-    // z3950'fy recordPacking
-    int record_packing = Z_SRW_recordPacking_XML;
-    if (er_req && er_req->recordPacking && 's' == *(er_req->recordPacking))
-        record_packing = Z_SRW_recordPacking_string;
-
-    // preparing explain record insert
-    Z_SRW_explainResponse *sru_res = sru_pdu_res->u.explain_response;
-
-    // inserting one and only explain record
-
-    sru_res->record.recordPosition = odr_intdup(odr_en, 1);
-    sru_res->record.recordPacking = record_packing;
-    sru_res->record.recordSchema = odr_strdup(odr_en, xmlns_explain.c_str());
-    sru_res->record.recordData_len = explain_xml.size();
-    sru_res->record.recordData_buf = odr_strdupn(odr_en, (const char *)explain_xml.c_str(), explain_xml.size());
-
-    return true;
 }
-
 
 bool mp_util::build_sru_response(mp::Package &package,
                                  mp::odr &odr_en,
@@ -160,55 +147,54 @@ bool mp_util::build_sru_response(mp::Package &package,
                                  const char *stylesheet)
 {
     Z_GDU *zgdu_req = package.request().get();
-    if  (zgdu_req && zgdu_req->which == Z_GDU_HTTP_Request)
+    if  (zgdu_req && zgdu_req->which != Z_GDU_HTTP_Request)
     {
-        Z_GDU *zgdu_res //= z_get_HTTP_Response(odr_en, 200);
-            = odr_en.create_HTTP_Response(package.session(),
-                                          zgdu_req->u.HTTP_Request,
-                                          200);
-
-        // adding HTTP response code and headers
-        Z_HTTP_Response * http_res = zgdu_res->u.HTTP_Response;
-        //http_res->code = http_code;
-
-        std::string ctype("text/xml");
-        if (charset)
-        {
-            ctype += "; charset=";
-            ctype += charset;
-        }
-
-        z_HTTP_header_add(odr_en,
-                          &http_res->headers, "Content-Type", ctype.c_str());
-
-        // packaging Z_SOAP into HTML response
-        static Z_SOAP_Handler soap_handlers[4] = {
-            {(char *)YAZ_XMLNS_SRU_v1_1, 0, (Z_SOAP_fun) yaz_srw_codec},
-            {(char *)YAZ_XMLNS_SRU_v1_0, 0,  (Z_SOAP_fun) yaz_srw_codec},
-            {(char *)YAZ_XMLNS_UPDATE_v0_9, 0, (Z_SOAP_fun) yaz_ucp_codec},
-            {0, 0, 0}
-        };
-
-
-        // empty stylesheet means NO stylesheet
-        if (stylesheet && *stylesheet == '\0')
-            stylesheet = 0;
-
-        // encoding SRU package
-
-        soap->u.generic->p  = (void*) sru_pdu_res;
-        //int ret =
-        z_soap_codec_enc_xsl(odr_en, &soap,
-                             &http_res->content_buf, &http_res->content_len,
-                             soap_handlers, charset, stylesheet);
-
-        package.response() = zgdu_res;
-        return true;
+        package.session().close();
+        return false;
     }
-    package.session().close();
-    return false;
-}
 
+    Z_GDU *zgdu_res //= z_get_HTTP_Response(odr_en, 200);
+        = odr_en.create_HTTP_Response(package.session(),
+                                        zgdu_req->u.HTTP_Request,
+                                        200);
+
+    // adding HTTP response code and headers
+    Z_HTTP_Response * http_res = zgdu_res->u.HTTP_Response;
+    //http_res->code = http_code;
+
+    std::string ctype("text/xml");
+    if (charset)
+    {
+        ctype += "; charset=";
+        ctype += charset;
+    }
+
+    z_HTTP_header_add(odr_en,
+                        &http_res->headers, "Content-Type", ctype.c_str());
+
+    // packaging Z_SOAP into HTML response
+    static Z_SOAP_Handler soap_handlers[4] = {
+        {(char *)YAZ_XMLNS_SRU_v1_1, 0, (Z_SOAP_fun) yaz_srw_codec},
+        {(char *)YAZ_XMLNS_SRU_v1_0, 0,  (Z_SOAP_fun) yaz_srw_codec},
+        {(char *)YAZ_XMLNS_UPDATE_v0_9, 0, (Z_SOAP_fun) yaz_ucp_codec},
+        {0, 0, 0}
+    };
+
+
+    // empty stylesheet means NO stylesheet
+    if (stylesheet && *stylesheet == '\0')
+        stylesheet = 0;
+
+    // encoding SRU package
+    soap->u.generic->p  = (void*) sru_pdu_res;
+    //int ret =
+    z_soap_codec_enc_xsl(odr_en, &soap,
+                            &http_res->content_buf, &http_res->content_len,
+                            soap_handlers, charset, stylesheet);
+
+    package.response() = zgdu_res;
+    return true;
+}
 
 
 Z_SRW_PDU * mp_util::decode_sru_request(mp::Package &package,
@@ -225,10 +211,8 @@ Z_SRW_PDU * mp_util::decode_sru_request(mp::Package &package,
     //assert((zgdu_req->which == Z_GDU_HTTP_Request));
 
     //ignoring all non HTTP_Request packages
-    if (!zgdu_req || !(zgdu_req->which == Z_GDU_HTTP_Request))
-    {
+    if (zgdu_req == 0 || zgdu_req->which != Z_GDU_HTTP_Request)
         return 0;
-    }
 
     Z_HTTP_Request* http_req =  zgdu_req->u.HTTP_Request;
     if (! http_req)
@@ -244,12 +228,10 @@ Z_SRW_PDU * mp_util::decode_sru_request(mp::Package &package,
     }
     else if (0 == yaz_srw_decode(http_req, &sru_pdu_req, soap,
                                  odr_de, &charset))
-        return sru_pdu_req;
-    else
     {
-        package.session().close();
-        return 0;
+        return sru_pdu_req;
     }
+    package.session().close();
     return 0;
 }
 

@@ -39,25 +39,14 @@ namespace metaproxy_1 {
 
         class SRUServerInfo;
 
-        // std::string sru_protocol(const Z_HTTP_Request &http_req);
-        // std::string debug_http(const Z_HTTP_Request &http_req);
-        // void http_response(mp::Package &package,
-        //                   const std::string &content,
-        //                   int http_code = 200);
-
         bool build_sru_debug_package(metaproxy_1::Package &package);
 
         SRUServerInfo get_sru_server_info(metaproxy_1::Package &package);
                                           // Z_SRW_explainRequest
                                           //const *er_req);
 
-//         bool build_simple_explain(metaproxy_1::Package &package,
-//                                   metaproxy_1::odr &odr_en,
-//                                   Z_SRW_PDU *sru_pdu_res,
-//                                   SRUServerInfo sruinfo,
-//                                   Z_SRW_explainRequest const *er_req = 0);
 
-        bool build_sru_explain(metaproxy_1::Package &package,
+        void build_sru_explain(metaproxy_1::Package &package,
                                metaproxy_1::odr &odr_en,
                                Z_SRW_PDU *sru_pdu_res,
                                SRUServerInfo sruinfo,
