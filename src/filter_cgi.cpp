@@ -128,21 +128,38 @@ void yf::CGI::Rep::child(Z_HTTP_Request *hreq, const CGI::Exec *it)
         setenv(it_e->first.c_str(), it_e->second.c_str(), 1);
     // change directory to configuration root
     // then to CGI program directory (could be relative)
-    chdir(documentroot.c_str());
+    int r = chdir(documentroot.c_str());
+    if (r == -1)
+    {
+        yaz_log(YLOG_LOG, "CGI chdir(%s) failed: %s",
+                documentroot.c_str(), strerror(errno));
+        exit(1);
+    }
     char *program = xstrdup(program_cstr);
     char *cp = strrchr(program, '/');
     if (cp)
     {
         *cp++ = '\0';
-        chdir(program);
+        r = chdir(program);
+        if (r == -1)
+        {
+            yaz_log(YLOG_FATAL, "CGI chdir(%s) failed: %s",
+                    program, strerror(errno));
+            exit(1);
+        }
     }
     else
         cp = program;
-    int r = execl(cp, cp, (char *) 0);
+    r = execl(cp, cp, (char *) 0);
     if (r == -1)
+    {
+        yaz_log(YLOG_FATAL, "CGI execl(%s) failed: %s",
+                program, strerror(errno));
         exit(1);
+    }
     exit(0);
 }
+
 
 void yf::CGI::process(mp::Package &package) const
 {
@@ -190,12 +207,26 @@ void yf::CGI::process(mp::Package &package) const
             case 0: /* child */
                 /* POSTed content */
                 close(0);
-                dup(fds_request[0]);
+                r = dup(fds_request[0]);
+                if (r == -1)
+                {
+                    zgdu_res = odr.create_HTTP_Response(
+                        package.session(), hreq, 500);
+                    package.response() = zgdu_res;
+                    exit(1);
+                }
                 close(fds_request[1]);
                 /* response */
                 close(1);
                 close(fds_response[0]);
-                dup(fds_response[1]);
+                r = dup(fds_response[1]);
+                if (r == -1)
+                {
+                    zgdu_res = odr.create_HTTP_Response(
+                        package.session(), hreq, 500);
+                    package.response() = zgdu_res;
+                    exit(1);
+                }
                 m_p->child(hreq, &(*it));
                 break;
             case -1: /* error */

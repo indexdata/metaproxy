@@ -349,14 +349,7 @@ yazpp_1::IPDU_Observer *yf::FrontendNet::ZAssocChild::sessionNotify(
 
 yf::FrontendNet::ZAssocChild::~ZAssocChild()
 {
-    int d = m_p->m_peerStat.remove(m_peer);
-    if (m_p->m_msg_config.length())
-    {
-        std::ostringstream os;
-        os  << m_p->m_msg_config << " "
-            << m_peer << " closing cnt=" << d;
-        yaz_log(YLOG_LOG, "%s", os.str().c_str());
-    }
+    m_p->m_peerStat.remove(m_peer);
 }
 
 void yf::FrontendNet::ZAssocChild::report(Z_HTTP_Request *hreq)
@@ -740,9 +733,9 @@ void yf::FrontendNet::process(mp::Package &package) const
 
     for (i = 0; i<m_p->m_ports.size(); i++)
     {
+        yaz_log(YLOG_LOG, "listening on %s", m_p->m_ports[i].port.c_str());
         m_p->az[i]->set_package(&package);
-        m_p->az[i]->set_thread_pool(
-            tp);
+        m_p->az[i]->set_thread_pool(tp);
     }
     while (m_p->mySocketManager.processEvent() > 0)
     {
