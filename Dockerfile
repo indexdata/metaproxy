@@ -1,29 +1,25 @@
-FROM debian:bookworm-slim AS build
+FROM debian:trixie-slim AS build
 
 # Builds from the workspace root dir
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-  autoconf automake libtool gcc g++ make bison \
+RUN apt update && apt-get install -y \
+  apt-transport-https ca-certificates curl \
+  autoconf automake libtool gcc g++ make \
   tclsh xsltproc docbook docbook-xml docbook-xsl librsvg2-bin \
   pkg-config libxslt1-dev libgnutls28-dev libicu-dev \
   libboost-dev libboost-system-dev libboost-thread-dev \
   libboost-test-dev libboost-regex-dev \
   git
 
-RUN git clone https://github.com/indexdata/yaz.git
-RUN cd yaz && ./buildconf.sh
-RUN cd yaz && ./configure --disable-shared --enable-static
-RUN cd yaz && make -j4
-
-RUN git clone https://github.com/indexdata/yazpp.git
-RUN cd yazpp && ./buildconf.sh
-RUN cd yazpp && ./configure --with-yaz=../yaz --disable-shared --enable-static
-RUN cd yazpp && make -j4
+RUN curl -s https://ftp.indexdata.com/debian/indexdata.gpg -o /usr/share/keyrings/indexdata.gpg
+RUN echo 'deb [signed-by=/usr/share/keyrings/indexdata.gpg] https://ftp.indexdata.com/debian trixie main' > /etc/apt/sources.list.d/indexdata.list
+RUN apt update
+RUN apt-get install -y libyazpp7-dev
 
 COPY . metaproxy
 RUN cd metaproxy && ./buildconf.sh
-RUN cd metaproxy && ./configure --with-yazpp=../yazpp --disable-shared --enable-static
+RUN cd metaproxy && ./configure --disable-shared --enable-static
 RUN cd metaproxy && make -j4
 
 # Save list of shared lib deps
