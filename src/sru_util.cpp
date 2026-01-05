@@ -133,8 +133,9 @@ void mp_util::build_sru_explain(metaproxy_1::Package &package,
         xmlBufferPtr buf = xmlBufferCreate();
         xmlNodeDump(buf, tmp->doc, tmp, 2, 1);
         xmlFreeNode(tmp);
-        sru_res->record.recordData_len = buf->use;
-        sru_res->record.recordData_buf = odr_strdupn(odr_en, (const char *) buf->content, buf->use);
+        sru_res->record.recordData_len = xmlBufferLength(buf);
+        sru_res->record.recordData_buf =
+            odr_strdupn(odr_en, (const char *) xmlBufferContent(buf), xmlBufferLength(buf));
         xmlBufferFree(buf);
     }
 }

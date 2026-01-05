@@ -1767,7 +1767,8 @@ Z_Records *yf::Zoom::Frontend::get_explain_records(
         npr->which = Z_NamePlusRecord_databaseRecord;
         npr->u.databaseRecord =
             z_ext_record_xml(odr,
-                             (const char *) xml_buf->content, xml_buf->use);
+                             (const char *) xmlBufferContent(xml_buf),
+                             xmlBufferLength(xml_buf));
         npl->records[i] = npr;
         xmlFreeNode(tmp_node);
         xmlBufferFree(xml_buf);
