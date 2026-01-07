@@ -1,4 +1,4 @@
---- 1.22.2 2026/01/27
+--- 1.22.2 2026/01/07
 
 Avoid using deprecated Libxml2 xmlBuffer members `use` and `content`.
 
