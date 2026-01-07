@@ -1,3 +1,11 @@
+--- 1.22.2 2026/01/27
+
+Avoid using deprecated Libxml2 xmlBuffer members `use` and `content`.
+
+Build Debian trixie package
+
+Update URLs in documentation
+
 --- 1.22.1 2025/05/21
 
 frontend_net: log listening ports on startup.
