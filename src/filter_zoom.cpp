@@ -364,9 +364,7 @@ void yf::Zoom::Backend::get_zoom_error(int *error, char **addinfo,
             strcpy(*addinfo, zoom_addinfo);
             strcat(*addinfo, " ");
         }
-        size_t sz = 30 + strlen(dset) + strlen(msg) + (zoom_addinfo ? strlen(zoom_addinfo) : 0;
-        snprintf(sz, "%s%s(%s %d %s)", zoom_addinfo ? zoom_addinfo ? "",
-            zoom_addinfo ? " " : "", dset, error0, msg);
+        {
             size_t cap = 1 + 30 + strlen(dset) + strlen(msg) +
                          (zoom_addinfo ? strlen(zoom_addinfo) : 0);
             size_t used = strlen(*addinfo);
