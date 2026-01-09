@@ -150,7 +150,7 @@ fi
 %preun
 %systemd_preun metaproxy.service
 
-if [ "$1" = 0 ]; then
+if [ "$1" -eq 0 ]; then
     . /etc/metaproxy/metaproxy.user 2>/dev/null || :
     if [ -n "$SERVER_HOME" ] && [ -d "$SERVER_HOME" ]; then
         rm -rf "$SERVER_HOME" || :
