@@ -431,9 +431,9 @@ void yf::RecordTransform::Impl::process(mp::Package &package) const
         else
         {
             char *tmp = (char*) odr_malloc(odr_en, 80);
-            sprintf(tmp,
-                    "record_transform: yaz_retrieval_get_error returned %d",
-                    ret_code);
+            snprintf(tmp, 80,
+                     "record_transform: yaz_retrieval_get_error returned %d",
+                     ret_code);
             details = tmp;
             error_code = YAZ_BIB1_UNSPECIFIED_ERROR;
         }
@@ -570,4 +570,3 @@ extern "C" {
  * End:
  * vim: shiftwidth=4 tabstop=8 expandtab
  */
-

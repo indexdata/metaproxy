@@ -117,7 +117,7 @@ void yf::CGI::Rep::child(Z_HTTP_Request *hreq, const CGI::Exec *it)
     if (v)
     {
         char tmp[40];
-        sprintf(tmp, "%d", hreq->content_len);
+        snprintf(tmp, sizeof tmp, "%d", hreq->content_len);
         setenv("CONTENT_LENGTH", tmp, 1);
         setenv("CONTENT_TYPE", v, 1);
     }
@@ -405,4 +405,3 @@ extern "C" {
  * End:
  * vim: shiftwidth=4 tabstop=8 expandtab
  */
-
