@@ -123,11 +123,11 @@ rm -fr ${RPM_BUILD_ROOT}
 %config(noreplace) /etc/sysconfig/metaproxy
 
 %post
-. /etc/metaproxy/metaproxy.user 2>/dev/null || :
+. /etc/metaproxy/metaproxy.user 2>/dev/null
 
 # Ensure group exists
 if [ -n "$SERVER_GROUP" ] && ! getent group | grep -q "^$SERVER_GROUP:" ; then
-    groupadd -r "$SERVER_GROUP" 2>/dev/null || :
+    groupadd -r "$SERVER_GROUP" 2>/dev/null
 fi
 
 # Ensure user exists
@@ -135,13 +135,13 @@ if [ -n "$SERVER_USER" ] && ! getent passwd | grep -q "^$SERVER_USER:" ; then
     useradd -r -s /sbin/nologin -c "${SERVER_NAME:-Metaproxy}" \
         -d "${SERVER_HOME:-/var/lib/metaproxy}" \
         -g "${SERVER_GROUP:-metaproxy}" \
-        "$SERVER_USER" 2>/dev/null || :
+        "$SERVER_USER" 2>/dev/null
 fi
 
 # Ensure home directory exists
 if [ -n "$SERVER_HOME" ] && [ -n "$SERVER_USER" ] && [ -n "$SERVER_GROUP" ] && [ ! -d "$SERVER_HOME" ]; then
     mkdir -p "$SERVER_HOME"
-    chown "$SERVER_USER:$SERVER_GROUP" "$SERVER_HOME" 2>/dev/null || :
+    chown "$SERVER_USER:$SERVER_GROUP" "$SERVER_HOME" 2>/dev/null
 fi
 
 # Safe systemd handling (won't fail in containers)
