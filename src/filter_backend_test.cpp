@@ -193,7 +193,7 @@ Z_Records *yf::BackendTest::Rep::fetch(
         {
             char *tmp_rec = odr_strdup(odr, marc_record);
             char offset_str[30];
-            sprintf(offset_str, "test__%09d_", i+start);
+            snprintf(offset_str, sizeof offset_str, "test__%09d_", i+start);
             memcpy(tmp_rec+186, offset_str, strlen(offset_str));
             npr->u.databaseRecord = z_ext_record_usmarc(
                 odr, tmp_rec, strlen(tmp_rec));
@@ -417,4 +417,3 @@ extern "C" {
  * End:
  * vim: shiftwidth=4 tabstop=8 expandtab
  */
-

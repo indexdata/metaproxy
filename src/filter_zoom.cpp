@@ -356,7 +356,7 @@ void yf::Zoom::Backend::get_zoom_error(int *error, char **addinfo,
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
 
         *addinfo = (char *) odr_malloc(
-            odr, 30 + strlen(dset) + strlen(msg) +
+            odr, 1 + 30 + strlen(dset) + strlen(msg) +
             (zoom_addinfo ? strlen(zoom_addinfo) : 0));
         **addinfo = '\0';
         if (zoom_addinfo && *zoom_addinfo)
@@ -364,7 +364,13 @@ void yf::Zoom::Backend::get_zoom_error(int *error, char **addinfo,
             strcpy(*addinfo, zoom_addinfo);
             strcat(*addinfo, " ");
         }
-        sprintf(*addinfo + strlen(*addinfo), "(%s %d %s)", dset, error0, msg);
+        {
+            size_t cap = 1 + 30 + strlen(dset) + strlen(msg) +
+                         (zoom_addinfo ? strlen(zoom_addinfo) : 0);
+            size_t used = strlen(*addinfo);
+            if (used < cap)
+                snprintf(*addinfo + used, cap - used, "(%s %d %s)", dset, error0, msg);
+        }
     }
 }
 
@@ -1061,9 +1067,10 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
                             "unable to open content config %s",
                             m_p->content_config_file.c_str());
                 *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-                *addinfo = (char *)  odr_malloc(odr, 70 + tmp_file.length());
-                sprintf(*addinfo, "zoom: unable to open content config %s",
-                        m_p->content_config_file.c_str());
+                *addinfo = (char *)  odr_malloc(odr, 1 + 70 + tmp_file.length());
+                snprintf(*addinfo, 1 + 70 + tmp_file.length(),
+                         "zoom: unable to open content config %s",
+                         m_p->content_config_file.c_str());
                 return false;
             }
         }
@@ -1085,14 +1092,15 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
         {
             package.log("zoom", YLOG_WARN, "bad tmp_file %s", tmp_file.c_str());
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-            *addinfo = (char *)  odr_malloc(odr, 60 + tmp_file.length());
-            sprintf(*addinfo, "zoom: bad format of content tmp_file: %s",
-                    tmp_file.c_str());
+            *addinfo = (char *)  odr_malloc(odr, 1 + 60 + tmp_file.length());
+            snprintf(*addinfo, 1 + 60 + tmp_file.length(),
+                     "zoom: bad format of content tmp_file: %s",
+                     tmp_file.c_str());
             xfree(fname);
             return false;
         }
         char tmp_char = xx[6];
-        sprintf(xx, "%06d", ((unsigned) rand()) % 1000000);
+        snprintf(xx, 7, "%06u", ((unsigned) rand()) % 1000000);
         if (legacy_format)
             b->cproxy_host = std::string(xx) + "." + proxyhostname;
         else
@@ -1104,8 +1112,9 @@ bool yf::Zoom::Frontend::create_content_session(mp::Package &package,
         {
             package.log("zoom", YLOG_WARN|YLOG_ERRNO, "create %s", fname);
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-            *addinfo = (char *) odr_malloc(odr, 50 + strlen(fname));
-            sprintf(*addinfo, "zoom: could not create %s", fname);
+            *addinfo = (char *) odr_malloc(odr, 1 + 50 + strlen(fname));
+            snprintf(*addinfo, 1 + 50 + strlen(fname),
+                     "zoom: could not create %s", fname);
             xfree(fname);
             return false;
         }
@@ -1252,9 +1261,10 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         else
         {
             BackendPtr notfound;
-            char *msg = (char*) odr_malloc(odr, strlen(name) + 30);
+            char *msg = (char*) odr_malloc(odr, 1 + strlen(name) + 30);
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-            sprintf(msg, "zoom: bad database argument: %s", name);
+            snprintf(msg, 1 + strlen(name) + 30,
+                     "zoom: bad database argument: %s", name);
             *addinfo = msg;
             return notfound;
         }
@@ -1312,9 +1322,10 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
                         {
                             *error = YAZ_BIB1_UNSPECIFIED_ERROR;
                             *addinfo = (char*)
-                                odr_malloc(odr, 40 + torus_db.length());
-                            sprintf(*addinfo, "multiple records for udb=%s",
-                                    database.c_str());
+                                odr_malloc(odr, 1 + 40 + torus_db.length());
+                            snprintf(*addinfo, 1 + 40 + torus_db.length(),
+                                     "multiple records for udb=%s",
+                                     database.c_str());
                             xmlFreeDoc(doc);
                             BackendPtr b;
                             return b;
@@ -1327,8 +1338,9 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
             {
                 *error = YAZ_BIB1_UNSPECIFIED_ERROR;
                 *addinfo = (char*) odr_malloc(
-                    odr, 40 + strlen((const char *) ptr->name));
-                sprintf(*addinfo, "bad root element for torus: %s", ptr->name);
+                    odr, 1 + 40 + strlen((const char *) ptr->name));
+                snprintf(*addinfo, 1 + 40 + strlen((const char *) ptr->name),
+                         "bad root element for torus: %s", ptr->name);
                 xmlFreeDoc(doc);
                 BackendPtr b;
                 return b;
@@ -1389,9 +1401,11 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         {
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
             *addinfo = (char *)
-                odr_malloc(odr, 40 + sptr->transform_xsl_fname.length());
-            sprintf(*addinfo, "zoom: could not open file %s",
-                    sptr->transform_xsl_fname.c_str());
+                odr_malloc(odr, 1 + 40 + sptr->transform_xsl_fname.length());
+            snprintf(*addinfo,
+                     1 + 40 + sptr->transform_xsl_fname.length(),
+                     "zoom: could not open file %s",
+                     sptr->transform_xsl_fname.c_str());
             BackendPtr b;
             return b;
         }
@@ -1399,9 +1413,10 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (!xsp_doc)
         {
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-            *addinfo = (char *) odr_malloc(odr, 50 + fname.length());
-            sprintf(*addinfo, "zoom: xmlParseFile failed for file %s",
-                    fname.c_str());
+            *addinfo = (char *) odr_malloc(odr, 1 + 50 + fname.length());
+            snprintf(*addinfo, 1 + 50 + fname.length(),
+                     "zoom: xmlParseFile failed for file %s",
+                     fname.c_str());
             BackendPtr b;
             return b;
         }
@@ -1409,9 +1424,10 @@ yf::Zoom::BackendPtr yf::Zoom::Frontend::get_backend_from_databases(
         if (!xsp)
         {
             *error = YAZ_BIB1_TEMPORARY_SYSTEM_ERROR;
-            *addinfo = (char *) odr_malloc(odr, 50 + fname.length());
-            sprintf(*addinfo, "zoom: xsltParseStylesheetDoc failed "
-                    "for file %s", fname.c_str());
+            *addinfo = (char *) odr_malloc(odr, 1 + 50 + fname.length());
+            snprintf(*addinfo, 1 + 50 + fname.length(),
+                     "zoom: xsltParseStylesheetDoc failed for file %s",
+                     fname.c_str());
             BackendPtr b;
             xmlFreeDoc(xsp_doc);
             return b;
@@ -2907,4 +2923,3 @@ extern "C" {
  * End:
  * vim: shiftwidth=4 tabstop=8 expandtab
  */
-
