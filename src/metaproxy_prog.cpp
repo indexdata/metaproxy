@@ -56,8 +56,7 @@ static void set_log_prefix(void)
 {
 #if HAVE_UNISTD_H
     char str[80];
-
-    sprintf(str, "%lld", (long long) getpid());
+    snprintf(str, sizeof str, "%lld", (long long) getpid());
     yaz_log_init_prefix(str);
 #endif
 }
@@ -343,4 +342,3 @@ int main(int argc, char **argv)
  * End:
  * vim: shiftwidth=4 tabstop=8 expandtab
  */
-
