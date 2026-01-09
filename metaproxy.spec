@@ -139,7 +139,7 @@ if [ -n "$SERVER_USER" ] && ! getent passwd | grep -q "^$SERVER_USER:" ; then
 fi
 
 # Ensure home directory exists
-if [ -n "$SERVER_HOME" ] && [ ! -d "$SERVER_HOME" ]; then
+if [ -n "$SERVER_HOME" ] && [ -n "$SERVER_USER" ] && [ -n "$SERVER_GROUP" ] && [ ! -d "$SERVER_HOME" ]; then
     mkdir -p "$SERVER_HOME"
     chown "$SERVER_USER:$SERVER_GROUP" "$SERVER_HOME" 2>/dev/null || :
 fi
