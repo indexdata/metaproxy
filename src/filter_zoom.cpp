@@ -357,7 +357,7 @@ void yf::Zoom::Backend::get_zoom_error(int *error, char **addinfo,
 
         size_t sz = 30 + strlen(dset) + strlen(msg) +
                      (zoom_addinfo ? strlen(zoom_addinfo) : 0);
-        *addinfo = (char *) odr_malloc(odr,sz);
+        *addinfo = (char *) odr_malloc(odr, sz);
         snprintf(*addinfo, sz, "%s%s(%s %d %s)",
             zoom_addinfo ? zoom_addinfo : "",
             zoom_addinfo && *zoom_addinfo ? " " : "",
