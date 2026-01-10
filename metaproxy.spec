@@ -157,7 +157,7 @@ fi
 %systemd_preun metaproxy.service
 
 # In %preun, $1 is 0 on uninstall and 1 on upgrade; only remove user/home on uninstall.
-if [ "$1" -eq 0 ]; then
+if [ $1 -eq 0 ]; then
     . /etc/metaproxy/metaproxy.user 2>/dev/null || :
     if [ -n "$SERVER_HOME" ] && [ -d "$SERVER_HOME" ]; then
         rm -rf "$SERVER_HOME" || :
