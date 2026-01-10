@@ -1,4 +1,6 @@
 %define idmetaversion %(. ./IDMETA; echo $VERSION)
+%define is_redhat_1x %(grep 'release 1[0-9]' /etc/redhat-release >/dev/null 2>&1 && echo 1 || echo 0)
+
 Summary: Z39.50/SRU router
 Name: metaproxy
 Version: %{idmetaversion}
@@ -9,7 +11,11 @@ Vendor: Index Data ApS <info@indexdata.dk>
 Source: metaproxy-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Prefix: %{_prefix} /etc/metaproxy
+%if %is_redhat_1x
 BuildRequires: systemd-rpm-macros
+%else
+BuildRequires: systemd
+%endif
 BuildRequires: pkgconfig, libyaz5-devel >= 5.35.0, libyazpp7-devel >= 1.9.0
 BuildRequires: libxslt-devel, boost-devel
 Conflicts: cf-engine <= 2.12.5
