@@ -6,7 +6,9 @@
 	delaycompress
 	notifempty
 	postrotate
-		/usr/bin/systemctl reload metaproxy.service
+		if [ -d /run/systemd/system ]; then
+			/usr/bin/systemctl try-reload-or-restart metaproxy.service
+		fi
 	endscript
 	create 644 metaproxy root
 }
