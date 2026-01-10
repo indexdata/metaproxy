@@ -141,7 +141,7 @@ if [ -n "$SERVER_USER" ] && ! getent passwd | grep -q "^$SERVER_USER:" ; then
     useradd -r -s /sbin/nologin -c "${SERVER_NAME:-Metaproxy}" \
         -d "${SERVER_HOME:-/var/lib/metaproxy}" \
         -g "${SERVER_GROUP:-metaproxy}" \
-        "$SERVER_USER" 2>/dev/null || true
+        "$SERVER_USER" || true
 fi
 
 # Ensure home directory exists
