@@ -19,7 +19,7 @@ BuildRequires: pkgconfig, libyaz5-devel >= 5.35.0, libyazpp7-devel >= 1.9.0
 BuildRequires: libxslt-devel, boost-devel
 Conflicts: cf-engine <= 2.12.5
 Packager: Adam Dickmeiss <adam@indexdata.dk>
-URL: http://www.indexdata.com/metaproxy
+URL: https://www.indexdata.com/metaproxy
 
 # Use systemd macros for safe scriptlets
 %{?systemd_requires}
@@ -40,7 +40,7 @@ Metaproxy documentation.
 %package -n libmetaproxy6
 Summary: Metaproxy library
 Group: Libraries
-Requires: libyazpp7 >= 1.8.0, libyaz5 >= 5.30.0
+Requires: libyazpp7 >= 1.9.0, libyaz5 >= 5.35.0
 
 %description -n libmetaproxy6
 The Metaproxy libraries.
