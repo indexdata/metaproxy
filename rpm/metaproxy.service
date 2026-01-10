@@ -6,14 +6,13 @@ Documentation=man:metaproxy(1)
 After=network.target
 
 [Service]
-Type=forking
+Type=exec
 EnvironmentFile=/etc/metaproxy/metaproxy.user
 EnvironmentFile=/etc/sysconfig/metaproxy
 Restart=on-abort
 KillMode=process
-PIDFile=/var/run/metaproxy.pid
-ExecStart=/bin/sh -c "exec /usr/bin/metaproxy ${OPTIONS} -D -p /var/run/metaproxy.pid"
-ExecStartPost=/bin/sleep 1
+ExecStart=/bin/sh -c "exec /usr/bin/metaproxy ${OPTIONS}"
+ExecReload=kill -HUP $MAINPID
 
 [Install]
 WantedBy=multi-user.target

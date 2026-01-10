@@ -1,4 +1,5 @@
 %define idmetaversion %(. ./IDMETA; echo $VERSION)
+
 Summary: Z39.50/SRU router
 Name: metaproxy
 Version: %{idmetaversion}
@@ -9,11 +10,20 @@ Vendor: Index Data ApS <info@indexdata.dk>
 Source: metaproxy-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Prefix: %{_prefix} /etc/metaproxy
+%if 0%{?rhel} >= 9
+BuildRequires: systemd-rpm-macros
+%else
+BuildRequires: systemd
+%endif
 BuildRequires: pkgconfig, libyaz5-devel >= 5.35.0, libyazpp7-devel >= 1.9.0
 BuildRequires: libxslt-devel, boost-devel
 Conflicts: cf-engine <= 2.12.5
 Packager: Adam Dickmeiss <adam@indexdata.dk>
-URL: http://www.indexdata.com/metaproxy
+URL: https://www.indexdata.com/metaproxy
+
+# Use systemd macros for safe scriptlets
+%{?systemd_requires}
+
 Requires:  libmetaproxy6 = %{version}
 Provides: metaproxy6
 
@@ -30,7 +40,7 @@ Metaproxy documentation.
 %package -n libmetaproxy6
 Summary: Metaproxy library
 Group: Libraries
-Requires: libyazpp7 >= 1.8.0, libyaz5 >= 5.30.0
+Requires: libyazpp7 >= 1.9.0, libyaz5 >= 5.35.0
 
 %description -n libmetaproxy6
 The Metaproxy libraries.
@@ -38,7 +48,7 @@ The Metaproxy libraries.
 %package -n libmetaproxy6-devel
 Summary: Metaproxy development package
 Group: Development/Libraries
-Requires: libmetaproxy6 = %{version}, libyazpp6-devel, boost-devel
+Requires: libmetaproxy6 = %{version}, libyazpp7-devel, boost-devel
 Conflicts: libmetaproxy3-devel, libmetaproxy4-devel, libmetaproxy5-devel
 
 %description -n libmetaproxy6-devel
@@ -48,7 +58,6 @@ Development libraries and include files for the Metaproxy package.
 %setup
 
 %build
-
 CFLAGS="$RPM_OPT_FLAGS" \
  ./configure --prefix=%{_prefix} --libdir=%{_libdir} --mandir=%{_mandir} \
 	--enable-shared --with-yazpp=pkg
@@ -88,7 +97,6 @@ rm -fr ${RPM_BUILD_ROOT}
 %dir %{_libdir}/metaproxy6/modules
 
 %post -n libmetaproxy6 -p /sbin/ldconfig
-
 %postun -n libmetaproxy6 -p /sbin/ldconfig
 
 %files -n libmetaproxy6-devel
@@ -121,46 +129,43 @@ rm -fr ${RPM_BUILD_ROOT}
 %config(noreplace) /etc/sysconfig/metaproxy
 
 %post
-. /etc/metaproxy/metaproxy.user
+. /etc/metaproxy/metaproxy.user 2>/dev/null
 
- # 1. create group if not existing
-if ! getent group | grep -q "^$SERVER_GROUP:" ; then
-        echo -n "Adding group $SERVER_GROUP.."
-        groupadd -r $SERVER_GROUP 2>/dev/null ||true
-        echo "..done"
-fi
-# 2. create user if not existing
-if ! getent passwd | grep -q "^$SERVER_USER:"; then
-        echo -n "Adding system user $SERVER_USER.."
-        useradd \
-            -r \
-	    -s /sbin/nologin \
-            -c "$SERVER_NAME" \
-	    -d $SERVER_HOME \
-            -g $SERVER_GROUP \
-            $SERVER_USER 2>/dev/null || true
-        echo "..done"
+# Ensure group exists
+if [ -n "$SERVER_GROUP" ] && ! getent group | grep -q "^$SERVER_GROUP:" ; then
+    groupadd -r "$SERVER_GROUP" 2>/dev/null
 fi
 
-if test ! -d $SERVER_HOME; then
-	mkdir $SERVER_HOME
-	chown $SERVER_USER:$SERVER_GROUP $SERVER_HOME
+# Ensure user exists
+if [ -n "$SERVER_USER" ] && ! getent passwd | grep -q "^$SERVER_USER:" ; then
+    useradd -r -s /sbin/nologin -c "${SERVER_NAME:-Metaproxy}" \
+        -d "${SERVER_HOME:-/var/lib/metaproxy}" \
+        -g "${SERVER_GROUP:-metaproxy}" \
+        "$SERVER_USER" || true
 fi
 
-if [ $1 = 1 ]; then
-        /usr/bin/systemctl daemon-reload > /dev/null 2>&1
-        /usr/bin/systemctl enable metaproxy > /dev/null 2>&1
-        /usr/bin/systemctl start metaproxy > /dev/null 2>&1
-else
-        /usr/bin/systemctl daemon-reload > /dev/null 2>&1
-        /usr/bin/systemctl restart metaproxy > /dev/null 2>&1
+# Ensure home directory exists
+if [ -n "$SERVER_HOME" ] && [ -n "$SERVER_USER" ] && [ -n "$SERVER_GROUP" ] && [ ! -d "$SERVER_HOME" ]; then
+    mkdir -p "$SERVER_HOME" || :
+    chown "$SERVER_USER:$SERVER_GROUP" "$SERVER_HOME" 2>/dev/null || :
 fi
+
+# Safe systemd handling (won't fail in containers)
+%systemd_post metaproxy.service
+
 %preun
-if [ $1 = 0 ]; then
-	if test -f /etc/system/systemd/metaproxy.service; then
-        	/usr/bin/systemctl stop metaproxy> /dev/null 2>&1
-	fi
-	. /etc/metaproxy/metaproxy.user
-	test -d $SERVER_HOME && rm -fr $SERVER_HOME
-	userdel $SERVER_USER
+%systemd_preun metaproxy.service
+
+# In %preun, $1 is 0 on uninstall and 1 on upgrade; only remove user/home on uninstall.
+if [ $1 -eq 0 ]; then
+    . /etc/metaproxy/metaproxy.user 2>/dev/null || :
+    if [ -n "$SERVER_HOME" ] && [ -d "$SERVER_HOME" ]; then
+        rm -rf "$SERVER_HOME" || :
+    fi
+    if [ -n "$SERVER_USER" ]; then
+        userdel "$SERVER_USER" 2>/dev/null || :
+    fi
 fi
+
+%postun
+%systemd_postun_with_restart metaproxy.service
