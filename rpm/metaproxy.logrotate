@@ -6,9 +6,7 @@
 	delaycompress
 	notifempty
 	postrotate
-		if [ -f /var/run/metaproxy.pid ]; then
-			kill -HUP `cat /var/run/metaproxy.pid`
-		fi
+		/usr/bin/systemctl reload metaproxy.service
 	endscript
 	create 644 metaproxy root
 }

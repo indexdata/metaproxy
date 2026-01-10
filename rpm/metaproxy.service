@@ -13,6 +13,7 @@ Restart=on-abort
 KillMode=process
 ExecStart=/bin/sh -c "exec /usr/bin/metaproxy ${OPTIONS}"
 ExecStartPost=/bin/sleep 1
+ExecReload=kill -HUP $MAINPID
 
 [Install]
 WantedBy=multi-user.target
