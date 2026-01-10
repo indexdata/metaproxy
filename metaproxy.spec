@@ -10,7 +10,7 @@ Vendor: Index Data ApS <info@indexdata.dk>
 Source: metaproxy-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Prefix: %{_prefix} /etc/metaproxy
-%if %{rhel} >= 9
+%if 0%{?rhel} >= 9
 BuildRequires: systemd-rpm-macros
 %else
 BuildRequires: systemd
