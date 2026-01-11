@@ -4,8 +4,6 @@ set -e
 
 case "$1" in
     purge)
-	update-rc.d metaproxy remove >/dev/null
-
 	# copy of metaproxy.user, which is gone at this point
 	SERVER_HOME=/var/metaproxy
 	SERVER_USER=metaproxy
