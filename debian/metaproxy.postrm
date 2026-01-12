@@ -4,10 +4,8 @@ set -e
 
 case "$1" in
     purge)
-	# copy of metaproxy.user, which is gone at this point
-	SERVER_HOME=/var/metaproxy
+	# delete the orignal user
 	SERVER_USER=metaproxy
-	SERVER_NAME="Metaproxy user"
 	SERVER_GROUP=metaproxy
 
         # find first and last SYSTEM_UID numbers
