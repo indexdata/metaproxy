@@ -44,7 +44,7 @@ case "$1" in
     fi
     # reload systemd daemon if systemd is used
     if [ -d /run/systemd/system ]; then
-        systemctl daemon-reload
+        systemctl daemon-reload || true
     fi
     ;;
 esac
