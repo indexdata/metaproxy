@@ -80,10 +80,10 @@ mkdir -p ${RPM_BUILD_ROOT}/etc/metaproxy/routes.d
 mkdir -p ${RPM_BUILD_ROOT}/etc/logrotate.d
 mkdir -p ${RPM_BUILD_ROOT}/etc/init.d
 mkdir -p ${RPM_BUILD_ROOT}/etc/sysconfig
-mkdir -p ${RPM_BUILD_ROOT}/etc/systemd/system
+mkdir -p ${RPM_BUILD_ROOT}/usr/lib/systemd/system
 install -m 644 rpm/metaproxy.xml ${RPM_BUILD_ROOT}/etc/metaproxy/metaproxy.xml
 install -m 644 rpm/metaproxy.user ${RPM_BUILD_ROOT}/etc/metaproxy/metaproxy.user
-install -m 644 rpm/metaproxy.service ${RPM_BUILD_ROOT}/etc/systemd/system/metaproxy.service
+install -m 644 rpm/metaproxy.service ${RPM_BUILD_ROOT}/usr/lib/systemd/system/metaproxy.service
 install -m 644 rpm/metaproxy.sysconfig ${RPM_BUILD_ROOT}/etc/sysconfig/metaproxy
 install -m 644 rpm/metaproxy.logrotate  ${RPM_BUILD_ROOT}/etc/logrotate.d/metaproxy
 
@@ -118,7 +118,7 @@ rm -fr ${RPM_BUILD_ROOT}
 %{_bindir}/metaproxy
 %{_mandir}/man3/*
 %{_mandir}/man1/metaproxy.*
-%config /etc/systemd/system/metaproxy.service
+/usr/lib/systemd/system/metaproxy.service
 %config(noreplace) /etc/metaproxy/metaproxy.xml
 %config /etc/metaproxy/metaproxy.user
 %dir /etc/metaproxy/filters-available
