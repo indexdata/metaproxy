@@ -10,7 +10,8 @@ AUTOMAKE_OPTIONS = foreign
 
 EXTRA_DIST = Doxyfile.in IDMETA README.md LICENSE NEWS m4/id-config.sh \
              m4/yazpp.m4 m4/yaz.m4 m4/boost.m4 \
-             buildconf.sh metaproxy.spec metaproxy-config.in
+             buildconf.sh metaproxy.spec metaproxy-config.in \
+			 .editorconfig
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure 
 
