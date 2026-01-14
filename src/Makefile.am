@@ -37,7 +37,7 @@ filter_src = \
 	filter_virt_db.cpp filter_virt_db.hpp \
 	filter_z3950_client.cpp filter_z3950_client.hpp \
 	filter_zeerex_explain.cpp  filter_zeerex_explain.hpp \
-        filter_sru_to_z3950.cpp  filter_sru_to_z3950.hpp \
+	filter_sru_to_z3950.cpp  filter_sru_to_z3950.hpp \
 	filter_zoom.cpp filter_zoom.hpp
 
 lib_LTLIBRARIES = libmetaproxy.la
