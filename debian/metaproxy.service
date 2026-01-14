@@ -1,0 +1,17 @@
+# Metaproxy systemd-style configuration
+
+[Unit]
+Description=Metaproxy Z39.50/SRU router
+Documentation=man:metaproxy(1)
+After=network.target
+
+[Service]
+Type=exec
+EnvironmentFile=/etc/default/metaproxy
+Restart=on-abort
+KillMode=process
+ExecStart=/bin/sh -c "exec /usr/bin/metaproxy ${OPTIONS}"
+ExecReload=kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

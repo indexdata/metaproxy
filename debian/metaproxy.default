@@ -1,10 +1,8 @@
-# Defaults for metaproxy initscript
-# sourced by /etc/init.d/metaproxy
-# installed at /etc/default/metaproxy by the maintainer scripts
-
-#
-# This is a POSIX shell fragment
-#
-
-# Additional options that are passed to the Daemon.
-DAEMON_OPTS="-D -u $SERVER_USER -p /var/run/metaproxy.pid -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"
+# Metaproxy user information
+SERVER_HOME=/var/lib/metaproxy
+SERVER_USER=metaproxy
+SERVER_NAME="Metaproxy user"
+SERVER_GROUP=metaproxy
+# Options passed in metaproxy.service
+# Do *not* use -D unless changing Type=fork
+OPTIONS="-u ${SERVER_USER} -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"
