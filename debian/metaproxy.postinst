@@ -35,7 +35,7 @@ case "$1" in
         -d $SERVER_HOME   \
         -g $SERVER_GROUP  \
         $SERVER_USER
-    
+
     # adjust file and directory permissions
     if ! dpkg-statoverride --list $SERVER_HOME >/dev/null
     then
@@ -48,3 +48,21 @@ case "$1" in
     fi
     ;;
 esac
+
+# Automatically added by dh_installsystemd/13.24.2
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
+    # The following line should be removed in trixie or trixie+1
+    deb-systemd-helper unmask 'metaproxy.service' >/dev/null || true
+
+    # was-enabled defaults to true, so new installations run enable.
+    if deb-systemd-helper --quiet was-enabled 'metaproxy.service'; then
+        # Enables the unit on first installation, creates new
+        # symlinks on upgrades if the unit file has changed.
+        deb-systemd-helper enable 'metaproxy.service' >/dev/null || true
+    else
+        # Update the statefile to add new symlinks (if any), which need to be
+        # cleaned up on purge. Also remove old symlinks.
+    deb-systemd-helper update-state 'metaproxy.service' >/dev/null || true
+    fi
+fi
+# End automatically added section
