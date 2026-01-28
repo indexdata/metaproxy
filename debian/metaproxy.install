@@ -1,4 +1,6 @@
 etc/metaproxy/metaproxy.xml
+etc/metaproxy/metaproxy.user
+etc/default/metaproxy
 usr/bin/metaproxy
 usr/share/man/man1/metaproxy.1
 usr/share/man/man3/*

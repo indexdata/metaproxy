@@ -18,6 +18,9 @@ override_dh_auto_install:
 	mv debian/tmp/usr/share/doc/metaproxy debian/tmp/usr/share/doc/metaproxy-doc
 	mkdir -p debian/tmp/etc/metaproxy
 	cp debian/metaproxy.xml debian/tmp/etc/metaproxy/metaproxy.xml
+	cp rpm/metaproxy.user debian/tmp/etc/metaproxy/metaproxy.user
+	mkdir -p debian/tmp/etc/default
+	cp rpm/metaproxy.sysconfig debian/tmp/etc/default/metaproxy
 
 override_dh_makeshlibs:
 	dh_makeshlibs -V 'libmetaproxy6 (>= 1.12.0)'
