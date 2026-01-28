@@ -1,4 +1,3 @@
 # Defaults for metaproxy
+# SERVER_USER is defined in /etc/metaprox/metaproxy.user
 OPTIONS="-u ${SERVER_USER} -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"
-# The following options should not be set, because the systemd service
-# (metaproxy.service) already sets them: -p, -D, -t
