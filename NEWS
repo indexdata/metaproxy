@@ -1,3 +1,11 @@
+--- 1.22.3 2026/01/28
+
+Debian: systemd service for metaproxy
+
+Avoid sprintf call. Replace mostly with snprintf
+
+RPM: fixes for ensuring metaproxy can run in container.
+
 --- 1.22.2 2026/01/07
 
 Avoid using deprecated Libxml2 xmlBuffer members `use` and `content`.
