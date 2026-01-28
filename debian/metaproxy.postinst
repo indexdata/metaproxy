@@ -4,7 +4,7 @@ set -e
 
 case "$1" in
     configure)
-    . /etc/default/metaproxy
+    . /etc/metaproxy/metaproxy.user
 
     # remove old init.d script if existing
     if [ -f /etc/init.d/metaproxy ]; then
