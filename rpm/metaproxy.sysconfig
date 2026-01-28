@@ -1,3 +1,4 @@
 # Defaults for metaproxy
 # SERVER_USER is defined in /etc/metaprox/metaproxy.user
+# Options used for starting metaproxy in metaproxy.service
 OPTIONS="-u ${SERVER_USER} -l /var/log/metaproxy.log -c /etc/metaproxy/metaproxy.xml"
