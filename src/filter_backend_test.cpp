@@ -100,36 +100,83 @@ yf::BackendTest::BackendTest() : m_p(new BackendTest::Rep) {
 yf::BackendTest::~BackendTest() {
 }
 
+static Z_OPACRecord *dummy_opac(const char *item_id, const char *element_set_name, ODR odr, const char *marc_input)
+{
+    Z_OPACRecord *rec;
+    rec = (Z_OPACRecord *) odr_malloc(odr, sizeof(*rec));
+    rec->bibliographicRecord =
+        z_ext_record_usmarc(odr, marc_input, strlen(marc_input));
+    int availableNow = strcmp(element_set_name, "F") == 0;
+    rec->num_holdingsData = 1;
+    rec->holdingsData = (Z_HoldingsRecord **)
+        odr_malloc(odr, sizeof(*rec->holdingsData));
+    for (int i = 0; i < rec->num_holdingsData; i++)
+    {
+        Z_HoldingsRecord *hr = (Z_HoldingsRecord *)
+            odr_malloc(odr, sizeof(*hr));
+        Z_HoldingsAndCircData *hc = (Z_HoldingsAndCircData *)
+            odr_malloc(odr, sizeof(*hc));
+
+        rec->holdingsData[i] = hr;
+        hr->which = Z_HoldingsRecord_holdingsAndCirc;
+        hr->u.holdingsAndCirc = hc;
+
+        hc->typeOfRecord = odr_strdup(odr, "u");
+
+        hc->encodingLevel = odr_strdup(odr, "u");
+
+        hc->format = 0; /* OPT */
+        hc->receiptAcqStatus = odr_strdup(odr, "0");
+        hc->generalRetention = 0; /* OPT */
+        hc->completeness = 0; /* OPT */
+        hc->dateOfReport = odr_strdup(odr, "000000");
+        hc->nucCode = odr_strdup(odr, "s-FM/GC");
+        hc->localLocation = odr_strdup(odr, "Main or Science/Business Reading Rms - STORED OFFSITE");
+        hc->shelvingLocation = 0; /* OPT */
+        hc->callNumber = odr_strdup(odr, "MLCM 89/00602 (N)");
+        hc->shelvingData = odr_strdup(odr, "FT MEADE");
+        hc->copyNumber = odr_strdup(odr, "Copy 1");
+        hc->publicNote = 0; /* OPT */
+        hc->reproductionNote = 0; /* OPT */
+        hc->termsUseRepro = 0; /* OPT */
+        hc->enumAndChron = 0; /* OPT */
+
+        hc->num_volumes = 0;
+        hc->volumes = 0;
+
+        hc->num_circulationData = 1;
+        hc->circulationData = (Z_CircRecord **)
+             odr_malloc(odr, sizeof(*hc->circulationData));
+        hc->circulationData[0] = (Z_CircRecord *)
+             odr_malloc(odr, sizeof(**hc->circulationData));
+
+        hc->circulationData[0]->availableNow = odr_booldup(odr, availableNow);
+        hc->circulationData[0]->availablityDate = 0;
+        hc->circulationData[0]->availableThru = 0;
+        hc->circulationData[0]->restrictions = 0;
+        hc->circulationData[0]->itemId = odr_strdup(odr, item_id);
+        hc->circulationData[0]->renewable = odr_booldup(odr, availableNow);
+        hc->circulationData[0]->onHold = odr_booldup(odr, !availableNow);
+        hc->circulationData[0]->enumAndChron = 0;
+        hc->circulationData[0]->midspine = 0;
+        hc->circulationData[0]->temporaryLocation = 0;
+    }
+    return rec;
+}
+
 Z_Records *yf::BackendTest::Rep::fetch(
     ODR odr, Odr_oid *preferredRecordSyntax,
     Z_ElementSetNames *esn,
     int start, int number, int &error_code, std::string &addinfo,
     int *number_returned, int *next_position)
 {
-    const char *element_set_name = "F"; // default to use
-
     if (number + start - 1 > result_set_size || start < 1)
     {
         error_code = YAZ_BIB1_PRESENT_REQUEST_OUT_OF_RANGE;
         return 0;
     }
 
-    if (!preferredRecordSyntax)
-        preferredRecordSyntax = odr_oiddup(odr, yaz_oid_recsyn_usmarc);
-
-    if (preferredRecordSyntax)
-    {
-        if (!oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml))
-            ;
-        else if (!oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_usmarc))
-            ;
-        else
-        {
-            error_code = YAZ_BIB1_RECORD_SYNTAX_UNSUPP;
-            return 0;
-        }
-    }
-
+    const char *element_set_name = "F"; // default to use
     if (esn)
     {
         if (esn->which != Z_ElementSetNames_generic)
@@ -140,22 +187,33 @@ Z_Records *yf::BackendTest::Rep::fetch(
         }
         element_set_name = esn->u.generic;
     }
-    if (!strcmp(element_set_name, "B")
-        && !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_usmarc))
-        ; // Brief
-    else if (!strcmp(element_set_name, "F")
-             && !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_usmarc))
-        ; // Full
-    else if (!strncmp(element_set_name, "FF", 2)
-             && !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml))
-        ; // Huge XML test record
-    else if (!strcmp(element_set_name, "SD"))
-        ; // Surrogate diagnostic
+
+    if (!preferredRecordSyntax)
+        preferredRecordSyntax = odr_oiddup(odr, yaz_oid_recsyn_usmarc);
+
+    if (!oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml))
+    {
+        if (strncmp(element_set_name, "FF", 2) && strcmp(element_set_name, "SD"))
+        {
+            error_code
+                = YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_;
+            addinfo = std::string(element_set_name);
+            return 0;
+        }
+    }
+    else if (!oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_usmarc) || !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_opac))
+    {
+        if (strcmp(element_set_name, "B") && strcmp(element_set_name, "F") && strcmp(element_set_name, "SD"))
+        {
+            error_code
+                = YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_;
+            addinfo = std::string(element_set_name);
+            return 0;
+        }
+    }
     else
     {
-        error_code
-            = YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_;
-        addinfo = std::string(element_set_name);
+        error_code = YAZ_BIB1_RECORD_SYNTAX_UNSUPP;
         return 0;
     }
     Z_Records *rec = (Z_Records *) odr_malloc(odr, sizeof(Z_Records));
@@ -172,9 +230,8 @@ Z_Records *yf::BackendTest::Rep::fetch(
                 zget_surrogateDiagRec(odr, 0, YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_,  "SD");
             continue;
         }
-        rec->u.databaseOrSurDiagnostics->records[i] = (Z_NamePlusRecord *)
-            odr_malloc(odr, sizeof(Z_NamePlusRecord));
-        Z_NamePlusRecord *npr = rec->u.databaseOrSurDiagnostics->records[i];
+        Z_NamePlusRecord *npr = (Z_NamePlusRecord *) odr_malloc(odr, sizeof(Z_NamePlusRecord));
+        rec->u.databaseOrSurDiagnostics->records[i] = npr;
         npr->databaseName = 0;
         npr->which = Z_NamePlusRecord_databaseRecord;
 
@@ -200,8 +257,12 @@ Z_Records *yf::BackendTest::Rep::fetch(
             char offset_str[30];
             snprintf(offset_str, sizeof offset_str, "test__%09d_", i+start);
             memcpy(tmp_rec+186, offset_str, strlen(offset_str));
-            npr->u.databaseRecord = z_ext_record_usmarc(
-                odr, tmp_rec, strlen(tmp_rec));
+            if (!oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_opac)) {
+                Z_OPACRecord *opac_rec = dummy_opac(offset_str, element_set_name, odr, tmp_rec);
+                npr->u.databaseRecord = z_ext_record_oid(odr, yaz_oid_recsyn_opac, (const char*) opac_rec, -1);
+            }
+            else
+                npr->u.databaseRecord = z_ext_record_usmarc(odr, tmp_rec, strlen(tmp_rec));
         }
 
     }

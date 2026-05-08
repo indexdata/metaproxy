@@ -24,7 +24,20 @@
  <refsect1><title>DESCRIPTION</title>
   <para>
    A pseudo Z39.50 server for test purposes.
-   Similar to yaz-ztest.
+   Similar to yaz-ztest. It responds to search requests with a fixed number of hits (42),
+   and to present requests with dummy records.
+  </para>
+  <para>
+   It supports record syntaxes XML (element set with prefix <literal>FF</literal>),
+   MARC21/USMARC (element set <literal>B</literal>, <literal>F</literal>) and
+   OPAC (element set <literal>B</literal>, <literal>F</literal>).
+   For element-set <literal>SD</literal>, a surrogate diagnostic is returned
+   for each record. In all other cases where diagnostics are returned, they are non-surrogate diagnostics.
+   The module is intended for testing the backend filter framework, and the test suite for this module
+   uses the test client to send requests and check the responses.
+  </para>
+  <para>
+   The module is not intended for production use.
   </para>
  </refsect1>
 

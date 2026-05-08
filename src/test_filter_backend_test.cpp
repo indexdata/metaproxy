@@ -30,6 +30,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/zgdu.h>
 #include <yaz/pquery.h>
 #include <yaz/otherinfo.h>
+#include <yaz/oid_std.h>
+#include <yaz/diagbib1.h>
 
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_DYN_LINK
@@ -38,7 +40,7 @@ using namespace boost::unit_test;
 
 namespace mp = metaproxy_1;
 
-BOOST_AUTO_TEST_CASE( test_filter_backend_test_1 )
+BOOST_AUTO_TEST_CASE( test_filter_backend_test_construct )
 {
     try
     {
@@ -49,7 +51,7 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_1 )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_backend_test_2 )
+BOOST_AUTO_TEST_CASE( test_filter_backend_test_search_present )
 {
     try
     {
@@ -81,13 +83,162 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_2 )
             BOOST_CHECK_EQUAL(z_gdu->which, Z_GDU_Z3950);
             BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_initResponse);
         }
+        apdu = zget_APDU(odr, Z_APDU_searchRequest);
+
+        mp::util::pqf(odr, apdu, "computer");
+
+        apdu->u.searchRequest->num_databaseNames = 1;
+        apdu->u.searchRequest->databaseNames = (char**)
+            odr_malloc(odr, sizeof(char *));
+        apdu->u.searchRequest->databaseNames[0] = odr_strdup(odr, "Default");
+
+        BOOST_CHECK(apdu);
+
+        pack.request() = apdu;
+
+        // Put it in router
+        pack.router(router).move();
+
+        // Inspect that we got response
+        gdu = &pack.response();
+
+        BOOST_CHECK(!pack.session().is_closed());
+
+        z_gdu = gdu->get();
+        BOOST_CHECK(z_gdu);
+        if (z_gdu) {
+            BOOST_CHECK_EQUAL(z_gdu->which, Z_GDU_Z3950);
+            BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_searchResponse);
+            BOOST_CHECK_EQUAL(*z_gdu->u.z3950->u.searchResponse->resultCount, 42);
+            BOOST_CHECK(*z_gdu->u.z3950->u.searchResponse->searchStatus);
+        }
+
+        // present request no syntax, expecting usmarc record
+        apdu = zget_APDU(odr, Z_APDU_presentRequest);
+        BOOST_CHECK(apdu);
+        apdu->u.presentRequest->resultSetStartPoint = odr_intdup(odr, 1);
+        apdu->u.presentRequest->numberOfRecordsRequested = odr_intdup(odr, 1);
+
+        pack.request() = apdu;
+        pack.router(router).move();
+        gdu = &pack.response();
+        BOOST_CHECK(!pack.session().is_closed());
+
+        z_gdu = gdu->get();
+        BOOST_CHECK(z_gdu);
+        if (z_gdu) {
+            BOOST_CHECK_EQUAL(z_gdu->which, Z_GDU_Z3950);
+            BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_presentResponse);
+            Z_PresentResponse *resp = z_gdu->u.z3950->u.presentResponse;
+            BOOST_CHECK(resp->records);
+            BOOST_CHECK_EQUAL(*resp->numberOfRecordsReturned, 1);
+            BOOST_CHECK_EQUAL(*resp->nextResultSetPosition, 2);
+            BOOST_CHECK_EQUAL(resp->records->which, Z_Records_DBOSD);
+            BOOST_CHECK_EQUAL(resp->records->u.databaseOrSurDiagnostics->num_records, 1);
+            BOOST_CHECK_EQUAL(resp->records->u.databaseOrSurDiagnostics->records[0]->which, Z_NamePlusRecord_databaseRecord);
+            Z_NamePlusRecord *npr = resp->records->u.databaseOrSurDiagnostics->records[0];
+            BOOST_CHECK(npr->u.databaseRecord);
+            BOOST_CHECK_EQUAL(npr->u.databaseRecord->which, Z_External_octet);
+            BOOST_CHECK_EQUAL(oid_oidcmp(npr->u.databaseRecord->direct_reference, yaz_oid_recsyn_usmarc), 0);
+        }
+
+        // opac syntax, expecting opac record
+        apdu = zget_APDU(odr, Z_APDU_presentRequest);
+        BOOST_CHECK(apdu);
+        apdu->u.presentRequest->resultSetStartPoint = odr_intdup(odr, 1);
+        apdu->u.presentRequest->numberOfRecordsRequested = odr_intdup(odr, 1);
+        apdu->u.presentRequest->preferredRecordSyntax = odr_oiddup(odr, yaz_oid_recsyn_opac);
+
+        pack.request() = apdu;
+        pack.router(router).move();
+        gdu = &pack.response();
+        BOOST_CHECK(!pack.session().is_closed());
+
+        z_gdu = gdu->get();
+        BOOST_CHECK(z_gdu);
+        if (z_gdu) {
+            BOOST_CHECK_EQUAL(z_gdu->which, Z_GDU_Z3950);
+            BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_presentResponse);
+            Z_PresentResponse *resp = z_gdu->u.z3950->u.presentResponse;
+            BOOST_CHECK(resp->records);
+            BOOST_CHECK_EQUAL(*resp->numberOfRecordsReturned, 1);
+            BOOST_CHECK_EQUAL(*resp->nextResultSetPosition, 2);
+            BOOST_CHECK_EQUAL(resp->records->which, Z_Records_DBOSD);
+            BOOST_CHECK_EQUAL(resp->records->u.databaseOrSurDiagnostics->num_records, 1);
+            BOOST_CHECK_EQUAL(resp->records->u.databaseOrSurDiagnostics->records[0]->which, Z_NamePlusRecord_databaseRecord);
+            Z_NamePlusRecord *npr = resp->records->u.databaseOrSurDiagnostics->records[0];
+            BOOST_CHECK(npr->u.databaseRecord);
+            BOOST_CHECK_EQUAL(npr->u.databaseRecord->which, Z_External_OPAC);
+            BOOST_CHECK_EQUAL(oid_oidcmp(npr->u.databaseRecord->direct_reference, yaz_oid_recsyn_opac), 0);
+        }
+
+        // danmarc syntax, expecting non surrogate diagnostic
+        apdu = zget_APDU(odr, Z_APDU_presentRequest);
+        BOOST_CHECK(apdu);
+        apdu->u.presentRequest->resultSetStartPoint = odr_intdup(odr, 1);
+        apdu->u.presentRequest->numberOfRecordsRequested = odr_intdup(odr, 1);
+        apdu->u.presentRequest->preferredRecordSyntax = odr_oiddup(odr, yaz_oid_recsyn_danmarc);
+
+        pack.request() = apdu;
+        pack.router(router).move();
+        gdu = &pack.response();
+        BOOST_CHECK(!pack.session().is_closed());
+
+        z_gdu = gdu->get();
+        BOOST_CHECK(z_gdu);
+        if (z_gdu) {
+            BOOST_CHECK_EQUAL(z_gdu->which, Z_GDU_Z3950);
+            BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_presentResponse);
+            Z_PresentResponse *resp = z_gdu->u.z3950->u.presentResponse;
+            BOOST_CHECK(resp->records);
+            BOOST_CHECK_EQUAL(*resp->numberOfRecordsReturned, 0);
+            BOOST_CHECK_EQUAL(resp->records->which, Z_Records_NSD);
+            Z_DefaultDiagFormat *diag = resp->records->u.nonSurrogateDiagnostic;
+            BOOST_CHECK(diag);
+            BOOST_CHECK_EQUAL(diag->which, Z_DefaultDiagFormat_v2Addinfo);
+            BOOST_CHECK_EQUAL(*diag->condition, YAZ_BIB1_RECORD_SYNTAX_UNSUPP);
+        }
+
+        // present request to get surrogate diagnostic
+        apdu = zget_APDU(odr, Z_APDU_presentRequest);
+        BOOST_CHECK(apdu);
+        apdu->u.presentRequest->resultSetStartPoint = odr_intdup(odr, 1);
+        apdu->u.presentRequest->numberOfRecordsRequested = odr_intdup(odr, 1);
+        apdu->u.presentRequest->recordComposition = (Z_RecordComposition *) odr_malloc(odr, sizeof(Z_RecordComposition));
+        apdu->u.presentRequest->recordComposition->which = Z_RecordComp_simple;
+        apdu->u.presentRequest->recordComposition->u.simple = (Z_ElementSetNames *) odr_malloc(odr, sizeof(Z_ElementSetNames));
+        apdu->u.presentRequest->recordComposition->u.simple->which = Z_ElementSetNames_generic;
+        apdu->u.presentRequest->recordComposition->u.simple->u.generic = odr_strdup(odr, "SD");
+
+        pack.request() = apdu;
+        pack.router(router).move();
+        gdu = &pack.response();
+        BOOST_CHECK(!pack.session().is_closed());
+
+        z_gdu = gdu->get();
+        BOOST_CHECK(z_gdu);
+        if (z_gdu) {
+            BOOST_CHECK_EQUAL(z_gdu->which, Z_GDU_Z3950);
+            BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_presentResponse);
+            Z_PresentResponse *resp = z_gdu->u.z3950->u.presentResponse;
+            BOOST_CHECK(resp->records);
+            BOOST_CHECK_EQUAL(*resp->numberOfRecordsReturned, 1);
+            BOOST_CHECK_EQUAL(*resp->nextResultSetPosition, 2);
+            BOOST_CHECK_EQUAL(resp->records->which, Z_Records_DBOSD);
+            BOOST_CHECK_EQUAL(resp->records->u.databaseOrSurDiagnostics->num_records, 1);
+            BOOST_CHECK_EQUAL(resp->records->u.databaseOrSurDiagnostics->records[0]->which, Z_NamePlusRecord_surrogateDiagnostic);
+            Z_DiagRec *diagRec = resp->records->u.databaseOrSurDiagnostics->records[0]->u.surrogateDiagnostic;
+            BOOST_CHECK(diagRec);
+            BOOST_CHECK_EQUAL(diagRec->which, Z_DiagRec_defaultFormat);
+            BOOST_CHECK_EQUAL(*diagRec->u.defaultFormat->condition, YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_);
+        }
     }
     catch ( ... ) {
         BOOST_CHECK (false);
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_backend_test_3 )
+BOOST_AUTO_TEST_CASE( test_filter_backend_test_no_init_search )
 {
     try
     {
@@ -134,7 +285,7 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_3 )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_filter_backend_test_4 )
+BOOST_AUTO_TEST_CASE( test_filter_backend_test_no_init_present )
 {
     try
     {
