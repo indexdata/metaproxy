@@ -204,7 +204,6 @@ namespace metaproxy_1 {
             void expire();
         private:
             void expire_classes();
-            void stat();
             void init(Package &package, const Z_GDU *gdu,
                       FrontendPtr frontend);
             void start();
@@ -539,24 +538,6 @@ yf::SessionShared::BackendClass::BackendClass(const yazpp_1::GDU &init_request,
 
 yf::SessionShared::BackendClass::~BackendClass()
 {}
-
-void yf::SessionShared::Rep::stat()
-{
-    int no_classes = 0;
-    int no_instances = 0;
-    BackendClassMap::const_iterator it;
-    {
-        boost::mutex::scoped_lock lock(m_mutex_backend_map);
-        for (it = m_backend_map.begin(); it != m_backend_map.end(); it++)
-        {
-            BackendClassPtr bc = it->second;
-            no_classes++;
-            BackendInstanceList::iterator bit = bc->m_backend_list.begin();
-            for (; bit != bc->m_backend_list.end(); bit++)
-                no_instances++;
-        }
-    }
-}
 
 void yf::SessionShared::Rep::init(mp::Package &package, const Z_GDU *gdu,
                                   FrontendPtr frontend)
@@ -1386,7 +1367,6 @@ void yf::SessionShared::Rep::expire()
             if (close_down)
                 break;
         }
-        stat();
         expire_classes();
     }
 }

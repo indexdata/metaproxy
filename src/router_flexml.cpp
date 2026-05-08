@@ -99,11 +99,8 @@ void mp::RouterFleXML::Rep::parse_xml_filters(xmlDocPtr doc,
                                               bool test_only,
                                               const char *file_include_path)
 {
-    unsigned int filter_nr = 0;
     while (node && mp::xml::check_element_mp(node, "filter"))
     {
-        filter_nr++;
-
         const struct _xmlAttr *attr;
         std::string id_value;
         std::string type_value;
@@ -224,11 +221,8 @@ void mp::RouterFleXML::Rep::parse_xml_routes(xmlDocPtr doc,
 {
     mp::xml::check_element_mp(node, "route");
 
-    unsigned int route_nr = 0;
     while (mp::xml::is_element_mp(node, "route"))
     {
-        route_nr++;
-
         const struct _xmlAttr *attr;
         std::string id_value;
         for (attr = node->properties; attr; attr = attr->next)

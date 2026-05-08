@@ -1022,8 +1022,6 @@ void yf::Multi::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
 
     ScanTermInfoList entries_before;
     ScanTermInfoList entries_after;
-    int no_before = 0;
-    int no_after = 0;
 
     for (bit = m_backend_list.begin(); bit != m_backend_list.end(); bit++)
     {
@@ -1097,7 +1095,6 @@ void yf::Multi::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
                             else
                             {
                                 entries_before.insert(it, my);
-                                no_before++;
                             }
                         }
                     }
@@ -1138,7 +1135,6 @@ void yf::Multi::Frontend::scan(mp::Package &package, Z_APDU *apdu_req)
                             else
                             {
                                 entries_after.insert(it, my);
-                                no_after++;
                             }
                         }
                     }
