@@ -130,7 +130,6 @@ Z_Records *yf::BackendTest::Rep::fetch(
         }
     }
 
-    // no element set, "B" and "F" are supported
     if (esn)
     {
         if (esn->which != Z_ElementSetNames_generic)
@@ -150,6 +149,8 @@ Z_Records *yf::BackendTest::Rep::fetch(
     else if (!strncmp(element_set_name, "FF", 2)
              && !oid_oidcmp(preferredRecordSyntax, yaz_oid_recsyn_xml))
         ; // Huge XML test record
+    else if (!strcmp(element_set_name, "SD"))
+        ; // Surrogate diagnostic
     else
     {
         error_code
@@ -164,9 +165,13 @@ Z_Records *yf::BackendTest::Rep::fetch(
     rec->u.databaseOrSurDiagnostics->num_records = number;
     rec->u.databaseOrSurDiagnostics->records = (Z_NamePlusRecord **)
         odr_malloc(odr, sizeof(Z_NamePlusRecord *) * number);
-    int i;
-    for (i = 0; i<number; i++)
+    for (int i = 0; i < number; i++)
     {
+        if (!strcmp(element_set_name, "SD")) {
+            rec->u.databaseOrSurDiagnostics->records[i] =
+                zget_surrogateDiagRec(odr, 0, YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_,  "SD");
+            continue;
+        }
         rec->u.databaseOrSurDiagnostics->records[i] = (Z_NamePlusRecord *)
             odr_malloc(odr, sizeof(Z_NamePlusRecord));
         Z_NamePlusRecord *npr = rec->u.databaseOrSurDiagnostics->records[i];
@@ -174,11 +179,11 @@ Z_Records *yf::BackendTest::Rep::fetch(
         npr->which = Z_NamePlusRecord_databaseRecord;
 
         if (!strncmp(element_set_name, "FF", 2))
-        {   // Huge XML test record
+        {   // XML test record with optional size in kilo-bytes .. eg FF10 for 10KB
             size_t sz = 1024;
             if (element_set_name[2])
                 sz = atoi(element_set_name+2) * 1024;
-            if (sz < 10)
+            if (sz < 10 || sz > 1024*1024)
                 sz = 10;
             char *tmp_rec = (char*) xmalloc(sz);
 
