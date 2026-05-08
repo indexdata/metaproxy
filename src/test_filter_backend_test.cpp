@@ -109,6 +109,8 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_search_present )
         if (z_gdu) {
             BOOST_CHECK_EQUAL(z_gdu->which, Z_GDU_Z3950);
             BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_searchResponse);
+            BOOST_CHECK_EQUAL(*z_gdu->u.z3950->u.searchResponse->resultCount, 42);
+            BOOST_CHECK(*z_gdu->u.z3950->u.searchResponse->searchStatus);
         }
 
         // present request no syntax, expecting usmarc record
