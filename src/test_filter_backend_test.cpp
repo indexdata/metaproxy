@@ -131,11 +131,11 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_search_present )
             BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_presentResponse);
             Z_PresentResponse *resp = z_gdu->u.z3950->u.presentResponse;
             BOOST_CHECK(resp->records);
-            BOOST_CHECK(*resp->numberOfRecordsReturned == 1);
-            BOOST_CHECK(*resp->nextResultSetPosition == 2);
-            BOOST_CHECK(resp->records->which == Z_Records_DBOSD);
-            BOOST_CHECK(resp->records->u.databaseOrSurDiagnostics->num_records == 1);
-            BOOST_CHECK(resp->records->u.databaseOrSurDiagnostics->records[0]->which == Z_NamePlusRecord_databaseRecord);
+            BOOST_CHECK_EQUAL(*resp->numberOfRecordsReturned, 1);
+            BOOST_CHECK_EQUAL(*resp->nextResultSetPosition, 2);
+            BOOST_CHECK_EQUAL(resp->records->which, Z_Records_DBOSD);
+            BOOST_CHECK_EQUAL(resp->records->u.databaseOrSurDiagnostics->num_records, 1);
+            BOOST_CHECK_EQUAL(resp->records->u.databaseOrSurDiagnostics->records[0]->which, Z_NamePlusRecord_databaseRecord);
             Z_NamePlusRecord *npr = resp->records->u.databaseOrSurDiagnostics->records[0];
             BOOST_CHECK(npr->u.databaseRecord);
             BOOST_CHECK_EQUAL(npr->u.databaseRecord->which, Z_External_octet);
