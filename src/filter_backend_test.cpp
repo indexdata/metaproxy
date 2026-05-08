@@ -121,22 +121,21 @@ static Z_OPACRecord *dummy_opac(const char *item_id, const char *element_set_nam
         hr->which = Z_HoldingsRecord_holdingsAndCirc;
         hr->u.holdingsAndCirc = hc;
 
-        hc->typeOfRecord = (char *)"u";
+        hc->typeOfRecord = odr_strdup(odr, "u");
 
-        hc->encodingLevel = (char *)"u";
+        hc->encodingLevel = odr_strdup(odr, "u");
 
         hc->format = 0; /* OPT */
-        hc->receiptAcqStatus = (char *)"0";
+        hc->receiptAcqStatus = odr_strdup(odr, "0");
         hc->generalRetention = 0; /* OPT */
         hc->completeness = 0; /* OPT */
-        hc->dateOfReport = (char *)"000000";
-        hc->nucCode = (char *)"s-FM/GC";
-        hc->localLocation =
-            (char *)"Main or Science/Business Reading Rms - STORED OFFSITE";
+        hc->dateOfReport = odr_strdup(odr, "000000");
+        hc->nucCode = odr_strdup(odr, "s-FM/GC");
+        hc->localLocation = odr_strdup(odr, "Main or Science/Business Reading Rms - STORED OFFSITE");
         hc->shelvingLocation = 0; /* OPT */
-        hc->callNumber = (char *)"MLCM 89/00602 (N)";
-        hc->shelvingData = (char *)"FT MEADE";
-        hc->copyNumber = (char *)"Copy 1";
+        hc->callNumber = odr_strdup(odr, "MLCM 89/00602 (N)");
+        hc->shelvingData = odr_strdup(odr, "FT MEADE");
+        hc->copyNumber = odr_strdup(odr, "Copy 1");
         hc->publicNote = 0; /* OPT */
         hc->reproductionNote = 0; /* OPT */
         hc->termsUseRepro = 0; /* OPT */
