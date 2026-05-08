@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_search_present )
             BOOST_CHECK_EQUAL(z_gdu->u.z3950->which, Z_APDU_searchResponse);
         }
 
-        // present request no syntax, expecing usmarc record
+        // present request no syntax, expecting usmarc record
         apdu = zget_APDU(odr, Z_APDU_presentRequest);
         BOOST_CHECK(apdu);
         apdu->u.presentRequest->resultSetStartPoint = odr_intdup(odr, 1);
@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_search_present )
             BOOST_CHECK_EQUAL(oid_oidcmp(npr->u.databaseRecord->direct_reference, yaz_oid_recsyn_usmarc), 0);
         }
 
-        // opac syntax, expecing usmarc record
+        // opac syntax, expecting opac record
         apdu = zget_APDU(odr, Z_APDU_presentRequest);
         BOOST_CHECK(apdu);
         apdu->u.presentRequest->resultSetStartPoint = odr_intdup(odr, 1);
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE( test_filter_backend_test_search_present )
             BOOST_CHECK_EQUAL(oid_oidcmp(npr->u.databaseRecord->direct_reference, yaz_oid_recsyn_opac), 0);
         }
 
-        // danmarc syntax, expecing non surrogate diagnostic
+        // danmarc syntax, expecting non surrogate diagnostic
         apdu = zget_APDU(odr, Z_APDU_presentRequest);
         BOOST_CHECK(apdu);
         apdu->u.presentRequest->resultSetStartPoint = odr_intdup(odr, 1);
