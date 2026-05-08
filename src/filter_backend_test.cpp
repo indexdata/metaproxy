@@ -100,8 +100,7 @@ yf::BackendTest::BackendTest() : m_p(new BackendTest::Rep) {
 yf::BackendTest::~BackendTest() {
 }
 
-
-Z_OPACRecord *dummy_opac(const char *item_id, const char *element_set_name, ODR odr, const char *marc_input)
+static Z_OPACRecord *dummy_opac(const char *item_id, const char *element_set_name, ODR odr, const char *marc_input)
 {
     Z_OPACRecord *rec;
     rec = (Z_OPACRecord *) odr_malloc(odr, sizeof(*rec));
