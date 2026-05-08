@@ -206,7 +206,7 @@ yf::FrontendNet::ThreadPoolPackage::~ThreadPoolPackage()
 bool yf::FrontendNet::ThreadPoolPackage::cleanup(void *info)
 {
     mp::Session *ses = (mp::Session *) info;
-    if (*ses == m_package->session())
+    if (ses && ses->id() == m_package->session().id())
     {
         m_assoc_child->m_no_requests--;
         return true;
