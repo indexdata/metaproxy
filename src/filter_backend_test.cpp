@@ -231,9 +231,8 @@ Z_Records *yf::BackendTest::Rep::fetch(
                 zget_surrogateDiagRec(odr, 0, YAZ_BIB1_SPECIFIED_ELEMENT_SET_NAME_NOT_VALID_FOR_SPECIFIED_,  "SD");
             continue;
         }
-        rec->u.databaseOrSurDiagnostics->records[i] = (Z_NamePlusRecord *)
-            odr_malloc(odr, sizeof(Z_NamePlusRecord));
-        Z_NamePlusRecord *npr = rec->u.databaseOrSurDiagnostics->records[i];
+        Z_NamePlusRecord *npr = (Z_NamePlusRecord *) odr_malloc(odr, sizeof(Z_NamePlusRecord));
+        rec->u.databaseOrSurDiagnostics->records[i] = npr;
         npr->databaseName = 0;
         npr->which = Z_NamePlusRecord_databaseRecord;
 
