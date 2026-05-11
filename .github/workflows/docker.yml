@@ -15,20 +15,18 @@ env:
 jobs:
   build-image:
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
-    name: Build image (${{ matrix.platform }})
+    name: Build image (${{ matrix.os }}/${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: linux/amd64
-            platform_pair: linux-amd64
+          - os: linux
+            arch: amd64
             runner: ubuntu-24.04
-            cache_scope: amd64
-          - platform: linux/arm64
-            platform_pair: linux-arm64
+          - os: linux
+            arch: arm64
             runner: ubuntu-24.04-arm
-            cache_scope: arm64
     permissions:
       contents: read
       packages: write
@@ -67,11 +65,11 @@ jobs:
         with:
           context: .
           file: Dockerfile
-          platforms: ${{ matrix.platform }}
+          platforms: ${{ matrix.os }}/${{ matrix.arch }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=registry,ref=${{ env.REGISTRY_IMAGE }}:buildcache-${{ matrix.cache_scope }}
-          cache-to: type=registry,ref=${{ env.REGISTRY_IMAGE }}:buildcache-${{ matrix.cache_scope }},mode=max
+          cache-from: type=gha,scope=metaproxy-${{ matrix.os }}-${{ matrix.arch }}
+          cache-to: type=gha,scope=metaproxy-${{ matrix.os }}-${{ matrix.arch }},mode=max
 
       - name: Export digest
         run: |
@@ -82,7 +80,7 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ matrix.platform_pair }}
+          name: digests-${{ matrix.os }}-${{ matrix.arch }}
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
