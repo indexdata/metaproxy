@@ -22,13 +22,13 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            platform-pair: linux-amd64
+            platform_pair: linux-amd64
             runner: ubuntu-24.04
-            cache-scope: amd64
+            cache_scope: amd64
           - platform: linux/arm64
-            platform-pair: linux-arm64
+            platform_pair: linux-arm64
             runner: ubuntu-24.04-arm
-            cache-scope: arm64
+            cache_scope: arm64
     permissions:
       contents: read
       packages: write
@@ -70,8 +70,8 @@ jobs:
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=registry,ref=${{ env.REGISTRY_IMAGE }}:buildcache-${{ matrix.cache-scope }}
-          cache-to: type=registry,ref=${{ env.REGISTRY_IMAGE }}:buildcache-${{ matrix.cache-scope }},mode=max
+          cache-from: type=registry,ref=${{ env.REGISTRY_IMAGE }}:buildcache-${{ matrix.cache_scope }}
+          cache-to: type=registry,ref=${{ env.REGISTRY_IMAGE }}:buildcache-${{ matrix.cache_scope }},mode=max
 
       - name: Export digest
         run: |
@@ -82,7 +82,7 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ matrix.platform-pair }}
+          name: digests-${{ matrix.platform_pair }}
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
