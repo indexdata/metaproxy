@@ -111,7 +111,7 @@ manref.xml: $(XMLMAN) $(srcdir)/common/stripref.xsl \
 		$(srcdir)/copyright.xml local.ent
 	rm -f manref.xml
 	for i in $(XMLMAN); do \
-		xsltproc --xinclude $(srcdir)/common/stripref.xsl $(srcdir)/$$i | sed 1d >> manref.xml; \
+		$(XSLTPROC_COMPILE) --xinclude $(srcdir)/common/stripref.xsl $(srcdir)/$$i | sed 1d >> manref.xml; \
 	done
 
 
