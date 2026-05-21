@@ -1,40 +1,27 @@
 FROM debian:trixie-slim AS build
 
-ARG YAZ_VERSION=5.37.1
-ARG YAZPP_VERSION=1.9.1
-
 # Builds from the workspace root dir
 WORKDIR /app
 
-RUN apt update && apt-get install -y \
+RUN apt-get update && apt-get install -y \
   apt-transport-https ca-certificates curl \
   autoconf automake libtool gcc g++ make \
   tclsh xsltproc docbook docbook-xml docbook-xsl librsvg2-bin \
   pkg-config libxslt1-dev libgnutls28-dev libicu-dev \
   libboost-dev libboost-system-dev libboost-thread-dev \
   libboost-test-dev libboost-regex-dev \
-  git
+  git && \
+  rm -rf /var/lib/apt/lists/*
 
-RUN curl https://ftp.indexdata.com/pub/yaz/yaz-${YAZ_VERSION}.tar.gz -o yaz-${YAZ_VERSION}.tar.gz
-RUN tar zxf yaz-${YAZ_VERSION}.tar.gz
-WORKDIR /app/yaz-${YAZ_VERSION}
-RUN ./configure --disable-shared --enable-static
-RUN make -j4
-
-WORKDIR /app
-
-RUN curl https://ftp.indexdata.com/pub/yazpp/yazpp-${YAZPP_VERSION}.tar.gz -o yazpp-${YAZPP_VERSION}.tar.gz
-RUN tar zxf yazpp-${YAZPP_VERSION}.tar.gz
-WORKDIR /app/yazpp-${YAZPP_VERSION}
-RUN ./configure --disable-shared --enable-static
-RUN make -j4
-
-WORKDIR /app
+RUN curl -sfSL https://ftp.indexdata.com/debian/indexdata.gpg -o /usr/share/keyrings/indexdata.gpg && \
+    echo 'deb [signed-by=/usr/share/keyrings/indexdata.gpg] https://ftp.indexdata.com/debian trixie main' > /etc/apt/sources.list.d/indexdata.list && \
+    apt-get update && apt-get install -y libyazpp7-dev libyaz5-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY . metaproxy
-RUN cd metaproxy && ./buildconf.sh
-RUN cd metaproxy && ./configure --disable-shared --enable-static
-RUN cd metaproxy && make -j4
+RUN cd metaproxy && ./buildconf.sh && \
+    ./configure --disable-shared --enable-static && \
+    make -j4
 
 # Save list of shared lib deps
 RUN ldd metaproxy/src/metaproxy | tr -s '[:blank:]' '\n' | grep '^/' | \
