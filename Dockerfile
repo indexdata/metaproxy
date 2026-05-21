@@ -1,8 +1,5 @@
 FROM debian:trixie-slim AS build
 
-ARG YAZ_VERSION=5.37.1
-ARG YAZPP_VERSION=1.9.1
-
 # Builds from the workspace root dir
 WORKDIR /app
 
@@ -15,21 +12,10 @@ RUN apt update && apt-get install -y \
   libboost-test-dev libboost-regex-dev \
   git
 
-RUN curl https://ftp.indexdata.com/pub/yaz/yaz-${YAZ_VERSION}.tar.gz -o yaz-${YAZ_VERSION}.tar.gz
-RUN tar zxf yaz-${YAZ_VERSION}.tar.gz
-WORKDIR /app/yaz-${YAZ_VERSION}
-RUN ./configure --disable-shared --enable-static
-RUN make -j4
-
-WORKDIR /app
-
-RUN curl https://ftp.indexdata.com/pub/yazpp/yazpp-${YAZPP_VERSION}.tar.gz -o yazpp-${YAZPP_VERSION}.tar.gz
-RUN tar zxf yazpp-${YAZPP_VERSION}.tar.gz
-WORKDIR /app/yazpp-${YAZPP_VERSION}
-RUN ./configure --disable-shared --enable-static
-RUN make -j4
-
-WORKDIR /app
+RUN curl -s https://ftp.indexdata.com/debian/indexdata.gpg -o /usr/share/keyrings/indexdata.gpg
+RUN echo 'deb [signed-by=/usr/share/keyrings/indexdata.gpg] https://ftp.indexdata.com/debian trixie main' > /etc/apt/sources.list.d/indexdata.list
+RUN apt update
+RUN apt-get install -y libyazpp7-dev
 
 COPY . metaproxy
 RUN cd metaproxy && ./buildconf.sh
