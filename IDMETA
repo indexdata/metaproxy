@@ -1,4 +1,6 @@
 DEBIAN_DIST="bullseye bookworm trixie"
-UBUNTU_DIST="jammy noble"
-CENTOS_DIST="centos7 centos8 centos9 centos10"
-VERSION=1.22.3
+UBUNTU_DIST="jammy noble resolute"
+CENTOS_DIST="centos9 centos10"
+ARCH_ubuntu_resolute="amd64 arm64"
+ARCH_debian_trixie="amd64 arm64"
+VERSION=1.22.4
