@@ -3,7 +3,7 @@ FROM debian:trixie-slim AS build
 # Builds from the workspace root dir
 WORKDIR /app
 
-RUN apt update && apt-get install -y \
+RUN apt-get update && apt-get install -y \
   apt-transport-https ca-certificates curl \
   autoconf automake libtool gcc g++ make \
   tclsh xsltproc docbook docbook-xml docbook-xsl librsvg2-bin \
@@ -12,15 +12,15 @@ RUN apt update && apt-get install -y \
   libboost-test-dev libboost-regex-dev \
   git
 
-RUN curl -s https://ftp.indexdata.com/debian/indexdata.gpg -o /usr/share/keyrings/indexdata.gpg
-RUN echo 'deb [signed-by=/usr/share/keyrings/indexdata.gpg] https://ftp.indexdata.com/debian trixie main' > /etc/apt/sources.list.d/indexdata.list
-RUN apt update
-RUN apt-get install -y libyazpp7-dev
+RUN curl -sfSL https://ftp.indexdata.com/debian/indexdata.gpg -o /usr/share/keyrings/indexdata.gpg && \
+    echo 'deb [signed-by=/usr/share/keyrings/indexdata.gpg] https://ftp.indexdata.com/debian trixie main' > /etc/apt/sources.list.d/indexdata.list && \
+    apt-get update && apt-get install -y libyazpp7-dev libyaz5-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY . metaproxy
-RUN cd metaproxy && ./buildconf.sh
-RUN cd metaproxy && ./configure --disable-shared --enable-static
-RUN cd metaproxy && make -j4
+RUN cd metaproxy && ./buildconf.sh && \
+    ./configure --disable-shared --enable-static && \
+    make -j4
 
 # Save list of shared lib deps
 RUN ldd metaproxy/src/metaproxy | tr -s '[:blank:]' '\n' | grep '^/' | \
