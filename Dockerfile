@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y \
   pkg-config libxslt1-dev libgnutls28-dev libicu-dev \
   libboost-dev libboost-system-dev libboost-thread-dev \
   libboost-test-dev libboost-regex-dev \
-  git
+  git && \
+  rm -rf /var/lib/apt/lists/*
 
 RUN curl -sfSL https://ftp.indexdata.com/debian/indexdata.gpg -o /usr/share/keyrings/indexdata.gpg && \
     echo 'deb [signed-by=/usr/share/keyrings/indexdata.gpg] https://ftp.indexdata.com/debian trixie main' > /etc/apt/sources.list.d/indexdata.list && \
