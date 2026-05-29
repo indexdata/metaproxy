@@ -3,8 +3,8 @@ FROM debian:trixie-slim AS build
 # Builds from the workspace root dir
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-  apt-transport-https ca-certificates curl \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  apt-transport-https ca-certificates curl adduser \
   autoconf automake libtool gcc g++ make \
   tclsh xsltproc docbook docbook-xml docbook-xsl librsvg2-bin \
   pkg-config libxslt1-dev libgnutls28-dev libicu-dev \
@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN curl -sfSL https://ftp.indexdata.com/debian/indexdata.gpg -o /usr/share/keyrings/indexdata.gpg && \
     echo 'deb [signed-by=/usr/share/keyrings/indexdata.gpg] https://ftp.indexdata.com/debian trixie main' > /etc/apt/sources.list.d/indexdata.list && \
-    apt-get update && apt-get install -y libyazpp7-dev libyaz5-dev && \
+    apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libyazpp7-dev libyaz5-dev && \
     rm -rf /var/lib/apt/lists/*
 
 COPY . metaproxy
