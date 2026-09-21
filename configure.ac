@@ -7,7 +7,7 @@ AC_INIT([metaproxy],[m4_esyscmd([. ./IDMETA; printf $VERSION])],[info@indexdata.
 
 AC_CONFIG_HEADERS([src/config.hpp])
 
-AC_CONFIG_SRCDIR([configure.ac]) 
+AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_AUX_DIR([config])
 AC_CANONICAL_TARGET
 
@@ -27,8 +27,8 @@ AC_CHECK_PROGS([TRANG], [trang], [echo])
 AC_LANG([C])
 
 if test "$enable_shared" = "yes"; then
-    AC_DEFINE([HAVE_DL_SUPPORT],[1],
-	[Define to 1 if you have shared module support])
+	AC_DEFINE([HAVE_DL_SUPPORT],[1],
+		[Define to 1 if you have shared module support])
 fi
 
 # Checks for libraries.
@@ -48,40 +48,40 @@ LIBS="$LIBS -lpthread"
 CPPFLAGS="$YAZPPINC $CPPFLAGS"
 AC_MSG_CHECKING([if YAZ is version 5.35.0 or later])
 AC_COMPILE_IFELSE(
-        [AC_LANG_PROGRAM([[#include <yaz/yaz-version.h>]],
+	[AC_LANG_PROGRAM([[#include <yaz/yaz-version.h>]],
                          [[
 #if YAZ_VERSIONL < 0x52300
 #error too old
 #endif
 ]])],
-        [AC_MSG_RESULT([yes])],
-        [AC_MSG_RESULT([no])
-	 AC_MSG_ERROR([newer version of YAZ required])]
+	[AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])
+		AC_MSG_ERROR([newer version of YAZ required])]
 )
 YAZ_DOC
 
 ID_BOOST([system thread test regex],[1.34])
 if test -z "${BOOST_THREAD_LIB}"; then
-    AC_MSG_ERROR([Boost thread development libraries required])
+	AC_MSG_ERROR([Boost thread development libraries required])
 fi
 if test -z "${BOOST_TEST_LIB}"; then
-    AC_MSG_ERROR([Boost unit test framework libraries required])
+	AC_MSG_ERROR([Boost unit test framework libraries required])
 fi
 if test -z "${BOOST_REGEX_LIB}"; then
-    AC_MSG_ERROR([Boost regex development libraries required])
+	AC_MSG_ERROR([Boost regex development libraries required])
 fi
 
 case $YAZPPINC in
-  *YAZ_HAVE_XSLT=1*) ;;
-  *) AC_MSG_ERROR([YAZ not compiled with Libxslt support]) ;;
+	*YAZ_HAVE_XSLT=1*) ;;
+	*) AC_MSG_ERROR([YAZ not compiled with Libxslt support]) ;;
 esac
 
 AC_CHECK_HEADERS([sys/select.h sys/socket.h])
 
 if test -d ${srcdir}/.git; then
-    SHA1=`git show --pretty=format:%H|head -1`
+	SHA1=`git show --pretty=format:%H|head -1`
 else
-    SHA1=`head -1 ${srcdir}/ChangeLog|awk '{print $2}'`
+	SHA1=`head -1 ${srcdir}/ChangeLog|awk '{print $2}'`
 fi
 AC_DEFINE_UNQUOTED([VERSION_SHA1], "$SHA1", [SHA-1 from Git])
 
@@ -126,10 +126,10 @@ echo \
   Automake:                   ${AUTOMAKE}
   Archiver:                   ${AR}
   Ranlib:                     ${RANLIB}
-  Boost Version:              ${BOOST_VERSION}               
-  Boost Include:              ${BOOST_CPPFLAGS}               
-  Boost linker flags:         ${BOOST_LDFLAGS}               
-  Boost Libs:                 ${BOOST_DATE_TIME_LIB} ${BOOST_THREAD_LIB}               
+  Boost Version:              ${BOOST_VERSION}
+  Boost Include:              ${BOOST_CPPFLAGS}
+  Boost linker flags:         ${BOOST_LDFLAGS}
+  Boost Libs:                 ${BOOST_DATE_TIME_LIB} ${BOOST_THREAD_LIB}
   YAZPP Version:              ${YAZPPVERSION}
   YAZPP Include:              ${YAZPPINC}
   YAZPP La Lib:               ${YAZPPLALIB}
@@ -137,8 +137,3 @@ echo \
   Bugreport:                  ${PACKAGE_BUGREPORT}
 
 ------------------------------------------------------------------------"
-dnl Local Variables:
-dnl mode:shell-script
-dnl sh-indentation: 2
-dnl sh-basic-offset: 4
-dnl End:
