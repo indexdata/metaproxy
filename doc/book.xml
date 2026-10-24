@@ -291,72 +291,32 @@
   </section>
 
   <section id="installation.debian">
-   <title>Installation on Debian GNU/Linux</title>
+   <title>Installation on Debian GNU/Linux and Ubuntu</title>
    <para>
-    All dependencies for Metaproxy are available as
-    <ulink url="&url.debian;">Debian</ulink> packages.
+    Metaproxy is available as a package for recent versions of
+    <ulink url="&url.debian;">Debian</ulink> and
+    <ulink url="&url.ubuntu;">Ubuntu</ulink>.
    </para>
    <para>
-    The procedures for Debian based systems, such as
-    <ulink url="&url.ubuntu;">Ubuntu</ulink> is probably similar.
-   </para>
-   <para>
-    There is currently no official Debian package for YAZ++.
-    And the official Debian package for YAZ is probably too old.
-    But Index Data builds "new" versions of those for Debian (i386, amd64 only).
-   </para>
-   <para>
-    Update the <filename>/etc/apt/sources.list</filename>
-    to include the Index Data repository.
-    See YAZ' <ulink url="&url.yaz.download.debian;">Download Debian</ulink>
-    for more information.
-   </para>
-   <screen>
-    apt-get install libxslt1-dev
-    apt-get install libyazpp6-dev
-    apt-get install libboost-dev
-    apt-get install libboost-system-dev
-    apt-get install libboost-thread-dev
-    apt-get install libboost-test-dev
-    apt-get install libboost-regex-dev
-   </screen>
-   <para>
-    With these packages installed, the usual configure + make
-    procedure can be used for Metaproxy as outlined in
-    <xref linkend="installation.unix"/>.
+    For supported platforms and installation instructions, see the
+    <ulink url="https://ftp.indexdata.com/pub/metaproxy/debian/README">Debian README</ulink>
+    or the
+    <ulink url="https://ftp.indexdata.com/pub/metaproxy/ubuntu/README">Ubuntu README</ulink>.
    </para>
   </section>
 
   <section id="installation.rpm">
    <title>Installation on RPM based Linux Systems</title>
    <para>
-    All external dependencies for Metaproxy are available as
-    RPM packages, either from your distribution site, or from the
-    <ulink url="http://fr.rpmfind.net/">RPMfind</ulink> site.
+    Metaproxy is available as RPM packages for CentOS Stream 9 and 10.
+    These packages are expected to be compatible with Red Hat Enterprise
+    Linux (RHEL) 9 and 10, respectively.
    </para>
    <para>
-    For example, an installation of the requires Boost C++ development
-    libraries on RedHat Fedora C4 and C5 can be done like this:
-    <screen>
-    wget ftp://fr.rpmfind.net/wlinux/fedora/core/updates/testing/4/SRPMS/boost-1.33.0-3.fc4.src.rpm
-    sudo rpmbuild --buildroot src/ --rebuild -p fc4/boost-1.33.0-3.fc4.src.rpm
-    sudo rpm -U /usr/src/redhat/RPMS/i386/boost-*rpm
-    </screen>
-   </para>
-   <para>
-    The  <ulink url="&url.yaz;">YAZ</ulink> library is needed to
-    compile &metaproxy;, see there
-    for more information on available RPM packages.
-   </para>
-   <para>
-    There is currently no official RPM package for YAZ++.
-    See the <ulink url="&url.yazplusplus;">YAZ++</ulink> pages
-    for more information on a Unix tarball install.
-   </para>
-   <para>
-    With these packages installed, the usual configure + make
-    procedure can be used for Metaproxy as outlined in
-    <xref linkend="installation.unix"/>.
+    For supported platforms and installation instructions, see the
+    <ulink url="https://ftp.indexdata.com/pub/metaproxy/redhat/centos/9/README">CentOS Stream 9 README</ulink>
+    or the
+    <ulink url="https://ftp.indexdata.com/pub/metaproxy/redhat/centos/10/README">CentOS Stream 10 README</ulink>.
    </para>
   </section>
 
