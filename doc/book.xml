@@ -305,7 +305,7 @@
    </para>
   </section>
 
-  <section id="installation.rpm">
+  <section id="installation.rpm">f
    <title>Installation on RPM based Linux Systems</title>
    <para>
     Metaproxy is available as RPM packages for CentOS Stream 9 and 10.
@@ -1586,14 +1586,14 @@ Z>
     been ratified by the Maintenance Agency and so is not widely used
     in non-Index Data software.  We're working on it.)
     The <literal>VAL_PROXY</literal> packet functions
-    analogously to the absoluteURI-style Request-URI used with the GET
+    analogously to the absolute-form request target used with the GET
     method when a web browser asks a proxy to forward its request: see
     the
-    <ulink url="http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2"
-	   >Request-URI</ulink>
+    <ulink url="https://www.rfc-editor.org/rfc/rfc9112.html#section-3.2.2"
+	   >absolute-form</ulink>
     section of
-    <ulink url="http://www.w3.org/Protocols/rfc2616/rfc2616.html"
-	   >the HTTP 1.1 specification</ulink>.
+    <ulink url="https://www.rfc-editor.org/rfc/rfc9112.html"
+	   >the HTTP/1.1 specification (RFC 9112)</ulink>.
    </para>
    <para>
     Within Metaproxy, Search requests that are part of the same
