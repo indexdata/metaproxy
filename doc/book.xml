@@ -330,12 +330,9 @@
    <section id="installation.windows.boost">
     <title>Boost</title>
     <para>
-     For Windows, it's easiest to get the precompiled Boost
-     package from <ulink url="&url.boost.windows.download;">here</ulink>.
-     Several versions of the Boost libraries may be selected when
-     installing Boost for Windows. Please choose at least the
-     <emphasis>multithreaded</emphasis> (non-DLL) version because
-     the Metaproxy makefile uses that.
+     Install Boost with vcpkg as described in
+     <xref linkend="installation.windows.metaproxy"/>. The Windows
+     makefile uses the shared libraries from the selected Windows triplet.
     </para>
     <para>
      For more information about installing Boost refer to the
@@ -380,10 +377,36 @@
    <section id="installation.windows.metaproxy">
     <title>Metaproxy</title>
     <para>
-     Metaproxy is shipped with NMAKE makefiles as well - similar
-     to those found in the YAZ++/YAZ packages. Adjust this Makefile
-     to point to the proper locations of Boost, Libxslt, Libxml2,
-     zlib, iconv, yaz and yazpp.
+     Metaproxy is shipped with an NMAKE makefile, similar to those found
+     in the YAZ++/YAZ packages. The makefile uses Boost, libxml2 and
+     libxslt installed with
+     <ulink url="https://learn.microsoft.com/en-us/vcpkg/consume/classic-mode">vcpkg
+     in classic mode</ulink>. Install Visual Studio with the
+     <literal>Desktop development with C++</literal> workload, including
+     the Windows SDK, and Git for Windows. The following commands are
+     for a Windows command prompt and install vcpkg in
+     <filename>C:\vcpkg</filename>, matching the makefile defaults:
+     <screen>
+      git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+      cd /d C:\vcpkg
+      bootstrap-vcpkg.bat
+     </screen>
+    </para>
+    <para>
+     Install Boost and the XML libraries for a 64-bit build:
+     <screen>
+      vcpkg install boost:x64-windows libxml2:x64-windows libxslt:x64-windows
+     </screen>
+     If vcpkg is already installed, run this command from its directory.
+     vcpkg installs these packages and their dependencies under
+     <filename>C:\vcpkg\installed\x64-windows</filename>. The
+     <literal>x64-windows</literal> triplet provides shared libraries.
+     The makefile reads the installation paths directly;
+     <command>vcpkg integrate install</command> is not required.
+    </para>
+    <para>
+     Check the following settings in <filename>win\makefile</filename>,
+     especially if vcpkg, YAZ or YAZ++ is installed elsewhere:
     </para>
 
     <variablelist>
@@ -398,44 +421,77 @@
      </varlistentry>
 
      <varlistentry>
+      <term><literal>BARCH</literal></term>
+      <listitem>
+       <para>
+        Target architecture: <literal>x86</literal> or
+        <literal>x64</literal>. Defaults to the Visual Studio target
+        architecture, or <literal>x64</literal> if it is not set.
+       </para>
+      </listitem>
+     </varlistentry>
+
+     <varlistentry>
       <term><literal>BOOST</literal></term>
       <listitem>
        <para>
-	Boost install location
+        Boost installation prefix, defaulting to
+        <filename>C:\vcpkg\installed\$(BARCH)-windows</filename>.
+        Headers are read from <filename>include</filename>, and libraries
+        and DLLs from <filename>lib</filename> and <filename>bin</filename>.
+        Debug builds use <filename>debug\lib</filename> and
+        <filename>debug\bin</filename>. Boost version and toolset names
+        do not need to be configured.
        </para>
       </listitem>
      </varlistentry>
 
      <varlistentry>
-      <term><literal>BOOST_VERSION</literal></term>
+      <term><literal>YAZ_DIR</literal>, <literal>YAZPP_DIR</literal></term>
       <listitem>
        <para>
-	Boost version (replace . with _).
-       </para>
-      </listitem>
-     </varlistentry>
-
-     <varlistentry>
-      <term><literal>BOOST_TOOLSET</literal></term>
-      <listitem>
-       <para>
-	Boost toolset.
+        YAZ and YAZ++ source/build directories, defaulting to
+        <filename>..\..\yaz</filename> and <filename>..\..\yazpp</filename>
+        relative to Metaproxy's <filename>win</filename> directory.
+        Build both with the same architecture and debug/release setting
+        as Metaproxy.
        </para>
       </listitem>
      </varlistentry>
 
      <varlistentry>
       <term><literal>LIBXSLT_DIR</literal>,
-       <literal>LIBXML2_DIR</literal> ..</term>
+       <literal>LIBXML2_DIR</literal></term>
       <listitem>
        <para>
-	Specify the locations of Libxslt, libiconv, libxml2 and
-	libxslt.
+        Installation prefixes for libxslt and libxml2, both defaulting to
+        <filename>C:\vcpkg\installed\$(BARCH)-windows</filename>.
+        As with Boost, debug builds use the <filename>debug</filename>
+        subdirectory for libraries and DLLs.
        </para>
       </listitem>
      </varlistentry>
 
     </variablelist>
+
+    <para>
+     Open an x64 Native Tools Command Prompt for Visual Studio, change
+     to the <filename>win</filename> directory in the Metaproxy source
+     tree, and build with:
+     <screen>
+      nmake BARCH=x64
+     </screen>
+     Release mode is the default; use <command>nmake BARCH=x64 DEBUG=1</command>
+     for a debug build. The makefile copies the runtime DLLs it names to
+     Metaproxy's <filename>bin</filename> directory.
+    </para>
+    <para>
+     For a 32-bit build, install the same vcpkg packages with
+     <literal>:x86-windows</literal> instead of <literal>:x64-windows</literal>,
+     open an x86 Native Tools Command Prompt, and run
+     <command>nmake BARCH=x86</command>. The default dependency paths then
+     select <filename>C:\vcpkg\installed\x86-windows</filename>.
+    </para>
 
     <para>
      After successful compilation you'll find

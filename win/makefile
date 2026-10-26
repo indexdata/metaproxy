@@ -7,6 +7,15 @@
 # Parameters that we customize often.
 DEBUG=0   # 0 for release, 1 for debug
 
+# Target architecture: x86 or x64 (as in YAZ's win/makefile)
+!IFNDEF BARCH
+!IFDEF VSCMD_ARG_TGT_ARCH
+BARCH = $(VSCMD_ARG_TGT_ARCH)
+!ELSE
+BARCH = x64
+!ENDIF
+!ENDIF
+
 # Metaproxy version
 VERSION=1.22.4
 
@@ -14,22 +23,34 @@ VERSION=1.22.4
 YAZ_DIR=..\..\yaz
 YAZPP_DIR=..\..\yazpp
 
-# Boost
-BOOST=\local\boost_1_59_0
-BOOST_VERSION=1_59
-BOOST_LIBPATH=$(BOOST)\lib32-msvc-14.0
-BOOST_TOOLSET=vc140 # vs120 for VS2013, vc90 for VS2008, vc80 for VS 2005
-BOOST_MODEL=mt
+# Boost (vcpkg packages: boost-thread, boost-regex, boost-date-time,
+# boost-algorithm, boost-lexical-cast, boost-test)
+BOOST=c:\vcpkg\installed\$(BARCH)-windows
 
 # libxml2 + libxslt + associates
-LIBXML2_DIR=\libxml2-2.9.2.win32
-LIBXSLT_DIR=\libxslt-1.1.28.win32
+LIBXML2_DIR=c:\vcpkg\installed\$(BARCH)-windows
+LIBXSLT_DIR=c:\vcpkg\installed\$(BARCH)-windows
+
+!if $(DEBUG)
+VCPKG_CONFIG=debug
+ZLIB_DLL=zd.dll
+!else
+VCPKG_CONFIG=.
+ZLIB_DLL=z.dll
+!endif
+
+BOOST_LIBPATH=$(BOOST)\$(VCPKG_CONFIG)\lib
+BOOST_BINPATH=$(BOOST)\$(VCPKG_CONFIG)\bin
+LIBXML2_LIBPATH=$(LIBXML2_DIR)\$(VCPKG_CONFIG)\lib
+LIBXML2_BINPATH=$(LIBXML2_DIR)\$(VCPKG_CONFIG)\bin
+LIBXSLT_LIBPATH=$(LIBXSLT_DIR)\$(VCPKG_CONFIG)\lib
+LIBXSLT_BINPATH=$(LIBXSLT_DIR)\$(VCPKG_CONFIG)\bin
 
 # The targets
 
 default: all
 
-all: dirs config yaz yazpp libxslt progs
+all: dirs config yaz yazpp libxslt boost progs
 
 progs: metaproxy # test_pipe does not work
 NSIS="c:\program files\nsis\makensis.exe"
@@ -102,37 +123,34 @@ $(BINDIR)\$(YAZPPD).dll: "$(YAZPP_DIR)\bin\$(YAZPPD).dll"
 # Copy libxslt and associates to our bin directory
 libxslt: $(BINDIR)\libxslt.dll
 
-$(BINDIR)\libxslt.dll: "$(LIBXSLT_DIR)\lib\libxslt.dll"
-	copy "$(LIBXML2_DIR)\bin\libxml2.dll" $(BINDIR)
-	copy "$(LIBXSLT_DIR)\lib\libxslt.dll" $(BINDIR)
+$(BINDIR)\libxslt.dll: "$(LIBXSLT_BINPATH)\libxslt.dll" "$(LIBXML2_BINPATH)\libxml2.dll"
+	copy "$(LIBXML2_BINPATH)\$(ZLIB_DLL)" $(BINDIR)
+	copy "$(LIBXML2_BINPATH)\iconv-2.dll" $(BINDIR)
+	copy "$(LIBXML2_BINPATH)\libxml2.dll" $(BINDIR)
+	copy "$(LIBXSLT_BINPATH)\libxslt.dll" $(BINDIR)
+
+# vcpkg's Windows triplets build shared Boost libraries.
+boost:
+	copy "$(BOOST_BINPATH)\boost_*.dll" $(BINDIR)
 
 config: $(SRCDIR)\config.hpp
 
 $(SRCDIR)\config.hpp:
 	echo /*windows*/ >$(SRCDIR)\config.hpp
 
-# Boost 
-#
-!if $(DEBUG)
-BOOST_LIB_SUFFIX=$(BOOST_TOOLSET)-$(BOOST_MODEL)-gd-$(BOOST_VERSION).lib
-!else
-BOOST_LIB_SUFFIX=$(BOOST_TOOLSET)-$(BOOST_MODEL)-$(BOOST_VERSION).lib
-!endif
-
-BOOST_DEF = /I"$(BOOST)"
-BOOST_LIB = \
-	     /LIBPATH:"$(BOOST_LIBPATH)" \
-    "libboost_thread-$(BOOST_LIB_SUFFIX)"  \
-    "libboost_regex-$(BOOST_LIB_SUFFIX)" \
-    "libboost_date_time-$(BOOST_LIB_SUFFIX)" 
+# vcpkg disables Boost auto-linking. Let LINK expand the installed library
+# names to avoid hardcoding Boost versions/toolsets, including dependencies.
+# Recent Boost releases provide some former compiled libraries as headers.
+BOOST_DEF = /I"$(BOOST)\include" /DBOOST_ALL_NO_LIB /DBOOST_ALL_DYN_LINK
+BOOST_LIB = "$(BOOST_LIBPATH)\boost_*.lib"
 
 LIBXSLT_DEF = \
 	      /I"$(LIBXML2_DIR)\include\libxml2" \
 	      /I"$(LIBXSLT_DIR)\include"
 
 LIBXSLT_LIB = \
-    "$(LIBXML2_DIR)\lib\libxml2.lib" \
-    "$(LIBXSLT_DIR)\lib\libxslt.lib"
+    "$(LIBXML2_LIBPATH)\libxml2.lib" \
+    "$(LIBXSLT_LIBPATH)\libxslt.lib"
 
 COMMON_C_OPTIONS=          \
   /nologo /W3 /EHsc /FD /c \
