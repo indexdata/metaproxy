@@ -50,7 +50,7 @@ LIBXSLT_BINPATH=$(LIBXSLT_DIR)\$(VCPKG_CONFIG)\bin
 
 default: all
 
-all: dirs config yaz yazpp libxslt boost progs
+all: dirs config progs
 
 progs: metaproxy # test_pipe does not work
 NSIS="c:\program files\nsis\makensis.exe"
@@ -106,32 +106,9 @@ YAZPPD=yazpp6
 YAZ_LIB="$(YAZ_DIR)\lib\$(YAZD).lib"
 YAZ_DEF=/DYAZ_HAVE_XML2=1 /DYAZ_HAVE_XSLT=1 /DYAZ_USE_NEW_LOG=1 /I"$(YAZ_DIR)\src"
 
-# Copy yaz.dll to our bin
-yaz: $(BINDIR)\$(YAZD).dll
-$(BINDIR)\$(YAZD).dll: "$(YAZ_DIR)\bin\$(YAZD).dll"
-  copy "$(YAZ_DIR)\bin\$(YAZD).dll" $(BINDIR)
-
 # YAZ++ includes & libs
 YAZPP_LIB="$(YAZPP_DIR)\lib\$(YAZPPD).lib"
 YAZPP_DEF=/I"$(YAZPP_DIR)\include"
-
-# Copy yazpp.dll to our bin
-yazpp: $(BINDIR)\$(YAZPPD).dll
-$(BINDIR)\$(YAZPPD).dll: "$(YAZPP_DIR)\bin\$(YAZPPD).dll"
-  copy "$(YAZPP_DIR)\bin\$(YAZPPD).dll" $(BINDIR)
-
-# Copy libxslt and associates to our bin directory
-libxslt: $(BINDIR)\libxslt.dll
-
-$(BINDIR)\libxslt.dll: "$(LIBXSLT_BINPATH)\libxslt.dll" "$(LIBXML2_BINPATH)\libxml2.dll"
-	copy "$(LIBXML2_BINPATH)\$(ZLIB_DLL)" $(BINDIR)
-	copy "$(LIBXML2_BINPATH)\iconv-2.dll" $(BINDIR)
-	copy "$(LIBXML2_BINPATH)\libxml2.dll" $(BINDIR)
-	copy "$(LIBXSLT_BINPATH)\libxslt.dll" $(BINDIR)
-
-# vcpkg's Windows triplets build shared Boost libraries.
-boost:
-	copy "$(BOOST_BINPATH)\boost_*.dll" $(BINDIR)
 
 config: $(SRCDIR)\config.hpp
 
@@ -318,6 +295,13 @@ $(METAPROXY_PROG) : "$(BINDIR)" $(METAPROXY_OBJS) $(PROJECT_DLL_OBJS)
 		$(METAPROXY_OBJS) \
 		$(PROJECT_DLL_OBJS) \
 		/out:$(METAPROXY_PROG) 
+	copy "$(YAZ_DIR)\bin\$(YAZD).dll" $(BINDIR)
+	copy "$(YAZPP_DIR)\bin\$(YAZPPD).dll" $(BINDIR)
+	copy "$(LIBXML2_BINPATH)\$(ZLIB_DLL)" $(BINDIR)
+	copy "$(LIBXML2_BINPATH)\iconv-2.dll" $(BINDIR)
+	copy "$(LIBXML2_BINPATH)\libxml2.dll" $(BINDIR)
+	copy "$(LIBXSLT_BINPATH)\libxslt.dll" $(BINDIR)
+	copy "$(BOOST_BINPATH)\boost_*.dll" $(BINDIR)
 
 $(TEST_PIPE) : "$(BINDIR)" $(TEST_PIPE_OBJS) $(PROJECT_DLL_OBJS)
 	$(LINK) \
