@@ -17,7 +17,7 @@ BARCH = x64
 !ENDIF
 
 # Metaproxy version
-VERSION=1.22.5
+VERSION=1.22.6
 
 # YAZ and YAZ++ directories
 YAZ_DIR=..\..\yaz

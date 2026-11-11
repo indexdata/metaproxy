@@ -1,3 +1,9 @@
+--- 1.22.6 2026/11/11
+
+Declare dependencies for service account management.
+Add the Debian adduser dependency and RPM shadow-utils scriptlet
+dependencies so service account creation works on minimal installations.
+
 --- 1.22.5 2026/11/11
 
 Update Windows makefile to use vcpkg for external

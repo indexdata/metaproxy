@@ -1,4 +1,4 @@
 DEBIAN_DIST="bookworm trixie"
 UBUNTU_DIST="jammy noble resolute"
 CENTOS_DIST="centos9 centos10"
-VERSION=1.22.5
+VERSION=1.22.6
