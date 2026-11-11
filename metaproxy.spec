@@ -25,6 +25,8 @@ URL: https://www.indexdata.com/metaproxy
 %{?systemd_requires}
 
 Requires:  libmetaproxy6 = %{version}
+Requires(post): shadow-utils
+Requires(preun): shadow-utils
 Provides: metaproxy6
 
 %description

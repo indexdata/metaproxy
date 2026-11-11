@@ -17,7 +17,7 @@ Build-Depends: debhelper-compat (= 13),
 Package: metaproxy
 Section: net
 Architecture: any
-Depends: ${shlibs:Depends}, libmetaproxy6 (= ${source:Version})
+Depends: ${shlibs:Depends}, libmetaproxy6 (= ${source:Version}), adduser
 Conflicts: cf-engine (<= 2.12.5)
 Provides: metaproxy6
 Description: Z39.50/SRU router (main executable)
