@@ -61,7 +61,7 @@ Architecture: any
 Provides: libmetaproxy-dev
 Replaces: libmetaproxy-dev
 Depends: libmetaproxy6 (= ${source:Version}),
-	libyazpp6-dev (>= 1.5.2),
+	libyazpp7-dev (>= 1.5.2),
 	libxslt1-dev,
 	libboost-dev,
 	libboost-thread-dev,
