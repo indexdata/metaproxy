@@ -33,7 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace metaproxy_1 {
     class HTMLParser::Rep {
         friend class HTMLParser;
-    public:
+    private:
         void parse_str(HTMLParserEvent &event, const char *cp);
         void tagText(HTMLParserEvent &event,
                      const char *text_start, const char *text_end);
@@ -46,7 +46,6 @@ namespace metaproxy_1 {
                           const char *cp, int *attr_len,
                           const char **value, int *val_len, int *tr);
         Rep();
-        ~Rep();
         int m_verbose;
         bool nest;
     };
@@ -58,10 +57,6 @@ mp::HTMLParser::Rep::Rep()
 {
     m_verbose = 0;
     nest = true;
-}
-
-mp::HTMLParser::Rep::~Rep()
-{
 }
 
 mp::HTMLParser::HTMLParser() : m_p(new Rep)
@@ -268,7 +263,7 @@ void mp::HTMLParser::Rep::parse_str(HTMLParserEvent &event, const char *cp)
         else if (*cp == '/' && isAlpha(cp[1]))
         {
             int i;
- 
+
             i = skipName(++cp);
 
             if (!nest)
