@@ -1,55 +1,127 @@
-# Build metaproxy
+# Build shared libraries with GCC and test the archive with Clang.
 name: Build metaproxy
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
- build:
-  runs-on: ubuntu-latest
-  steps:
-   - uses: actions/checkout@v4
-     with:
-      fetch-depth: 1
-   - name: Clone YAZ
-     uses: actions/checkout@v4
-     with:
-      repository: indexdata/yaz
-      path: yaz
-      ref: master
-   - name: Clone YAZPP
-     uses: actions/checkout@v4
-     with:
-      repository: indexdata/yazpp
-      path: yazpp
-      ref: master
-   - name: Update packages
-     run: sudo apt update
-   - name: Install required and optional dependencies
-     run: >
-      sudo apt install autoconf automake libtool gcc g++ make bison
-      tclsh xsltproc docbook docbook-xml docbook-xsl librsvg2-bin
-      pkg-config libxslt1-dev libgnutls28-dev libicu-dev
-      libboost-dev libboost-system-dev libboost-thread-dev
-      libboost-test-dev libboost-regex-dev libxml2-utils trang
-   - name: Run buildconf for YAZ
-     run: cd yaz && ./buildconf.sh
-   - name: Run configure for YAZ
-     run: >
-      cd yaz && ./configure --disable-shared --enable-static
-   - name: Run make for YAZ
-     run: cd yaz && make -j4
-   - name: Run buildconf for YAZ++
-     run: cd yazpp && ./buildconf.sh
-   - name: Run configure for YAZ++
-     run: >
-      cd yazpp && ./configure --with-yaz=../yaz
-      --disable-shared --enable-static
-   - name: Run make for YAZ++
-     run: cd yazpp && make -j4
-   - name: Run buildconf for metaproxy
-     run: ./buildconf.sh
-   - name: Run configure for metaproxy
-     run: >
-      ./configure --with-yazpp=yazpp --disable-shared --enable-static
-   - name: Run make check for metaproxy
-     run: make -j4 check
-   - name: Run make dist metaproxy
-     run: make dist
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CC: gcc
+      CXX: g++
+      CFLAGS: -g -O2 -Wall
+      CXXFLAGS: -g -O2 -Wall
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Clone YAZ
+        uses: actions/checkout@v6
+        with:
+          repository: indexdata/yaz
+          path: yaz
+          ref: master
+          submodules: recursive
+
+      - name: Clone YAZPP
+        uses: actions/checkout@v6
+        with:
+          repository: indexdata/yazpp
+          path: yazpp
+          ref: master
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            autoconf automake libtool gcc g++ clang make bison \
+            tclsh xsltproc docbook docbook-xml docbook-xsl librsvg2-bin \
+            pkg-config libxslt1-dev libgnutls28-dev libicu-dev libstemmer-dev \
+            libboost-dev libboost-system-dev libboost-thread-dev \
+            libboost-test-dev libboost-regex-dev libxml2-utils trang
+
+      - name: Run buildconf for YAZ
+        working-directory: yaz
+        run: ./buildconf.sh
+
+      - name: Configure shared YAZ libraries with GCC
+        working-directory: yaz
+        run: ./configure --enable-shared --disable-static
+
+      - name: Build YAZ
+        working-directory: yaz
+        run: make -j4
+
+      - name: Run buildconf for YAZ++
+        working-directory: yazpp
+        run: ./buildconf.sh
+
+      - name: Configure shared YAZ++ libraries with GCC
+        working-directory: yazpp
+        run: ./configure --with-yaz=../yaz --enable-shared --disable-static
+
+      - name: Build YAZ++
+        working-directory: yazpp
+        run: make -j4
+
+      - name: Run buildconf for metaproxy
+        run: ./buildconf.sh
+
+      - name: Configure shared libraries with GCC
+        run: ./configure --with-yazpp=yazpp --enable-shared --disable-static
+
+      - name: Build and test with GCC
+        run: make -j4 check
+
+      - name: Build distribution archive
+        run: make -j4 dist
+
+      - name: Unpack distribution archive for Clang
+        if: github.event_name != 'push'
+        run: |
+          . ./IDMETA
+          mkdir build-clang
+          tar -xzf "metaproxy-$VERSION.tar.gz" -C build-clang --strip-components=1
+
+      - name: Configure static libraries with Clang
+        if: github.event_name != 'push'
+        working-directory: build-clang
+        env:
+          CC: clang
+          CXX: clang++
+        run: >
+          ./configure --with-yazpp="$GITHUB_WORKSPACE/yazpp"
+          --disable-shared --enable-static
+
+      - name: Build and test with Clang
+        if: github.event_name != 'push'
+        working-directory: build-clang
+        run: make -j4 check
+
+      - name: Show build and test failures
+        if: failure()
+        run: |
+          for build in yaz yazpp . build-clang; do
+            for log in config.log src/test-suite.log test/test-suite.log client/test-suite.log ztest/test-suite.log; do
+              if test -f "$build/$log"; then
+                echo "::group::$build/$log"
+                cat "$build/$log"
+                echo "::endgroup::"
+              fi
+            done
+          done
